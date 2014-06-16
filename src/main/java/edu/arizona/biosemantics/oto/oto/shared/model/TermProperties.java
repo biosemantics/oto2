@@ -10,14 +10,16 @@ import com.sencha.gxt.data.shared.PropertyAccess;
 
 public interface TermProperties extends PropertyAccess<Term> {
 
-	  @Path("text")
+	  @Path("id")
 	  ModelKeyProvider<Term> key();
 	   
-	  @Path("text")
+	  @Path("term")
 	  LabelProvider<Term> nameLabel();
 	 
-	  ValueProvider<Term, String> text();
+	  ValueProvider<Term, String> term();
 	   
 	  ValueProvider<Term, List<Term>> synonyms();
+	  
+	  ValueProvider<Term, List<Context>> contexts();
 	
 }

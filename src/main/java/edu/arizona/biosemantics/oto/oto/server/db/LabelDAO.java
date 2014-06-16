@@ -38,7 +38,7 @@ public class LabelDAO {
 		int collectionId = result.getInt(2);
 		String name = result.getString(3);
 		String description = result.getString(4);
-		Label label = new Label(id, CollectionDAO.getInstance().get(collectionId), name, description);
+		Label label = new Label(id, collectionId, /*CollectionDAO.getInstance().get(collectionId),*/ name, description);
 		label.setTerms(TermDAO.getInstance().getTerms(label));
 		return label;
 	}
@@ -48,7 +48,7 @@ public class LabelDAO {
 			Label result = null;
 			Query insert = new Query("INSERT INTO `label` " +
 					"(`collection`, `name`, `description`) VALUES (?, ?, ?)");
-			insert.setParameter(1, label.getCollection().getId());
+			insert.setParameter(1, label.getCollectionId()); //label.getCollection().getId());
 			insert.setParameter(2, label.getName());
 			insert.setParameter(3, label.getDescription());
 			insert.execute();

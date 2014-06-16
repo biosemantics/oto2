@@ -38,7 +38,7 @@ public class BucketDAO {
 		int collectionId = result.getInt(2);
 		String name = result.getString(3);
 		String description = result.getString(4);
-		Bucket bucket = new Bucket(id, CollectionDAO.getInstance().get(collectionId), name, description);
+		Bucket bucket = new Bucket(id, collectionId, /*CollectionDAO.getInstance().get(collectionId),*/ name, description);
 		bucket.setTerms(TermDAO.getInstance().getTerms(bucket));
 		return bucket;
 	}
@@ -47,7 +47,7 @@ public class BucketDAO {
 		if(!bucket.hasId()) {
 			Query insert = new Query("INSERT INTO `bucket` " +
 					"(`collection`, `name`, `description`) VALUES (?, ?, ?)");
-			insert.setParameter(1, bucket.getCollection().getId());
+			insert.setParameter(1, bucket.getCollectionId());// bucket.getCollection().getId());
 			insert.setParameter(2, bucket.getName());
 			insert.setParameter(3, bucket.getDescription());
 			insert.execute();

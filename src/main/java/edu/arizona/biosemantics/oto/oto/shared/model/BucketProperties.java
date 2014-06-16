@@ -8,15 +8,15 @@ import com.sencha.gxt.data.shared.LabelProvider;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.PropertyAccess;
 
-public interface CategoryProperties extends PropertyAccess<Label> {
+public interface BucketProperties extends PropertyAccess<Label> {
 
-	  @Path("text")
+	  @Path("id")
 	  ModelKeyProvider<Label> key();
 	   
-	  @Path("text")
+	  @Path("name")
 	  LabelProvider<Label> nameLabel();
 	 
-	  ValueProvider<Label, String> text();
+	  ValueProvider<Label, String> name();
 	   
 	  ValueProvider<Label, String> description();
 	  

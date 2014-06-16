@@ -66,8 +66,7 @@ public class Oto implements EntryPoint {
 				v.add(categorizeView.asWidget());
 				RootPanel.get().add(v);
 
-				categorizeView.setBuckets(buckets);
-				categorizeView.setLabels(labels);
+				categorizeView.setCollection(collection);
 			}
 		});
 	}

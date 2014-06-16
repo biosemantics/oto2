@@ -28,14 +28,14 @@ public class Collection implements Serializable {
 	}
 	
 	public void setBuckets(List<Bucket> buckets) {
-		for(Bucket bucket : buckets)
-			bucket.setCollection(this);
+		/*for(Bucket bucket : buckets)
+			bucket.setCollection(this);*/
 		this.buckets = buckets;
 	}
 	
 	public void setLabels(List<Label> labels) {
-		for(Label label : labels)
-			label.setCollection(this);
+		/*for(Label label : labels)
+			label.setCollection(this);*/
 		this.labels = labels;
 	}
 
@@ -60,12 +60,12 @@ public class Collection implements Serializable {
 	}
 
 	public void add(Bucket bucket) {
-		bucket.setCollection(this);
+		//bucket.setCollection(this);
 		buckets.add(bucket);
 	}
 
 	public void add(Label label) {
-		label.setCollection(this);
+		//label.setCollection(this);
 		labels.add(label);
 	}
 

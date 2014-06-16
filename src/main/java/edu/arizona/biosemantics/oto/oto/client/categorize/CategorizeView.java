@@ -41,6 +41,7 @@ import edu.arizona.biosemantics.oto.oto.client.categorize.event.TermSelectEvent.
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.TermUncategorizeEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.TermUncategorizeEvent.TermUncategorizeHandler;
 import edu.arizona.biosemantics.oto.oto.shared.model.Bucket;
+import edu.arizona.biosemantics.oto.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto.oto.shared.model.Term;
 import edu.arizona.biosemantics.oto.oto.shared.model.TermProperties;
@@ -127,7 +128,7 @@ public class CategorizeView extends BorderLayoutContainer implements IsWidget {
 			super(GWT.<TabPanelAppearance> create(TabPanelBottomAppearance.class));
 			treeStore = new TreeStore<TextTreeNode>(textTreeNodeProperties.key());
 			listStore = new ListStore<Term>(termProperties.key());
-			listView = new ListView<Term, String>(listStore, termProperties.text());
+			listView = new ListView<Term, String>(listStore, termProperties.term());
 			termTree = new Tree<TextTreeNode, String>(treeStore, textTreeNodeProperties.text());
 			add(termTree, "tree");
 			add(listView, "list");
@@ -141,9 +142,17 @@ public class CategorizeView extends BorderLayoutContainer implements IsWidget {
 				@Override
 				public void onUncategorize(List<Term> terms, Label oldLabel) {
 					for(Term term : terms) {
-						treeStore.add(bucketBucketTreeNodeMap.get(term.getBucket()), termTermTreeNodeMap.get(term));
+						treeStore.add(bucketBucketTreeNodeMap.get(getTermsBucket(term)), termTermTreeNodeMap.get(term));
 						listStore.add(term);
 					}
+				}
+
+				private Bucket getTermsBucket(Term term) {
+					for(Bucket bucket : collection.getBuckets()) {
+						if(bucket.getId() == term.getBucketId()) 
+							return bucket;
+					}
+					return null;
 				}
 			});
 			eventBus.addHandler(TermCategorizeEvent.TYPE, new TermCategorizeEvent.TermCategorizeHandler() {
@@ -232,6 +241,7 @@ public class CategorizeView extends BorderLayoutContainer implements IsWidget {
 	private TermsView termsView = new TermsView();
 	private LabelsView categoriesView = new LabelsView();
 	private TermInfoView termInfoView = new TermInfoView();
+	private Collection collection;
 
 	public CategorizeView() {
 		ContentPanel cp = new ContentPanel();
@@ -270,6 +280,12 @@ public class CategorizeView extends BorderLayoutContainer implements IsWidget {
 
 	public void setLabels(List<Label> labels) {
 		categoriesView.setLabels(labels);
+	}
+
+	public void setCollection(Collection collection) {
+		this.collection = collection;
+		this.setBuckets(collection.getBuckets());
+		this.setLabels(collection.getLabels());
 	}
 
 	

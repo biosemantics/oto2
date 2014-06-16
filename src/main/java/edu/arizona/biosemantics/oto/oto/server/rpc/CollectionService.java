@@ -5,7 +5,9 @@ import javax.servlet.ServletException;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
+import edu.arizona.biosemantics.oto.oto.server.db.BucketDAO;
 import edu.arizona.biosemantics.oto.oto.server.db.CollectionDAO;
+import edu.arizona.biosemantics.oto.oto.shared.model.Bucket;
 import edu.arizona.biosemantics.oto.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto.oto.shared.model.rpc.ICollectionService;
 
@@ -20,6 +22,6 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	@Override
 	public Collection get(Collection collection) throws Exception {
 		return CollectionDAO.getInstance().get(collection.getId());
-	}
+	}	
 
 }

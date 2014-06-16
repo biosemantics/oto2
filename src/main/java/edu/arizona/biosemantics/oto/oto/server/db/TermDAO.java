@@ -39,14 +39,14 @@ public class TermDAO {
 		String text = result.getString(3);
 		
 		int bucketId = result.getInt(2);
-		return new Term(id, text, BucketDAO.getInstance().getBucket(bucketId));
+		return new Term(id, text, bucketId /*BucketDAO.getInstance().getBucket(bucketId)*/);
 	}
 
 	public Term insert(Term term) throws SQLException, ClassNotFoundException, IOException {
 		if(!term.hasId()) {
 			Query insert = new Query("INSERT INTO `term` " +
 					"(`bucket`, `term`) VALUES (?, ?)");
-			insert.setParameter(1, term.getBucket().getId());
+			insert.setParameter(1, term.getBucketId()); //term.getBucket().getId());
 			insert.setParameter(2, term.getTerm());
 			insert.execute();
 			ResultSet generatedKeys = insert.getGeneratedKeys();
@@ -64,7 +64,7 @@ public class TermDAO {
 
 	public void update(Term term) throws SQLException, ClassNotFoundException, IOException {
 		Query query = new Query("UPDATE term SET bucket = ?, term = ? WHERE id = ?");
-		query.setParameter(1, term.getBucket().getId());
+		query.setParameter(1, term.getBucketId()); //term.getBucket().getId());
 		query.setParameter(2, term.getTerm());
 		query.setParameter(3, term.getId());
 		
@@ -86,7 +86,7 @@ public class TermDAO {
 
 	public List<Term> getTerms(Label label) throws ClassNotFoundException, SQLException, IOException {
 		List<Term> terms = new LinkedList<Term>();
-		Query query = new Query("SELECT * FROM term WHERE label = ?");
+		Query query = new Query("SELECT * FROM labeling WHERE label = ?");
 		query.setParameter(1, label.getId());
 		ResultSet result = query.execute();
 		while(result.next()) {
