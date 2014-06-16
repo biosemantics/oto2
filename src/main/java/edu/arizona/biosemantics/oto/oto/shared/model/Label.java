@@ -10,9 +10,8 @@ import java.util.Set;
 public class Label implements Serializable {
 
 	private int id = - 1;
-	private int collectionId;
-	//private Collection collection; //would cause circular reference and not really needed here atm
 	private String name;
+	private Collection collection;
 	private String description;
 	private List<Term> terms = new LinkedList<Term>();
 	
@@ -23,10 +22,9 @@ public class Label implements Serializable {
 		this.description = description;
 	}
 	
-	public Label(int id, int collectionId, /*Collection collection,*/ String name, String description) {
+	public Label(int id, String name, String description) {
 		super();
 		this.id = id;
-		//this.collection = collection;
 		this.name = name;
 		this.description = description;
 	}
@@ -73,29 +71,16 @@ public class Label implements Serializable {
 		return id != -1;
 	}
 	
-	
-
-	/*
-	public void setCollection(Collection collection) {
-		this.collection = collection;
+	public void setId(int id) {
+		this.id = id;
 	}
 
 	public Collection getCollection() {
 		return collection;
 	}
-	*/
 
-	public int getCollectionId() {
-		return collectionId;
-	}
-
-	public void setCollectionId(int collectionId) {
-		this.collectionId = collectionId;
-	}
-
-	public void setId(int id) {
-		this.id = id;
+	public void setCollection(Collection collection) {
+		this.collection = collection;
 	}	
-	
 	
 }

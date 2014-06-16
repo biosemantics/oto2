@@ -142,17 +142,9 @@ public class CategorizeView extends BorderLayoutContainer implements IsWidget {
 				@Override
 				public void onUncategorize(List<Term> terms, Label oldLabel) {
 					for(Term term : terms) {
-						treeStore.add(bucketBucketTreeNodeMap.get(getTermsBucket(term)), termTermTreeNodeMap.get(term));
+						treeStore.add(bucketBucketTreeNodeMap.get(term.getBucket()), termTermTreeNodeMap.get(term));
 						listStore.add(term);
 					}
-				}
-
-				private Bucket getTermsBucket(Term term) {
-					for(Bucket bucket : collection.getBuckets()) {
-						if(bucket.getId() == term.getBucketId()) 
-							return bucket;
-					}
-					return null;
 				}
 			});
 			eventBus.addHandler(TermCategorizeEvent.TYPE, new TermCategorizeEvent.TermCategorizeHandler() {

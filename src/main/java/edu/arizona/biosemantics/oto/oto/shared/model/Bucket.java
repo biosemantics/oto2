@@ -10,19 +10,17 @@ import java.util.Set;
 public class Bucket implements Serializable {
 
 	private int id = -1;
-	private int collectionId;
-	//private Collection collection; //would cause circular reference and not really needed here atm
+	private Collection collection;
 	private String name;
 	private String description;
 	private List<Term> terms = new LinkedList<Term>();
 	
 	public Bucket() { }
 	
-	public Bucket(int id, int collectionId, /*Collection collection,*/ String text, String description) {
+	public Bucket(int id, String text, String description) {
 		super();
 		this.id = id;
-		this.collectionId = collectionId;
-		//this.collection = collection;
+		this.collection = collection;
 		this.name = text;
 		this.description = description;
 	}
@@ -69,10 +67,7 @@ public class Bucket implements Serializable {
 	public boolean hasId() {
 		return id != -1;
 	}
-
 	
-	
-	/*
 	public Collection getCollection() {
 		return collection;
 	}
@@ -80,16 +75,7 @@ public class Bucket implements Serializable {
 	public void setCollection(Collection collection) {
 		this.collection = collection;
 	}
-	*/
 	
-	public int getCollectionId() {
-		return collectionId;
-	}
-
-	public void setCollectionId(int collectionId) {
-		this.collectionId = collectionId;
-	}
-
 	public void setId(int id) {
 		this.id = id;
 	}	

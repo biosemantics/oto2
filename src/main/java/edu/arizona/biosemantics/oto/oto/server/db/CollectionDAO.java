@@ -2,6 +2,7 @@ package edu.arizona.biosemantics.oto.oto.server.db;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.List;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -40,7 +41,13 @@ public class CollectionDAO {
 			collection = createCollection(result);
 		}
 		
+		List<Bucket> buckets = BucketDAO.getInstance().getBuckets(collection);
+		for(Bucket bucket : buckets)
+			bucket.setCollection(collection);
 		collection.setBuckets(BucketDAO.getInstance().getBuckets(collection));
+		List<Label> labels = LabelDAO.getInstance().getLabels(collection);
+		for(Label label : labels)
+			label.setCollection(collection);
 		collection.setLabels(LabelDAO.getInstance().getLabels(collection));
 		
 		query.close();

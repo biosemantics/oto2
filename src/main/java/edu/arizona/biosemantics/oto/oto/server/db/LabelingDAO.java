@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto.oto.server.db;
+/*package edu.arizona.biosemantics.oto.oto.server.db;
 
 import java.io.IOException;
 import java.sql.ResultSet;
@@ -30,8 +30,8 @@ public class LabelingDAO {
 			int collection = result.getInt(2);
 			String name = result.getString(3);
 			String description = result.getString(4);
-			label = new Label(id, collection, /*CollectionDAO.getInstance().get(collection),*/ name, description);
-			label.setTerms(TermDAO.getInstance().getTerms(label));
+			label = new Label(id, collection, /*CollectionDAO.getInstance().get(collection),*//* name, description);
+/*			label.setTerms(TermDAO.getInstance().getTerms(label));
 		}
 		query.close();
 		return label;
@@ -95,3 +95,4 @@ public class LabelingDAO {
 	}
 	
 }
+*/

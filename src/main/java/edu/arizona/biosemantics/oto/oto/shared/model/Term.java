@@ -11,21 +11,17 @@ public class Term implements Serializable {
 
 	private int id = -1;
 	private String term;
-	private int bucketId;
-	private int labelId;
-	//private Bucket bucket; would cause circular reference
-	//private Label label; would cause circular reference
+	private Bucket bucket; 
+	private Label label;
 	private Set<Term> synonyms = new LinkedHashSet<Term>();
 	private List<Context> contexts = new LinkedList<Context>();
 	
 	public Term() { }
 	
-	public Term(int id, String term, int bucketId/*Bucket bucket*/) {
+	public Term(int id, String term) {
 		super();
 		this.id = id;
 		this.term = term;
-		//.bucket = bucket;
-		this.bucketId = bucketId;
 	}
 
 	public String getTerm() {
@@ -43,46 +39,25 @@ public class Term implements Serializable {
 	public void setSynonyms(Set<Term> synonyms) {
 		this.synonyms = synonyms;
 	}
-
 	
-	
-	/*public Label getLabel() {
+	public Label getLabel() {
 		return label;
 	}
 
 	public void setLabel(Label label) {
 		this.label = label;
-	}*/
+	}
 
-	/*
 	public Bucket getBucket() {
 		return bucket;
 	}
 
 	public void setBucket(Bucket bucket) {
 		this.bucket = bucket;
-	}
-	*/
-	
-
-	public int getLabelId() {
-		return labelId;
-	}
-
-	public void setLabelId(int labelId) {
-		this.labelId = labelId;
-	}
+	}	
 
 	public void removeSynonym(Term term) {
 		synonyms.remove(term);
-	}
-
-	public int getBucketId() {
-		return bucketId;
-	}
-
-	public void setBucketId(int bucketId) {
-		this.bucketId = bucketId;
 	}
 
 	public void addSynonym(Term term) {

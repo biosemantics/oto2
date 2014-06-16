@@ -35,7 +35,7 @@ public class ContextDAO {
 		int termId = result.getInt(2);
 		String source = result.getString(3);
 		String sentence = result.getString(4);
-		return new Context(id, TermDAO.getInstance().getTerm(termId), source, sentence);
+		return new Context(id, TermDAO.getInstance().get(termId), source, sentence);
 	}
 
 	public Context insert(Context context) throws ClassNotFoundException, SQLException, IOException {

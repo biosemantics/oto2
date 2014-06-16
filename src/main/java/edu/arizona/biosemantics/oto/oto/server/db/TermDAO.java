@@ -22,7 +22,7 @@ public class TermDAO {
 		return instance;
 	}
 	
-	public Term getTerm(int id) throws SQLException, ClassNotFoundException, IOException {
+	public Term get(int id) throws SQLException, ClassNotFoundException, IOException {
 		Term term = null;
 		Query query = new Query("SELECT * FROM term WHERE id = ?");
 		query.setParameter(1, id);
@@ -36,17 +36,16 @@ public class TermDAO {
 	
 	private Term createTerm(ResultSet result) throws ClassNotFoundException, SQLException, IOException {
 		int id = result.getInt(1);
-		String text = result.getString(3);
-		
 		int bucketId = result.getInt(2);
-		return new Term(id, text, bucketId /*BucketDAO.getInstance().getBucket(bucketId)*/);
+		String text = result.getString(3);
+		return new Term(id, text);
 	}
 
 	public Term insert(Term term) throws SQLException, ClassNotFoundException, IOException {
 		if(!term.hasId()) {
 			Query insert = new Query("INSERT INTO `term` " +
 					"(`bucket`, `term`) VALUES (?, ?)");
-			insert.setParameter(1, term.getBucketId()); //term.getBucket().getId());
+			insert.setParameter(1, term.getBucket().getId()); //term.getBucket().getId());
 			insert.setParameter(2, term.getTerm());
 			insert.execute();
 			ResultSet generatedKeys = insert.getGeneratedKeys();
@@ -64,7 +63,7 @@ public class TermDAO {
 
 	public void update(Term term) throws SQLException, ClassNotFoundException, IOException {
 		Query query = new Query("UPDATE term SET bucket = ?, term = ? WHERE id = ?");
-		query.setParameter(1, term.getBucketId()); //term.getBucket().getId());
+		query.setParameter(1, term.getBucket().getId()); //term.getBucket().getId());
 		query.setParameter(2, term.getTerm());
 		query.setParameter(3, term.getId());
 		
@@ -91,7 +90,7 @@ public class TermDAO {
 		ResultSet result = query.execute();
 		while(result.next()) {
 			int id = result.getInt(1);
-			terms.add(getTerm(id));
+			terms.add(get(id));
 		}
 		query.close();
 		return terms;		
@@ -105,7 +104,7 @@ public class TermDAO {
 		while(result.next()) {
 			int id = result.getInt(1);
 			String text = result.getString(2);
-			terms.add(getTerm(id));
+			terms.add(get(id));
 		}
 		query.close();
 		return terms;
