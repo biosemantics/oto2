@@ -24,16 +24,20 @@ public class ContextDAO {
 		query.setParameter(1, id);
 		ResultSet result = query.execute();
 		while(result.next()) {
-			id = result.getInt(1);
-			int termId = result.getInt(2);
-			String source = result.getString(3);
-			String sentence = result.getString(4);
-			context = new Context(id, TermDAO.getInstance().getTerm(termId), source, sentence);
+			context = createContext(result);
 		}
 		query.close();
 		return context;
 	}
 	
+	private Context createContext(ResultSet result) throws SQLException, ClassNotFoundException, IOException {
+		int id = result.getInt(1);
+		int termId = result.getInt(2);
+		String source = result.getString(3);
+		String sentence = result.getString(4);
+		return new Context(id, TermDAO.getInstance().getTerm(termId), source, sentence);
+	}
+
 	public Context insert(Context context) throws ClassNotFoundException, SQLException, IOException {
 		if(!context.hasId()) {
 			Context result = null;

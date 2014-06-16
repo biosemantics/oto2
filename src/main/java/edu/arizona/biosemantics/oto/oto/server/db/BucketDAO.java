@@ -27,17 +27,22 @@ public class BucketDAO {
 		query.setParameter(1, id);
 		ResultSet result = query.execute();
 		while(result.next()) {
-			id = result.getInt(1);
-			int collectionId = result.getInt(2);
-			String name = result.getString(3);
-			String description = result.getString(4);
-			bucket = new Bucket(id, CollectionDAO.getInstance().get(collectionId), name, description);
-			bucket.setTerms(TermDAO.getInstance().getTerms(bucket));
+			bucket = createBucket(result);
 		}
 		query.close();
 		return bucket;
 	}
 	
+	private Bucket createBucket(ResultSet result) throws ClassNotFoundException, SQLException, IOException {
+		int id = result.getInt(1);
+		int collectionId = result.getInt(2);
+		String name = result.getString(3);
+		String description = result.getString(4);
+		Bucket bucket = new Bucket(id, CollectionDAO.getInstance().get(collectionId), name, description);
+		bucket.setTerms(TermDAO.getInstance().getTerms(bucket));
+		return bucket;
+	}
+
 	public Bucket insert(Bucket bucket) throws SQLException, ClassNotFoundException, IOException {
 		if(!bucket.hasId()) {
 			Query insert = new Query("INSERT INTO `bucket` " +
@@ -90,8 +95,7 @@ public class BucketDAO {
 		query.setParameter(1, collection.getId());
 		ResultSet result = query.execute();
 		while(result.next()) {
-			int id = result.getInt(1);
-			buckets.add(BucketDAO.getInstance().getBucket(id));
+			buckets.add(createBucket(result));
 		}
 		query.close();
 		return buckets;		

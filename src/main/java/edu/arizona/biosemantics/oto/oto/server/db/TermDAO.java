@@ -28,16 +28,20 @@ public class TermDAO {
 		query.setParameter(1, id);
 		ResultSet result = query.execute();
 		while(result.next()) {
-			id = result.getInt(1);
-			String text = result.getString(3);
-			
-			int bucketId = result.getInt(2);
-			term = new Term(id, text, BucketDAO.getInstance().getBucket(bucketId));
+			term = createTerm(result);
 		}
 		query.close();
 		return term;
 	}
 	
+	private Term createTerm(ResultSet result) throws ClassNotFoundException, SQLException, IOException {
+		int id = result.getInt(1);
+		String text = result.getString(3);
+		
+		int bucketId = result.getInt(2);
+		return new Term(id, text, BucketDAO.getInstance().getBucket(bucketId));
+	}
+
 	public Term insert(Term term) throws SQLException, ClassNotFoundException, IOException {
 		if(!term.hasId()) {
 			Query insert = new Query("INSERT INTO `term` " +

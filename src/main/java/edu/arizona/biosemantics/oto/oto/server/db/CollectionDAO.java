@@ -37,10 +37,7 @@ public class CollectionDAO {
 		query.setParameter(1, id);
 		ResultSet result = query.execute();
 		while(result.next()) {
-			id = result.getInt(1);
-			String name = result.getString(2);
-			String secret = result.getString(3);
-			collection = new Collection(id, name, secret);
+			collection = createCollection(result);
 		}
 		
 		collection.setBuckets(BucketDAO.getInstance().getBuckets(collection));
@@ -57,6 +54,13 @@ public class CollectionDAO {
 		return collection;
 	}
 	
+	private Collection createCollection(ResultSet result) throws SQLException {
+		int id = result.getInt(1);
+		String name = result.getString(2);
+		String secret = result.getString(3);
+		return new Collection(id, name, secret);
+	}
+
 	public Collection insert(Collection collection) throws ClassNotFoundException, SQLException, IOException {
 		if(!collection.hasId()) {
 			Query insert = new Query("INSERT INTO `collection` (`name`, `secret`) VALUES(?, ?)");

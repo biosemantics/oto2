@@ -27,17 +27,22 @@ public class LabelDAO {
 		query.setParameter(1, id);
 		ResultSet result = query.execute();
 		while(result.next()) {
-			id = result.getInt(1);
-			int collectionId = result.getInt(2);
-			String name = result.getString(3);
-			String description = result.getString(4);
-			label = new Label(id, CollectionDAO.getInstance().get(collectionId), name, description);
-			label.setTerms(TermDAO.getInstance().getTerms(label));
+			label = createLabel(result);
 		}
 		query.close();
 		return label;
 	}
 	
+	private Label createLabel(ResultSet result) throws SQLException, ClassNotFoundException, IOException {
+		int id = result.getInt(1);
+		int collectionId = result.getInt(2);
+		String name = result.getString(3);
+		String description = result.getString(4);
+		Label label = new Label(id, CollectionDAO.getInstance().get(collectionId), name, description);
+		label.setTerms(TermDAO.getInstance().getTerms(label));
+		return label;
+	}
+
 	public Label insert(Label label) throws SQLException, ClassNotFoundException, IOException {
 		if(!label.hasId()) {
 			Label result = null;
