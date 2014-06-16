@@ -44,23 +44,19 @@ import edu.arizona.biosemantics.oto.oto.shared.model.rpc.RPCCallback;
 public class Oto implements EntryPoint {
 	
 	private int collectionId = 1;
+	private String secret = "my secret";
 
 	/**
 	 * This is the entry point method.
 	 */
 	public void onModuleLoad() {
-		//Client client = new Client(GWT.getModuleBaseURL());
 		ICollectionServiceAsync client = GWT.create(ICollectionService.class);
-		
 		Collection collection = new Collection();
 		collection.setId(collectionId);
-		collection.setSecret("my secret");
+		collection.setSecret(secret);
 		client.get(collection, new RPCCallback<Collection>() {
 			@Override
 			public void onSuccess(Collection collection) {
-				List<Bucket> buckets = collection.getBuckets();
-				List<Label> labels = collection.getLabels();
-
 				CategorizeView categorizeView = new CategorizeView();
 				Viewport v = new Viewport();
 				v.add(categorizeView.asWidget());
@@ -70,31 +66,4 @@ public class Oto implements EntryPoint {
 			}
 		});
 	}
-
-	/*private List<Label> getInitialCategories() {
-		List<Label> categories = new LinkedList<Label>();
-		Label structures = new Label("structures", "all structures");
-		List<Term> terms = new LinkedList<Term>();
-		terms.add(new Term("a"));
-		terms.add(new Term("b"));
-		structures.setTerms(terms);
-		
-		Label characters = new Label("characters", "all characters");
-		terms = new LinkedList<Term>();
-		terms.add(new Term("c"));
-		terms.add(new Term("d"));
-		characters.setTerms(terms);
-		
-		Label others = new Label("others", "all others");
-		terms = new LinkedList<Term>();
-		terms.add(new Term("e"));
-		terms.add(new Term("f"));
-		others.setTerms(terms);
-		
-		categories.add(structures);
-		categories.add(characters);
-		categories.add(others);
-		
-		return categories;
-	}*/
 }

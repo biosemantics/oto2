@@ -8,8 +8,7 @@ import com.sencha.gxt.dnd.core.client.DndDropEvent;
 import com.sencha.gxt.widget.core.client.container.CardLayoutContainer;
 import com.sencha.gxt.widget.core.client.tree.Tree;
 
-import edu.arizona.biosemantics.oto.oto.client.categorize.CategorizeView.LabelTreeNode;
-import edu.arizona.biosemantics.oto.oto.client.categorize.CategorizeView.TermsView;
+import edu.arizona.biosemantics.oto.oto.client.categorize.LabelsView.LabelTreeNode;
 import edu.arizona.biosemantics.oto.oto.shared.model.Term;
 import edu.arizona.biosemantics.oto.oto.shared.model.TermTreeNode;
 
