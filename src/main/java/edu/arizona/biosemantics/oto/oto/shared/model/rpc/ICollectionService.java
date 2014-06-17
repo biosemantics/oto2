@@ -1,5 +1,6 @@
 package edu.arizona.biosemantics.oto.oto.shared.model.rpc;
 
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
@@ -13,5 +14,7 @@ import edu.arizona.biosemantics.oto.oto.shared.model.Collection;
 public interface ICollectionService extends RemoteService {
 	
 	public Collection get(Collection collection) throws Exception;
+	
+	public void update(Collection collection) throws Exception; 
 
 }

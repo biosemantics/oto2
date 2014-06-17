@@ -9,6 +9,8 @@ import edu.arizona.biosemantics.oto.oto.shared.model.Collection;
  */
 public interface ICollectionServiceAsync {
 	
-	public void get(Collection collection, AsyncCallback<Collection> callback); 
+	public void get(Collection collection, AsyncCallback<Collection> callback);
+
+	public void update(Collection collection, AsyncCallback<Void> callback); 
 		
 }

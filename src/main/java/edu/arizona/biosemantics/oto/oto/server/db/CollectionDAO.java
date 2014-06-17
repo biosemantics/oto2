@@ -97,18 +97,20 @@ public class CollectionDAO {
 		query.setParameter(3, collection.getId());
 		query.executeAndClose();
 		
+		//buckets can actually only be the old ones so update should be sufficient
 		for(Bucket oldBucket : BucketDAO.getInstance().getBuckets(collection)) 
 			BucketDAO.getInstance().remove(oldBucket);
 		
-		for(Bucket bucket : collection.getBuckets()) 
+		for(Bucket bucket : collection.getBuckets()) {
 			BucketDAO.getInstance().insert(bucket);
+		}
 		
+		//labels can be new and old
 		for(Label oldLabel : LabelDAO.getInstance().getLabels(collection)) 
 			LabelDAO.getInstance().remove(oldLabel);
 		
 		for(Label label : collection.getLabels())
 			LabelDAO.getInstance().insert(label);
-		
 	}
 	
 	public void remove(Collection collection) throws ClassNotFoundException, SQLException, IOException {
