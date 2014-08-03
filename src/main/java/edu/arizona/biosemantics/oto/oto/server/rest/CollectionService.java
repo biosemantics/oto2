@@ -30,6 +30,8 @@ public class CollectionService {
 	Request request;		
 	
 	private Logger logger;
+	private edu.arizona.biosemantics.oto.oto.server.rpc.CollectionService rpcCollectionService = 
+			new edu.arizona.biosemantics.oto.oto.server.rpc.CollectionService();
 	
 	public CollectionService() {
 		logger =  LoggerFactory.getLogger(this.getClass());
@@ -41,9 +43,9 @@ public class CollectionService {
 	public Collection put(Collection collection) {
 		try {
 			if(collection.getLabels().isEmpty())
-				collection.setLabels(createDefaultLabels());
+				collection.setLabels(rpcCollectionService.createDefaultLabels());
 			if(collection.getSecret().isEmpty())
-				createDefaultSecret(collection);
+				rpcCollectionService.createDefaultSecret(collection);
 			Collection result = CollectionDAO.getInstance().insert(collection);
 			return result;
 		} catch (Exception e) {
@@ -51,36 +53,6 @@ public class CollectionService {
 			e.printStackTrace();
 			return null;
 		}
-	}
-	
-	private void createDefaultSecret(Collection collection) {
-		String secret = String.valueOf(collection.getId());// Encryptor.getInstance().encrypt(Integer.toString(collection.getId()));
-		collection.setSecret(secret);
-	}
-
-	private List<Label> createDefaultLabels() {
-		List<Label> result = new LinkedList<Label>();
-		Label abc = new Label("abc", "d");
-		result.add(abc);
-		result.add(new Label("bcd", "d"));
-		result.add(new Label("efg", "d"));
-		result.add(new Label("bcd", "d"));
-		result.add(new Label("bcd", "d"));
-		result.add(new Label("efg", "d"));
-		result.add(new Label("bcd", "d"));
-		result.add(new Label("bcd", "d"));
-		result.add(new Label("efg", "d"));
-		result.add(new Label("bcd", "d"));
-		result.add(new Label("bcd", "d"));
-		result.add(new Label("efg", "d"));
-		result.add(new Label("bcd", "d"));
-		result.add(new Label("bcd", "d"));
-		result.add(new Label("efg", "d"));
-		result.add(new Label("bcd", "d"));
-		result.add(new Label("bcd", "d"));
-		result.add(new Label("efg", "d"));
-		result.add(new Label("bcd", "d"));
-		return result;
 	}
 
 	@GET

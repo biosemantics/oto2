@@ -23,7 +23,7 @@ public class BucketDAO {
 	
 	public Bucket get(int id) throws SQLException, ClassNotFoundException, IOException {
 		Bucket bucket = null;
-		Query query = new Query("SELECT * FROM bucket WHERE id = ?");
+		Query query = new Query("SELECT * FROM oto_bucket WHERE id = ?");
 		query.setParameter(1, id);
 		ResultSet result = query.execute();
 		while(result.next()) {
@@ -50,7 +50,7 @@ public class BucketDAO {
 
 	public Bucket insert(Bucket bucket) throws SQLException, ClassNotFoundException, IOException {
 		if(!bucket.hasId()) {
-			Query insert = new Query("INSERT INTO `bucket` " +
+			Query insert = new Query("INSERT INTO `oto_bucket` " +
 					"(`collection`, `name`, `description`) VALUES (?, ?, ?)");
 			insert.setParameter(1, bucket.getCollection().getId());
 			insert.setParameter(2, bucket.getName());
@@ -69,7 +69,7 @@ public class BucketDAO {
 	}
 
 	public void update(Bucket bucket) throws SQLException, ClassNotFoundException, IOException {
-		Query query = new Query("UPDATE bucket SET name = ?, description = ? WHERE id = ?");
+		Query query = new Query("UPDATE oto_bucket SET name = ?, description = ? WHERE id = ?");
 		query.setParameter(1, bucket.getName());
 		query.setParameter(2, bucket.getDescription());
 		query.setParameter(3, bucket.getId());
@@ -86,7 +86,7 @@ public class BucketDAO {
 	}
 
 	public void remove(Bucket bucket) throws SQLException, ClassNotFoundException, IOException {
-		Query query = new Query("DELETE FROM bucket WHERE id = ?");
+		Query query = new Query("DELETE FROM oto_bucket WHERE id = ?");
 		query.setParameter(1, bucket.getId());
 		query.executeAndClose();
 		
@@ -96,7 +96,7 @@ public class BucketDAO {
 	
 	public List<Bucket> getBuckets(Collection collection) throws SQLException, ClassNotFoundException, IOException {
 		List<Bucket> buckets = new LinkedList<Bucket>();
-		Query query = new Query("SELECT * FROM bucket WHERE collection = ?");
+		Query query = new Query("SELECT * FROM oto_bucket WHERE collection = ?");
 		query.setParameter(1, collection.getId());
 		ResultSet result = query.execute();
 		while(result.next()) {

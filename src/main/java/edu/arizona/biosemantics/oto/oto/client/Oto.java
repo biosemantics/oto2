@@ -22,6 +22,11 @@ public class Oto implements EntryPoint {
 		CategorizeView view = new CategorizeView(eventBus);
 		CategorizePresenter presenter = new CategorizePresenter(eventBus, view);
 		
+		int collectionId = 1;
+		String secret = "my secret";
+		
+		presenter.loadCollection(collectionId, secret);
+		
 		Viewport v = new Viewport();
 		v.add(view.asWidget());
 		RootPanel.get().add(v);

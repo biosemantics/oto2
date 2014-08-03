@@ -20,7 +20,7 @@ public class ContextDAO {
 	
 	public Context get(int id) throws ClassNotFoundException, SQLException, IOException {
 		Context context = null;
-		Query query = new Query("SELECT * FROM context WHERE id = ?");
+		Query query = new Query("SELECT * FROM oto_context WHERE id = ?");
 		query.setParameter(1, id);
 		ResultSet result = query.execute();
 		while(result.next()) {
@@ -41,7 +41,7 @@ public class ContextDAO {
 	public Context insert(Context context) throws ClassNotFoundException, SQLException, IOException {
 		if(!context.hasId()) {
 			Context result = null;
-			Query insert = new Query("INSERT INTO `context` " +
+			Query insert = new Query("INSERT INTO `oto_context` " +
 					"(`term`, `source`, `sentence`) VALUES (?, ?, ?)");
 			insert.setParameter(1, context.getTerm().getId());
 			insert.setParameter(2, context.getSource());
@@ -57,7 +57,7 @@ public class ContextDAO {
 	}
 	
 	public void update(Context context) throws SQLException, ClassNotFoundException, IOException {
-		Query query = new Query("UPDATE context SET term = ?, source = ?, sentence = ? WHERE id = ?");
+		Query query = new Query("UPDATE oto_context SET term = ?, source = ?, sentence = ? WHERE id = ?");
 		query.setParameter(1, context.getTerm().getId());
 		query.setParameter(2, context.getSource());
 		query.setParameter(1, context.getSentence());
@@ -65,7 +65,7 @@ public class ContextDAO {
 	}
 	
 	public void remove(Context context) throws ClassNotFoundException, SQLException, IOException {
-		Query query = new Query("DELETE FROM context WHERE id = ?");
+		Query query = new Query("DELETE FROM oto_context WHERE id = ?");
 		query.setParameter(1, context.getId());
 		query.executeAndClose();
 	}	

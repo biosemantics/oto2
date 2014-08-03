@@ -23,7 +23,7 @@ public class LabelDAO {
 	
 	public Label get(int id) throws SQLException, ClassNotFoundException, IOException {
 		Label label = null;
-		Query query = new Query("SELECT * FROM label WHERE id = ?");
+		Query query = new Query("SELECT * FROM oto_label WHERE id = ?");
 		query.setParameter(1, id);
 		ResultSet result = query.execute();
 		while(result.next()) {
@@ -46,7 +46,7 @@ public class LabelDAO {
 	public Label insert(Label label) throws SQLException, ClassNotFoundException, IOException {
 		if(!label.hasId()) {
 			Label result = null;
-			Query insert = new Query("INSERT INTO `label` " +
+			Query insert = new Query("INSERT INTO `oto_label` " +
 					"(`collection`, `name`, `description`) VALUES (?, ?, ?)");
 			insert.setParameter(1, label.getCollection().getId());
 			insert.setParameter(2, label.getName());
@@ -66,7 +66,7 @@ public class LabelDAO {
 	}
 
 	public void update(Label label) throws SQLException, ClassNotFoundException, IOException {
-		Query query = new Query("UPDATE label SET name = ?, description = ? WHERE id = ?");
+		Query query = new Query("UPDATE oto_label SET name = ?, description = ? WHERE id = ?");
 		query.setParameter(1, label.getName());
 		query.setParameter(2, label.getDescription());
 		query.setParameter(3, label.getId());
@@ -83,7 +83,7 @@ public class LabelDAO {
 	}
 
 	public void remove(Label label) throws SQLException, ClassNotFoundException, IOException {
-		Query query = new Query("DELETE FROM label WHERE id = ?");
+		Query query = new Query("DELETE FROM oto_label WHERE id = ?");
 		query.setParameter(1, label.getId());
 		query.executeAndClose();
 		
@@ -93,7 +93,7 @@ public class LabelDAO {
 
 	public List<Label> getLabels(Collection collection) throws SQLException, ClassNotFoundException, IOException {
 		List<Label> labels = new LinkedList<Label>();
-		Query query = new Query("SELECT * FROM label WHERE collection = ?");
+		Query query = new Query("SELECT * FROM oto_label WHERE collection = ?");
 		query.setParameter(1, collection.getId());
 		ResultSet result = query.execute();
 		while(result.next()) {
@@ -106,7 +106,7 @@ public class LabelDAO {
 
 	public Label get(Term term) throws ClassNotFoundException, SQLException, IOException {
 		Label label = null;
-		Query query = new Query("SELECT * FROM labeling WHERE term = ?");
+		Query query = new Query("SELECT * FROM oto_labeling WHERE term = ?");
 		query.setParameter(1, term.getId());
 		ResultSet result = query.execute();
 		while(result.next()) {

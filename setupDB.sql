@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS `collection` (
+CREATE TABLE IF NOT EXISTS `oto_collection` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(100) NOT NULL,
   `secret` varchar(100) NOT NULL,
@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS `collection` (
   UNIQUE KEY `id` (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0 ;
 
-CREATE TABLE IF NOT EXISTS `term` (
+CREATE TABLE IF NOT EXISTS `oto_term` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `bucket` bigint(20) unsigned NOT NULL,
   `term` varchar(100) NOT NULL,
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS `term` (
   UNIQUE KEY `id` (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0 ;
 
-CREATE TABLE IF NOT EXISTS `bucket` (
+CREATE TABLE IF NOT EXISTS `oto_bucket` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `collection` bigint(20) unsigned NOT NULL,
   `name` varchar(100) NOT NULL,
@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS `bucket` (
   UNIQUE KEY `id` (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0 ;
 
-CREATE TABLE IF NOT EXISTS `label` (
+CREATE TABLE IF NOT EXISTS `oto_label` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `collection` bigint(20) unsigned NOT NULL,
   `name` varchar(100) NOT NULL,
@@ -37,14 +37,14 @@ CREATE TABLE IF NOT EXISTS `label` (
   UNIQUE KEY `id` (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0 ;
 
-CREATE TABLE IF NOT EXISTS `labeling` (
+CREATE TABLE IF NOT EXISTS `oto_labeling` (
   `term` bigint(20) unsigned NOT NULL,
   `label` bigint(20) unsigned NOT NULL,
   `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY `termlabel` (`term`,`label`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `synonym` (
+CREATE TABLE IF NOT EXISTS `oto_synonym` (
   `termA` bigint(20) unsigned NOT NULL,
   `label` bigint(20) unsigned NOT NULL,
   `termB` bigint(20) unsigned NOT NULL,
@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS `synonym` (
 --
 -- Context stuff: Given with upload
 --
-CREATE TABLE IF NOT EXISTS `context` (
+CREATE TABLE IF NOT EXISTS `oto_context` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `term` bigint(2) unsigned NOT NULL,
   `source` varchar(100) NOT NULL,

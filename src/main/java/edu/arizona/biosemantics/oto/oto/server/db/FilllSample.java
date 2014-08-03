@@ -28,7 +28,6 @@ public class FilllSample {
 		t1.addContext(c1);
 		t1.addContext(c2);
 		Term t2 = new Term();
-		
 		t2.setTerm("test1");
 		Term t3 = new Term();
 		t3.setTerm("test2");

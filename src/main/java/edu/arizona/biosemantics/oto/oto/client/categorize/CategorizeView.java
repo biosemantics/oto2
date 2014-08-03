@@ -23,7 +23,6 @@ public class CategorizeView extends BorderLayoutContainer implements IsWidget {
 	private TermsView termsView;
 	private LabelsView categoriesView;
 	private TermInfoView termInfoView;
-	private Collection collection;
 
 	public CategorizeView(EventBus eventBus) {
 		this.eventBus = eventBus;
@@ -68,7 +67,6 @@ public class CategorizeView extends BorderLayoutContainer implements IsWidget {
 	}
 
 	public void setCollection(Collection collection) {
-		this.collection = collection;
 		this.setBuckets(collection.getBuckets());
 		this.setLabels(collection.getLabels());
 	}

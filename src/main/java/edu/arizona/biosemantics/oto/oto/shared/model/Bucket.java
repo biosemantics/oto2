@@ -38,8 +38,8 @@ public class Bucket implements Serializable {
 	}
 
 	public void setTerms(List<Term> terms) {
-		//for(Term term : terms) 
-		//	term.setBucket(this);
+		for(Term term : terms) 
+			term.setBucket(this);
 		this.terms = terms;
 	}
 
@@ -56,7 +56,7 @@ public class Bucket implements Serializable {
 	}
 	
 	public void addTerm(Term term) {
-		//term.setBucket(this);
+		term.setBucket(this);
 		terms.add(term);
 	}
 	

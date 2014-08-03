@@ -22,9 +22,6 @@ import edu.arizona.biosemantics.oto.oto.shared.model.rpc.ICollectionServiceAsync
 
 public class CategorizePresenter {
 
-	private final int collectionId = 1;
-	private final String secret = "my secret";
-	
 	private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
 	private Collection collection;
 	private CategorizeView view;
@@ -33,8 +30,6 @@ public class CategorizePresenter {
 	public CategorizePresenter(EventBus eventBus, CategorizeView view) {
 		this.eventBus = eventBus;
 		this.view = view;
-		load();
-
 		bindEvents();
 	}
 
@@ -43,57 +38,57 @@ public class CategorizePresenter {
 		eventBus.addHandler(CategorizeCopyTermEvent.TYPE, new CategorizeCopyTermEvent.CategorizeCopyTermHandler() {
 			@Override
 			public void onCategorize(List<Term> terms, Label sourceCategory, Label targetCategory) {
-				save();
+				saveCollection();
 			}
 		});
 		eventBus.addHandler(CategorizeMoveTermEvent.TYPE, new CategorizeMoveTermEvent.CategorizeMoveTermHandler() {
 			@Override
 			public void onCategorize(List<Term> terms, Label sourceCategory,
 					Label targetCategory) {
-				save();
+				saveCollection();
 			}
 		});
 		eventBus.addHandler(SynonymCreationEvent.TYPE, new SynonymCreationEvent.SynonymCreationHandler() {
 			@Override
 			public void onSynonymCreation(Term term, Term mainTerm) {
-				save();
+				saveCollection();
 			}
 		});
 		eventBus.addHandler(SynonymRemovalEvent.TYPE, new SynonymRemovalEvent.SynonymRemovalHandler() {
 			@Override
 			public void onSynonymCreation(Term term, Term oldMainTerm) {
-				save();
+				saveCollection();
 			}
 		});
 		eventBus.addHandler(TermCategorizeEvent.TYPE, new TermCategorizeEvent.TermCategorizeHandler() {
 			@Override
 			public void onCategorize(List<Term> terms, Label category) {
-				save();
+				saveCollection();
 			}
 		});
 		eventBus.addHandler(TermUncategorizeEvent.TYPE, new TermUncategorizeEvent.TermUncategorizeHandler() {
 			
 			@Override
 			public void onUncategorize(List<Term> terms, Label oldCategory) {
-				save();
+				saveCollection();
 			}
 		});
 		eventBus.addHandler(SaveEvent.TYPE, new SaveEvent.SaveHandler() {
 			@Override
 			public void onSave(Collection collection) {
-				save();
+				saveCollection();
 			}
 		});
 		
 		eventBus.addHandler(LoadEvent.TYPE, new LoadEvent.LoadHandler() {
 			@Override
 			public void onLoad(Collection collection) {
-				load();
+				loadCollection(collection.getId(), collection.getSecret());
 			}
 		});
 	}
 
-	private void save() {
+	private void saveCollection() {
 		collectionService.update(collection, new AsyncCallback<Void>() {
 			@Override
 			public void onFailure(Throwable caught) {
@@ -103,8 +98,8 @@ public class CategorizePresenter {
 			public void onSuccess(Void result) {	}
 		});
 	}
-	
-	private void load() {
+
+	public void loadCollection(int collectionId, String secret) {		
 		Collection collection = new Collection();
 		collection.setId(collectionId);
 		collection.setSecret(secret);

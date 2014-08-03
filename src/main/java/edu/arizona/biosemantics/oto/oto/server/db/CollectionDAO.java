@@ -22,7 +22,7 @@ public class CollectionDAO {
 	}
 	
 	public boolean isValidSecret(int id, String secret) throws ClassNotFoundException, SQLException, IOException {
-		Query query = new Query("SELECT * FROM collection WHERE id = ?");
+		Query query = new Query("SELECT * FROM oto_collection WHERE id = ?");
 		query.setParameter(1, id);
 		ResultSet result = query.execute();
 		while(result.next()) {
@@ -34,7 +34,7 @@ public class CollectionDAO {
 	
 	public Collection get(int id) throws ClassNotFoundException, SQLException, IOException {
 		Collection collection = null;
-		Query query = new Query("SELECT * FROM collection WHERE id = ?");
+		Query query = new Query("SELECT * FROM oto_collection WHERE id = ?");
 		query.setParameter(1, id);
 		ResultSet result = query.execute();
 		while(result.next()) {
@@ -52,7 +52,7 @@ public class CollectionDAO {
 		
 		query.close();
 		
-		query = new Query("UPDATE collection SET lastretrieved = ? WHERE id = ?");
+		query = new Query("UPDATE oto_collection SET lastretrieved = ? WHERE id = ?");
 		query.setParameter(2, id);
 		Date date = new Date();
 		query.setParameter(1, new Timestamp(date.getTime()));
@@ -70,7 +70,7 @@ public class CollectionDAO {
 
 	public Collection insert(Collection collection) throws ClassNotFoundException, SQLException, IOException {
 		if(!collection.hasId()) {
-			Query insert = new Query("INSERT INTO `collection` (`name`, `secret`) VALUES(?, ?)");
+			Query insert = new Query("INSERT INTO `oto_collection` (`name`, `secret`) VALUES(?, ?)");
 			insert.setParameter(1, collection.getName());
 			insert.setParameter(2, collection.getSecret());
 			insert.execute();
@@ -91,7 +91,7 @@ public class CollectionDAO {
 	}
 	
 	public void update(Collection collection) throws SQLException, ClassNotFoundException, IOException {
-		Query query = new Query("UPDATE collection SET name = ?, secret = ? WHERE id = ?");
+		Query query = new Query("UPDATE oto_collection SET name = ?, secret = ? WHERE id = ?");
 		query.setParameter(1, collection.getName());
 		query.setParameter(2, collection.getSecret());
 		query.setParameter(3, collection.getId());
@@ -114,7 +114,7 @@ public class CollectionDAO {
 	}
 	
 	public void remove(Collection collection) throws ClassNotFoundException, SQLException, IOException {
-		Query query = new Query("DELETE FROM collection WHERE id = ?");
+		Query query = new Query("DELETE FROM oto_collection WHERE id = ?");
 		query.setParameter(1, collection.getId());
 		query.executeAndClose();
 		
