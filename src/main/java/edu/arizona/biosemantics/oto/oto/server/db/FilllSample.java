@@ -57,7 +57,8 @@ public class FilllSample {
 		collection.setLabels(labels);
 		
 		collection.setSecret("my secret");
-		CollectionDAO.getInstance().insert(collection);
+		DAOManager daoManager = new DAOManager();
+		daoManager.getCollectionDAO().insert(collection);
 	}
 
 }

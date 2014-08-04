@@ -10,17 +10,28 @@ import java.sql.Timestamp;
 import edu.arizona.biosemantics.oto.oto.shared.model.Bucket;
 import edu.arizona.biosemantics.oto.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto.oto.shared.model.Label;
+import edu.arizona.biosemantics.oto.oto.shared.model.Term;
 
 public class CollectionDAO {
-
-	private static CollectionDAO instance;
 	
-	public static CollectionDAO getInstance() {
-		if(instance == null)
-			instance = new CollectionDAO();
-		return instance;
+	private BucketDAO bucketDAO;
+	private LabelDAO labelDAO;
+	private TermDAO termDAO;
+	
+	
+	
+	public void setBucketDAO(BucketDAO bucketDAO) {
+		this.bucketDAO = bucketDAO;
 	}
-	
+
+	public void setLabelDAO(LabelDAO labelDAO) {
+		this.labelDAO = labelDAO;
+	}
+
+	public void setTermDAO(TermDAO termDAO) {
+		this.termDAO = termDAO;
+	}
+
 	public boolean isValidSecret(int id, String secret) throws ClassNotFoundException, SQLException, IOException {
 		Query query = new Query("SELECT * FROM oto_collection WHERE id = ?");
 		query.setParameter(1, id);
@@ -41,14 +52,14 @@ public class CollectionDAO {
 			collection = createCollection(result);
 		}
 		
-		List<Bucket> buckets = BucketDAO.getInstance().getBuckets(collection);
+		List<Bucket> buckets = bucketDAO.getBuckets(collection);
 		for(Bucket bucket : buckets)
 			bucket.setCollection(collection);
-		collection.setBuckets(BucketDAO.getInstance().getBuckets(collection));
-		List<Label> labels = LabelDAO.getInstance().getLabels(collection);
+		collection.setBuckets(buckets);
+		List<Label> labels = labelDAO.getLabels(collection);
 		for(Label label : labels)
 			label.setCollection(collection);
-		collection.setLabels(LabelDAO.getInstance().getLabels(collection));
+		collection.setLabels(labels);
 		
 		query.close();
 		
@@ -82,10 +93,10 @@ public class CollectionDAO {
 			collection.setId(id);
 			
 			for(Bucket bucket : collection.getBuckets())
-				BucketDAO.getInstance().insert(bucket);
+				bucketDAO.insert(bucket);
 					
 			for(Label label : collection.getLabels())
-				LabelDAO.getInstance().insert(label);
+				labelDAO.insert(label);
 		}
 		return collection;
 	}
@@ -97,20 +108,32 @@ public class CollectionDAO {
 		query.setParameter(3, collection.getId());
 		query.executeAndClose();
 		
+		for(Term term : termDAO.getTerms(collection)) {
+			termDAO.remove(term);
+		}
+		
 		//buckets can actually only be the old ones so update should be sufficient
-		for(Bucket oldBucket : BucketDAO.getInstance().getBuckets(collection)) 
-			BucketDAO.getInstance().remove(oldBucket);
+		for(Bucket oldBucket : bucketDAO.getBuckets(collection))
+			bucketDAO.remove(oldBucket);
 		
 		for(Bucket bucket : collection.getBuckets()) {
-			BucketDAO.getInstance().insert(bucket);
+			bucketDAO.insert(bucket);
+			for(Term term : bucket.getTerms()) {
+				termDAO.insert(term);
+			}
 		}
 		
 		//labels can be new and old
-		for(Label oldLabel : LabelDAO.getInstance().getLabels(collection)) 
-			LabelDAO.getInstance().remove(oldLabel);
+		for(Label oldLabel : labelDAO.getLabels(collection)) 
+			labelDAO.remove(oldLabel);
 		
-		for(Label label : collection.getLabels())
-			LabelDAO.getInstance().insert(label);
+		for(Label label : collection.getLabels()) {
+			labelDAO.insert(label);
+			for(Term term : label.getTerms()) {
+				termDAO.insert(term);
+				labelDAO.insert(term, label);
+			}
+		}
 	}
 	
 	public void remove(Collection collection) throws ClassNotFoundException, SQLException, IOException {
@@ -119,9 +142,9 @@ public class CollectionDAO {
 		query.executeAndClose();
 		
 		for(Bucket bucket : collection.getBuckets())
-			BucketDAO.getInstance().remove(bucket);
+			bucketDAO.remove(bucket);
 		
 		for(Label label : collection.getLabels())
-			LabelDAO.getInstance().remove(label);
+			labelDAO.remove(label);
 	}	
 }

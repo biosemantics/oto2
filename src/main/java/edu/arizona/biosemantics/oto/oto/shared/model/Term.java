@@ -12,7 +12,7 @@ public class Term implements Serializable {
 	private int id = -1;
 	private String term;
 	private Bucket bucket; 
-	private Label label;
+	private Set<Label> labels = new HashSet<Label>();
 	private Set<Term> synonyms = new LinkedHashSet<Term>();
 	private List<Context> contexts = new LinkedList<Context>();
 	
@@ -40,12 +40,12 @@ public class Term implements Serializable {
 		this.synonyms = synonyms;
 	}
 	
-	public Label getLabel() {
-		return label;
+	public Set<Label> getLabels() {
+		return labels;
 	}
 
-	public void setLabel(Label label) {
-		this.label = label;
+	public void setLabels(Set<Label> labels) {
+		this.labels = labels;
 	}
 
 	public Bucket getBucket() {
@@ -88,5 +88,29 @@ public class Term implements Serializable {
 	public List<Context> getContexts() {
 		return contexts;
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + id;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Term other = (Term) obj;
+		if (id != other.id)
+			return false;
+		return true;
+	}
+	
+	
 	
 }

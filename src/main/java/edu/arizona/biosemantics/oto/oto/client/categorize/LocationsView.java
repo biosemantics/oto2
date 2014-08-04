@@ -1,14 +1,11 @@
 package edu.arizona.biosemantics.oto.oto.client.categorize;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
-import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
-import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.state.client.GridStateHandler;
 import com.sencha.gxt.widget.core.client.Composite;
@@ -17,16 +14,19 @@ import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.Grid;
 
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.TermSelectEvent;
-import edu.arizona.biosemantics.oto.oto.client.categorize.event.TermSelectEvent.TermSelectHandler;
 import edu.arizona.biosemantics.oto.oto.shared.model.Location;
 import edu.arizona.biosemantics.oto.oto.shared.model.LocationProperties;
 import edu.arizona.biosemantics.oto.oto.shared.model.Term;
+import edu.arizona.biosemantics.oto.oto.shared.model.rpc.ICollectionService;
+import edu.arizona.biosemantics.oto.oto.shared.model.rpc.ICollectionServiceAsync;
+import edu.arizona.biosemantics.oto.oto.shared.model.rpc.RPCCallback;
 
 public class LocationsView extends Composite {
 
 	private static final LocationProperties locationProperties = GWT
 			.create(LocationProperties.class);
 	private ListStore<Location> store = new ListStore<Location>(locationProperties.key());
+	private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
 	private EventBus eventBus;
 
 	public LocationsView(EventBus eventBus) {
@@ -56,12 +56,12 @@ public class LocationsView extends Composite {
 		eventBus.addHandler(TermSelectEvent.TYPE, new TermSelectEvent.TermSelectHandler() {
 			@Override
 			public void onSelect(Term term) {
-				//retrieving the locations for the specific term from somewhere / server
-				List<Location> locations = new LinkedList<Location>();
-				locations.add(new Location("a", "b"));
-				locations.add(new Location("b", "a"));
-				locations.add(new Location("c", "c"));
-				setLocations(locations);
+				collectionService.getLocations(term, new RPCCallback<List<Location>>() {
+					@Override
+					public void onSuccess(List<Location> locations) {
+						setLocations(locations);
+					}
+				});
 			}
 		});
 	}

@@ -7,6 +7,8 @@ public class Ontology implements Serializable {
 	private String category;
 	private String definition;
 	
+	public Ontology() { }
+	
 	public Ontology(String category, String definition) {
 		super();
 		this.category = category;

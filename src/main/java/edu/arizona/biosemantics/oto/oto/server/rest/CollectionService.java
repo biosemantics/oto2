@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import edu.arizona.biosemantics.oto.oto.server.db.CollectionDAO;
+import edu.arizona.biosemantics.oto.oto.server.db.DAOManager;
 import edu.arizona.biosemantics.oto.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto.oto.shared.model.Label;
 
@@ -32,6 +33,7 @@ public class CollectionService {
 	private Logger logger;
 	private edu.arizona.biosemantics.oto.oto.server.rpc.CollectionService rpcCollectionService = 
 			new edu.arizona.biosemantics.oto.oto.server.rpc.CollectionService();
+	private DAOManager daoManager = new DAOManager();
 	
 	public CollectionService() {
 		logger =  LoggerFactory.getLogger(this.getClass());
@@ -46,7 +48,7 @@ public class CollectionService {
 				collection.setLabels(rpcCollectionService.createDefaultLabels());
 			if(collection.getSecret().isEmpty())
 				rpcCollectionService.createDefaultSecret(collection);
-			Collection result = CollectionDAO.getInstance().insert(collection);
+			Collection result = daoManager.getCollectionDAO().insert(collection);
 			return result;
 		} catch (Exception e) {
 			logger.error("Exception " + e.toString());
@@ -59,9 +61,9 @@ public class CollectionService {
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Collection get(@QueryParam("id") int id, @QueryParam("secret") String secret) {
 		try {
-			if(!CollectionDAO.getInstance().isValidSecret(id, secret))
+			if(!daoManager.getCollectionDAO().isValidSecret(id, secret))
 				return null;
-			return CollectionDAO.getInstance().get(id);
+			return daoManager.getCollectionDAO().get(id);
 		} catch (Exception e) {
 			logger.error("Exception " + e.toString());
 			e.printStackTrace();

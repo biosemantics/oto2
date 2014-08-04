@@ -3,13 +3,11 @@ package edu.arizona.biosemantics.oto.oto.client.categorize;
 import java.util.List;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.web.bindery.event.shared.EventBus;
 
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.CategorizeCopyTermEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.CategorizeMoveTermEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.LoadEvent;
-import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelsMergeEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelRemoveEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelRenameEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.TermRenameEvent;
@@ -23,6 +21,7 @@ import edu.arizona.biosemantics.oto.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto.oto.shared.model.Term;
 import edu.arizona.biosemantics.oto.oto.shared.model.rpc.ICollectionService;
 import edu.arizona.biosemantics.oto.oto.shared.model.rpc.ICollectionServiceAsync;
+import edu.arizona.biosemantics.oto.oto.shared.model.rpc.RPCCallback;
 
 public class CategorizePresenter {
 
@@ -117,11 +116,7 @@ public class CategorizePresenter {
 	}
 
 	private void saveCollection() {
-		collectionService.update(collection, new AsyncCallback<Void>() {
-			@Override
-			public void onFailure(Throwable caught) {
-				caught.printStackTrace();
-			}
+		collectionService.update(collection, new RPCCallback<Void>() {
 			@Override
 			public void onSuccess(Void result) {	}
 		});
@@ -131,11 +126,7 @@ public class CategorizePresenter {
 		Collection collection = new Collection();
 		collection.setId(collectionId);
 		collection.setSecret(secret);
-		collectionService.get(collection, new AsyncCallback<Collection>() {
-			@Override
-			public void onFailure(Throwable caught) {
-				caught.printStackTrace();
-			}
+		collectionService.get(collection, new RPCCallback<Collection>() {
 			@Override
 			public void onSuccess(Collection result) {
 				CategorizePresenter.this.collection = result;

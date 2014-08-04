@@ -3,6 +3,8 @@ package edu.arizona.biosemantics.oto.oto.server.db;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.LinkedList;
+import java.util.List;
 
 import edu.arizona.biosemantics.oto.oto.shared.model.Context;
 import edu.arizona.biosemantics.oto.oto.shared.model.Label;
@@ -10,14 +12,14 @@ import edu.arizona.biosemantics.oto.oto.shared.model.Term;
 
 public class ContextDAO {
 
-	private static ContextDAO instance;
+	private TermDAO termDAO;
+
 	
-	public static ContextDAO getInstance() {
-		if(instance == null)
-			instance = new ContextDAO();
-		return instance;
+	
+	public void setTermDAO(TermDAO termDAO) {
+		this.termDAO = termDAO;
 	}
-	
+
 	public Context get(int id) throws ClassNotFoundException, SQLException, IOException {
 		Context context = null;
 		Query query = new Query("SELECT * FROM oto_context WHERE id = ?");
@@ -30,12 +32,25 @@ public class ContextDAO {
 		return context;
 	}
 	
+	public List<Context> get(Term term) throws ClassNotFoundException, SQLException, IOException {
+		List<Context> contexts = new LinkedList<Context>();
+		Query query = new Query("SELECT * FROM oto_context WHERE term = ?");
+		query.setParameter(1, term.getId());
+		ResultSet result = query.execute();
+		while(result.next()) {
+			Context context = createContext(result);
+			contexts.add(context);
+		}
+		query.close();
+		return contexts;
+	}
+	
 	private Context createContext(ResultSet result) throws SQLException, ClassNotFoundException, IOException {
 		int id = result.getInt(1);
 		int termId = result.getInt(2);
 		String source = result.getString(3);
 		String sentence = result.getString(4);
-		return new Context(id, TermDAO.getInstance().get(termId), source, sentence);
+		return new Context(id, termDAO.get(termId), source, sentence);
 	}
 
 	public Context insert(Context context) throws ClassNotFoundException, SQLException, IOException {

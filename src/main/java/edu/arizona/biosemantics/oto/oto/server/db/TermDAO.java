@@ -8,20 +8,24 @@ import java.util.LinkedList;
 import java.util.List;
 
 import edu.arizona.biosemantics.oto.oto.shared.model.Bucket;
+import edu.arizona.biosemantics.oto.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto.oto.shared.model.Context;
 import edu.arizona.biosemantics.oto.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto.oto.shared.model.Term;
 
 public class TermDAO {
-
-	private static TermDAO instance;
 	
-	public static TermDAO getInstance() {
-		if(instance == null)
-			instance = new TermDAO();
-		return instance;
+	private ContextDAO contextDAO;
+	private BucketDAO bucketDAO;
+		
+	public void setContextDAO(ContextDAO contextDAO) {
+		this.contextDAO = contextDAO;
 	}
-	
+
+	public void setBucketDAO(BucketDAO bucketDAO) {
+		this.bucketDAO = bucketDAO;
+	}
+
 	public Term get(int id) throws SQLException, ClassNotFoundException, IOException {
 		Term term = null;
 		Query query = new Query("SELECT * FROM oto_term WHERE id = ?");
@@ -55,7 +59,7 @@ public class TermDAO {
 			term.setId(id);
 			
 			for(Context context : term.getContexts()) {
-				ContextDAO.getInstance().insert(context);
+				contextDAO.insert(context);
 			}
 		}
 		return term;
@@ -68,7 +72,7 @@ public class TermDAO {
 		query.setParameter(3, term.getId());
 		
 		for(Context context : term.getContexts()) {
-			ContextDAO.getInstance().update(context);
+			contextDAO.update(context);
 		}
 		
 		query.executeAndClose();
@@ -80,7 +84,7 @@ public class TermDAO {
 		query.executeAndClose();
 		
 		for(Context context : term.getContexts())
-			ContextDAO.getInstance().remove(context);
+			contextDAO.remove(context);
 	}
 
 	public List<Term> getTerms(Label label) throws ClassNotFoundException, SQLException, IOException {
@@ -108,6 +112,15 @@ public class TermDAO {
 		}
 		query.close();
 		return terms;
+	}
+
+	public List<Term> getTerms(Collection collection) throws ClassNotFoundException, SQLException, IOException {
+		List<Term> result = new LinkedList<Term>();
+		List<Bucket> buckets = bucketDAO.getBuckets(collection);
+		for(Bucket bucket : buckets) {
+			result.addAll(this.getTerms(bucket));
+		}
+		return result;
 	}
 	
 }

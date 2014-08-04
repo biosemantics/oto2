@@ -6,6 +6,9 @@ public class Location implements Serializable {
 
 	private String instance;
 	private String categorization;
+	
+	public Location() { }
+	
 	public Location(String instance, String categorization) {
 		super();
 		this.instance = instance;

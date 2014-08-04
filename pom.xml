@@ -155,7 +155,7 @@
 				<executions>
 					<execution>
 						<configuration>
-			              <extraJvmArgs>-Xmx4096M</extraJvmArgs>
+			              <extraJvmArgs>-Xmx1024M</extraJvmArgs>
 			            </configuration>
 						<goals>
 							<goal>compile</goal>

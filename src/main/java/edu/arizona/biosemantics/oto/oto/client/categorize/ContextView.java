@@ -22,11 +22,15 @@ import edu.arizona.biosemantics.oto.oto.shared.model.ContextProperties;
 import edu.arizona.biosemantics.oto.oto.shared.model.Location;
 import edu.arizona.biosemantics.oto.oto.shared.model.Ontology;
 import edu.arizona.biosemantics.oto.oto.shared.model.Term;
+import edu.arizona.biosemantics.oto.oto.shared.model.rpc.ICollectionService;
+import edu.arizona.biosemantics.oto.oto.shared.model.rpc.ICollectionServiceAsync;
+import edu.arizona.biosemantics.oto.oto.shared.model.rpc.RPCCallback;
 
 public class ContextView extends Composite {
 
 	private static final ContextProperties contextProperties = GWT.create(ContextProperties.class);
 	private ListStore<Context> store = new ListStore<Context>(contextProperties.key());
+	private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
 	
 	private EventBus eventBus;
 	
@@ -63,9 +67,12 @@ public class ContextView extends Composite {
 		eventBus.addHandler(TermSelectEvent.TYPE, new TermSelectEvent.TermSelectHandler() {
 			@Override
 			public void onSelect(Term term) {
-				//retrieving the locations for the specific term from somewhere / server
-				List<Context> contexts = new LinkedList<Context>();
-				setContexts(contexts);
+				collectionService.getContexts(term, new RPCCallback<List<Context>>() {
+					@Override
+					public void onSuccess(List<Context> contexts) {
+						setContexts(contexts);
+					}
+				});
 			}
 		});
 	}

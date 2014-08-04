@@ -12,15 +12,20 @@ import edu.arizona.biosemantics.oto.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto.oto.shared.model.Term;
 
 public class BucketDAO {
-
-	private static BucketDAO instance;
 	
-	public static BucketDAO getInstance() {
-		if(instance == null)
-			instance = new BucketDAO();
-		return instance;
+	private TermDAO termDAO;
+	private LabelDAO labelDAO;
+	
+	
+	
+	public void setTermDAO(TermDAO termDAO) {
+		this.termDAO = termDAO;
 	}
-	
+
+	public void setLabelDAO(LabelDAO labelDAO) {
+		this.labelDAO = labelDAO;
+	}
+
 	public Bucket get(int id) throws SQLException, ClassNotFoundException, IOException {
 		Bucket bucket = null;
 		Query query = new Query("SELECT * FROM oto_bucket WHERE id = ?");
@@ -39,10 +44,10 @@ public class BucketDAO {
 		String name = result.getString(3);
 		String description = result.getString(4);
 		Bucket bucket = new Bucket(id, name, description);
-		List<Term> terms = TermDAO.getInstance().getTerms(bucket);
+		List<Term> terms = termDAO.getTerms(bucket);
 		for(Term term : terms) {
 			term.setBucket(bucket);
-			term.setLabel(LabelDAO.getInstance().get(term));
+			term.setLabels(labelDAO.get(term));
 		}
 		bucket.setTerms(terms);
 		return bucket;
@@ -63,7 +68,7 @@ public class BucketDAO {
 			bucket.setId(id);
 			
 			for(Term term : bucket.getTerms())
-				TermDAO.getInstance().insert(term);
+				termDAO.insert(term);
 		}
 		return bucket;
 	}
@@ -74,7 +79,6 @@ public class BucketDAO {
 		query.setParameter(2, bucket.getDescription());
 		query.setParameter(3, bucket.getId());
 		
-		TermDAO termDAO = TermDAO.getInstance();
 		Bucket oldBucket = this.get(bucket.getId());
 		for(Term term : oldBucket.getTerms()) {
 			termDAO.remove(term);
@@ -91,7 +95,7 @@ public class BucketDAO {
 		query.executeAndClose();
 		
 		for(Term term :  bucket.getTerms())
-			TermDAO.getInstance().remove(term);
+			termDAO.remove(term);
 	}
 	
 	public List<Bucket> getBuckets(Collection collection) throws SQLException, ClassNotFoundException, IOException {

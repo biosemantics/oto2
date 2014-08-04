@@ -13,6 +13,7 @@ public class Context implements Serializable {
 
 	public Context(int id, Term term, String source, String sentence) {
 		super();
+		this.id = id;
 		this.term = term;
 		this.source = source;
 		this.sentence = sentence;
@@ -44,6 +45,30 @@ public class Context implements Serializable {
 	
 	public void setId(int id) {
 		this.id = id;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + id;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Context other = (Context) obj;
+		if (id != other.id)
+			return false;
+		return true;
 	}	
 
+	
+	
 }

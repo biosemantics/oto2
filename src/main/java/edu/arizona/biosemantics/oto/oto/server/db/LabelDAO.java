@@ -3,8 +3,10 @@ package edu.arizona.biosemantics.oto.oto.server.db;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import edu.arizona.biosemantics.oto.oto.shared.model.Bucket;
 import edu.arizona.biosemantics.oto.oto.shared.model.Collection;
@@ -12,15 +14,15 @@ import edu.arizona.biosemantics.oto.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto.oto.shared.model.Term;
 
 public class LabelDAO {
-
-	private static LabelDAO instance;
 	
-	public static LabelDAO getInstance() {
-		if(instance == null)
-			instance = new LabelDAO();
-		return instance;
+	private TermDAO termDAO;
+	
+	
+	
+	public void setTermDAO(TermDAO termDAO) {
+		this.termDAO = termDAO;
 	}
-	
+
 	public Label get(int id) throws SQLException, ClassNotFoundException, IOException {
 		Label label = null;
 		Query query = new Query("SELECT * FROM oto_label WHERE id = ?");
@@ -39,7 +41,7 @@ public class LabelDAO {
 		String name = result.getString(3);
 		String description = result.getString(4);
 		Label label = new Label(id, name, description);
-		label.setTerms(TermDAO.getInstance().getTerms(label));
+		label.setTerms(termDAO.getTerms(label));
 		return label;
 	}
 
@@ -60,7 +62,7 @@ public class LabelDAO {
 			label.setId(id);
 			
 			for(Term term : label.getTerms())
-				TermDAO.getInstance().insert(term);
+				termDAO.insert(term);
 		}
 		return label;
 	}
@@ -71,7 +73,6 @@ public class LabelDAO {
 		query.setParameter(2, label.getDescription());
 		query.setParameter(3, label.getId());
 		
-		TermDAO termDAO = TermDAO.getInstance();
 		Label oldLabel = this.get(label.getId());
 		for(Term term : oldLabel.getTerms()) {
 			termDAO.remove(term);
@@ -88,7 +89,7 @@ public class LabelDAO {
 		query.executeAndClose();
 		
 		for(Term term :  label.getTerms())
-			TermDAO.getInstance().remove(term);
+			termDAO.remove(term);
 	}
 
 	public List<Label> getLabels(Collection collection) throws SQLException, ClassNotFoundException, IOException {
@@ -98,23 +99,31 @@ public class LabelDAO {
 		ResultSet result = query.execute();
 		while(result.next()) {
 			int id = result.getInt(1);
-			labels.add(LabelDAO.getInstance().get(id));
+			labels.add(get(id));
 		}
 		query.close();
 		return labels;		
 	}
 
-	public Label get(Term term) throws ClassNotFoundException, SQLException, IOException {
-		Label label = null;
+	public Set<Label> get(Term term) throws ClassNotFoundException, SQLException, IOException {
+		Set<Label> labels = new HashSet<Label>();
 		Query query = new Query("SELECT * FROM oto_labeling WHERE term = ?");
 		query.setParameter(1, term.getId());
 		ResultSet result = query.execute();
 		while(result.next()) {
-			createLabel(result);
+			labels.add(createLabel(result));
 		}
 		query.close();
-		return label;
+		return labels;
 	}
-	
+
+	public void insert(Term term, Label label) throws ClassNotFoundException, SQLException, IOException {
+		Query query = new Query("INSERT INTO `oto_labeling` " +
+				"(`term`, `label`) VALUES (?, ?)");
+		query.setParameter(1, term.getId());
+		query.setParameter(2, label.getId());
+		ResultSet result = query.execute();
+		query.close();
+	}
 }
 
