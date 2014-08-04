@@ -24,6 +24,8 @@ import com.sencha.gxt.widget.core.client.tree.Tree;
 
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.CategorizeCopyTermEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.CategorizeMoveTermEvent;
+import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelsMergeEvent;
+import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelRenameEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.TermCategorizeEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.TermSelectEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.TermUncategorizeEvent;
@@ -109,6 +111,12 @@ public class LabelPortlet extends Portlet {
 
 
 		});
+		eventBus.addHandler(LabelRenameEvent.TYPE, new LabelRenameEvent.RenameLabelHandler()  {
+			@Override
+			public void onRename(Label label) {
+				LabelPortlet.this.setHeadingText(label.getName());
+			}
+		});
 		eventBus.addHandler(CategorizeMoveTermEvent.TYPE, new CategorizeMoveTermEvent.CategorizeMoveTermHandler() {
 			@Override
 			public void onCategorize(List<Term> terms, Label sourceLabel,	Label targetLabel) {
@@ -132,6 +140,15 @@ public class LabelPortlet extends Portlet {
 				}
 			}
 		});
+		/*eventBus.addHandler(LabelsMergeEvent.TYPE, new LabelsMergeEvent.MergeLabelsHandler() {
+			@Override
+			public void onMerge(Label source, Label destination) {
+				if(LabelPortlet.this.label.equals(destination)) {
+					for(Term term : source.getTerms())
+						addToStore(new MainTermTreeNode(term));
+				}
+			}
+		});*/
 		eventBus.addHandler(TermUncategorizeEvent.TYPE, new TermUncategorizeEvent.TermUncategorizeHandler() {
 			@Override
 			public void onUncategorize(List<Term> terms, Label oldLabel) {

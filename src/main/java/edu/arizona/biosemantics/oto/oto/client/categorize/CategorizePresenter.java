@@ -9,6 +9,10 @@ import com.google.web.bindery.event.shared.EventBus;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.CategorizeCopyTermEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.CategorizeMoveTermEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.LoadEvent;
+import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelsMergeEvent;
+import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelRemoveEvent;
+import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelRenameEvent;
+import edu.arizona.biosemantics.oto.oto.client.categorize.event.TermRenameEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.SaveEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.SynonymCreationEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.SynonymRemovalEvent;
@@ -76,6 +80,30 @@ public class CategorizePresenter {
 		eventBus.addHandler(SaveEvent.TYPE, new SaveEvent.SaveHandler() {
 			@Override
 			public void onSave(Collection collection) {
+				saveCollection();
+			}
+		});
+		/*eventBus.addHandler(LabelsMergeEvent.TYPE, new LabelsMergeEvent.MergeLabelsHandler() {
+			@Override
+			public void onMerge(Label source, Label destination) {
+				saveCollection();
+			}
+		});*/
+		eventBus.addHandler(LabelRemoveEvent.TYPE, new LabelRemoveEvent.RemoveLabelHandler() {
+			@Override
+			public void onRemove(Label label) {
+				saveCollection();
+			}
+		});
+		eventBus.addHandler(LabelRenameEvent.TYPE, new LabelRenameEvent.RenameLabelHandler() {
+			@Override
+			public void onRename(Label label) {
+				saveCollection();
+			}
+		});
+		eventBus.addHandler(TermRenameEvent.TYPE, new TermRenameEvent.RenameTermHandler() {
+			@Override
+			public void onRename(Term term) {
 				saveCollection();
 			}
 		});

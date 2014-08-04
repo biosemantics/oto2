@@ -21,6 +21,7 @@ import com.sencha.gxt.widget.core.client.TabPanel;
 import com.sencha.gxt.widget.core.client.tree.Tree;
 
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.TermCategorizeEvent;
+import edu.arizona.biosemantics.oto.oto.client.categorize.event.TermRenameEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.TermSelectEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.TermUncategorizeEvent;
 import edu.arizona.biosemantics.oto.oto.shared.model.Bucket;
@@ -95,6 +96,12 @@ public class TermsView extends TabPanel {
 					treeStore.remove(termTermTreeNodeMap.get(term));
 					listStore.remove(term);
 				}
+			}
+		});
+		eventBus.addHandler(TermRenameEvent.TYPE, new TermRenameEvent.RenameTermHandler() {
+			@Override
+			public void onRename(Term term) {
+				//necessary to refresh anything here?
 			}
 		});
 		
