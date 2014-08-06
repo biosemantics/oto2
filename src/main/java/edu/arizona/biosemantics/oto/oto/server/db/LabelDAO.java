@@ -16,9 +16,7 @@ import edu.arizona.biosemantics.oto.oto.shared.model.Term;
 public class LabelDAO {
 	
 	private TermDAO termDAO;
-	
-	
-	
+
 	public void setTermDAO(TermDAO termDAO) {
 		this.termDAO = termDAO;
 	}
@@ -103,27 +101,6 @@ public class LabelDAO {
 		}
 		query.close();
 		return labels;		
-	}
-
-	public Set<Label> get(Term term) throws ClassNotFoundException, SQLException, IOException {
-		Set<Label> labels = new HashSet<Label>();
-		Query query = new Query("SELECT * FROM oto_labeling WHERE term = ?");
-		query.setParameter(1, term.getId());
-		ResultSet result = query.execute();
-		while(result.next()) {
-			labels.add(createLabel(result));
-		}
-		query.close();
-		return labels;
-	}
-
-	public void insert(Term term, Label label) throws ClassNotFoundException, SQLException, IOException {
-		Query query = new Query("INSERT INTO `oto_labeling` " +
-				"(`term`, `label`) VALUES (?, ?)");
-		query.setParameter(1, term.getId());
-		query.setParameter(2, label.getId());
-		ResultSet result = query.execute();
-		query.close();
 	}
 }
 

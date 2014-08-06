@@ -134,7 +134,10 @@ public class TermsView extends TabPanel {
 			public void onDrop(DndDropEvent event) {
 				event.getData();
 				if(DndDropEventExtractor.isSourceLabelPortlet(event)) {
-					eventBus.fireEvent(new TermUncategorizeEvent(DndDropEventExtractor.getTerms(event), DndDropEventExtractor.getLabelPortletSource(event).getLabel()));
+					List<Term> terms = DndDropEventExtractor.getTerms(event);
+					Label label = DndDropEventExtractor.getLabelPortletSource(event).getLabel();
+					label.removeTerms(terms);
+					eventBus.fireEvent(new TermUncategorizeEvent(terms, label));
 				}
 			}
 		});

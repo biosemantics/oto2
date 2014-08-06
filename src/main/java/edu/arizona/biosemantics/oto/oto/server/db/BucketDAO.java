@@ -14,16 +14,14 @@ import edu.arizona.biosemantics.oto.oto.shared.model.Term;
 public class BucketDAO {
 	
 	private TermDAO termDAO;
-	private LabelDAO labelDAO;
-	
-	
+	private LabelingDAO labelingDAO;
 	
 	public void setTermDAO(TermDAO termDAO) {
 		this.termDAO = termDAO;
 	}
 
-	public void setLabelDAO(LabelDAO labelDAO) {
-		this.labelDAO = labelDAO;
+	public void setLabelingDAO(LabelingDAO labelingDAO) {
+		this.labelingDAO = labelingDAO;
 	}
 
 	public Bucket get(int id) throws SQLException, ClassNotFoundException, IOException {
@@ -47,7 +45,7 @@ public class BucketDAO {
 		List<Term> terms = termDAO.getTerms(bucket);
 		for(Term term : terms) {
 			term.setBucket(bucket);
-			term.setLabels(labelDAO.get(term));
+			term.setLabels(labelingDAO.get(term));
 		}
 		bucket.setTerms(terms);
 		return bucket;

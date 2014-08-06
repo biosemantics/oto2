@@ -17,7 +17,7 @@ public class CollectionDAO {
 	private BucketDAO bucketDAO;
 	private LabelDAO labelDAO;
 	private TermDAO termDAO;
-	
+	private LabelingDAO labelingDAO;
 	
 	
 	public void setBucketDAO(BucketDAO bucketDAO) {
@@ -30,6 +30,10 @@ public class CollectionDAO {
 
 	public void setTermDAO(TermDAO termDAO) {
 		this.termDAO = termDAO;
+	}
+	
+	public void setLabelingDAO(LabelingDAO labelingDAO) {
+		this.labelingDAO = labelingDAO;
 	}
 
 	public boolean isValidSecret(int id, String secret) throws ClassNotFoundException, SQLException, IOException {
@@ -108,31 +112,10 @@ public class CollectionDAO {
 		query.setParameter(3, collection.getId());
 		query.executeAndClose();
 		
-		for(Term term : termDAO.getTerms(collection)) {
-			termDAO.remove(term);
-		}
-		
-		//buckets can actually only be the old ones so update should be sufficient
-		for(Bucket oldBucket : bucketDAO.getBuckets(collection))
-			bucketDAO.remove(oldBucket);
-		
-		for(Bucket bucket : collection.getBuckets()) {
-			bucketDAO.insert(bucket);
-			for(Term term : bucket.getTerms()) {
-				termDAO.insert(term);
-			}
-		}
-		
-		//labels can be new and old
-		for(Label oldLabel : labelDAO.getLabels(collection)) 
-			labelDAO.remove(oldLabel);
-		
 		for(Label label : collection.getLabels()) {
-			labelDAO.insert(label);
-			for(Term term : label.getTerms()) {
-				termDAO.insert(term);
-				labelDAO.insert(term, label);
-			}
+			if(!label.hasId())
+				labelDAO.insert(label);
+			labelingDAO.ensure(label, label.getTerms());
 		}
 	}
 	

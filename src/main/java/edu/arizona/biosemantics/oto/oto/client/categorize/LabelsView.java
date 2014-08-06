@@ -38,6 +38,7 @@ public class LabelsView extends PortalLayoutContainer {
 	private EventBus eventBus;
 	private int portalColumnCount;
 	private Map<Label, LabelPortlet> labelPortletsMap = new HashMap<Label, LabelPortlet>();
+	private List<Label> labels;
 	
 	public LabelsView(EventBus eventBus, int portalColumnCount) {
 		super(portalColumnCount);
@@ -65,6 +66,7 @@ public class LabelsView extends PortalLayoutContainer {
 				LabelPortlet labelPortlet = new LabelPortlet(eventBus, label);
 				add(labelPortlet, labelPortletsMap.size() % portalColumnCount);
 				labelPortletsMap.put(label, labelPortlet);
+				labels.add(label);
 			}
 		});
 		eventBus.addHandler(LabelRemoveEvent.TYPE, new LabelRemoveEvent.RemoveLabelHandler() {
@@ -72,6 +74,7 @@ public class LabelsView extends PortalLayoutContainer {
 			public void onRemove(Label label) {
 				LabelPortlet portlet = labelPortletsMap.remove(label);
 				LabelsView.this.remove(portlet, LabelsView.this.getPortletColumn(portlet));
+				labels.remove(label);
 			}
 		});
 		
@@ -79,8 +82,11 @@ public class LabelsView extends PortalLayoutContainer {
 
 	public void setLabels(List<Label> labels) {
 		clear();
+		this.labels = labels;
 		for(Label label : labels) {
-			eventBus.fireEvent(new LabelCreateEvent(label));
+			LabelPortlet labelPortlet = new LabelPortlet(eventBus, label);
+			add(labelPortlet, labelPortletsMap.size() % portalColumnCount);
+			labelPortletsMap.put(label, labelPortlet);
 		}
 	}
 }

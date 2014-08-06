@@ -63,6 +63,10 @@ public class Label implements Serializable {
 		terms.add(term);
 	}
 	
+	public void addTerms(List<Term> terms) {
+		this.terms.addAll(terms);
+	}	
+	
 	public int getId() {
 		return id;
 	}
@@ -103,5 +107,9 @@ public class Label implements Serializable {
 		if (id != other.id)
 			return false;
 		return true;
-	}	
+	}
+
+	public void removeTerms(List<Term> terms) {
+		this.terms.removeAll(terms);
+	}
 }

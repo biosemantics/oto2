@@ -108,8 +108,6 @@ public class LabelPortlet extends Portlet {
 						addToStore(new MainTermTreeNode(term));
 				}
 			}
-
-
 		});
 		eventBus.addHandler(LabelRenameEvent.TYPE, new LabelRenameEvent.RenameLabelHandler()  {
 			@Override
@@ -135,8 +133,9 @@ public class LabelPortlet extends Portlet {
 			@Override
 			public void onCategorize(List<Term> terms, Label label) {
 				if(LabelPortlet.this.label.equals(label)) {
-					for(Term term : terms)
+					for(Term term : terms) {
 						addToStore(new MainTermTreeNode(term));
+					}
 				}
 			}
 		});
@@ -266,20 +265,26 @@ public class LabelPortlet extends Portlet {
 			private void onDnd(final DndDropEvent dropEvent, DropSource source) {
 				switch(source) {
 				case INIT:
-					eventBus.fireEvent(new TermCategorizeEvent(DndDropEventExtractor.getTerms(dropEvent), label));
+					List<Term> terms = DndDropEventExtractor.getTerms(dropEvent);
+					label.addTerms(terms);
+					eventBus.fireEvent(new TermCategorizeEvent(terms, label));
 					break;
 				case PORTLET:
 					Menu menu = new CopyMoveMenu(new SelectionHandler<Item>() {
 						@Override
 						public void onSelection(SelectionEvent<Item> event) {
 							LabelPortlet sourcePortlet = DndDropEventExtractor.getLabelPortletSource(dropEvent);
-							eventBus.fireEvent(new CategorizeCopyTermEvent(DndDropEventExtractor.getTerms(dropEvent), sourcePortlet.getLabel(), label));
+							List<Term> terms = DndDropEventExtractor.getTerms(dropEvent);
+							label.addTerms(terms);
+							eventBus.fireEvent(new CategorizeCopyTermEvent(terms, sourcePortlet.getLabel(), label));
 						}
 					}, new SelectionHandler<Item>() {
 						@Override
 						public void onSelection(SelectionEvent<Item> event) {
 							LabelPortlet sourcePortlet = DndDropEventExtractor.getLabelPortletSource(dropEvent);
-							eventBus.fireEvent(new CategorizeMoveTermEvent(DndDropEventExtractor.getTerms(dropEvent), sourcePortlet.getLabel(), label));
+							List<Term> terms = DndDropEventExtractor.getTerms(dropEvent);
+							label.addTerms(terms);
+							eventBus.fireEvent(new CategorizeMoveTermEvent(terms, sourcePortlet.getLabel(), label));
 						}
 					});
 					menu.show(LabelPortlet.this);

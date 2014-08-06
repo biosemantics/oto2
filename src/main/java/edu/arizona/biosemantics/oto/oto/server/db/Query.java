@@ -38,8 +38,12 @@ public class Query {
 	}
 	
 	public ResultSet execute() throws SQLException {
+		try {
 		preparedStatement.execute();
 		resultSet = preparedStatement.getResultSet();
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
 		return resultSet;
 	}
 	

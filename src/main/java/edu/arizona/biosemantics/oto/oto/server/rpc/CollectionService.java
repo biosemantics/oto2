@@ -73,7 +73,7 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	@Override
 	public List<Location> getLocations(Term term) throws Exception {
 		List<Location> result = new LinkedList<Location>();
-		Set<Label> labels = daoManager.getLabelDAO().get(term);
+		Set<Label> labels = daoManager.getLabelingDAO().get(term);
 		if(labels.isEmpty())
 			result.add(new Location(term.getTerm(), "uncategorized"));
 		for(Label label : labels) {
