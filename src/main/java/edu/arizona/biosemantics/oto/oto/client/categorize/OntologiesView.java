@@ -22,16 +22,21 @@ import edu.arizona.biosemantics.oto.oto.shared.model.Location;
 import edu.arizona.biosemantics.oto.oto.shared.model.Ontology;
 import edu.arizona.biosemantics.oto.oto.shared.model.OntologyProperties;
 import edu.arizona.biosemantics.oto.oto.shared.model.Term;
+import edu.arizona.biosemantics.oto.oto.shared.model.rpc.ICollectionService;
+import edu.arizona.biosemantics.oto.oto.shared.model.rpc.ICollectionServiceAsync;
+import edu.arizona.biosemantics.oto.oto.shared.model.rpc.RPCCallback;
 
 public class OntologiesView extends Composite {
 
 	private static final OntologyProperties ontologyProperties = GWT.create(OntologyProperties.class);
 	private ListStore<Ontology> store = new ListStore<Ontology>(ontologyProperties.key());
+	private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
 
 	private EventBus eventBus;
 	
 	public OntologiesView(EventBus eventBus) {
 		this.eventBus = eventBus;
+		store.setAutoCommit(true);
 		ColumnConfig<Ontology, String> categoryColumn = new ColumnConfig<Ontology, String>(ontologyProperties.category(), 50, SafeHtmlUtils.fromTrustedString("<b>Category</b>"));
 		ColumnConfig<Ontology, String> definitionColumn = new ColumnConfig<Ontology, String>(ontologyProperties.definition(), 100, SafeHtmlUtils.fromTrustedString("<b>Definition</b>"));
 		List<ColumnConfig<Ontology, ?>> columns = new ArrayList<ColumnConfig<Ontology, ?>>();
@@ -39,6 +44,7 @@ public class OntologiesView extends Composite {
 		columns.add(definitionColumn);
 		ColumnModel<Ontology> columnModel = new ColumnModel<Ontology>(columns);
 		Grid<Ontology> grid = new Grid<Ontology>(store, columnModel);
+		categoryColumn.setWidth(200);
 		grid.getView().setAutoExpandColumn(definitionColumn);
 		grid.getView().setStripeRows(true);
 		grid.getView().setColumnLines(true);
@@ -62,9 +68,12 @@ public class OntologiesView extends Composite {
 		eventBus.addHandler(TermSelectEvent.TYPE, new TermSelectEvent.TermSelectHandler() {
 			@Override
 			public void onSelect(Term term) {
-				//retrieving the locations for the specific term from somewhere / server
-				List<Ontology> ontologies = new LinkedList<Ontology>();
-				setOntologies(ontologies);
+				collectionService.getOntologies(term, new RPCCallback<List<Ontology>>() {
+					@Override
+					public void onSuccess(List<Ontology> ontologies) {
+						setOntologies(ontologies);
+					}
+				});
 			}
 		});
 	}

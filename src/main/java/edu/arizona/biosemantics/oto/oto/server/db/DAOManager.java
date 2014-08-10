@@ -9,6 +9,7 @@ public class DAOManager {
 	private LabelingDAO labelingDAO;
 	private ContextDAO contextDAO;
 	private SynonymDAO synonymDAO;
+	private OntologyDAO ontologyDAO;
 	
 	public DAOManager() {
 		bucketDAO = new BucketDAO();
@@ -18,17 +19,20 @@ public class DAOManager {
 		labelingDAO = new LabelingDAO();
 		contextDAO = new ContextDAO();
 		synonymDAO = new SynonymDAO();
+		ontologyDAO = new OntologyDAO();
 		
 		bucketDAO.setLabelingDAO(labelingDAO);
 		bucketDAO.setTermDAO(termDAO);
 		collectionDAO.setBucketDAO(bucketDAO);
 		collectionDAO.setLabelDAO(labelDAO);
 		collectionDAO.setLabelingDAO(labelingDAO);
-		collectionDAO.setTermDAO(termDAO);
 		termDAO.setBucketDAO(bucketDAO);
 		termDAO.setContextDAO(contextDAO);
 		labelDAO.setTermDAO(termDAO);
+		labelDAO.setLabelingDAO(labelingDAO);
 		contextDAO.setTermDAO(termDAO);
+		labelingDAO.setLabelDAO(labelDAO);
+		labelingDAO.setTermDAO(termDAO);
 	}
 	
 	public BucketDAO getBucketDAO() {
@@ -57,6 +61,10 @@ public class DAOManager {
 
 	public LabelingDAO getLabelingDAO() {
 		return labelingDAO;
+	}
+
+	public OntologyDAO getOntologyDAO() {
+		return ontologyDAO;
 	}
 
 }

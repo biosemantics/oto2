@@ -7,19 +7,23 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.ObjectWriter;
+
 public class Bucket implements Serializable {
 
 	private int id = -1;
-	private Collection collection;
+	private int collectionId;
 	private String name;
 	private String description;
 	private List<Term> terms = new LinkedList<Term>();
 	
 	public Bucket() { }
 	
-	public Bucket(int id, String text, String description) {
+	public Bucket(int id, int collectionId, String text, String description) {
 		super();
 		this.id = id;
+		this.collectionId = collectionId;
 		this.name = text;
 		this.description = description;
 	}
@@ -37,8 +41,8 @@ public class Bucket implements Serializable {
 	}
 
 	public void setTerms(List<Term> terms) {
-		for(Term term : terms) 
-			term.setBucket(this);
+		//for(Term term : terms) 
+		//	term.setBucket(this.getId());
 		this.terms = terms;
 	}
 
@@ -55,7 +59,7 @@ public class Bucket implements Serializable {
 	}
 	
 	public void addTerm(Term term) {
-		term.setBucket(this);
+		//term.setBucket(this);
 		terms.add(term);
 	}
 	
@@ -67,12 +71,12 @@ public class Bucket implements Serializable {
 		return id != -1;
 	}
 	
-	public Collection getCollection() {
-		return collection;
+	public int getCollectionId() {
+		return collectionId;
 	}
 
-	public void setCollection(Collection collection) {
-		this.collection = collection;
+	public void setCollection(int collectionId) {
+		this.collectionId = collectionId;
 	}
 	
 	public void setId(int id) {
@@ -100,4 +104,5 @@ public class Bucket implements Serializable {
 			return false;
 		return true;
 	}	
+	
 }

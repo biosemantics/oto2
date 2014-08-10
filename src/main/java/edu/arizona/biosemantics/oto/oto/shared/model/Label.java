@@ -7,11 +7,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.ObjectWriter;
+
 public class Label implements Serializable {
 
 	private int id = - 1;
 	private String name;
-	private Collection collection;
+	private int collectionId;
 	private String description;
 	private List<Term> terms = new LinkedList<Term>();
 	
@@ -22,9 +25,16 @@ public class Label implements Serializable {
 		this.description = description;
 	}
 	
-	public Label(int id, String name, String description) {
+	public Label(int collectionId, String name, String description) {
+		this.collectionId = collectionId;
+		this.name = name;
+		this.description = description;
+	}
+	
+	public Label(int id, int collectionId, String name, String description) {
 		super();
 		this.id = id;
+		this.collectionId = collectionId;
 		this.name = name;
 		this.description = description;
 	}
@@ -57,14 +67,18 @@ public class Label implements Serializable {
 
 	public void removeTerm(Term term) {
 		terms.remove(term);
+		//term.removeLabel(this);
 	}
 	
 	public void addTerm(Term term) {
 		terms.add(term);
+		//term.addLabel(this);
 	}
 	
 	public void addTerms(List<Term> terms) {
 		this.terms.addAll(terms);
+		//for(Term term : terms)
+		//	term.addLabel(this);
 	}	
 	
 	public int getId() {
@@ -79,12 +93,12 @@ public class Label implements Serializable {
 		this.id = id;
 	}
 
-	public Collection getCollection() {
-		return collection;
+	public int getCollectionId() {
+		return collectionId;
 	}
 
-	public void setCollection(Collection collection) {
-		this.collection = collection;
+	public void setCollection(int collectionId) {
+		this.collectionId = collectionId;
 	}
 
 	@Override
@@ -111,5 +125,8 @@ public class Label implements Serializable {
 
 	public void removeTerms(List<Term> terms) {
 		this.terms.removeAll(terms);
+		//for(Term term : terms)
+		//	term.removeLabel(this);
 	}
+
 }

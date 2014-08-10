@@ -1,8 +1,13 @@
 package edu.arizona.biosemantics.oto.oto.shared.model;
 
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.ObjectWriter;
 
 public class Collection implements Serializable {
 
@@ -12,9 +17,7 @@ public class Collection implements Serializable {
 	private List<Bucket> buckets = new LinkedList<Bucket>();
 	private List<Label> labels = new LinkedList<Label>();
 
-	public Collection() {
-		
-	}
+	public Collection() { }
 	
 	public Collection(int id, String name, String secret) {
 		super();
@@ -29,13 +32,13 @@ public class Collection implements Serializable {
 	
 	public void setBuckets(List<Bucket> buckets) {
 		for(Bucket bucket : buckets)
-			bucket.setCollection(this);
+			bucket.setCollection(this.getId());
 		this.buckets = buckets;
 	}
 	
 	public void setLabels(List<Label> labels) {
 		for(Label label : labels)
-			label.setCollection(this);
+			label.setCollection(this.getId());
 		this.labels = labels;
 	}
 
@@ -60,12 +63,12 @@ public class Collection implements Serializable {
 	}
 
 	public void add(Bucket bucket) {
-		bucket.setCollection(this);
+		bucket.setCollection(this.getId());
 		buckets.add(bucket);
 	}
 
 	public void add(Label label) {
-		label.setCollection(this);
+		label.setCollection(this.getId());
 		labels.add(label);
 	}
 
@@ -101,8 +104,27 @@ public class Collection implements Serializable {
 		if (id != other.id)
 			return false;
 		return true;
+	}
+
+	public void addLabel(Label label) {
+		label.setCollection(this.id);
+		this.labels.add(label);
+	}
+
+	public void removeLabel(Label label) {
+		this.labels.remove(label);
+	}
+
+	public void removeLabels(Set<Label> labels) {
+		this.labels.removeAll(labels);
+	}
+
+	public Set<Label> getLabels(Term term) {
+		Set<Label> result = new HashSet<Label>();
+		for(Label label : labels)
+			if(label.getTerms().contains(term))
+				result.add(label);
+		return result;
 	}	
-	
-	
 	
 }

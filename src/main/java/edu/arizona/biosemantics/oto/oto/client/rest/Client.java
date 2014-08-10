@@ -80,8 +80,8 @@ public class Client {
 		Context c2 = new Context();
 		c2.setSource("source");
 		c2.setSentence("sentence");
-		t1.addContext(c1);
-		t1.addContext(c2);
+		//t1.addContext(c1);
+		//t1.addContext(c2);
 		Term t2 = new Term();
 		
 		t2.setTerm("test1");

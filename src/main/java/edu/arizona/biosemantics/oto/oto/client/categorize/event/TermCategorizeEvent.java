@@ -1,6 +1,8 @@
 package edu.arizona.biosemantics.oto.oto.client.categorize.event;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
@@ -12,17 +14,23 @@ import edu.arizona.biosemantics.oto.oto.shared.model.Term;
 public class TermCategorizeEvent extends GwtEvent<TermCategorizeHandler> {
 
 	public interface TermCategorizeHandler extends EventHandler {
-		void onCategorize(List<Term> terms, Label category);
+		void onCategorize(List<Term> terms, Set<Label> categories);
 	}
 	
     public static Type<TermCategorizeHandler> TYPE = new Type<TermCategorizeHandler>();
     
     private List<Term> terms;
-	private Label category;
+	private Set<Label> categories;
     
+	public TermCategorizeEvent(List<Term> terms, Set<Label> categories) {
+		this.terms = terms;
+		this.categories = categories;
+	}
+	
     public TermCategorizeEvent(List<Term> terms, Label category) {
         this.terms = terms;
-        this.category = category;
+        this.categories = new HashSet<Label>();
+        this.categories.add(category);
     }
 	
 	@Override
@@ -32,15 +40,15 @@ public class TermCategorizeEvent extends GwtEvent<TermCategorizeHandler> {
 
 	@Override
 	protected void dispatch(TermCategorizeHandler handler) {
-		handler.onCategorize(terms, category);
+		handler.onCategorize(terms, categories);
 	}
 
 	public List<Term> getTerms() {
 		return terms;
 	}
 
-	public Label getCategory() {
-		return category;
+	public Set<Label> getCategories() {
+		return categories;
 	}
 
 	

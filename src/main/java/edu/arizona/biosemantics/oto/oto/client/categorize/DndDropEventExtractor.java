@@ -5,6 +5,8 @@ import java.util.List;
 
 import com.sencha.gxt.data.shared.TreeStore;
 import com.sencha.gxt.dnd.core.client.DndDropEvent;
+import com.sencha.gxt.widget.core.client.ListView;
+import com.sencha.gxt.widget.core.client.TabPanel;
 import com.sencha.gxt.widget.core.client.container.CardLayoutContainer;
 import com.sencha.gxt.widget.core.client.tree.Tree;
 
@@ -37,7 +39,6 @@ public class DndDropEventExtractor {
 							TermTreeNode termTreeNode = (TermTreeNode) treeNode
 									.getData();
 							terms.add(termTreeNode.getTerm());
-							return terms;
 						}
 					}
 					// drags from listView are of Term
@@ -80,6 +81,12 @@ public class DndDropEventExtractor {
 		if(event.getTarget() instanceof Tree) {
 			Tree tree = (Tree)event.getTarget();
 			if(tree.getParent() instanceof CardLayoutContainer) {
+				return true;
+			}
+		}
+		if(event.getTarget() instanceof ListView) {
+			ListView listView = (ListView)event.getTarget();
+			if(listView.getParent() instanceof CardLayoutContainer) {
 				return true;
 			}
 		}

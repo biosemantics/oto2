@@ -16,6 +16,8 @@ public class BucketDAO {
 	private TermDAO termDAO;
 	private LabelingDAO labelingDAO;
 	
+	protected BucketDAO() {} 
+	
 	public void setTermDAO(TermDAO termDAO) {
 		this.termDAO = termDAO;
 	}
@@ -41,21 +43,17 @@ public class BucketDAO {
 		int collectionId = result.getInt(2);
 		String name = result.getString(3);
 		String description = result.getString(4);
-		Bucket bucket = new Bucket(id, name, description);
+		Bucket bucket = new Bucket(id, collectionId, name, description);
 		List<Term> terms = termDAO.getTerms(bucket);
-		for(Term term : terms) {
-			term.setBucket(bucket);
-			term.setLabels(labelingDAO.get(term));
-		}
 		bucket.setTerms(terms);
 		return bucket;
 	}
 
-	public Bucket insert(Bucket bucket) throws SQLException, ClassNotFoundException, IOException {
+	public Bucket insert(Bucket bucket, int collectionId) throws SQLException, ClassNotFoundException, IOException {
 		if(!bucket.hasId()) {
 			Query insert = new Query("INSERT INTO `oto_bucket` " +
 					"(`collection`, `name`, `description`) VALUES (?, ?, ?)");
-			insert.setParameter(1, bucket.getCollection().getId());
+			insert.setParameter(1, collectionId);
 			insert.setParameter(2, bucket.getName());
 			insert.setParameter(3, bucket.getDescription());
 			insert.execute();
@@ -66,7 +64,7 @@ public class BucketDAO {
 			bucket.setId(id);
 			
 			for(Term term : bucket.getTerms())
-				termDAO.insert(term);
+				termDAO.insert(term, bucket.getId());
 		}
 		return bucket;
 	}
@@ -82,7 +80,7 @@ public class BucketDAO {
 			termDAO.remove(term);
 		}
 		for(Term term : bucket.getTerms()) {
-			termDAO.insert(term);
+			termDAO.insert(term, bucket.getId());
 		}
 		query.executeAndClose();
 	}
@@ -106,6 +104,14 @@ public class BucketDAO {
 		}
 		query.close();
 		return buckets;		
+	}
+
+	public void ensure(Collection collection) throws ClassNotFoundException, SQLException, IOException {
+		for(Bucket bucket : collection.getBuckets()) {
+			for(Term term : bucket.getTerms()) {
+				termDAO.update(term, bucket.getId());
+			}
+		}
 	}
 	
 }

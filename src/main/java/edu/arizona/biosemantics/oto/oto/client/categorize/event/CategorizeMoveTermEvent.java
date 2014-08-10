@@ -1,5 +1,6 @@
 package edu.arizona.biosemantics.oto.oto.client.categorize.event;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import com.google.gwt.event.shared.EventHandler;
@@ -21,6 +22,13 @@ public class CategorizeMoveTermEvent extends GwtEvent<CategorizeMoveTermHandler>
     private List<Term> terms;
 	private Label sourceCategory;
 	private Label targetCategory;
+	
+    public CategorizeMoveTermEvent(Term term, Label sourceCategory, Label targetCategory) {
+        this.terms = new LinkedList<Term>();
+        terms.add(term);
+        this.sourceCategory = sourceCategory;
+        this.targetCategory = targetCategory;
+    }
     
     public CategorizeMoveTermEvent(List<Term> terms, Label sourceCategory, Label targetCategory) {
         this.terms = terms;

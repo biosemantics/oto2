@@ -19,14 +19,6 @@ public class FilllSample {
 		Bucket b = new Bucket();
 		Term t1 = new Term();
 		t1.setTerm("test");
-		Context c1 = new Context();
-		c1.setSource("source");
-		c1.setSentence("sentence");
-		Context c2 = new Context();
-		c2.setSource("source");
-		c2.setSentence("sentence");
-		t1.addContext(c1);
-		t1.addContext(c2);
 		Term t2 = new Term();
 		t2.setTerm("test1");
 		Term t3 = new Term();
@@ -46,10 +38,10 @@ public class FilllSample {
 		l1.setName("label1");
 		
 		Label l2 = new Label();
-		l2.setName("label1");
+		l2.setName("label2");
 		
 		Label l3 = new Label();
-		l3.setName("label1");
+		l3.setName("label3");
 		
 		labels.add(l1);
 		labels.add(l2);
@@ -59,6 +51,19 @@ public class FilllSample {
 		collection.setSecret("my secret");
 		DAOManager daoManager = new DAOManager();
 		daoManager.getCollectionDAO().insert(collection);
+		
+		
+		Context c1 = new Context("source1", "sentence1");
+		Context c2 = new Context("source2", "sentence2");
+		
+		Context c3 = new Context("source3", "sentence3");
+		Context c4 = new Context("source4", "sentence4");
+		daoManager.getContextDAO().insert(c1, t1.getId());
+		daoManager.getContextDAO().insert(c2, t2.getId());
+		daoManager.getContextDAO().insert(c3, t1.getId());
+		daoManager.getContextDAO().insert(c4, t2.getId());
+		
+		
 	}
 
 }

@@ -18,6 +18,7 @@ import edu.arizona.biosemantics.oto.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto.oto.shared.model.Context;
 import edu.arizona.biosemantics.oto.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto.oto.shared.model.Location;
+import edu.arizona.biosemantics.oto.oto.shared.model.Ontology;
 import edu.arizona.biosemantics.oto.oto.shared.model.Term;
 import edu.arizona.biosemantics.oto.oto.shared.model.rpc.ICollectionService;
 
@@ -27,12 +28,21 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	
 	@Override
 	public Collection get(Collection collection) throws Exception {
+		try {
 		return daoManager.getCollectionDAO().get(collection.getId());
+		}catch(Exception e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 	@Override
 	public void update(Collection collection) throws Exception {
+		try {
 		daoManager.getCollectionDAO().update(collection);
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
 	}	
 	
 	public void createDefaultSecret(Collection collection) {
@@ -80,6 +90,11 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 			result.add(new Location(term.getTerm(), label.getName()));
 		}
 		return result;
+	}
+
+	@Override
+	public List<Ontology> getOntologies(Term term) {
+		return daoManager.getOntologyDAO().get(term);
 	}
 
 }

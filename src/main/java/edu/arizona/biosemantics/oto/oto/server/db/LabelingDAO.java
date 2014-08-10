@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -14,6 +15,8 @@ public class LabelingDAO {
 	
 	private TermDAO termDAO;
 	private LabelDAO labelDAO;
+	
+	protected LabelingDAO() { }
 
 	public void setTermDAO(TermDAO termDAO) {
 		this.termDAO = termDAO;
@@ -29,21 +32,25 @@ public class LabelingDAO {
 		query.setParameter(1, term.getId());
 		ResultSet result = query.execute();
 		while(result.next()) {
-			int labelId = result.getInt(1);
-			labels.add(labelDAO.get(labelId));
+			int labelId = result.getInt(2);
+			Label label = labelDAO.get(labelId);
+			if(label != null)
+				labels.add(label);
 		}
 		query.close();
 		return labels;
 	}
 	
-	public Set<Term> get(Label label) throws ClassNotFoundException, SQLException, IOException {
-		Set<Term> terms = new HashSet<Term>();
+	public List<Term> get(Label label) throws ClassNotFoundException, SQLException, IOException {
+		List<Term> terms = new LinkedList<Term>();
 		Query query = new Query("SELECT * FROM oto_labeling WHERE label = ?");
 		query.setParameter(1, label.getId());
 		ResultSet result = query.execute();
 		while(result.next()) {
 			int termId = result.getInt(2);
-			terms.add(termDAO.get(termId));
+			Term term = termDAO.get(termId);
+			if(term != null)
+				terms.add(term);
 		}
 		query.close();
 		return terms;
@@ -69,13 +76,16 @@ public class LabelingDAO {
 	}
 	
 	public void ensure(Label label, List<Term> terms) throws SQLException, ClassNotFoundException, IOException {
+		Query deleteOldLabelings = new Query("DELETE FROM `oto_labeling` WHERE label NOT IN "
+				+ "(SELECT id FROM `oto_label`)");
+		deleteOldLabelings.executeAndClose();
+		
 		String queryString = "DELETE FROM `oto_labeling` WHERE label = ?"; 
 		for(Term term : terms)
 			queryString += " AND term != " + term.getId();
 		Query query = new Query(queryString);
 		query.setParameter(1, label.getId());
-		ResultSet result = query.execute();
-		query.close();
+		query.executeAndClose();
 		
 		for(Term term : terms)
 			ensure(term, label);

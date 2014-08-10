@@ -2,19 +2,27 @@ package edu.arizona.biosemantics.oto.oto.shared.model;
 
 import java.io.Serializable;
 
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.ObjectWriter;
+
 public class Context implements Serializable {
 
 	private int id = -1;
-	private Term term;
+	private int termId;
 	private String source;
 	private String sentence;
 	
 	public Context() { }
+	
+	public Context(String source, String sentence) {
+		this.source = source;
+		this.sentence = sentence;
+	}
 
-	public Context(int id, Term term, String source, String sentence) {
+	public Context(int id, int termId, String source, String sentence) {
 		super();
 		this.id = id;
-		this.term = term;
+		this.termId = termId;
 		this.source = source;
 		this.sentence = sentence;
 	}
@@ -30,11 +38,11 @@ public class Context implements Serializable {
 	public void setSentence(String sentence) {
 		this.sentence = sentence;
 	}
-	public Term getTerm() {
-		return term;
+	public int getTermId() {
+		return termId;
 	}
-	public void setTerm(Term term) {
-		this.term = term;
+	public void setTermId(int termId) {
+		this.termId = termId;
 	}
 	public int getId() {
 		return id;
@@ -68,7 +76,5 @@ public class Context implements Serializable {
 			return false;
 		return true;
 	}	
-
-	
 	
 }

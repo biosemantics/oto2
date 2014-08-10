@@ -31,6 +31,7 @@ public class LocationsView extends Composite {
 
 	public LocationsView(EventBus eventBus) {
 		this.eventBus = eventBus;
+		store.setAutoCommit(true);
 		ColumnConfig<Location, String> instanceColumn = new ColumnConfig<Location, String>(locationProperties.instance(), 50,SafeHtmlUtils.fromTrustedString("<b>Instance</b>"));
 		ColumnConfig<Location, String> categorizationColumn = new ColumnConfig<Location, String>(locationProperties.categorization(), 100, SafeHtmlUtils.fromTrustedString("<b>Categorization</b>"));
 		List<ColumnConfig<Location, ?>> columns = new ArrayList<ColumnConfig<Location, ?>>();
@@ -38,6 +39,7 @@ public class LocationsView extends Composite {
 		columns.add(categorizationColumn);
 		ColumnModel<Location> columnModel = new ColumnModel<Location>(columns);
 		Grid<Location> grid = new Grid<Location>(store, columnModel);
+		instanceColumn.setWidth(200);
 		grid.getView().setAutoExpandColumn(categorizationColumn);
 		grid.getView().setStripeRows(true);
 		grid.getView().setColumnLines(true);

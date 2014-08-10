@@ -2,10 +2,14 @@ package edu.arizona.biosemantics.oto.oto.server.db;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.ObjectWriter;
 
 import edu.arizona.biosemantics.oto.oto.shared.model.Bucket;
 import edu.arizona.biosemantics.oto.oto.shared.model.Collection;
@@ -16,9 +20,9 @@ public class CollectionDAO {
 	
 	private BucketDAO bucketDAO;
 	private LabelDAO labelDAO;
-	private TermDAO termDAO;
 	private LabelingDAO labelingDAO;
 	
+	protected CollectionDAO() {} 
 	
 	public void setBucketDAO(BucketDAO bucketDAO) {
 		this.bucketDAO = bucketDAO;
@@ -26,10 +30,6 @@ public class CollectionDAO {
 
 	public void setLabelDAO(LabelDAO labelDAO) {
 		this.labelDAO = labelDAO;
-	}
-
-	public void setTermDAO(TermDAO termDAO) {
-		this.termDAO = termDAO;
 	}
 	
 	public void setLabelingDAO(LabelingDAO labelingDAO) {
@@ -57,12 +57,22 @@ public class CollectionDAO {
 		}
 		
 		List<Bucket> buckets = bucketDAO.getBuckets(collection);
-		for(Bucket bucket : buckets)
-			bucket.setCollection(collection);
 		collection.setBuckets(buckets);
 		List<Label> labels = labelDAO.getLabels(collection);
-		for(Label label : labels)
-			label.setCollection(collection);
+		// ensure to return same term objects in bucket and labels, so operations are performed
+		// on the same object, e.g. rename
+		List<Term> termsToSend = new LinkedList<Term>();
+		for(Bucket bucket : buckets)
+			termsToSend.addAll(bucket.getTerms());
+		for(Label label : labels) {
+			List<Term> newLabelTerms = new LinkedList<Term>();
+			for(Term labelTerm : label.getTerms()) {
+				Term termToSend = termsToSend.get(termsToSend.indexOf(labelTerm));
+				newLabelTerms.add(termToSend);
+			}
+			label.setTerms(newLabelTerms);
+		}
+		//
 		collection.setLabels(labels);
 		
 		query.close();
@@ -97,26 +107,28 @@ public class CollectionDAO {
 			collection.setId(id);
 			
 			for(Bucket bucket : collection.getBuckets())
-				bucketDAO.insert(bucket);
+				bucketDAO.insert(bucket, collection.getId());
 					
 			for(Label label : collection.getLabels())
-				labelDAO.insert(label);
+				labelDAO.insert(label, collection.getId());
 		}
 		return collection;
 	}
 	
 	public void update(Collection collection) throws SQLException, ClassNotFoundException, IOException {
+		System.out.println("update collection");
+		ObjectMapper mapper = new ObjectMapper();
+		ObjectWriter writer = mapper.writerWithDefaultPrettyPrinter();
+		System.out.println(writer.writeValueAsString(collection));
+		
 		Query query = new Query("UPDATE oto_collection SET name = ?, secret = ? WHERE id = ?");
 		query.setParameter(1, collection.getName());
 		query.setParameter(2, collection.getSecret());
 		query.setParameter(3, collection.getId());
 		query.executeAndClose();
 		
-		for(Label label : collection.getLabels()) {
-			if(!label.hasId())
-				labelDAO.insert(label);
-			labelingDAO.ensure(label, label.getTerms());
-		}
+		bucketDAO.ensure(collection);
+		labelDAO.ensure(collection);
 	}
 	
 	public void remove(Collection collection) throws ClassNotFoundException, SQLException, IOException {

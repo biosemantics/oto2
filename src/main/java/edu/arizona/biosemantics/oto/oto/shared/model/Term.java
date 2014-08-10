@@ -7,14 +7,17 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.ObjectWriter;
+
 public class Term implements Serializable {
 
 	private int id = -1;
 	private String term;
-	private Bucket bucket; 
-	private Set<Label> labels = new HashSet<Label>();
-	private Set<Term> synonyms = new LinkedHashSet<Term>();
-	private List<Context> contexts = new LinkedList<Context>();
+	//private int bucketId; 
+	//private Set<Integer> labels = new HashSet<Integer>();
+	//private Set<Term> synonyms = new LinkedHashSet<Term>();
+	//private List<Context> contexts = new LinkedList<Context>();
 	
 	public Term() { }
 	
@@ -32,7 +35,7 @@ public class Term implements Serializable {
 		this.term = term;
 	}
 
-	public Set<Term> getSynonyms() {
+	/*public Set<Term> getSynonyms() {
 		return synonyms;
 	}
 
@@ -62,7 +65,7 @@ public class Term implements Serializable {
 
 	public void addSynonym(Term term) {
 		synonyms.add(term);
-	}
+	}*/
 
 	public int getId() {
 		return id;
@@ -76,6 +79,7 @@ public class Term implements Serializable {
 		this.id = id;
 	}
 
+	/*
 	public void addContext(Context context) {
 		context.setTerm(this);
 		contexts.add(context);
@@ -87,7 +91,7 @@ public class Term implements Serializable {
 	
 	public List<Context> getContexts() {
 		return contexts;
-	}
+	}*/
 
 	@Override
 	public int hashCode() {
@@ -110,7 +114,15 @@ public class Term implements Serializable {
 			return false;
 		return true;
 	}
-	
+
+	/*
+	public void removeLabel(Label label) {
+		labels.remove(label);
+	}
+
+	public void addLabel(Label label) {
+		labels.add(label);
+	}*/
 	
 	
 }

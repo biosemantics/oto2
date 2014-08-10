@@ -8,7 +8,7 @@ import com.sencha.gxt.data.shared.PropertyAccess;
 
 public interface TextTreeNodeProperties extends PropertyAccess<TextTreeNode> {
 
-	  @Path("text")
+	  @Path("id")
 	  ModelKeyProvider<TextTreeNode> key();
 	   
 	  @Path("text")

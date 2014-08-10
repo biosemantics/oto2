@@ -15,5 +15,10 @@ public class TermTreeNode extends TextTreeNode {
 	public Term getTerm() {
 		return term;
 	}
+
+	@Override
+	public String getId() {
+		return "term-" + term.getId();
+	}
 	
 }

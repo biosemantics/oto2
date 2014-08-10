@@ -3,15 +3,17 @@ package edu.arizona.biosemantics.oto.oto.client.categorize;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.sencha.gxt.widget.core.client.container.PortalLayoutContainer;
-
 import com.google.gwt.event.shared.EventBus;
 
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelCreateEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelRemoveEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelsMergeEvent;
+import edu.arizona.biosemantics.oto.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto.oto.shared.model.Label;
+import edu.arizona.biosemantics.oto.oto.shared.model.Term;
 import edu.arizona.biosemantics.oto.oto.shared.model.TextTreeNode;
 
 public class LabelsView extends PortalLayoutContainer {
@@ -32,13 +34,18 @@ public class LabelsView extends PortalLayoutContainer {
 		public Label getLabel() {
 			return label;
 		}
+
+		@Override
+		public String getId() {
+			return "label-" + label.getId();
+		}
 		
 	}
 
 	private EventBus eventBus;
 	private int portalColumnCount;
 	private Map<Label, LabelPortlet> labelPortletsMap = new HashMap<Label, LabelPortlet>();
-	private List<Label> labels;
+	private Collection collection;
 	
 	public LabelsView(EventBus eventBus, int portalColumnCount) {
 		super(portalColumnCount);
@@ -53,20 +60,26 @@ public class LabelsView extends PortalLayoutContainer {
 	}
 
 	private void bindEvents() {
-		/*eventBus.addHandler(LabelsMergeEvent.TYPE, new LabelsMergeEvent.MergeLabelsHandler() {
+		eventBus.addHandler(LabelsMergeEvent.TYPE, new LabelsMergeEvent.MergeLabelsHandler() {
 			@Override
-			public void onMerge(Label source, Label destination) {
-				LabelPortlet portlet = labelPortletsMap.remove(source);
-				Labels
+			public void onMerge(Label destination, Set<Label> sources) {
+				for(Label source : sources) {
+					LabelPortlet sourcePortlet = labelPortletsMap.remove(source);
+					LabelsView.this.remove(sourcePortlet, LabelsView.this.getPortletColumn(sourcePortlet));
+					sourcePortlet.removeFromParent();
+					LabelPortlet destinationPortlet = labelPortletsMap.get(destination);
+					for(Term term : source.getTerms())
+						destinationPortlet.addToStore(term);
+				}
 			}
-		});*/
+		});
 		eventBus.addHandler(LabelCreateEvent.TYPE, new LabelCreateEvent.CreateLabelHandler() {
 			@Override
 			public void onCreate(Label label) {
-				LabelPortlet labelPortlet = new LabelPortlet(eventBus, label);
+				LabelPortlet labelPortlet = new LabelPortlet(eventBus, label, collection);
 				add(labelPortlet, labelPortletsMap.size() % portalColumnCount);
 				labelPortletsMap.put(label, labelPortlet);
-				labels.add(label);
+				collection.addLabel(label);
 			}
 		});
 		eventBus.addHandler(LabelRemoveEvent.TYPE, new LabelRemoveEvent.RemoveLabelHandler() {
@@ -74,17 +87,18 @@ public class LabelsView extends PortalLayoutContainer {
 			public void onRemove(Label label) {
 				LabelPortlet portlet = labelPortletsMap.remove(label);
 				LabelsView.this.remove(portlet, LabelsView.this.getPortletColumn(portlet));
-				labels.remove(label);
+				portlet.removeFromParent();
+				collection.removeLabel(label);
 			}
 		});
 		
 	}
 
-	public void setLabels(List<Label> labels) {
+	public void setCollection(Collection collection) {
 		clear();
-		this.labels = labels;
-		for(Label label : labels) {
-			LabelPortlet labelPortlet = new LabelPortlet(eventBus, label);
+		this.collection = collection;
+		for(Label label : collection.getLabels()) {
+			LabelPortlet labelPortlet = new LabelPortlet(eventBus, label, collection);
 			add(labelPortlet, labelPortletsMap.size() % portalColumnCount);
 			labelPortletsMap.put(label, labelPortlet);
 		}

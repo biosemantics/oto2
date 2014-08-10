@@ -17,6 +17,8 @@ public class TermDAO {
 	
 	private ContextDAO contextDAO;
 	private BucketDAO bucketDAO;
+	
+	protected TermDAO() { }
 		
 	public void setContextDAO(ContextDAO contextDAO) {
 		this.contextDAO = contextDAO;
@@ -45,11 +47,11 @@ public class TermDAO {
 		return new Term(id, text);
 	}
 
-	public Term insert(Term term) throws SQLException, ClassNotFoundException, IOException {
+	public Term insert(Term term, int bucketId) throws SQLException, ClassNotFoundException, IOException {
 		if(!term.hasId()) {
 			Query insert = new Query("INSERT INTO `oto_term` " +
 					"(`bucket`, `term`) VALUES (?, ?)");
-			insert.setParameter(1, term.getBucket().getId()); //term.getBucket().getId());
+			insert.setParameter(1, bucketId);
 			insert.setParameter(2, term.getTerm());
 			insert.execute();
 			ResultSet generatedKeys = insert.getGeneratedKeys();
@@ -57,24 +59,15 @@ public class TermDAO {
 			int id = generatedKeys.getInt(1);
 			insert.close();		
 			term.setId(id);
-			
-			for(Context context : term.getContexts()) {
-				contextDAO.insert(context);
-			}
 		}
 		return term;
 	}
 
-	public void update(Term term) throws SQLException, ClassNotFoundException, IOException {
+	public void update(Term term, int bucketId) throws SQLException, ClassNotFoundException, IOException {
 		Query query = new Query("UPDATE oto_term SET bucket = ?, term = ? WHERE id = ?");
-		query.setParameter(1, term.getBucket().getId()); //term.getBucket().getId());
+		query.setParameter(1, bucketId);
 		query.setParameter(2, term.getTerm());
-		query.setParameter(3, term.getId());
-		
-		for(Context context : term.getContexts()) {
-			contextDAO.update(context);
-		}
-		
+		query.setParameter(3, term.getId());	
 		query.executeAndClose();
 	}
 
@@ -82,22 +75,6 @@ public class TermDAO {
 		Query query = new Query("DELETE FROM oto_term WHERE id = ?");
 		query.setParameter(1, term.getId());
 		query.executeAndClose();
-		
-		for(Context context : term.getContexts())
-			contextDAO.remove(context);
-	}
-
-	public List<Term> getTerms(Label label) throws ClassNotFoundException, SQLException, IOException {
-		List<Term> terms = new LinkedList<Term>();
-		Query query = new Query("SELECT * FROM oto_labeling WHERE label = ?");
-		query.setParameter(1, label.getId());
-		ResultSet result = query.execute();
-		while(result.next()) {
-			int id = result.getInt(1);
-			terms.add(get(id));
-		}
-		query.close();
-		return terms;		
 	}
 	
 	public List<Term> getTerms(Bucket bucket) throws ClassNotFoundException, SQLException, IOException {

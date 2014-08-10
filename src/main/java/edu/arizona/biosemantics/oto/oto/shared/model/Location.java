@@ -2,6 +2,9 @@ package edu.arizona.biosemantics.oto.oto.shared.model;
 
 import java.io.Serializable;
 
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.ObjectWriter;
+
 public class Location implements Serializable {
 
 	private String instance;

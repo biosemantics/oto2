@@ -16,9 +16,16 @@ import edu.arizona.biosemantics.oto.oto.shared.model.Term;
 public class LabelDAO {
 	
 	private TermDAO termDAO;
-
+	private LabelingDAO labelingDAO;
+	
+	protected LabelDAO() {} 
+	
 	public void setTermDAO(TermDAO termDAO) {
 		this.termDAO = termDAO;
+	}
+	
+	public void setLabelingDAO(LabelingDAO labelingDAO) {
+		this.labelingDAO = labelingDAO;
 	}
 
 	public Label get(int id) throws SQLException, ClassNotFoundException, IOException {
@@ -38,17 +45,17 @@ public class LabelDAO {
 		int collectionId = result.getInt(2);
 		String name = result.getString(3);
 		String description = result.getString(4);
-		Label label = new Label(id, name, description);
-		label.setTerms(termDAO.getTerms(label));
+		Label label = new Label(id, collectionId, name, description);
+		label.setTerms(labelingDAO.get(label));
 		return label;
 	}
 
-	public Label insert(Label label) throws SQLException, ClassNotFoundException, IOException {
+	public Label insert(Label label, int collectionId) throws SQLException, ClassNotFoundException, IOException {
 		if(!label.hasId()) {
 			Label result = null;
 			Query insert = new Query("INSERT INTO `oto_label` " +
 					"(`collection`, `name`, `description`) VALUES (?, ?, ?)");
-			insert.setParameter(1, label.getCollection().getId());
+			insert.setParameter(1, collectionId);
 			insert.setParameter(2, label.getName());
 			insert.setParameter(3, label.getDescription());
 			insert.execute();
@@ -58,9 +65,6 @@ public class LabelDAO {
 			insert.close();
 			
 			label.setId(id);
-			
-			for(Term term : label.getTerms())
-				termDAO.insert(term);
 		}
 		return label;
 	}
@@ -70,14 +74,6 @@ public class LabelDAO {
 		query.setParameter(1, label.getName());
 		query.setParameter(2, label.getDescription());
 		query.setParameter(3, label.getId());
-		
-		Label oldLabel = this.get(label.getId());
-		for(Term term : oldLabel.getTerms()) {
-			termDAO.remove(term);
-		}
-		for(Term term : label.getTerms()) {
-			termDAO.insert(term);
-		}
 		query.executeAndClose();
 	}
 
@@ -101,6 +97,29 @@ public class LabelDAO {
 		}
 		query.close();
 		return labels;		
+	}
+
+	public void ensure(Collection collection) throws ClassNotFoundException, SQLException, IOException {
+		String ids = "";
+		for(Label label : collection.getLabels()) {
+			if(!label.hasId()) {
+				Label newLabel = insert(label, collection.getId());
+				label.setId(newLabel.getId());
+				ids += newLabel.getId() + ",";
+			}
+			else {
+				ids += label.getId() + ",";
+				update(label);
+			}
+		}
+		ids = (ids.isEmpty() ? ids : ids.substring(0, ids.length() - 1));
+		Query removeOldLabels = new Query("DELETE FROM oto_label WHERE collection = ? AND id NOT IN (" + ids + ")");
+		removeOldLabels.setParameter(1, collection.getId());
+		removeOldLabels.executeAndClose();
+		
+		for(Label label : collection.getLabels()) {
+			labelingDAO.ensure(label, label.getTerms());
+		}
 	}
 }
 

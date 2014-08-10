@@ -36,14 +36,15 @@ public class ContextView extends Composite {
 	
 	public ContextView(EventBus eventBus) {
 		this.eventBus = eventBus;
+		store.setAutoCommit(true);
 		ColumnConfig<Context, String> sourceColumn = new ColumnConfig<Context, String>(contextProperties.source(), 50, SafeHtmlUtils.fromTrustedString("<b>Source</b>"));
 		ColumnConfig<Context, String> sentenceColumn = new ColumnConfig<Context, String>(contextProperties.sentence(), 100, SafeHtmlUtils.fromTrustedString("<b>Sentence</b>"));
 		List<ColumnConfig<Context, ?>> columns = new ArrayList<ColumnConfig<Context, ?>>();
 		columns.add(sourceColumn);
 		columns.add(sentenceColumn);
 		ColumnModel<Context> columnModel = new ColumnModel<Context>(columns);
-		ListStore<Context> store = new ListStore<Context>(contextProperties.key());
 		Grid<Context> grid = new Grid<Context>(store, columnModel);
+		sourceColumn.setWidth(200);
 		grid.getView().setAutoExpandColumn(sentenceColumn);
 		grid.getView().setStripeRows(true);
 		grid.getView().setColumnLines(true);
