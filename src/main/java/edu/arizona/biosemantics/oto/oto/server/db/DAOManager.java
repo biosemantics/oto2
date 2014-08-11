@@ -28,11 +28,12 @@ public class DAOManager {
 		collectionDAO.setLabelingDAO(labelingDAO);
 		termDAO.setBucketDAO(bucketDAO);
 		termDAO.setContextDAO(contextDAO);
-		labelDAO.setTermDAO(termDAO);
 		labelDAO.setLabelingDAO(labelingDAO);
+		labelDAO.setSynonymDAO(synonymDAO);
 		contextDAO.setTermDAO(termDAO);
 		labelingDAO.setLabelDAO(labelDAO);
 		labelingDAO.setTermDAO(termDAO);
+		synonymDAO.setTermDAO(termDAO);
 	}
 	
 	public BucketDAO getBucketDAO() {

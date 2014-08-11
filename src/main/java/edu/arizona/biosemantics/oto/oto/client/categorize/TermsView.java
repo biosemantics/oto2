@@ -327,6 +327,11 @@ public class TermsView extends TabPanel {
 		treeStore.clear();
 		listStore.clear();
 		
+		Set<Term> categorizedTerms = new HashSet<Term>();
+		for(Label label : collection.getLabels())
+			for(Term term : label.getTerms())
+				categorizedTerms.add(term);
+		
 		for(Bucket bucket : collection.getBuckets()) {
 			BucketTreeNode bucketTreeNode = new BucketTreeNode(bucket);
 			bucketBucketTreeNodeMap.put(bucket, bucketTreeNode);
@@ -335,8 +340,12 @@ public class TermsView extends TabPanel {
 				termBucketMap.put(term, bucket);
 				TermTreeNode termTreeNode = new TermTreeNode(term);
 				termTermTreeNodeMap.put(term, termTreeNode);
-				treeStore.add(bucketTreeNode, termTreeNode);
-				listStore.add(term);
+				
+				//only if not already in a label actually add them to store
+				if(!categorizedTerms.contains(term)) {
+					treeStore.add(bucketTreeNode, termTreeNode);
+					listStore.add(term);
+				}
 			}
 		}
 	}

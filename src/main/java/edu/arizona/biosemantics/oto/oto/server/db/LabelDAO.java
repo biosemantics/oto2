@@ -15,17 +15,17 @@ import edu.arizona.biosemantics.oto.oto.shared.model.Term;
 
 public class LabelDAO {
 	
-	private TermDAO termDAO;
 	private LabelingDAO labelingDAO;
+	private SynonymDAO synonymDAO;
 	
 	protected LabelDAO() {} 
 	
-	public void setTermDAO(TermDAO termDAO) {
-		this.termDAO = termDAO;
-	}
-	
 	public void setLabelingDAO(LabelingDAO labelingDAO) {
 		this.labelingDAO = labelingDAO;
+	}
+	
+	public void setSynonymDAO(SynonymDAO synonymDAO) {
+		this.synonymDAO = synonymDAO;
 	}
 
 	public Label get(int id) throws SQLException, ClassNotFoundException, IOException {
@@ -47,6 +47,7 @@ public class LabelDAO {
 		String description = result.getString(4);
 		Label label = new Label(id, collectionId, name, description);
 		label.setTerms(labelingDAO.get(label));
+		label.setSynonyms(synonymDAO.get(label));
 		return label;
 	}
 
@@ -81,9 +82,6 @@ public class LabelDAO {
 		Query query = new Query("DELETE FROM oto_label WHERE id = ?");
 		query.setParameter(1, label.getId());
 		query.executeAndClose();
-		
-		for(Term term :  label.getTerms())
-			termDAO.remove(term);
 	}
 
 	public List<Label> getLabels(Collection collection) throws SQLException, ClassNotFoundException, IOException {

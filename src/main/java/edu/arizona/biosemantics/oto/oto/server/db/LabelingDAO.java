@@ -47,7 +47,7 @@ public class LabelingDAO {
 		query.setParameter(1, label.getId());
 		ResultSet result = query.execute();
 		while(result.next()) {
-			int termId = result.getInt(2);
+			int termId = result.getInt(1);
 			Term term = termDAO.get(termId);
 			if(term != null)
 				terms.add(term);

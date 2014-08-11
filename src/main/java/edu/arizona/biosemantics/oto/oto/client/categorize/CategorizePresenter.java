@@ -62,7 +62,7 @@ public class CategorizePresenter {
 		});
 		eventBus.addHandler(SynonymCreationEvent.TYPE, new SynonymCreationEvent.SynonymCreationHandler() {
 			@Override
-			public void onSynonymCreation(Term term, Term mainTerm) {
+			public void onSynonymCreation(Label label, Term mainTerm, Set<Term> synonymTerms) {
 				saveCollection();
 			}
 		});

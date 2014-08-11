@@ -1,10 +1,12 @@
 package edu.arizona.biosemantics.oto.oto.shared.model;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.codehaus.jackson.map.ObjectMapper;
@@ -17,6 +19,7 @@ public class Label implements Serializable {
 	private int collectionId;
 	private String description;
 	private List<Term> terms = new LinkedList<Term>();
+	private Map<Term, List<Term>> synonyms = new HashMap<Term, List<Term>>();
 	
 	public Label() { }
 	
@@ -52,8 +55,6 @@ public class Label implements Serializable {
 	}
 
 	public void setTerms(List<Term> terms) {
-		//for(Term term : terms) 
-		//	term.setLabel(this);
 		this.terms = terms;
 	}
 
@@ -67,18 +68,15 @@ public class Label implements Serializable {
 
 	public void removeTerm(Term term) {
 		terms.remove(term);
-		//term.removeLabel(this);
 	}
 	
 	public void addTerm(Term term) {
 		terms.add(term);
-		//term.addLabel(this);
 	}
 	
 	public void addTerms(List<Term> terms) {
+		terms.removeAll(this.terms);
 		this.terms.addAll(terms);
-		//for(Term term : terms)
-		//	term.addLabel(this);
 	}	
 	
 	public int getId() {
@@ -125,8 +123,27 @@ public class Label implements Serializable {
 
 	public void removeTerms(List<Term> terms) {
 		this.terms.removeAll(terms);
-		//for(Term term : terms)
-		//	term.removeLabel(this);
+	}
+
+	public void setSynonyms(Map<Term, List<Term>> synonyms) {
+		this.synonyms = synonyms;
+	}
+	
+	public List<Term> getSynonyms(Term term) {
+		if(!synonyms.containsKey(term))
+			return new LinkedList<Term>();
+		return synonyms.get(term);
+	}
+
+	public void addSynonym(Term term, Term synonymTerm) {
+		if(!synonyms.containsKey(term)) 
+			synonyms.put(term, new LinkedList<Term>());
+		synonyms.get(term).add(synonymTerm);
+	}
+	
+	public void addSynonyms(Term term, Set<Term> synonymTerms) {
+		for(Term synonym : synonymTerms)
+			addSynonym(term, synonym);
 	}
 
 }

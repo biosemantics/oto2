@@ -65,11 +65,11 @@ public class LabelsView extends PortalLayoutContainer {
 			public void onMerge(Label destination, Set<Label> sources) {
 				for(Label source : sources) {
 					LabelPortlet sourcePortlet = labelPortletsMap.remove(source);
-					LabelsView.this.remove(sourcePortlet, LabelsView.this.getPortletColumn(sourcePortlet));
 					sourcePortlet.removeFromParent();
+					//LabelsView.this.remove(sourcePortlet, LabelsView.this.getPortletColumn(sourcePortlet));
 					LabelPortlet destinationPortlet = labelPortletsMap.get(destination);
 					for(Term term : source.getTerms())
-						destinationPortlet.addToStore(term);
+						destinationPortlet.addMainTerm(term);
 				}
 			}
 		});
