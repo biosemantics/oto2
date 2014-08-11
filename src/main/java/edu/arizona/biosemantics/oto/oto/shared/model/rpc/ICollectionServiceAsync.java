@@ -17,7 +17,7 @@ public interface ICollectionServiceAsync {
 	
 	public void get(Collection collection, AsyncCallback<Collection> callback);
 
-	public void update(Collection collection, AsyncCallback<Void> callback);
+	public void update(Collection collection, AsyncCallback<Collection> callback);
 
 	public void getContexts(Term term, AsyncCallback<List<Context>> callback); 
 	

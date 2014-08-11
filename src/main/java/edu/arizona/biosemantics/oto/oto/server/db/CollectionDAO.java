@@ -115,7 +115,7 @@ public class CollectionDAO {
 		return collection;
 	}
 	
-	public void update(Collection collection) throws SQLException, ClassNotFoundException, IOException {
+	public Collection update(Collection collection) throws SQLException, ClassNotFoundException, IOException {
 		System.out.println("update collection");
 		ObjectMapper mapper = new ObjectMapper();
 		ObjectWriter writer = mapper.writerWithDefaultPrettyPrinter();
@@ -129,6 +129,7 @@ public class CollectionDAO {
 		
 		bucketDAO.ensure(collection);
 		labelDAO.ensure(collection);
+		return collection;
 	}
 	
 	public void remove(Collection collection) throws ClassNotFoundException, SQLException, IOException {

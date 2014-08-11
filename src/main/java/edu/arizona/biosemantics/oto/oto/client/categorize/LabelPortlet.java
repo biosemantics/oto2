@@ -480,9 +480,9 @@ public class LabelPortlet extends Portlet {
 	
 	protected void addMainTerm(Term term) {
 		MainTermTreeNode mainTermTreeNode = new MainTermTreeNode(term);
-		if(termTermTreeNodeMap.containsKey(mainTermTreeNode))  {
+		if(!termTermTreeNodeMap.containsKey(term))  {
 			portletStore.add(mainTermTreeNode);
-			this.termTermTreeNodeMap.put(mainTermTreeNode.getTerm(), mainTermTreeNode);
+			this.termTermTreeNodeMap.put(term, mainTermTreeNode);
 		}
 	}
 	
@@ -500,7 +500,7 @@ public class LabelPortlet extends Portlet {
 		SynonymTermTreeNode synonymTermTreeNode = new SynonymTermTreeNode(synonymTerm);
 		if(!termTermTreeNodeMap.containsKey(synonymTermTreeNode)) {
 			portletStore.add(mainTermTreeNode, synonymTermTreeNode);
-			this.termTermTreeNodeMap.put(synonymTermTreeNode.getTerm(), synonymTermTreeNode);
+			this.termTermTreeNodeMap.put(synonymTerm, synonymTermTreeNode);
 		}
 	}
 	
@@ -675,14 +675,14 @@ public class LabelPortlet extends Portlet {
 			@Override
 			public void onDrop(DndDropEvent event) {
 				//model update
-				
+				System.out.println("drop");
 				
 				//ui update
 				// <->
 				//event fire
 				event.getData();
 			}
-		});
+		}); 
 		
 		DropTarget dropTarget = new DropTarget(this);
 		dropTarget.setOperation(Operation.COPY);
@@ -736,6 +736,10 @@ public class LabelPortlet extends Portlet {
 
 	protected Label getLabel() {
 		return label;
+	}
+
+	public void setCollection(Collection collection) {
+		this.collection = collection;
 	}
 
 }

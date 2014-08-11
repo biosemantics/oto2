@@ -37,11 +37,12 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	}
 
 	@Override
-	public void update(Collection collection) throws Exception {
+	public Collection update(Collection collection) throws Exception {
 		try {
-		daoManager.getCollectionDAO().update(collection);
+			return daoManager.getCollectionDAO().update(collection);
 		}catch(Exception e) {
 			e.printStackTrace();
+			return null;
 		}
 	}	
 	

@@ -184,7 +184,7 @@ public class TermsView extends TabPanel {
 			return bucket.getName();
 		}
 		
-		public Bucket getLabel() {
+		public Bucket getBucket() {
 			return bucket;
 		}
 
@@ -318,33 +318,35 @@ public class TermsView extends TabPanel {
 		});
 	}
 	
-	public void setCollection(Collection collection) {
+	public void setCollection(Collection collection, boolean refreshUI) {
 		this.collection = collection;
 		
-		termBucketMap = new HashMap<Term, Bucket>();
-		bucketBucketTreeNodeMap = new HashMap<Bucket, BucketTreeNode>();
-		termTermTreeNodeMap = new HashMap<Term, TermTreeNode>();
-		treeStore.clear();
-		listStore.clear();
-		
-		Set<Term> categorizedTerms = new HashSet<Term>();
-		for(Label label : collection.getLabels())
-			for(Term term : label.getTerms())
-				categorizedTerms.add(term);
-		
-		for(Bucket bucket : collection.getBuckets()) {
-			BucketTreeNode bucketTreeNode = new BucketTreeNode(bucket);
-			bucketBucketTreeNodeMap.put(bucket, bucketTreeNode);
-			treeStore.add(bucketTreeNode);
-			for(Term term : bucket.getTerms()) {
-				termBucketMap.put(term, bucket);
-				TermTreeNode termTreeNode = new TermTreeNode(term);
-				termTermTreeNodeMap.put(term, termTreeNode);
-				
-				//only if not already in a label actually add them to store
-				if(!categorizedTerms.contains(term)) {
-					treeStore.add(bucketTreeNode, termTreeNode);
-					listStore.add(term);
+		if(refreshUI) {
+			termBucketMap = new HashMap<Term, Bucket>();
+			bucketBucketTreeNodeMap = new HashMap<Bucket, BucketTreeNode>();
+			termTermTreeNodeMap = new HashMap<Term, TermTreeNode>();
+			treeStore.clear();
+			listStore.clear();
+			
+			Set<Term> categorizedTerms = new HashSet<Term>();
+			for(Label label : collection.getLabels())
+				for(Term term : label.getTerms())
+					categorizedTerms.add(term);
+			
+			for(Bucket bucket : collection.getBuckets()) {
+				BucketTreeNode bucketTreeNode = new BucketTreeNode(bucket);
+				bucketBucketTreeNodeMap.put(bucket, bucketTreeNode);
+				treeStore.add(bucketTreeNode);
+				for(Term term : bucket.getTerms()) {
+					termBucketMap.put(term, bucket);
+					TermTreeNode termTreeNode = new TermTreeNode(term);
+					termTermTreeNodeMap.put(term, termTreeNode);
+					
+					//only if not already in a label actually add them to store
+					if(!categorizedTerms.contains(term)) {
+						treeStore.add(bucketTreeNode, termTreeNode);
+						listStore.add(term);
+					}
 				}
 			}
 		}

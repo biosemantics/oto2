@@ -9,6 +9,7 @@ import com.google.web.bindery.event.shared.EventBus;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.CategorizeCopyRemoveTermEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.CategorizeCopyTermEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.CategorizeMoveTermEvent;
+import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelCreateEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelsMergeEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.LoadEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelRemoveEvent;
@@ -41,6 +42,12 @@ public class CategorizePresenter {
 
 	private void bindEvents() {
 		//save triggers
+		eventBus.addHandler(LabelCreateEvent.TYPE, new LabelCreateEvent.CreateLabelHandler() {
+			@Override
+			public void onCreate(Label label) {
+				saveCollection();
+			}
+		});
 		eventBus.addHandler(CategorizeCopyTermEvent.TYPE, new CategorizeCopyTermEvent.CategorizeCopyTermHandler() {
 			@Override
 			public void onCategorize(List<Term> terms, Label sourceCategory, Set<Label> targetCategories) {
@@ -125,9 +132,12 @@ public class CategorizePresenter {
 	}
 
 	private void saveCollection() {
-		collectionService.update(collection, new RPCCallback<Void>() {
+		collectionService.update(collection, new RPCCallback<Collection>() {
 			@Override
-			public void onSuccess(Void result) {	}
+			public void onSuccess(Collection collection) {	
+				CategorizePresenter.this.collection = collection;
+				view.setCollection(collection, false);
+			}
 		});
 	}
 
@@ -139,7 +149,7 @@ public class CategorizePresenter {
 			@Override
 			public void onSuccess(Collection result) {
 				CategorizePresenter.this.collection = result;
-				view.setCollection(result);
+				view.setCollection(result, true);
 			}
 		});
 	}

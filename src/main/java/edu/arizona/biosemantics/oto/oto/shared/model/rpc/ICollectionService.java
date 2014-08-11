@@ -21,7 +21,7 @@ public interface ICollectionService extends RemoteService {
 	
 	public Collection get(Collection collection) throws Exception;
 	
-	public void update(Collection collection) throws Exception; 
+	public Collection update(Collection collection) throws Exception; 
 
 	public List<Context> getContexts(Term term) throws Exception; 
 	

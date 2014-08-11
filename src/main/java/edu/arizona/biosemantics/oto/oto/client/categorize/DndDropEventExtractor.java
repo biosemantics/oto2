@@ -10,7 +10,7 @@ import com.sencha.gxt.widget.core.client.TabPanel;
 import com.sencha.gxt.widget.core.client.container.CardLayoutContainer;
 import com.sencha.gxt.widget.core.client.tree.Tree;
 
-import edu.arizona.biosemantics.oto.oto.client.categorize.LabelsView.LabelTreeNode;
+import edu.arizona.biosemantics.oto.oto.client.categorize.TermsView.BucketTreeNode;
 import edu.arizona.biosemantics.oto.oto.shared.model.Term;
 import edu.arizona.biosemantics.oto.oto.shared.model.TermTreeNode;
 
@@ -29,11 +29,9 @@ public class DndDropEventExtractor {
 
 						// drags from west panel, only location of
 						// labelTreeNodes
-						if (treeNode.getData() instanceof LabelTreeNode) {
-							LabelTreeNode labelTreeNode = (LabelTreeNode) treeNode
-									.getData();
-							terms.addAll(labelTreeNode.getLabel()
-									.getTerms());
+						if (treeNode.getData() instanceof BucketTreeNode) {
+							BucketTreeNode bucketTreeNode = (BucketTreeNode) treeNode.getData();
+							terms.addAll(bucketTreeNode.getBucket().getTerms());
 						}
 						if (treeNode.getData() instanceof TermTreeNode) {
 							TermTreeNode termTreeNode = (TermTreeNode) treeNode

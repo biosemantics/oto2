@@ -1,13 +1,35 @@
 package edu.arizona.biosemantics.oto.oto.client.categorize;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.sencha.gxt.widget.core.client.Dialog;
+import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
+import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.PortalLayoutContainer;
+import com.sencha.gxt.widget.core.client.event.BeforeShowEvent;
+import com.sencha.gxt.widget.core.client.event.SelectEvent;
+import com.sencha.gxt.widget.core.client.event.BeforeShowEvent.BeforeShowHandler;
+import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
+import com.sencha.gxt.widget.core.client.form.CheckBox;
+import com.sencha.gxt.widget.core.client.form.TextArea;
+import com.sencha.gxt.widget.core.client.form.TextField;
+import com.sencha.gxt.widget.core.client.menu.Item;
+import com.sencha.gxt.widget.core.client.menu.Menu;
+import com.sencha.gxt.widget.core.client.menu.MenuItem;
+import com.google.gwt.event.logical.shared.SelectionEvent;
+import com.google.gwt.event.logical.shared.SelectionHandler;
+import com.google.gwt.event.logical.shared.ValueChangeEvent;
+import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.user.client.ui.VerticalPanel;
 
+import edu.arizona.biosemantics.oto.oto.client.categorize.LabelPortlet.LabelInfoContainer;
+import edu.arizona.biosemantics.oto.oto.client.categorize.LabelPortlet.TermMenu;
+import edu.arizona.biosemantics.oto.oto.client.categorize.event.CategorizeCopyTermEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelCreateEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelRemoveEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelsMergeEvent;
@@ -18,30 +40,152 @@ import edu.arizona.biosemantics.oto.oto.shared.model.TextTreeNode;
 
 public class LabelsView extends PortalLayoutContainer {
 	
-	public static class LabelTreeNode extends TextTreeNode {
-		
-		private Label label;
+	public class LabelsMenu extends Menu implements BeforeShowHandler {
+		private MenuItem add;
+		private MenuItem collapse;
+		private MenuItem expand;
 
-		public LabelTreeNode(Label label) {
-			this.label = label;
+		public LabelsMenu() {
+			this.setWidth(140);
+			this.addBeforeShowHandler(this);
+			
+			add = new MenuItem("Add Category");
+			add.addSelectionHandler(new SelectionHandler<Item>() {
+				@Override
+				public void onSelection(SelectionEvent<Item> event) {
+					LabelAddDialog labelAddDialog = new LabelAddDialog();
+					labelAddDialog.show();
+				}
+			});
+			
+			collapse = new MenuItem("Collapse All");
+			collapse.addSelectionHandler(new SelectionHandler<Item>() {
+				@Override
+				public void onSelection(SelectionEvent<Item> event) {
+					for(Label label : collection.getLabels()) {
+						LabelPortlet portlet = labelPortletsMap.get(label);
+						if(portlet != null)
+							portlet.collapse();
+					}
+				}
+			});
+			
+			
+			expand = new MenuItem("Expand All");
+			expand.addSelectionHandler(new SelectionHandler<Item>() {
+				@Override
+				public void onSelection(SelectionEvent<Item> event) {
+					for(Label label : collection.getLabels()) {
+						LabelPortlet portlet = labelPortletsMap.get(label);
+						if(portlet != null)
+							portlet.expand();
+					}
+				}
+			});
+			
 		}
 
 		@Override
-		public String getText() {
-			return label.getName();
+		public void onBeforeShow(BeforeShowEvent event) {
+			this.clear();
+			this.add(add);
+			this.add(expand);
+			this.add(collapse);
+			
+			MenuItem collapseExpand = new MenuItem("Collapse/Expand");
+			Menu collapseExpandMenu = new Menu();
+			VerticalPanel verticalPanel = new VerticalPanel();
+			final Set<Label> collapseLabels = new HashSet<Label>();
+			final Set<Label> expandLabels = new HashSet<Label>();
+			final TextButton collapseExpandButton = new TextButton("Collapse/Expand");
+			collapseExpandButton.setEnabled(false);			
+			for(final Label collectionLabel : collection.getLabels()) {
+				LabelPortlet portlet = labelPortletsMap.get(collectionLabel);
+				if(portlet != null) {
+					CheckBox checkBox = new CheckBox();
+					checkBox.setBoxLabel(collectionLabel.getName());
+					checkBox.setValue(portlet.isExpanded());
+					checkBox.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
+						@Override
+						public void onValueChange(ValueChangeEvent<Boolean> event) {
+							if(event.getValue()) {
+								expandLabels.add(collectionLabel); 
+								collapseLabels.remove(collectionLabel);
+							}
+							else {
+								collapseLabels.add(collectionLabel);
+								expandLabels.remove(collectionLabel); 
+							}
+							collapseExpandButton.setEnabled(!collapseLabels.isEmpty() || !expandLabels.isEmpty());
+						}
+					});
+					verticalPanel.add(checkBox);
+				}
+			}
+			if(verticalPanel.getWidgetCount() > 0) {
+				collapseExpandButton.addSelectHandler(new SelectHandler() {
+					@Override
+					public void onSelect(SelectEvent event) {
+						for(Label expandLabel : expandLabels) {
+							LabelPortlet portlet = labelPortletsMap.get(expandLabel);
+							if(portlet != null)
+								portlet.expand();
+						}
+						for(Label collapseLabel : collapseLabels) {
+							LabelPortlet portlet = labelPortletsMap.get(collapseLabel);
+							if(portlet != null)
+								portlet.collapse();
+						}
+						LabelsMenu.this.hide();
+					}
+				});
+				verticalPanel.add(collapseExpandButton);
+				collapseExpandMenu.add(verticalPanel);
+				collapseExpand.setSubMenu(collapseExpandMenu);
+				this.add(collapseExpand);
+			}
 		}
-		
-		public Label getLabel() {
-			return label;
-		}
-
-		@Override
-		public String getId() {
-			return "label-" + label.getId();
-		}
-		
 	}
-
+	
+	public class LabelAddDialog extends Dialog {
+		
+		public LabelAddDialog() {
+			this.setHeadingText("Add Category");
+			LabelInfoContainer labelInfoContainer = new LabelInfoContainer("", "");
+		    this.add(labelInfoContainer);
+		 
+		    final TextField labelName = labelInfoContainer.getLabelName();
+		    final TextArea labelDescription = labelInfoContainer.getLabelDescription();
+		    
+		    getButtonBar().clear();
+		    TextButton add = new TextButton("Add");
+		    add.addSelectHandler(new SelectHandler() {
+				@Override
+				public void onSelect(SelectEvent event) {
+					if(!labelName.validate()) {
+						AlertMessageBox alert = new AlertMessageBox("Category Name", "A category name is required");
+						alert.show();
+						return;
+					}
+					
+					Label newLabel = new Label(labelName.getText(), labelDescription.getText());
+					collection.addLabel(newLabel);
+					eventBus.fireEvent(new LabelCreateEvent(newLabel));
+					LabelAddDialog.this.hide();
+				}
+		    });
+		    TextButton cancel =  new TextButton("Cancel");
+		    cancel.addSelectHandler(new SelectHandler() {
+				@Override
+				public void onSelect(SelectEvent event) {
+					LabelAddDialog.this.hide();
+				}
+		    });
+		    addButton(add);
+		    addButton(cancel);
+		}
+	}
+	
 	private EventBus eventBus;
 	private int portalColumnCount;
 	private Map<Label, LabelPortlet> labelPortletsMap = new HashMap<Label, LabelPortlet>();
@@ -76,10 +220,7 @@ public class LabelsView extends PortalLayoutContainer {
 		eventBus.addHandler(LabelCreateEvent.TYPE, new LabelCreateEvent.CreateLabelHandler() {
 			@Override
 			public void onCreate(Label label) {
-				LabelPortlet labelPortlet = new LabelPortlet(eventBus, label, collection);
-				add(labelPortlet, labelPortletsMap.size() % portalColumnCount);
-				labelPortletsMap.put(label, labelPortlet);
-				collection.addLabel(label);
+				//taken care of in setCollection (here the label doesn't have an id yet which is necessary to hash into map)
 			}
 		});
 		eventBus.addHandler(LabelRemoveEvent.TYPE, new LabelRemoveEvent.RemoveLabelHandler() {
@@ -88,19 +229,33 @@ public class LabelsView extends PortalLayoutContainer {
 				LabelPortlet portlet = labelPortletsMap.remove(label);
 				LabelsView.this.remove(portlet, LabelsView.this.getPortletColumn(portlet));
 				portlet.removeFromParent();
-				collection.removeLabel(label);
 			}
 		});
 		
 	}
 
-	public void setCollection(Collection collection) {
-		clear();
+	public void setCollection(Collection collection, boolean refreshUI) {
 		this.collection = collection;
-		for(Label label : collection.getLabels()) {
-			LabelPortlet labelPortlet = new LabelPortlet(eventBus, label, collection);
-			add(labelPortlet, labelPortletsMap.size() % portalColumnCount);
-			labelPortletsMap.put(label, labelPortlet);
+
+		if(refreshUI) {
+			clear();
+			for(Label label : collection.getLabels()) {
+				LabelPortlet labelPortlet = new LabelPortlet(eventBus, label, collection);
+				add(labelPortlet, labelPortletsMap.size() % portalColumnCount);
+				labelPortletsMap.put(label, labelPortlet);
+			}
+		} else {
+			for(LabelPortlet portlet : labelPortletsMap.values()) {
+				portlet.setCollection(collection);
+			}
+			
+			for(Label label : collection.getLabels()) {
+				if(!labelPortletsMap.containsKey(label)) {
+					LabelPortlet labelPortlet = new LabelPortlet(eventBus, label, collection);
+					add(labelPortlet, labelPortletsMap.size() % portalColumnCount);
+					labelPortletsMap.put(label, labelPortlet);
+				}
+			}
 		}
 	}
 }
