@@ -2,10 +2,9 @@ package edu.arizona.biosemantics.oto.oto.client.categorize.event;
 
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
-import com.google.gwt.event.shared.GwtEvent.Type;
 
-import edu.arizona.biosemantics.oto.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelCreateEvent.CreateLabelHandler;
+import edu.arizona.biosemantics.oto.oto.shared.model.Label;
 
 public class LabelCreateEvent extends GwtEvent<CreateLabelHandler> {
 

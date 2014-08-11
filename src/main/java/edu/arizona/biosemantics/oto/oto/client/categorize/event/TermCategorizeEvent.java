@@ -1,7 +1,6 @@
 package edu.arizona.biosemantics.oto.oto.client.categorize.event;
 
-import java.util.HashSet;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import com.google.gwt.event.shared.EventHandler;
@@ -14,22 +13,22 @@ import edu.arizona.biosemantics.oto.oto.shared.model.Term;
 public class TermCategorizeEvent extends GwtEvent<TermCategorizeHandler> {
 
 	public interface TermCategorizeHandler extends EventHandler {
-		void onCategorize(List<Term> terms, Set<Label> categories);
+		void onCategorize(LinkedHashSet<Term> terms, Set<Label> categories);
 	}
 	
     public static Type<TermCategorizeHandler> TYPE = new Type<TermCategorizeHandler>();
     
-    private List<Term> terms;
-	private Set<Label> categories;
+    private LinkedHashSet<Term> terms;
+	private LinkedHashSet<Label> categories;
     
-	public TermCategorizeEvent(List<Term> terms, Set<Label> categories) {
+	public TermCategorizeEvent(LinkedHashSet<Term> terms, LinkedHashSet<Label> categories) {
 		this.terms = terms;
 		this.categories = categories;
 	}
 	
-    public TermCategorizeEvent(List<Term> terms, Label category) {
+    public TermCategorizeEvent(LinkedHashSet<Term> terms, Label category) {
         this.terms = terms;
-        this.categories = new HashSet<Label>();
+        this.categories = new LinkedHashSet<Label>();
         this.categories.add(category);
     }
 	
@@ -43,11 +42,11 @@ public class TermCategorizeEvent extends GwtEvent<TermCategorizeHandler> {
 		handler.onCategorize(terms, categories);
 	}
 
-	public List<Term> getTerms() {
+	public LinkedHashSet<Term> getTerms() {
 		return terms;
 	}
 
-	public Set<Label> getCategories() {
+	public LinkedHashSet<Label> getCategories() {
 		return categories;
 	}
 

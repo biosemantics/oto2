@@ -1,16 +1,9 @@
 package edu.arizona.biosemantics.oto.oto.shared.model;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
-
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.ObjectWriter;
 
 public class Label implements Serializable {
 
@@ -18,8 +11,8 @@ public class Label implements Serializable {
 	private String name;
 	private int collectionId;
 	private String description;
-	private List<Term> terms = new LinkedList<Term>();
-	private Map<Term, List<Term>> synonyms = new HashMap<Term, List<Term>>();
+	private LinkedHashSet<Term> mainTerms = new LinkedHashSet<Term>();
+	private LinkedHashMap<Term, LinkedHashSet<Term>> mainTermSynonymsMap = new LinkedHashMap<Term, LinkedHashSet<Term>>();
 	
 	public Label() { }
 	
@@ -50,12 +43,14 @@ public class Label implements Serializable {
 		this.name = text;
 	}
 
-	public List<Term> getTerms() {
-		return new LinkedList<Term>(terms);
+	public LinkedHashSet<Term> getMainTerms() {
+		return new LinkedHashSet<Term>(mainTerms);
 	}
 
-	public void setTerms(List<Term> terms) {
-		this.terms = terms;
+	public void setMainTerms(LinkedHashSet<Term> mainTerms) {
+		mainTerms.clear();
+		mainTermSynonymsMap.clear();
+		this.addMainTerms(mainTerms);
 	}
 
 	public String getDescription() {
@@ -66,17 +61,26 @@ public class Label implements Serializable {
 		this.description = description;
 	}
 
-	public void removeTerm(Term term) {
-		terms.remove(term);
+	public void removeMainTerm(Term term) {
+		if(mainTermSynonymsMap.containsKey(term)) {
+			LinkedHashSet<Term> oldSynonyms = mainTermSynonymsMap.get(term);
+			for(Term oldSynonym : oldSynonyms) {
+				this.addMainTerm(oldSynonym);
+			}
+			mainTermSynonymsMap.remove(term);
+		}
+		mainTerms.remove(term);
 	}
 	
-	public void addTerm(Term term) {
-		terms.add(term);
+	public void addMainTerm(Term term) {
+		mainTerms.add(term);
+		mainTermSynonymsMap.put(term, new LinkedHashSet<Term>());
 	}
 	
-	public void addTerms(List<Term> terms) {
-		terms.removeAll(this.terms);
-		this.terms.addAll(terms);
+	public void addMainTerms(LinkedHashSet<Term> mainTerms) {
+		for(Term mainTerm : mainTerms) {
+			this.addMainTerm(mainTerm);
+		}
 	}	
 	
 	public int getId() {
@@ -121,29 +125,38 @@ public class Label implements Serializable {
 		return true;
 	}
 
-	public void removeTerms(List<Term> terms) {
-		this.terms.removeAll(terms);
+	public void removeMainTerms(LinkedHashSet<Term> mainTerms) {
+		for(Term mainTerm : mainTerms)
+			this.removeMainTerm(mainTerm);
 	}
 
-	public void setSynonyms(Map<Term, List<Term>> synonyms) {
-		this.synonyms = synonyms;
+	public void setSynonyms(LinkedHashMap<Term, LinkedHashSet<Term>> mainTermSynonymsMap) {
+		this.mainTermSynonymsMap = mainTermSynonymsMap;
 	}
 	
-	public List<Term> getSynonyms(Term term) {
-		if(!synonyms.containsKey(term))
-			return new LinkedList<Term>();
-		return synonyms.get(term);
+	public LinkedHashSet<Term> getSynonyms(Term mainTerm) {
+		if(!mainTermSynonymsMap.containsKey(mainTerm))
+			return new LinkedHashSet<Term>();
+		return mainTermSynonymsMap.get(mainTerm);
 	}
 
-	public void addSynonym(Term term, Term synonymTerm) {
-		if(!synonyms.containsKey(term)) 
-			synonyms.put(term, new LinkedList<Term>());
-		synonyms.get(term).add(synonymTerm);
+	public void addSynonym(Term mainTerm, Term synonymTerm) {
+		removeMainTerm(synonymTerm);
+		
+		if(!mainTermSynonymsMap.containsKey(mainTerm)) 
+			mainTermSynonymsMap.put(mainTerm, new LinkedHashSet<Term>());
+		mainTermSynonymsMap.get(mainTerm).add(synonymTerm);
 	}
 	
-	public void addSynonyms(Term term, Set<Term> synonymTerms) {
+	public void addSynonyms(Term mainTerm, Set<Term> synonymTerms) {
 		for(Term synonym : synonymTerms)
-			addSynonym(term, synonym);
+			addSynonym(mainTerm, synonym);
+	}
+
+	public void setSynonyms(Term mainLabelTerm, LinkedHashSet<Term> synonymTerms) {
+		for(Term synonymTerm : synonymTerms)
+			removeMainTerm(synonymTerm);
+		mainTermSynonymsMap.put(mainLabelTerm, synonymTerms);
 	}
 
 }

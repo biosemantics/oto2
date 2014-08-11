@@ -3,12 +3,10 @@ package edu.arizona.biosemantics.oto.oto.server.db;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.LinkedHashSet;
 
 import edu.arizona.biosemantics.oto.oto.shared.model.Bucket;
 import edu.arizona.biosemantics.oto.oto.shared.model.Collection;
-import edu.arizona.biosemantics.oto.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto.oto.shared.model.Term;
 
 public class BucketDAO {
@@ -44,7 +42,7 @@ public class BucketDAO {
 		String name = result.getString(3);
 		String description = result.getString(4);
 		Bucket bucket = new Bucket(id, collectionId, name, description);
-		List<Term> terms = termDAO.getTerms(bucket);
+		LinkedHashSet<Term> terms = termDAO.getTerms(bucket);
 		bucket.setTerms(terms);
 		return bucket;
 	}
@@ -94,8 +92,8 @@ public class BucketDAO {
 			termDAO.remove(term);
 	}
 	
-	public List<Bucket> getBuckets(Collection collection) throws SQLException, ClassNotFoundException, IOException {
-		List<Bucket> buckets = new LinkedList<Bucket>();
+	public LinkedHashSet<Bucket> getBuckets(Collection collection) throws SQLException, ClassNotFoundException, IOException {
+		LinkedHashSet<Bucket> buckets = new LinkedHashSet<Bucket>();
 		Query query = new Query("SELECT * FROM oto_bucket WHERE collection = ?");
 		query.setParameter(1, collection.getId());
 		ResultSet result = query.execute();

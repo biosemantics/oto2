@@ -2,7 +2,6 @@ package edu.arizona.biosemantics.oto.oto.shared.model.rpc;
 
 import java.util.List;
 
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 

@@ -1,21 +1,16 @@
 package edu.arizona.biosemantics.oto.oto.shared.model;
 
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Set;
-
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.ObjectWriter;
 
 public class Collection implements Serializable {
 
 	private int id = -1;
 	private String name;
 	private String secret;
-	private List<Bucket> buckets = new LinkedList<Bucket>();
-	private List<Label> labels = new LinkedList<Label>();
+	private LinkedHashSet<Bucket> buckets = new LinkedHashSet<Bucket>();
+	private LinkedHashSet<Label> labels = new LinkedHashSet<Label>();
 
 	public Collection() { }
 	
@@ -30,23 +25,23 @@ public class Collection implements Serializable {
 		return id;
 	}
 	
-	public void setBuckets(List<Bucket> buckets) {
+	public void setBuckets(LinkedHashSet<Bucket> buckets) {
 		for(Bucket bucket : buckets)
 			bucket.setCollection(this.getId());
 		this.buckets = buckets;
 	}
 	
-	public void setLabels(List<Label> labels) {
+	public void setLabels(LinkedHashSet<Label> labels) {
 		for(Label label : labels)
 			label.setCollection(this.getId());
 		this.labels = labels;
 	}
 
-	public List<Bucket> getBuckets() {
+	public LinkedHashSet<Bucket> getBuckets() {
 		return buckets;
 	}
 
-	public List<Label> getLabels() {
+	public LinkedHashSet<Label> getLabels() {
 		return labels;
 	}
 	
@@ -119,10 +114,10 @@ public class Collection implements Serializable {
 		this.labels.removeAll(labels);
 	}
 
-	public Set<Label> getLabels(Term term) {
-		Set<Label> result = new HashSet<Label>();
+	public LinkedHashSet<Label> getLabels(Term term) {
+		LinkedHashSet<Label> result = new LinkedHashSet<Label>();
 		for(Label label : labels)
-			if(label.getTerms().contains(term))
+			if(label.getMainTerms().contains(term))
 				result.add(label);
 		return result;
 	}	

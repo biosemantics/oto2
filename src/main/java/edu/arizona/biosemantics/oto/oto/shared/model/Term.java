@@ -1,14 +1,6 @@
 package edu.arizona.biosemantics.oto.oto.shared.model;
 
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.ObjectWriter;
 
 public class Term implements Serializable {
 

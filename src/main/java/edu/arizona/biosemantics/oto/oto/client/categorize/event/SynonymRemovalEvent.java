@@ -15,7 +15,6 @@ public class SynonymRemovalEvent extends GwtEvent<SynonymRemovalHandler> {
     public static Type<SynonymRemovalHandler> TYPE = new Type<SynonymRemovalHandler>();
     
     private Term term;
-
 	private Term oldMainTerm;
     
     public SynonymRemovalEvent(Term term, Term oldMainTerm) {

@@ -1,8 +1,5 @@
 package edu.arizona.biosemantics.oto.oto.server.rest;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
@@ -17,10 +14,8 @@ import javax.ws.rs.core.UriInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.arizona.biosemantics.oto.oto.server.db.CollectionDAO;
 import edu.arizona.biosemantics.oto.oto.server.db.DAOManager;
 import edu.arizona.biosemantics.oto.oto.shared.model.Collection;
-import edu.arizona.biosemantics.oto.oto.shared.model.Label;
 
 @Path("/glossary")
 public class CollectionService {

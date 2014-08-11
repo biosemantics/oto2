@@ -1,19 +1,13 @@
 package edu.arizona.biosemantics.oto.oto.server.rpc;
 
-import java.io.IOException;
-import java.sql.SQLException;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
-import edu.arizona.biosemantics.oto.oto.server.db.BucketDAO;
-import edu.arizona.biosemantics.oto.oto.server.db.CollectionDAO;
-import edu.arizona.biosemantics.oto.oto.server.db.ContextDAO;
 import edu.arizona.biosemantics.oto.oto.server.db.DAOManager;
-import edu.arizona.biosemantics.oto.oto.server.db.LabelDAO;
-import edu.arizona.biosemantics.oto.oto.server.db.TermDAO;
 import edu.arizona.biosemantics.oto.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto.oto.shared.model.Context;
 import edu.arizona.biosemantics.oto.oto.shared.model.Label;
@@ -51,8 +45,8 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 		collection.setSecret(secret);
 	}
 
-	public List<Label> createDefaultLabels() {
-		List<Label> result = new LinkedList<Label>();
+	public LinkedHashSet<Label> createDefaultLabels() {
+		LinkedHashSet<Label> result = new LinkedHashSet<Label>();
 		Label abc = new Label("abc", "d");
 		result.add(abc);
 		result.add(new Label("bcd", "d"));

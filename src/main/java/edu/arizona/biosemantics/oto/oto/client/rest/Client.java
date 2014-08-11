@@ -1,12 +1,10 @@
 package edu.arizona.biosemantics.oto.oto.client.rest;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.LinkedHashSet;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 
-import com.sun.jersey.api.client.GenericType;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
@@ -70,7 +68,7 @@ public class Client {
 	}
 	
 	public static Collection createSampleCollection() {
-		List<Bucket> buckets = new LinkedList<Bucket>();
+		LinkedHashSet<Bucket> buckets = new LinkedHashSet<Bucket>();
 		Bucket b = new Bucket();
 		Term t1 = new Term();
 		t1.setTerm("test");
@@ -97,7 +95,7 @@ public class Client {
 		collection.setName("My test");
 		collection.setBuckets(buckets);
 		
-		List<Label> labels = new LinkedList<Label>();
+		LinkedHashSet<Label> labels = new LinkedHashSet<Label>();
 		Label l1 = new Label();
 		l1.setName("label1");
 		

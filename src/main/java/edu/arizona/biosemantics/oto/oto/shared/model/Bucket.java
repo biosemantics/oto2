@@ -1,14 +1,7 @@
 package edu.arizona.biosemantics.oto.oto.shared.model;
 
 import java.io.Serializable;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.ObjectWriter;
 
 public class Bucket implements Serializable {
 
@@ -16,9 +9,20 @@ public class Bucket implements Serializable {
 	private int collectionId;
 	private String name;
 	private String description;
-	private List<Term> terms = new LinkedList<Term>();
+	private LinkedHashSet<Term> terms = new LinkedHashSet<Term>();
 	
 	public Bucket() { }
+	
+	public Bucket(int id, String text) {
+		this.id = id;
+		this.name = text;
+	}
+	
+	public Bucket(int id, String text, String description) {
+		this.id = id;
+		this.name = text;
+		this.description = description;
+	}
 	
 	public Bucket(int id, int collectionId, String text, String description) {
 		super();
@@ -36,11 +40,11 @@ public class Bucket implements Serializable {
 		this.name = text;
 	}
 
-	public List<Term> getTerms() {
-		return new LinkedList<Term>(terms);
+	public LinkedHashSet<Term> getTerms() {
+		return new LinkedHashSet<Term>(terms);
 	}
 
-	public void setTerms(List<Term> terms) {
+	public void setTerms(LinkedHashSet<Term> terms) {
 		//for(Term term : terms) 
 		//	term.setBucket(this.getId());
 		this.terms = terms;

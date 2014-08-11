@@ -4,8 +4,7 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import edu.arizona.biosemantics.oto.oto.shared.model.Label;
@@ -41,10 +40,26 @@ public class LabelingDAO {
 		return labels;
 	}
 	
-	public List<Term> get(Label label) throws ClassNotFoundException, SQLException, IOException {
-		List<Term> terms = new LinkedList<Term>();
+	public LinkedHashSet<Term> getAllTerms(Label label) throws ClassNotFoundException, SQLException, IOException {
+		LinkedHashSet<Term> terms = new LinkedHashSet<Term>();
 		Query query = new Query("SELECT * FROM oto_labeling WHERE label = ?");
 		query.setParameter(1, label.getId());
+		ResultSet result = query.execute();
+		while(result.next()) {
+			int termId = result.getInt(1);
+			Term term = termDAO.get(termId);
+			if(term != null)
+				terms.add(term);
+		}
+		query.close();
+		return terms;
+	}
+	
+	public LinkedHashSet<Term> getMainTerms(Label label) throws ClassNotFoundException, SQLException, IOException {
+		LinkedHashSet<Term> terms = new LinkedHashSet<Term>();
+		Query query = new Query("SELECT * FROM oto_labeling WHERE label = ? AND term NOT IN (SELECT synonymTerm FROM oto_synonym WHERE label = ?)");
+		query.setParameter(1, label.getId());
+		query.setParameter(2, label.getId());
 		ResultSet result = query.execute();
 		while(result.next()) {
 			int termId = result.getInt(1);
@@ -75,7 +90,7 @@ public class LabelingDAO {
 		query.close();
 	}
 	
-	public void ensure(Label label, List<Term> terms) throws SQLException, ClassNotFoundException, IOException {
+	public void ensure(Label label, LinkedHashSet<Term> terms) throws SQLException, ClassNotFoundException, IOException {
 		Query deleteOldLabelings = new Query("DELETE FROM `oto_labeling` WHERE label NOT IN "
 				+ "(SELECT id FROM `oto_label`)");
 		deleteOldLabelings.executeAndClose();

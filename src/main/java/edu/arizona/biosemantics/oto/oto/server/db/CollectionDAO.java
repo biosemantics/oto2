@@ -1,12 +1,13 @@
 package edu.arizona.biosemantics.oto.oto.server.db;
 
 import java.io.IOException;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.Date;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectWriter;
@@ -56,21 +57,31 @@ public class CollectionDAO {
 			collection = createCollection(result);
 		}
 		
-		List<Bucket> buckets = bucketDAO.getBuckets(collection);
+		LinkedHashSet<Bucket> buckets = bucketDAO.getBuckets(collection);
 		collection.setBuckets(buckets);
-		List<Label> labels = labelDAO.getLabels(collection);
+		LinkedHashSet<Label> labels = labelDAO.getLabels(collection);
 		// ensure to return same term objects in bucket and labels, so operations are performed
 		// on the same object, e.g. rename
 		List<Term> termsToSend = new LinkedList<Term>();
 		for(Bucket bucket : buckets)
 			termsToSend.addAll(bucket.getTerms());
 		for(Label label : labels) {
-			List<Term> newLabelTerms = new LinkedList<Term>();
-			for(Term labelTerm : label.getTerms()) {
-				Term termToSend = termsToSend.get(termsToSend.indexOf(labelTerm));
-				newLabelTerms.add(termToSend);
+			LinkedHashSet<Term> newMainLabelTerms = new LinkedHashSet<Term>();
+			for(Term mainLabelTerm : label.getMainTerms()) {
+				Term termToSend = termsToSend.get(termsToSend.indexOf(mainLabelTerm));
+				newMainLabelTerms.add(termToSend);
 			}
-			label.setTerms(newLabelTerms);
+			label.setMainTerms(newMainLabelTerms);
+			
+			
+			for(Term mainLabelTerm : label.getMainTerms()) {
+				LinkedHashSet<Term> newSynonymTerms = new LinkedHashSet<Term>();
+				for(Term synonymTerm : label.getSynonyms(mainLabelTerm)) {
+					Term termToSend = termsToSend.get(termsToSend.indexOf(synonymTerm));
+					newSynonymTerms.add(termToSend);
+				}
+				label.setSynonyms(mainLabelTerm, newSynonymTerms);
+			}
 		}
 		//
 		collection.setLabels(labels);

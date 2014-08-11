@@ -1,10 +1,8 @@
 package edu.arizona.biosemantics.oto.oto.client.categorize;
 
-import java.util.List;
-import java.util.Set;
+import java.util.LinkedHashSet;
 
 import com.google.web.bindery.event.shared.EventBus;
-import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
 import com.sencha.gxt.widget.core.client.box.MessageBox;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
@@ -17,7 +15,7 @@ import edu.arizona.biosemantics.oto.oto.shared.model.Term;
 public class UncategorizeDialog extends MessageBox {
 	
 	public UncategorizeDialog(final EventBus eventBus, final Label sourceLabel, final Term term, 
-			final Set<Label> labels) {
+			final LinkedHashSet<Label> labels) {
 		super("Remove all categorizations of term?", "");
 		setPredefinedButtons(PredefinedButton.YES,
 				PredefinedButton.NO, PredefinedButton.CANCEL);
@@ -28,14 +26,14 @@ public class UncategorizeDialog extends MessageBox {
 			@Override
 			public void onSelect(SelectEvent event) {
 				for(Label label : labels)
-					label.removeTerm(term);
+					label.removeMainTerm(term);
 				eventBus.fireEvent(new TermUncategorizeEvent(term, labels));
 			}
 		});
 		getButton(PredefinedButton.NO).addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
-				sourceLabel.removeTerm(term);
+				sourceLabel.removeMainTerm(term);
 				eventBus.fireEvent(new CategorizeCopyRemoveTermEvent(term, sourceLabel));
 			}
 		});

@@ -1,6 +1,6 @@
 package edu.arizona.biosemantics.oto.oto.client.categorize;
 
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import com.google.gwt.core.client.GWT;
@@ -10,15 +10,15 @@ import edu.arizona.biosemantics.oto.oto.client.categorize.event.CategorizeCopyRe
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.CategorizeCopyTermEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.CategorizeMoveTermEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelCreateEvent;
+import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelModifyEvent;
+import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelRemoveEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelsMergeEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.LoadEvent;
-import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelRemoveEvent;
-import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelModifyEvent;
-import edu.arizona.biosemantics.oto.oto.client.categorize.event.TermRenameEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.SaveEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.SynonymCreationEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.SynonymRemovalEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.TermCategorizeEvent;
+import edu.arizona.biosemantics.oto.oto.client.categorize.event.TermRenameEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.TermUncategorizeEvent;
 import edu.arizona.biosemantics.oto.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto.oto.shared.model.Label;
@@ -50,19 +50,19 @@ public class CategorizePresenter {
 		});
 		eventBus.addHandler(CategorizeCopyTermEvent.TYPE, new CategorizeCopyTermEvent.CategorizeCopyTermHandler() {
 			@Override
-			public void onCategorize(List<Term> terms, Label sourceCategory, Set<Label> targetCategories) {
+			public void onCategorize(LinkedHashSet<Term> terms, Label sourceCategory, LinkedHashSet<Label> targetCategories) {
 				saveCollection();
 			}
 		});
 		eventBus.addHandler(CategorizeCopyRemoveTermEvent.TYPE, new CategorizeCopyRemoveTermEvent.CategorizeCopyRemoveTermHandler() {
 			@Override
-			public void onRemove(List<Term> terms, Label label) {
+			public void onRemove(LinkedHashSet<Term> terms, Label label) {
 				saveCollection();
 			}
 		});
 		eventBus.addHandler(CategorizeMoveTermEvent.TYPE, new CategorizeMoveTermEvent.CategorizeMoveTermHandler() {
 			@Override
-			public void onCategorize(List<Term> terms, Label sourceCategory,
+			public void onCategorize(LinkedHashSet<Term> terms, Label sourceCategory,
 					Label targetCategory) {
 				saveCollection();
 			}
@@ -81,14 +81,14 @@ public class CategorizePresenter {
 		});
 		eventBus.addHandler(TermCategorizeEvent.TYPE, new TermCategorizeEvent.TermCategorizeHandler() {
 			@Override
-			public void onCategorize(List<Term> terms, Set<Label> categories) {
+			public void onCategorize(LinkedHashSet<Term> terms, Set<Label> categories) {
 				saveCollection();
 			}
 		});
 		eventBus.addHandler(TermUncategorizeEvent.TYPE, new TermUncategorizeEvent.TermUncategorizeHandler() {
 			
 			@Override
-			public void onUncategorize(List<Term> terms, Set<Label> oldCategories) {
+			public void onUncategorize(LinkedHashSet<Term> terms, Set<Label> oldCategories) {
 				saveCollection();
 			}
 		});
@@ -100,7 +100,7 @@ public class CategorizePresenter {
 		});
 		eventBus.addHandler(LabelsMergeEvent.TYPE, new LabelsMergeEvent.MergeLabelsHandler() {
 			@Override
-			public void onMerge(Label destination, Set<Label> sources) {
+			public void onMerge(Label destination, LinkedHashSet<Label> sources) {
 				saveCollection();
 			}
 		});

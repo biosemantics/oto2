@@ -1,6 +1,7 @@
 package edu.arizona.biosemantics.semanticmarkup.log;
 
-import javax.persistence.Transient;
+import java.beans.Transient;
+
 import javax.xml.bind.annotation.XmlTransient;
 
 import org.codehaus.jackson.annotate.JsonIgnore;

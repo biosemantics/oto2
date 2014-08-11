@@ -5,6 +5,7 @@ import com.google.gwt.user.client.ui.IsWidget;
 import com.sencha.gxt.core.client.util.Margins;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.container.BorderLayoutContainer;
+
 import edu.arizona.biosemantics.oto.oto.shared.model.Collection;
 
 public class CategorizeView extends BorderLayoutContainer implements IsWidget {

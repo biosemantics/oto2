@@ -2,6 +2,7 @@ package edu.arizona.biosemantics.oto.oto.server.db;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -15,42 +16,46 @@ public class FilllSample {
 	
 	public static void main(String[] args) throws ClassNotFoundException, SQLException, IOException {
 		
-		List<Bucket> buckets = new LinkedList<Bucket>();
+		LinkedList<Bucket> buckets = new LinkedList<Bucket>();
 		Bucket b = new Bucket();
+		b.setName("bucketName");
+		buckets.add(b);
+		
+		LinkedList<Term> terms = new LinkedList<Term>();
 		Term t1 = new Term();
 		t1.setTerm("test");
 		Term t2 = new Term();
 		t2.setTerm("test1");
 		Term t3 = new Term();
 		t3.setTerm("test2");
-		b.addTerm(t1);
-		b.addTerm(t2);
-		b.addTerm(t3);
-		buckets.add(b);
-		b.setName("bucketName");
+		terms.add(t1);
+		terms.add(t2);
+		terms.add(t3);
 		
 		Collection collection = new Collection();
 		collection.setName("My test");
-		collection.setBuckets(buckets);
+		collection.setSecret("my secret");
+		//collection.setBuckets(buckets);
 		
-		List<Label> labels = new LinkedList<Label>();
-		Label l1 = new Label();
-		l1.setName("label1");
-		
-		Label l2 = new Label();
-		l2.setName("label2");
-		
-		Label l3 = new Label();
-		l3.setName("label3");
-		
+		LinkedList<Label> labels = new LinkedList<Label>();
+		Label l1 = new Label("label1", "descr1");		
+		Label l2 = new Label("label2", "descr2");	
+		Label l3 = new Label("label3", "descr3");
 		labels.add(l1);
 		labels.add(l2);
 		labels.add(l3);
-		collection.setLabels(labels);
 		
-		collection.setSecret("my secret");
+		//collection.setLabels(labels);
+		
 		DAOManager daoManager = new DAOManager();
-		daoManager.getCollectionDAO().insert(collection);
+		collection = daoManager.getCollectionDAO().insert(collection);
+		for(Bucket bucket : buckets) {
+			bucket = daoManager.getBucketDAO().insert(bucket, collection.getId());
+			for(Term term : terms) 
+				term = daoManager.getTermDAO().insert(term, bucket.getId());
+		}
+		for(Label label : labels) 
+			label = daoManager.getLabelDAO().insert(label, collection.getId());
 		
 		
 		Context c1 = new Context("source1", "sentence1");

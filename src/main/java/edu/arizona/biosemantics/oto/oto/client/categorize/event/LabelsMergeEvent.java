@@ -1,10 +1,9 @@
 package edu.arizona.biosemantics.oto.oto.client.categorize.event;
 
-import java.util.Set;
+import java.util.LinkedHashSet;
 
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
-import com.google.gwt.event.shared.GwtEvent.Type;
 
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelsMergeEvent.MergeLabelsHandler;
 import edu.arizona.biosemantics.oto.oto.shared.model.Label;
@@ -12,15 +11,15 @@ import edu.arizona.biosemantics.oto.oto.shared.model.Label;
 public class LabelsMergeEvent extends GwtEvent<MergeLabelsHandler> {
 
 	public interface MergeLabelsHandler extends EventHandler {
-		void onMerge(Label destination, Set<Label> sources);
+		void onMerge(Label destination, LinkedHashSet<Label> sources);
 	}
 	
     public static Type<MergeLabelsHandler> TYPE = new Type<MergeLabelsHandler>();
     
-    private Set<Label> sources;
+    private LinkedHashSet<Label> sources;
     private Label destination;
     
-    public LabelsMergeEvent(Label destination, Set<Label> sources) {
+    public LabelsMergeEvent(Label destination, LinkedHashSet<Label> sources) {
         this.sources = sources;
         this.destination = destination;
     }

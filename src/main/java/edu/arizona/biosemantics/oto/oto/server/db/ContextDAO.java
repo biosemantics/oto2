@@ -7,7 +7,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import edu.arizona.biosemantics.oto.oto.shared.model.Context;
-import edu.arizona.biosemantics.oto.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto.oto.shared.model.Term;
 
 public class ContextDAO {

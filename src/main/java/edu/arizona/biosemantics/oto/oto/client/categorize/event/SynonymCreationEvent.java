@@ -1,11 +1,10 @@
 package edu.arizona.biosemantics.oto.oto.client.categorize.event;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
-import com.google.gwt.event.shared.GwtEvent.Type;
 
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.SynonymCreationEvent.SynonymCreationHandler;
 import edu.arizona.biosemantics.oto.oto.shared.model.Label;
@@ -19,18 +18,18 @@ public class SynonymCreationEvent extends GwtEvent<SynonymCreationHandler> {
 	
     public static Type<SynonymCreationHandler> TYPE = new Type<SynonymCreationHandler>();
     
-    private Set<Term> synonymTerms;
+    private LinkedHashSet<Term> synonymTerms;
 	private Term mainTerm;
 	private Label label;
     
-    public SynonymCreationEvent(Label label, Term mainTerm, Set<Term> synonymTerms) {
+    public SynonymCreationEvent(Label label, Term mainTerm, LinkedHashSet<Term> synonymTerms) {
         this.synonymTerms = synonymTerms;
         this.mainTerm = mainTerm;
         this.label = label;
     }
 	
     public SynonymCreationEvent(Label label, Term mainTerm, Term synonymTerm) {
-        this.synonymTerms = new HashSet<Term>();
+        this.synonymTerms = new LinkedHashSet<Term>();
         this.synonymTerms.add(synonymTerm);
         this.mainTerm = mainTerm;
         this.label = label;
@@ -50,7 +49,7 @@ public class SynonymCreationEvent extends GwtEvent<SynonymCreationHandler> {
 		return mainTerm;
 	}
 	
-	public Set<Term> getSynonymTerm() {
+	public LinkedHashSet<Term> getSynonymTerm() {
 		return synonymTerms;
 	}
 

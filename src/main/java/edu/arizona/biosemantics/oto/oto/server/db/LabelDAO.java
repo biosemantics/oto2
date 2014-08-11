@@ -3,12 +3,8 @@ package edu.arizona.biosemantics.oto.oto.server.db;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.LinkedHashSet;
 
-import edu.arizona.biosemantics.oto.oto.shared.model.Bucket;
 import edu.arizona.biosemantics.oto.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto.oto.shared.model.Term;
@@ -46,7 +42,7 @@ public class LabelDAO {
 		String name = result.getString(3);
 		String description = result.getString(4);
 		Label label = new Label(id, collectionId, name, description);
-		label.setTerms(labelingDAO.get(label));
+		label.setMainTerms(labelingDAO.getMainTerms(label));
 		label.setSynonyms(synonymDAO.get(label));
 		return label;
 	}
@@ -84,8 +80,8 @@ public class LabelDAO {
 		query.executeAndClose();
 	}
 
-	public List<Label> getLabels(Collection collection) throws SQLException, ClassNotFoundException, IOException {
-		List<Label> labels = new LinkedList<Label>();
+	public LinkedHashSet<Label> getLabels(Collection collection) throws SQLException, ClassNotFoundException, IOException {
+		LinkedHashSet<Label> labels = new LinkedHashSet<Label>();
 		Query query = new Query("SELECT * FROM oto_label WHERE collection = ?");
 		query.setParameter(1, collection.getId());
 		ResultSet result = query.execute();
@@ -111,12 +107,20 @@ public class LabelDAO {
 			}
 		}
 		ids = (ids.isEmpty() ? ids : ids.substring(0, ids.length() - 1));
-		Query removeOldLabels = new Query("DELETE FROM oto_label WHERE collection = ? AND id NOT IN (" + ids + ")");
+		
+		String removeOldLabelsQuery = ids.isEmpty() ? "DELETE FROM oto_label WHERE collection = ?" : 
+				"DELETE FROM oto_label WHERE collection = ? AND id NOT IN (" + ids + ")";
+		Query removeOldLabels = new Query(removeOldLabelsQuery);
 		removeOldLabels.setParameter(1, collection.getId());
 		removeOldLabels.executeAndClose();
 		
 		for(Label label : collection.getLabels()) {
-			labelingDAO.ensure(label, label.getTerms());
+			labelingDAO.ensure(label, label.getMainTerms());
+			
+			for(Term mainTerm : label.getMainTerms()) {
+				LinkedHashSet<Term> synonymTerms = label.getSynonyms(mainTerm);
+				synonymDAO.ensure(label, mainTerm, synonymTerms);
+			}
 		}
 	}
 }

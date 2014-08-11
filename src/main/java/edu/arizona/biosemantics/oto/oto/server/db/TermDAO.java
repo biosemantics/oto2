@@ -3,14 +3,10 @@ package edu.arizona.biosemantics.oto.oto.server.db;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.LinkedHashSet;
 
 import edu.arizona.biosemantics.oto.oto.shared.model.Bucket;
 import edu.arizona.biosemantics.oto.oto.shared.model.Collection;
-import edu.arizona.biosemantics.oto.oto.shared.model.Context;
-import edu.arizona.biosemantics.oto.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto.oto.shared.model.Term;
 
 public class TermDAO {
@@ -77,8 +73,8 @@ public class TermDAO {
 		query.executeAndClose();
 	}
 	
-	public List<Term> getTerms(Bucket bucket) throws ClassNotFoundException, SQLException, IOException {
-		List<Term> terms = new LinkedList<Term>();
+	public LinkedHashSet<Term> getTerms(Bucket bucket) throws ClassNotFoundException, SQLException, IOException {
+		LinkedHashSet<Term> terms = new LinkedHashSet<Term>();
 		Query query = new Query("SELECT * FROM oto_term WHERE bucket = ?");
 		query.setParameter(1, bucket.getId());
 		ResultSet result = query.execute();
@@ -91,9 +87,9 @@ public class TermDAO {
 		return terms;
 	}
 
-	public List<Term> getTerms(Collection collection) throws ClassNotFoundException, SQLException, IOException {
-		List<Term> result = new LinkedList<Term>();
-		List<Bucket> buckets = bucketDAO.getBuckets(collection);
+	public LinkedHashSet<Term> getTerms(Collection collection) throws ClassNotFoundException, SQLException, IOException {
+		LinkedHashSet<Term> result = new LinkedHashSet<Term>();
+		LinkedHashSet<Bucket> buckets = bucketDAO.getBuckets(collection);
 		for(Bucket bucket : buckets) {
 			result.addAll(this.getTerms(bucket));
 		}

@@ -2,17 +2,23 @@ package edu.arizona.biosemantics.oto.oto.client.categorize;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.gwt.event.logical.shared.SelectionEvent;
+import com.google.gwt.event.logical.shared.SelectionHandler;
+import com.google.gwt.event.logical.shared.ValueChangeEvent;
+import com.google.gwt.event.logical.shared.ValueChangeHandler;
+import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.user.client.ui.VerticalPanel;
 import com.sencha.gxt.widget.core.client.Dialog;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.PortalLayoutContainer;
 import com.sencha.gxt.widget.core.client.event.BeforeShowEvent;
-import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.BeforeShowEvent.BeforeShowHandler;
+import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.form.CheckBox;
 import com.sencha.gxt.widget.core.client.form.TextArea;
@@ -20,23 +26,14 @@ import com.sencha.gxt.widget.core.client.form.TextField;
 import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
-import com.google.gwt.event.logical.shared.SelectionEvent;
-import com.google.gwt.event.logical.shared.SelectionHandler;
-import com.google.gwt.event.logical.shared.ValueChangeEvent;
-import com.google.gwt.event.logical.shared.ValueChangeHandler;
-import com.google.gwt.event.shared.EventBus;
-import com.google.gwt.user.client.ui.VerticalPanel;
 
 import edu.arizona.biosemantics.oto.oto.client.categorize.LabelPortlet.LabelInfoContainer;
-import edu.arizona.biosemantics.oto.oto.client.categorize.LabelPortlet.TermMenu;
-import edu.arizona.biosemantics.oto.oto.client.categorize.event.CategorizeCopyTermEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelCreateEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelRemoveEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelsMergeEvent;
 import edu.arizona.biosemantics.oto.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto.oto.shared.model.Term;
-import edu.arizona.biosemantics.oto.oto.shared.model.TextTreeNode;
 
 public class LabelsView extends PortalLayoutContainer {
 	
@@ -206,13 +203,13 @@ public class LabelsView extends PortalLayoutContainer {
 	private void bindEvents() {
 		eventBus.addHandler(LabelsMergeEvent.TYPE, new LabelsMergeEvent.MergeLabelsHandler() {
 			@Override
-			public void onMerge(Label destination, Set<Label> sources) {
+			public void onMerge(Label destination, LinkedHashSet<Label> sources) {
 				for(Label source : sources) {
 					LabelPortlet sourcePortlet = labelPortletsMap.remove(source);
 					sourcePortlet.removeFromParent();
 					//LabelsView.this.remove(sourcePortlet, LabelsView.this.getPortletColumn(sourcePortlet));
 					LabelPortlet destinationPortlet = labelPortletsMap.get(destination);
-					for(Term term : source.getTerms())
+					for(Term term : source.getMainTerms())
 						destinationPortlet.addMainTerm(term);
 				}
 			}
