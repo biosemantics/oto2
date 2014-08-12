@@ -18,7 +18,8 @@
   <!-- <inherits name='com.google.gwt.user.theme.dark.Dark'/>     -->
 
   <!-- Other module inherits                                      -->
-<inherits name='com.sencha.gxt.ui.GXT' />
+ <inherits name='com.sencha.gxt.ui.GXT' />
+ <inherits name='com.sencha.gxt.theme.gray.Gray' />
 
   <!-- Specify the app entry point class.                         -->
   <entry-point class='edu.arizona.biosemantics.oto.oto.client.Oto'/>

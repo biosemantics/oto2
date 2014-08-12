@@ -56,6 +56,7 @@ import edu.arizona.biosemantics.oto.oto.shared.model.TermProperties;
 import edu.arizona.biosemantics.oto.oto.shared.model.TermTreeNode;
 import edu.arizona.biosemantics.oto.oto.shared.model.TextTreeNode;
 import edu.arizona.biosemantics.oto.oto.shared.model.TextTreeNodeProperties;
+import edu.arizona.biosemantics.oto.oto.shared.model.Label.AddResult;
 
 public class TermsView extends TabPanel {
 	
@@ -117,10 +118,13 @@ public class TermsView extends TabPanel {
 					categorizeButton.addSelectHandler(new SelectHandler() {
 						@Override
 						public void onSelect(SelectEvent event) {
+							Map<Term, AddResult> addResults = new HashMap<Term, AddResult>();
 							for(Label categorizeLabel : categorizeLabels) {
-								categorizeLabel.addMainTerms(terms);
+								Map<Term, AddResult> addResult = categorizeLabel.addMainTerms(terms);
+								Alerter.alertNotAddedTerms(terms, addResult);
+								addResults.putAll(addResult);
 							}
-							eventBus.fireEvent(new TermCategorizeEvent(terms, categorizeLabels));
+							eventBus.fireEvent(new TermCategorizeEvent(terms, categorizeLabels, addResults));
 							TermMenu.this.hide();
 						}
 					});
@@ -351,4 +355,5 @@ public class TermsView extends TabPanel {
 			}
 		}
 	}
+
 }

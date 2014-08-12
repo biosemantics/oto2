@@ -37,9 +37,15 @@ public class FilllSample {
 		t2.setTerm("test1");
 		Term t3 = new Term();
 		t3.setTerm("test2");
+		Term t4 = new Term();
+		t4.setTerm("test3");
+		Term t5 = new Term();
+		t5.setTerm("test4");
 		b.addTerm(t1);
 		b.addTerm(t2);
 		b.addTerm(t3);
+		b.addTerm(t4);
+		b.addTerm(t5);
 		buckets.add(b);
 		b.setName("bucketName");
 		

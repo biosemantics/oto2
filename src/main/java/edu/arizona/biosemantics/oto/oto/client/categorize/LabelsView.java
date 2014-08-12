@@ -34,6 +34,7 @@ import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelsMergeEvent
 import edu.arizona.biosemantics.oto.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto.oto.shared.model.Term;
+import edu.arizona.biosemantics.oto.oto.shared.model.Label.AddResult;
 
 public class LabelsView extends PortalLayoutContainer {
 	
@@ -203,14 +204,19 @@ public class LabelsView extends PortalLayoutContainer {
 	private void bindEvents() {
 		eventBus.addHandler(LabelsMergeEvent.TYPE, new LabelsMergeEvent.MergeLabelsHandler() {
 			@Override
-			public void onMerge(Label destination, List<Label> sources) {
+			public void onMerge(Label destination, List<Label> sources, Map<Term, AddResult> addResults) {
 				for(Label source : sources) {
 					LabelPortlet sourcePortlet = labelPortletsMap.remove(source);
 					sourcePortlet.removeFromParent();
 					//LabelsView.this.remove(sourcePortlet, LabelsView.this.getPortletColumn(sourcePortlet));
 					LabelPortlet destinationPortlet = labelPortletsMap.get(destination);
-					for(Term term : source.getMainTerms())
-						destinationPortlet.addMainTerm(term);
+					for(Term term : source.getMainTerms()) {
+						if(addResults.get(term).result)
+							destinationPortlet.addMainTerm(term);
+						for(Term synonym : source.getSynonyms(term))
+							if(addResults.get(synonym).result)
+								destinationPortlet.addMainTerm(synonym);
+					}
 				}
 			}
 		});

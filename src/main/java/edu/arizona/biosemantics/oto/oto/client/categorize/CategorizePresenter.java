@@ -1,6 +1,7 @@
 package edu.arizona.biosemantics.oto.oto.client.categorize;
 
 import java.util.List;
+import java.util.Map;
 
 import com.google.gwt.core.client.GWT;
 import com.google.web.bindery.event.shared.EventBus;
@@ -21,6 +22,7 @@ import edu.arizona.biosemantics.oto.oto.client.categorize.event.TermRenameEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.TermUncategorizeEvent;
 import edu.arizona.biosemantics.oto.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto.oto.shared.model.Label;
+import edu.arizona.biosemantics.oto.oto.shared.model.Label.AddResult;
 import edu.arizona.biosemantics.oto.oto.shared.model.Term;
 import edu.arizona.biosemantics.oto.oto.shared.model.rpc.ICollectionService;
 import edu.arizona.biosemantics.oto.oto.shared.model.rpc.ICollectionServiceAsync;
@@ -99,7 +101,7 @@ public class CategorizePresenter {
 		});
 		eventBus.addHandler(LabelsMergeEvent.TYPE, new LabelsMergeEvent.MergeLabelsHandler() {
 			@Override
-			public void onMerge(Label destination, List<Label> sources) {
+			public void onMerge(Label destination, List<Label> sources,	Map<Term, AddResult> addResults) {
 				saveCollection();
 			}
 		});

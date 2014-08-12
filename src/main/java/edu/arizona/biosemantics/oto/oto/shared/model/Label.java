@@ -8,6 +8,15 @@ import java.util.Map;
 
 public class Label implements Serializable {
 
+	public static class AddResult {
+		public boolean result;
+		public Term parent;
+		public AddResult(boolean result, Term parent) {
+			this.result = result;
+			this.parent = parent;
+		}
+	}
+	
 	private int id = - 1;
 	private String name;
 	private int collectionId;
@@ -64,24 +73,37 @@ public class Label implements Serializable {
 
 	public void uncategorizeMainTerm(Term term) {
 		if(mainTermSynonymsMap.containsKey(term)) {
-			List<Term> oldSynonyms = mainTermSynonymsMap.get(term);
+			List<Term> oldSynonyms = mainTermSynonymsMap.remove(term);
 			for(Term oldSynonym : oldSynonyms) {
 				this.addMainTerm(oldSynonym);
 			}
-			mainTermSynonymsMap.remove(term);
 		}
 		mainTerms.remove(term);
 	}
 	
-	public void addMainTerm(Term term) {
+	/**
+	 * @param term
+	 * @return true if added as main term, false if was already specified as synonym for another mainTerm
+	 */
+	public AddResult addMainTerm(Term term) {
+		for(Term mainTerm : mainTerms) {
+			if(mainTermSynonymsMap.get(mainTerm).contains(term)) {				
+				return new AddResult(false, mainTerm);
+			}
+		}
+		if(mainTerms.contains(term))
+			return new AddResult(false, null);
 		mainTerms.add(term);
 		mainTermSynonymsMap.put(term, new LinkedList<Term>());
+		return new AddResult(true, null);
 	}
 	
-	public void addMainTerms(List<Term> mainTerms) {
+	public Map<Term, AddResult> addMainTerms(List<Term> mainTerms) {
+		Map<Term, AddResult> result = new HashMap<Term, AddResult>();
 		for(Term mainTerm : mainTerms) {
-			this.addMainTerm(mainTerm);
+			result.put(mainTerm, this.addMainTerm(mainTerm));
 		}
+		return result;
 	}	
 	
 	public int getId() {

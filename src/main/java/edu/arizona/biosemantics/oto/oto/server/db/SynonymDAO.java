@@ -70,7 +70,7 @@ public class SynonymDAO {
 			deleteOldSynonyms.executeAndClose();
 			
 			for(Term synonymTerm : synonymTerms) {
-				Query insert = new Query("INSERT INTO `oto_synonym` " +
+				Query insert = new Query("INSERT IGNORE INTO `oto_synonym` " +
 						"(`mainTerm`, `label`, `synonymTerm`) VALUES (?, ?, ?)");			
 				insert.setParameter(1, mainTerm.getId());
 				insert.setParameter(2, label.getId());
