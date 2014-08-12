@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.semanticmarkup.log;
+package edu.arizona.biosemantics.oto.oto.server.log;
 
 /**
  * LogInjectionAspect specifies ILoggables and adds them a log method
@@ -67,5 +67,5 @@ public aspect LogInjectionAspect {
 	/**
 	 * ILoggable classes are specified below
 	 */
-	declare parents : edu.arizona.biosemantics.semanticmarkup..* implements ILoggable;
+	declare parents : edu.arizona.biosemantics.oto.oto.server..* implements ILoggable;
 }
