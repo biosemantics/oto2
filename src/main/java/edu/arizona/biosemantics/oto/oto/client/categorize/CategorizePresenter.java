@@ -87,7 +87,7 @@ public class CategorizePresenter {
 		eventBus.addHandler(TermUncategorizeEvent.TYPE, new TermUncategorizeEvent.TermUncategorizeHandler() {
 			
 			@Override
-			public void onUncategorize(List<Term> terms, List<Label> oldCategories) {
+			public void onUncategorize(Term term, List<Label> oldCategories) {
 				saveCollection();
 			}
 		});

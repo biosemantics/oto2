@@ -91,9 +91,7 @@ public class LabelPortlet extends Portlet {
 		private MenuItem removeSynonym;
 		private MenuItem removeAllSynonyms;
 		private MenuItem rename;
-		private HandlerRegistration renameRegistration;
 		private MenuItem remove;
-		private HandlerRegistration removeRegistration;
 		private MenuItem copy;
 
 		public TermMenu() {
@@ -121,11 +119,6 @@ public class LabelPortlet extends Portlet {
 				final List<Term> terms = new LinkedList<Term>();
 				for(TermTreeNode node : selected) 
 					terms.add(node.getTerm());
-				
-				if(renameRegistration != null)
-					renameRegistration.removeHandler();
-				if(removeRegistration != null)
-					removeRegistration.removeHandler();
 
 				if(collection.getLabels().size() > 1) {
 					Menu moveMenu = new Menu();
@@ -191,7 +184,7 @@ public class LabelPortlet extends Portlet {
 				
 				if(terms.size() == 1) {
 					final Term term = terms.iterator().next();
-					renameRegistration = rename.addSelectionHandler(new SelectionHandler<Item>() {
+					rename.addSelectionHandler(new SelectionHandler<Item>() {
 						@Override
 						public void onSelection(SelectionEvent<Item> event) {
 							final PromptMessageBox box = new PromptMessageBox(
@@ -221,7 +214,7 @@ public class LabelPortlet extends Portlet {
 					this.add(rename);
 				}
 				
-				removeRegistration = remove.addSelectionHandler(new SelectionHandler<Item>() {
+				remove.addSelectionHandler(new SelectionHandler<Item>() {
 					@Override
 					public void onSelection(SelectionEvent<Item> event) {
 						for(Term term : terms) {
@@ -573,8 +566,16 @@ public class LabelPortlet extends Portlet {
 	}
 		
 	private void removeTerm(Term term) {
-		if(termTermTreeNodeMap.containsKey(term))
+		if(termTermTreeNodeMap.containsKey(term)) {
+			TermTreeNode termTreeNode = termTermTreeNodeMap.get(term);
+			if(termTreeNode instanceof MainTermTreeNode) {
+				MainTermTreeNode mainTermTreeNode = (MainTermTreeNode)termTreeNode;
+				List<TermTreeNode> synonyms = portletStore.getChildren(mainTermTreeNode);
+				for(TermTreeNode synonym : synonyms)
+					this.removeSynonymTerm(term, synonym.getTerm());
+			}
 			portletStore.remove(termTermTreeNodeMap.remove(term));
+		}
 	}
 	
 	private void removeTerms(List<Term> terms) {
@@ -655,9 +656,11 @@ public class LabelPortlet extends Portlet {
 		});
 		eventBus.addHandler(TermUncategorizeEvent.TYPE, new TermUncategorizeEvent.TermUncategorizeHandler() {
 			@Override
-			public void onUncategorize(List<Term> terms, List<Label> oldLabels) {
-				if(LabelPortlet.this.label.equals(label)) {
-					LabelPortlet.this.removeTerms(terms);
+			public void onUncategorize(Term term, List<Label> oldLabels) {
+				for(Label oldLabel : oldLabels) {
+					if(LabelPortlet.this.label.equals(oldLabel)) {
+						LabelPortlet.this.removeTerm(term);
+					}
 				}
 			}
 		});

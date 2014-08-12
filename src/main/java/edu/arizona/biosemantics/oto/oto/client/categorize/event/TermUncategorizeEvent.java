@@ -13,24 +13,22 @@ import edu.arizona.biosemantics.oto.oto.shared.model.Term;
 public class TermUncategorizeEvent extends GwtEvent<TermUncategorizeHandler> {
 
 	public interface TermUncategorizeHandler extends EventHandler {
-		void onUncategorize(List<Term> terms, List<Label> oldLabels);
+		void onUncategorize(Term term, List<Label> oldLabels);
 	}
 	
     public static Type<TermUncategorizeHandler> TYPE = new Type<TermUncategorizeHandler>();
     
-    private List<Term> terms;
+    private Term term;
 	private List<Label> oldLabels;
 	
 	public TermUncategorizeEvent(Term term, Label oldLabel) {
-		this.terms = new LinkedList<Term>();
-		terms.add(term);
+		this.term = term;
 		this.oldLabels = new LinkedList<Label>();
 		oldLabels.add(oldLabel);
 	}
 	
 	public TermUncategorizeEvent(Term term, List<Label> oldLabels) {
-		this.terms = new LinkedList<Term>();
-		terms.add(term);
+		this.term = term;
 		this.oldLabels = oldLabels;
 	}
     
@@ -52,11 +50,11 @@ public class TermUncategorizeEvent extends GwtEvent<TermUncategorizeHandler> {
 
 	@Override
 	protected void dispatch(TermUncategorizeHandler handler) {
-		handler.onUncategorize(terms, oldLabels);
+		handler.onUncategorize(term, oldLabels);
 	}
 
-	public List<Term> getTerms() {
-		return terms;
+	public Term getTerms() {
+		return term;
 	}
 
 	public List<Label> getOldLabels() {

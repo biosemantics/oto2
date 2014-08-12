@@ -63,7 +63,6 @@ public class TermsView extends TabPanel {
 		
 		private MenuItem categorize;
 		private MenuItem rename;
-		private HandlerRegistration renameRegistration;
 
 		public TermMenu() {
 			this.addBeforeShowHandler(this);
@@ -91,9 +90,6 @@ public class TermsView extends TabPanel {
 				event.setCancelled(true);
 				this.hide();
 			} else {				
-				if(renameRegistration != null)
-					renameRegistration.removeHandler();
-				
 				final List<Term> terms = new LinkedList<Term>(selected);
 				
 				if(!collection.getLabels().isEmpty()) {
@@ -136,7 +132,7 @@ public class TermsView extends TabPanel {
 				
 				if(selected.size() == 1) {
 					final Term term = selected.get(0);
-					renameRegistration = rename.addSelectionHandler(new SelectionHandler<Item>() {
+					rename.addSelectionHandler(new SelectionHandler<Item>() {
 						@Override
 						public void onSelection(SelectionEvent<Item> event) {
 							final PromptMessageBox box = new PromptMessageBox(
@@ -244,11 +240,9 @@ public class TermsView extends TabPanel {
 		});
 		eventBus.addHandler(TermUncategorizeEvent.TYPE, new TermUncategorizeEvent.TermUncategorizeHandler() {
 			@Override
-			public void onUncategorize(List<Term> terms, List<Label> oldLabels) {
-				for(Term term : terms) {
-					treeStore.add(bucketBucketTreeNodeMap.get(termBucketMap.get(term)), termTermTreeNodeMap.get(term));
-					listStore.add(term);
-				}
+			public void onUncategorize(Term term, List<Label> oldLabels) {
+				treeStore.add(bucketBucketTreeNodeMap.get(termBucketMap.get(term)), termTermTreeNodeMap.get(term));
+				listStore.add(term);
 			}
 		});
 		eventBus.addHandler(TermCategorizeEvent.TYPE, new TermCategorizeEvent.TermCategorizeHandler() {
