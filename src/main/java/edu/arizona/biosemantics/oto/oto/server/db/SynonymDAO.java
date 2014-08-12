@@ -41,27 +41,42 @@ public class SynonymDAO {
 		return synonyms;
 	}
 	
-	public void ensure(Label label, Term mainTerm, List<Term> synonymTerms) throws ClassNotFoundException, SQLException, IOException {
-		String notInSynonyms = "";
-		for(Term synonymTerm : synonymTerms) {
-			notInSynonyms += synonymTerm.getId() + ",";
+	public void ensure(Label label, List<Term> mainTerms) throws ClassNotFoundException, SQLException, IOException {
+		String notInMainTerms = "";
+		for(Term mainTerm : mainTerms) {
+			notInMainTerms += mainTerm.getId() + ",";
 		}
-		
-		notInSynonyms = notInSynonyms.isEmpty() ? "" : notInSynonyms.substring(0, synonymTerms.size() - 1);
-		String deleteOldSynonymsQuery = notInSynonyms.isEmpty() ? "DELETE FROM `oto_synonym` WHERE label = ? AND mainTerm = ?" : 
-			 "DELETE FROM `oto_synonym` WHERE label = ? AND mainTerm = ? AND synonymTerm NOT IN (" + notInSynonyms + ")";
+		notInMainTerms = notInMainTerms.isEmpty() ? "" : notInMainTerms.substring(0, notInMainTerms.length() - 1);
+		String deleteOldSynonymsQuery = notInMainTerms.isEmpty() ? "DELETE FROM `oto_synonym` WHERE label = ?" : 
+			 "DELETE FROM `oto_synonym` WHERE label = ? AND mainTerm NOT IN (" + notInMainTerms + ")";
 		Query deleteOldSynonyms = new Query(deleteOldSynonymsQuery);
 		deleteOldSynonyms.setParameter(1, label.getId());
-		deleteOldSynonyms.setParameter(2, mainTerm.getId());
 		deleteOldSynonyms.executeAndClose();
 		
-		for(Term synonymTerm : synonymTerms) {
-			Query insert = new Query("INSERT INTO `oto_synonym` " +
-					"(`mainTerm`, `label`, `synonymTerm`) VALUES (?, ?, ?)");			
-			insert.setParameter(1, mainTerm.getId());
-			insert.setParameter(2, label.getId());
-			insert.setParameter(3, synonymTerm.getId());
-			insert.executeAndClose();
+		for(Term mainTerm : mainTerms) {
+			List<Term> synonymTerms = label.getSynonyms(mainTerm);
+			
+			String notInSynonyms = "";
+			for(Term synonymTerm : synonymTerms) {
+				notInSynonyms += synonymTerm.getId() + ",";
+			}
+			
+			notInSynonyms = notInSynonyms.isEmpty() ? "" : notInSynonyms.substring(0, notInSynonyms.length() - 1);
+			deleteOldSynonymsQuery = notInSynonyms.isEmpty() ? "DELETE FROM `oto_synonym` WHERE label = ? AND mainTerm = ?" : 
+				 "DELETE FROM `oto_synonym` WHERE label = ? AND mainTerm = ? AND synonymTerm NOT IN (" + notInSynonyms + ")";
+			deleteOldSynonyms = new Query(deleteOldSynonymsQuery);
+			deleteOldSynonyms.setParameter(1, label.getId());
+			deleteOldSynonyms.setParameter(2, mainTerm.getId());
+			deleteOldSynonyms.executeAndClose();
+			
+			for(Term synonymTerm : synonymTerms) {
+				Query insert = new Query("INSERT INTO `oto_synonym` " +
+						"(`mainTerm`, `label`, `synonymTerm`) VALUES (?, ?, ?)");			
+				insert.setParameter(1, mainTerm.getId());
+				insert.setParameter(2, label.getId());
+				insert.setParameter(3, synonymTerm.getId());
+				insert.executeAndClose();
+			}
 		}
 	}
 	

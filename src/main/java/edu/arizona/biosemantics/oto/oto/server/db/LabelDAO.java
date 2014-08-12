@@ -117,11 +117,7 @@ public class LabelDAO {
 		
 		for(Label label : collection.getLabels()) {
 			labelingDAO.ensure(label, label.getMainTerms());
-			
-			for(Term mainTerm : label.getMainTerms()) {
-				List<Term> synonymTerms = label.getSynonyms(mainTerm);
-				synonymDAO.ensure(label, mainTerm, synonymTerms);
-			}
+			synonymDAO.ensure(label, label.getMainTerms());
 		}
 	}
 }
