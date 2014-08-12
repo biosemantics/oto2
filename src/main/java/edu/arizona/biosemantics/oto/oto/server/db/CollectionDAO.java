@@ -7,6 +7,7 @@ import java.sql.Timestamp;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectWriter;
@@ -65,22 +66,25 @@ public class CollectionDAO {
 		for(Bucket bucket : buckets)
 			termsToSend.addAll(bucket.getTerms());
 		for(Label label : labels) {
+			List<Term> oldMainTerms = label.getMainTerms();
+			Map<Term, List<Term>> oldSynonymTermsMap = label.getMainTermSynonymsMap();
+			Map<Term, List<Term>> newSynonymTermsMap = label.getMainTermSynonymsMap();
+			
 			List<Term> newMainLabelTerms = new LinkedList<Term>();
 			for(Term mainLabelTerm : label.getMainTerms()) {
-				Term termToSend = termsToSend.get(termsToSend.indexOf(mainLabelTerm));
-				newMainLabelTerms.add(termToSend);
-			}
-			label.setMainTerms(newMainLabelTerms);
-			
-			
-			for(Term mainLabelTerm : label.getMainTerms()) {
+				Term mainTermToSend = termsToSend.get(termsToSend.indexOf(mainLabelTerm));
+				newMainLabelTerms.add(mainTermToSend);
+				
 				List<Term> newSynonymTerms = new LinkedList<Term>();
 				for(Term synonymTerm : label.getSynonyms(mainLabelTerm)) {
-					Term termToSend = termsToSend.get(termsToSend.indexOf(synonymTerm));
-					newSynonymTerms.add(termToSend);
+					Term synonymTermToSend = termsToSend.get(termsToSend.indexOf(synonymTerm));
+					newSynonymTerms.add(synonymTermToSend);
 				}
-				label.setSynonyms(mainLabelTerm, newSynonymTerms);
+				
+				newSynonymTermsMap.put(mainTermToSend, newSynonymTerms);
 			}
+			label.setMainTerms(newMainLabelTerms);		
+			label.setMainTermSynonymsMap(newSynonymTermsMap);
 		}
 		//
 		collection.setLabels(labels);

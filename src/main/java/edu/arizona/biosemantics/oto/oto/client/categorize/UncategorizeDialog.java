@@ -26,14 +26,14 @@ public class UncategorizeDialog extends MessageBox {
 			@Override
 			public void onSelect(SelectEvent event) {
 				for(Label label : labels)
-					label.removeMainTerm(term);
+					label.uncategorizeTerm(term);
 				eventBus.fireEvent(new TermUncategorizeEvent(term, labels));
 			}
 		});
 		getButton(PredefinedButton.NO).addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
-				sourceLabel.removeMainTerm(term);
+				sourceLabel.uncategorizeTerm(term);
 				eventBus.fireEvent(new CategorizeCopyRemoveTermEvent(term, sourceLabel));
 			}
 		});

@@ -49,8 +49,8 @@ public class Label implements Serializable {
 	}
 
 	public void setMainTerms(List<Term> mainTerms) {
-		mainTerms.clear();
-		mainTermSynonymsMap.clear();
+		this.mainTerms.clear();
+		this.mainTermSynonymsMap.clear();
 		this.addMainTerms(mainTerms);
 	}
 
@@ -62,7 +62,7 @@ public class Label implements Serializable {
 		this.description = description;
 	}
 
-	public void removeMainTerm(Term term) {
+	public void uncategorizeMainTerm(Term term) {
 		if(mainTermSynonymsMap.containsKey(term)) {
 			List<Term> oldSynonyms = mainTermSynonymsMap.get(term);
 			for(Term oldSynonym : oldSynonyms) {
@@ -126,9 +126,9 @@ public class Label implements Serializable {
 		return true;
 	}
 
-	public void removeMainTerms(List<Term> mainTerms) {
+	public void uncategorizeMainTerms(List<Term> mainTerms) {
 		for(Term mainTerm : mainTerms)
-			this.removeMainTerm(mainTerm);
+			this.uncategorizeMainTerm(mainTerm);
 	}
 
 	public void setMainTermSynonymsMap(Map<Term, List<Term>> mainTermSynonymsMap) {
@@ -142,31 +142,43 @@ public class Label implements Serializable {
 	}
 
 	public void addSynonym(Term mainTerm, Term synonymTerm) {
-		removeMainTerm(synonymTerm);
+		uncategorizeMainTerm(synonymTerm);
 		
 		if(!mainTermSynonymsMap.containsKey(mainTerm)) 
 			mainTermSynonymsMap.put(mainTerm, new LinkedList<Term>());
 		mainTermSynonymsMap.get(mainTerm).add(synonymTerm);
 	}
 	
-	public void addSynonyms(Term mainTerm, List<Term> synonymTerms) {
+	public void addSynonymy(Term mainTerm, List<Term> synonymTerms) {
 		for(Term synonym : synonymTerms)
 			addSynonym(mainTerm, synonym);
 	}
 
-	public void setSynonyms(Term mainLabelTerm, List<Term> synonymTerms) {
+	public void setSynonymy(Term mainLabelTerm, List<Term> synonymTerms) {
 		for(Term synonymTerm : synonymTerms)
-			removeMainTerm(synonymTerm);
+			uncategorizeMainTerm(synonymTerm);
 		mainTermSynonymsMap.put(mainLabelTerm, synonymTerms);
 	}
 
 	public Map<Term, List<Term>> getMainTermSynonymsMap() {
-		return mainTermSynonymsMap;
+		Map<Term, List<Term>> copy = new HashMap<Term, List<Term>>();
+		for(Term key : mainTermSynonymsMap.keySet())
+			copy.put(key, new LinkedList<Term>(mainTermSynonymsMap.get(key)));
+		return copy;
 	}
 
-	public void removeSynonyms(Term mainTerm) {
-		this.addMainTerms(this.getSynonyms(mainTerm));
-		this.setSynonyms(mainTerm, new LinkedList<Term>());
+	public void removeSynonymy(Term mainTerm, List<Term> synonyms) {
+		this.addMainTerms(synonyms);
+		this.setSynonymy(mainTerm, new LinkedList<Term>());
 	}
 
+	public void uncategorizeTerm(Term term) {
+		this.uncategorizeMainTerm(term);
+		this.uncategorizeSynonymTerm(term);
+	}
+
+	private void uncategorizeSynonymTerm(Term term) {
+		for(Term mainTerm : this.mainTerms)
+			this.mainTermSynonymsMap.get(mainTerm).remove(term);
+	}
 }

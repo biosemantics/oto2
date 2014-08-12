@@ -74,7 +74,7 @@ public class CategorizePresenter {
 		});
 		eventBus.addHandler(SynonymRemovalEvent.TYPE, new SynonymRemovalEvent.SynonymRemovalHandler() {
 			@Override
-			public void onSynonymCreation(Term term, Term oldMainTerm) {
+			public void onSynonymRemoval(Label label, Term mainTerm, List<Term> synonyms) {
 				saveCollection();
 			}
 		});

@@ -74,6 +74,16 @@ public class DndDropEventExtractor {
 		return false;
 	}
 	
+	public static boolean isSourceLabelOtherPortlet(DndDropEvent event, LabelPortlet portlet) {
+		if(event.getTarget() instanceof Tree) {
+			Tree tree = (Tree)event.getTarget();
+			if(tree.getParent() instanceof LabelPortlet && !tree.getParent().equals(portlet)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	public static boolean isSourceCategorizeView(DndDropEvent event) {
 		if(event.getTarget() instanceof Tree) {
 			Tree tree = (Tree)event.getTarget();

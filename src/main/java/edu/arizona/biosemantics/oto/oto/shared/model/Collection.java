@@ -116,9 +116,16 @@ public class Collection implements Serializable {
 
 	public List<Label> getLabels(Term term) {
 		List<Label> result = new LinkedList<Label>();
-		for(Label label : labels)
-			if(label.getMainTerms().contains(term))
-				result.add(label);
+		for(Label label : labels) {
+			for(Term mainTerm : label.getMainTerms()) {
+				if(mainTerm.equals(term))
+					result.add(label);
+				for(Term synonym : label.getSynonyms(mainTerm)) {
+					if(synonym.equals(term))
+						result.add(label);
+				}
+			}
+		}
 		return result;
 	}	
 	

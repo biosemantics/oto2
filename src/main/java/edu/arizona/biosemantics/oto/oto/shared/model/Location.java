@@ -27,5 +27,4 @@ public class Location implements Serializable {
 	public void setCategorization(String categorization) {
 		this.categorization = categorization;
 	}
-	
 }

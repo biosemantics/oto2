@@ -7,7 +7,7 @@ import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.PropertyAccess;
 
 public interface LocationProperties extends PropertyAccess<Location> {
-  @Path("instance")
+  @Path("categorization")
   ModelKeyProvider<Location> key();
    
   @Path("instance")

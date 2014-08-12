@@ -7,14 +7,14 @@ import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.PropertyAccess;
 
 public interface ContextProperties extends PropertyAccess<Context> {
-  
-@Path("id")
-  ModelKeyProvider<Context> key();
-   
-  @Path("source")
-  LabelProvider<Context> nameLabel();
- 
-  ValueProvider<Context, String> source();
-   
-  ValueProvider<Context, String> sentence();
+
+	@Path("id")
+	ModelKeyProvider<Context> key();
+
+	@Path("source")
+	LabelProvider<Context> nameLabel();
+
+	ValueProvider<Context, String> source();
+
+	ValueProvider<Context, String> sentence();
 }

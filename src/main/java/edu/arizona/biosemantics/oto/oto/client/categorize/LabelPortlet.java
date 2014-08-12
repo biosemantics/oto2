@@ -56,6 +56,7 @@ import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelModifyEvent
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelRemoveEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelsMergeEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.SynonymCreationEvent;
+import edu.arizona.biosemantics.oto.oto.client.categorize.event.SynonymRemovalEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.TermCategorizeEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.TermRenameEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.TermSelectEvent;
@@ -134,7 +135,7 @@ public class LabelPortlet extends Portlet {
 								@Override
 								public void onSelection(SelectionEvent<MenuItem> event) {
 									collectionLabel.addMainTerms(terms);
-									label.removeMainTerms(terms);
+									label.uncategorizeMainTerms(terms);
 									eventBus.fireEvent(new CategorizeMoveTermEvent(terms, label, collectionLabel));
 									TermMenu.this.hide();
 								}
@@ -229,7 +230,7 @@ public class LabelPortlet extends Portlet {
 								UncategorizeDialog dialog = new UncategorizeDialog(eventBus, label, 
 										term, labels);
 							} else {
-								label.removeMainTerm(term);
+								label.uncategorizeTerm(term);
 								eventBus.fireEvent(new TermUncategorizeEvent(term, label));
 							}
 						}
@@ -268,7 +269,7 @@ public class LabelPortlet extends Portlet {
 						synonymButton.addSelectHandler(new SelectHandler() {
 							@Override
 							public void onSelect(SelectEvent event) {
-								label.addSynonyms(term, synonymTerms);
+								label.addSynonymy(term, synonymTerms);
 								eventBus.fireEvent(new SynonymCreationEvent(label, term, synonymTerms));
 								TermMenu.this.hide();
 							}
@@ -281,10 +282,44 @@ public class LabelPortlet extends Portlet {
 				}
 				
 				if(terms.size() == 1) {
-					Term term = terms.iterator().next();
+					final Term term = terms.iterator().next();
 					if(!label.getSynonyms(term).isEmpty()) {
-
-						this.add(removeSynonym);
+						Menu synonymMenu = new Menu();
+						VerticalPanel verticalPanel = new VerticalPanel();
+						final List<Term> toRemove = new LinkedList<Term>();
+						final TextButton synonymRemoveButton = new TextButton("Remove");
+						synonymRemoveButton.setEnabled(false);
+						for(final Term synonymTerm : label.getSynonyms(term)) {
+							CheckBox checkBox = new CheckBox();
+							checkBox.setBoxLabel(synonymTerm.getTerm());
+							checkBox.setValue(false);
+							checkBox.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
+								@Override
+								public void onValueChange(ValueChangeEvent<Boolean> event) {
+									if(event.getValue())
+										toRemove.add(synonymTerm);
+									else
+										toRemove.remove(synonymTerm);
+									synonymRemoveButton.setEnabled(!toRemove.isEmpty());
+								}
+							});
+							verticalPanel.add(checkBox);
+						}
+						
+						if(verticalPanel.getWidgetCount() > 0) {
+							synonymRemoveButton.addSelectHandler(new SelectHandler() {
+								@Override
+								public void onSelect(SelectEvent event) {
+									label.removeSynonymy(term, toRemove);
+									eventBus.fireEvent(new SynonymRemovalEvent(label, term, toRemove));
+									TermMenu.this.hide();
+								}
+							});
+							verticalPanel.add(synonymRemoveButton);
+							synonymMenu.add(verticalPanel);
+							removeSynonym.setSubMenu(synonymMenu);
+							this.add(removeSynonym);
+						}	
 					}
 				}
 				
@@ -300,7 +335,9 @@ public class LabelPortlet extends Portlet {
 						@Override
 						public void onSelection(SelectionEvent<Item> event) {
 							for(Term term : terms) {
-								label.removeSynonyms(term);
+								List<Term> oldSynonyms = label.getSynonyms(term);
+								label.removeSynonymy(term, oldSynonyms);
+								eventBus.fireEvent(new SynonymRemovalEvent(label, term, oldSynonyms));
 							}
 						}
 					});
@@ -526,6 +563,14 @@ public class LabelPortlet extends Portlet {
 			} 	
 		}
 	}
+	
+	protected void removeSynonymTerm(Term mainTerm, Term synonym) {
+		TermTreeNode termTreeNode = termTermTreeNodeMap.remove(synonym);
+		if(termTreeNode != null && termTreeNode instanceof SynonymTermTreeNode) {
+			portletStore.remove(termTreeNode);
+			this.addMainTerm(synonym);
+		}
+	}
 		
 	private void removeTerm(Term term) {
 		if(termTermTreeNodeMap.containsKey(term))
@@ -538,6 +583,16 @@ public class LabelPortlet extends Portlet {
 	}
 
 	private void bindEvents() {
+		eventBus.addHandler(SynonymRemovalEvent.TYPE, new SynonymRemovalEvent.SynonymRemovalHandler() {
+			@Override
+			public void onSynonymRemoval(Label label, Term mainTerm, List<Term> synonyms) {
+				if(LabelPortlet.this.label.equals(label)) {
+					for(Term synonym : synonyms) {
+						LabelPortlet.this.removeSynonymTerm(mainTerm, synonym);
+					}
+				}
+			}
+		});
 		eventBus.addHandler(SynonymCreationEvent.TYPE, new SynonymCreationEvent.SynonymCreationHandler() {
 			@Override
 			public void onSynonymCreation(Label label, Term mainTerm, List<Term> synonymTerms) {
@@ -614,54 +669,6 @@ public class LabelPortlet extends Portlet {
 				}
 			}
 		});
-		/*portletStore.addStoreRemoveHandler(new StoreRemoveHandler<TextTreeNode>() {
-			@Override
-			public void onRemove(StoreRemoveEvent<TextTreeNode> event) {
-				if(event.getItem() instanceof MainTermTreeNode) {
-					MainTermTreeNode mainTermTreeNode = (MainTermTreeNode)event.getItem();
-					Category oldCategory = mainTermTreeNode.getTerm().getCategory();
-					mainTermTreeNode.getTerm().setCategory(null);
-					mainTermTreeNode.getTerm().getInitialCategory().addTerm(mainTermTreeNode.getTerm());
-					List<Term> terms = new LinkedList<Term>();
-					terms.add(mainTermTreeNode.getTerm());
-					eventBus.fireEvent(new TermUncategorizeEvent(terms, oldCategory));
-				}
-				if(event.getItem() instanceof SynonymTermTreeNode) {
-					SynonymTermTreeNode synonymTermTreeNode = (SynonymTermTreeNode)event.getItem();
-					TextTreeNode parent = portletStore.getParent(synonymTermTreeNode);
-					if(parent instanceof MainTermTreeNode) {
-						MainTermTreeNode mainTermTreeNode = (MainTermTreeNode)parent;
-						mainTermTreeNode.getTerm().removeSynonym(synonymTermTreeNode.getTerm());
-						eventBus.fireEvent(new SynonymRemovalEvent(synonymTermTreeNode.getTerm(), ((MainTermTreeNode) parent).getTerm()));
-					}
-				}
-			}
-		});
-		portletStore.addStoreAddHandler(new StoreAddHandler<TextTreeNode>() {
-			@Override
-			public void onAdd(StoreAddEvent<TextTreeNode> event) {
-				List<TextTreeNode> nodes = event.getItems();
-				for(TextTreeNode node : nodes) {
-					if(node instanceof MainTermTreeNode) {
-						MainTermTreeNode mainTermTreeNode = (MainTermTreeNode)node;
-						mainTermTreeNode.getTerm().getInitialCategory().removeTerm(mainTermTreeNode.getTerm());
-						mainTermTreeNode.getTerm().setCategory(CategoryPortlet.this.category);
-						List<Term> terms = new LinkedList<Term>();
-						terms.add(mainTermTreeNode.getTerm());
-						eventBus.fireEvent(new TermCategorizeEvent(terms, CategoryPortlet.this.category));
-					}
-					if(node instanceof SynonymTermTreeNode) {
-						SynonymTermTreeNode synonymTermTreeNode = (SynonymTermTreeNode)node;
-						TextTreeNode parent = portletStore.getParent(node);
-						if(parent instanceof MainTermTreeNode) {
-							MainTermTreeNode mainTermTreeNode = (MainTermTreeNode)parent;
-							mainTermTreeNode.getTerm().addSynonym(synonymTermTreeNode.getTerm());
-							eventBus.fireEvent(new SynonymCreationEvent(synonymTermTreeNode.getTerm(), ((MainTermTreeNode) parent).getTerm()));
-						}
-					}
-				}
-			}
-		});*/
 		
 		tree.getSelectionModel().addSelectionHandler(new SelectionHandler<TermTreeNode>() {
 			@Override
@@ -708,6 +715,7 @@ public class LabelPortlet extends Portlet {
 		}); */ 
 		
 		DropTarget dropTarget = new DropTarget(this);
+		dropTarget.setAllowSelfAsSource(false);
 		dropTarget.setOperation(Operation.COPY);
 		dropTarget.addDropHandler(new DndDropHandler() {
 			@Override
@@ -715,7 +723,7 @@ public class LabelPortlet extends Portlet {
 				if(DndDropEventExtractor.isSourceCategorizeView(event)) {
 					onDnd(event, DropSource.INIT);
 				}
-				if(DndDropEventExtractor.isSourceLabelPortlet(event)) {
+				if(DndDropEventExtractor.isSourceLabelOtherPortlet(event, LabelPortlet.this)) {
 					onDnd(event, DropSource.PORTLET);
 				}
 			}
@@ -744,7 +752,7 @@ public class LabelPortlet extends Portlet {
 							LabelPortlet sourcePortlet = DndDropEventExtractor.getLabelPortletSource(dropEvent);
 							List<Term> terms = DndDropEventExtractor.getTerms(dropEvent);
 							label.addMainTerms(terms);
-							sourcePortlet.getLabel().removeMainTerms(terms);
+							sourcePortlet.getLabel().uncategorizeMainTerms(terms);
 							eventBus.fireEvent(new CategorizeMoveTermEvent(terms, sourcePortlet.getLabel(), label));
 						}
 					});

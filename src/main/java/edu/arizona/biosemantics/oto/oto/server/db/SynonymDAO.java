@@ -49,7 +49,7 @@ public class SynonymDAO {
 		
 		notInSynonyms = notInSynonyms.isEmpty() ? "" : notInSynonyms.substring(0, synonymTerms.size() - 1);
 		String deleteOldSynonymsQuery = notInSynonyms.isEmpty() ? "DELETE FROM `oto_synonym` WHERE label = ? AND mainTerm = ?" : 
-			 "DELETE FROM `oto_synonym` WHERE label = ? AND mainTerm = ? AND NOT IN (" + notInSynonyms + ")";
+			 "DELETE FROM `oto_synonym` WHERE label = ? AND mainTerm = ? AND synonymTerm NOT IN (" + notInSynonyms + ")";
 		Query deleteOldSynonyms = new Query(deleteOldSynonymsQuery);
 		deleteOldSynonyms.setParameter(1, label.getId());
 		deleteOldSynonyms.setParameter(2, mainTerm.getId());

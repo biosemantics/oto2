@@ -294,6 +294,7 @@ public class TermsView extends TabPanel {
 		ListViewDragSource<Term> dragSource = new ListViewDragSource<Term>(listView);
 		TreeDragSource<TextTreeNode> treeDragSource = new TreeDragSource<TextTreeNode>(termTree);			
 		DropTarget dropTarget = new DropTarget(this);
+		dropTarget.setAllowSelfAsSource(false);
 		// actual drop action is taken care of by events
 		dropTarget.setOperation(Operation.COPY);
 		dropTarget.addDropHandler(new DndDropHandler() {
@@ -310,7 +311,7 @@ public class TermsView extends TabPanel {
 							UncategorizeDialog dialog = new UncategorizeDialog(eventBus, label, 
 									term, labels);
 						} else {
-							label.removeMainTerm(term);
+							label.uncategorizeTerm(term);
 							eventBus.fireEvent(new TermUncategorizeEvent(term, label));
 						}
 					}
@@ -330,9 +331,13 @@ public class TermsView extends TabPanel {
 			listStore.clear();
 			
 			Set<Term> categorizedTerms = new HashSet<Term>();
-			for(Label label : collection.getLabels())
-				for(Term term : label.getMainTerms())
+			for(Label label : collection.getLabels()) {
+				for(Term term : label.getMainTerms()) {
 					categorizedTerms.add(term);
+					List<Term> synonyms = label.getSynonyms(term);
+					categorizedTerms.addAll(synonyms);
+				}
+			}
 			
 			for(Bucket bucket : collection.getBuckets()) {
 				BucketTreeNode bucketTreeNode = new BucketTreeNode(bucket);
