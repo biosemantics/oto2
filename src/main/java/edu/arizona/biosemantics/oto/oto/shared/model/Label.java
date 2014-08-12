@@ -131,7 +131,7 @@ public class Label implements Serializable {
 			this.removeMainTerm(mainTerm);
 	}
 
-	public void setSynonyms(Map<Term, List<Term>> mainTermSynonymsMap) {
+	public void setMainTermSynonymsMap(Map<Term, List<Term>> mainTermSynonymsMap) {
 		this.mainTermSynonymsMap = mainTermSynonymsMap;
 	}
 	
@@ -162,6 +162,11 @@ public class Label implements Serializable {
 
 	public Map<Term, List<Term>> getMainTermSynonymsMap() {
 		return mainTermSynonymsMap;
+	}
+
+	public void removeSynonyms(Term mainTerm) {
+		this.addMainTerms(this.getSynonyms(mainTerm));
+		this.setSynonyms(mainTerm, new LinkedList<Term>());
 	}
 
 }

@@ -280,8 +280,31 @@ public class LabelPortlet extends Portlet {
 					}					
 				}
 				
-				this.add(removeSynonym);
-				this.add(removeAllSynonyms);
+				if(terms.size() == 1) {
+					Term term = terms.iterator().next();
+					if(!label.getSynonyms(term).isEmpty()) {
+
+						this.add(removeSynonym);
+					}
+				}
+				
+				boolean showRemoveAllSynonyms = false;
+				for(Term term : terms) {
+					if(!label.getSynonyms(term).isEmpty()) {
+						showRemoveAllSynonyms = true;
+					}
+				}
+				if(showRemoveAllSynonyms) {
+					this.add(removeAllSynonyms);
+					removeAllSynonyms.addSelectionHandler(new SelectionHandler<Item>() {
+						@Override
+						public void onSelection(SelectionEvent<Item> event) {
+							for(Term term : terms) {
+								label.removeSynonyms(term);
+							}
+						}
+					});
+				}
 			}
 			
 			if(this.getWidgetCount() == 0)

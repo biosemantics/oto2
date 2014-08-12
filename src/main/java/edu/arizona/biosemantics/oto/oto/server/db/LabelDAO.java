@@ -44,7 +44,7 @@ public class LabelDAO {
 		String description = result.getString(4);
 		Label label = new Label(id, collectionId, name, description);
 		label.setMainTerms(labelingDAO.getMainTerms(label));
-		label.setSynonyms(synonymDAO.get(label));
+		label.setMainTermSynonymsMap(synonymDAO.get(label));
 		return label;
 	}
 
