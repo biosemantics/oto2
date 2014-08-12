@@ -6,11 +6,7 @@ public class Term implements Serializable {
 
 	private int id = -1;
 	private String term;
-	//private int bucketId; 
-	//private Set<Integer> labels = new HashSet<Integer>();
-	//private Set<Term> synonyms = new LinkedHashSet<Term>();
-	//private List<Context> contexts = new LinkedList<Context>();
-	
+
 	public Term() { }
 	
 	public Term(int id, String term) {
@@ -27,38 +23,6 @@ public class Term implements Serializable {
 		this.term = term;
 	}
 
-	/*public Set<Term> getSynonyms() {
-		return synonyms;
-	}
-
-	public void setSynonyms(Set<Term> synonyms) {
-		this.synonyms = synonyms;
-	}
-	
-	public Set<Label> getLabels() {
-		return labels;
-	}
-
-	public void setLabels(Set<Label> labels) {
-		this.labels = labels;
-	}
-
-	public Bucket getBucket() {
-		return bucket;
-	}
-
-	public void setBucket(Bucket bucket) {
-		this.bucket = bucket;
-	}	
-
-	public void removeSynonym(Term term) {
-		synonyms.remove(term);
-	}
-
-	public void addSynonym(Term term) {
-		synonyms.add(term);
-	}*/
-
 	public int getId() {
 		return id;
 	}
@@ -70,20 +34,6 @@ public class Term implements Serializable {
 	public void setId(int id) {
 		this.id = id;
 	}
-
-	/*
-	public void addContext(Context context) {
-		context.setTerm(this);
-		contexts.add(context);
-	}	
-	
-	public void setContexts(List<Context> contexts) {
-		this.contexts = contexts;
-	}
-	
-	public List<Context> getContexts() {
-		return contexts;
-	}*/
 
 	@Override
 	public int hashCode() {
@@ -105,16 +55,6 @@ public class Term implements Serializable {
 		if (id != other.id)
 			return false;
 		return true;
-	}
-
-	/*
-	public void removeLabel(Label label) {
-		labels.remove(label);
-	}
-
-	public void addLabel(Label label) {
-		labels.add(label);
-	}*/
-	
+	}	
 	
 }

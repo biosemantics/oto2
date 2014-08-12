@@ -1,7 +1,7 @@
 package edu.arizona.biosemantics.oto.oto.client.categorize.event;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
@@ -13,23 +13,23 @@ import edu.arizona.biosemantics.oto.oto.shared.model.Term;
 public class TermUncategorizeEvent extends GwtEvent<TermUncategorizeHandler> {
 
 	public interface TermUncategorizeHandler extends EventHandler {
-		void onUncategorize(LinkedHashSet<Term> terms, Set<Label> oldLabels);
+		void onUncategorize(List<Term> terms, List<Label> oldLabels);
 	}
 	
     public static Type<TermUncategorizeHandler> TYPE = new Type<TermUncategorizeHandler>();
     
-    private LinkedHashSet<Term> terms;
-	private LinkedHashSet<Label> oldLabels;
+    private List<Term> terms;
+	private List<Label> oldLabels;
 	
 	public TermUncategorizeEvent(Term term, Label oldLabel) {
-		this.terms = new LinkedHashSet<Term>();
+		this.terms = new LinkedList<Term>();
 		terms.add(term);
-		this.oldLabels = new LinkedHashSet<Label>();
+		this.oldLabels = new LinkedList<Label>();
 		oldLabels.add(oldLabel);
 	}
 	
-	public TermUncategorizeEvent(Term term, LinkedHashSet<Label> oldLabels) {
-		this.terms = new LinkedHashSet<Term>();
+	public TermUncategorizeEvent(Term term, List<Label> oldLabels) {
+		this.terms = new LinkedList<Term>();
 		terms.add(term);
 		this.oldLabels = oldLabels;
 	}
@@ -55,11 +55,11 @@ public class TermUncategorizeEvent extends GwtEvent<TermUncategorizeHandler> {
 		handler.onUncategorize(terms, oldLabels);
 	}
 
-	public LinkedHashSet<Term> getTerms() {
+	public List<Term> getTerms() {
 		return terms;
 	}
 
-	public Set<Label> getOldLabels() {
+	public List<Label> getOldLabels() {
 		return oldLabels;
 	}
 

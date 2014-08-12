@@ -3,7 +3,8 @@ package edu.arizona.biosemantics.oto.oto.server.db;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
 
 import edu.arizona.biosemantics.oto.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto.oto.shared.model.Label;
@@ -80,8 +81,8 @@ public class LabelDAO {
 		query.executeAndClose();
 	}
 
-	public LinkedHashSet<Label> getLabels(Collection collection) throws SQLException, ClassNotFoundException, IOException {
-		LinkedHashSet<Label> labels = new LinkedHashSet<Label>();
+	public List<Label> getLabels(Collection collection) throws SQLException, ClassNotFoundException, IOException {
+		List<Label> labels = new LinkedList<Label>();
 		Query query = new Query("SELECT * FROM oto_label WHERE collection = ?");
 		query.setParameter(1, collection.getId());
 		ResultSet result = query.execute();
@@ -118,7 +119,7 @@ public class LabelDAO {
 			labelingDAO.ensure(label, label.getMainTerms());
 			
 			for(Term mainTerm : label.getMainTerms()) {
-				LinkedHashSet<Term> synonymTerms = label.getSynonyms(mainTerm);
+				List<Term> synonymTerms = label.getSynonyms(mainTerm);
 				synonymDAO.ensure(label, mainTerm, synonymTerms);
 			}
 		}

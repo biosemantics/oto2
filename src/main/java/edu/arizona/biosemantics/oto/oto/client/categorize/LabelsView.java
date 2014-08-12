@@ -2,7 +2,7 @@ package edu.arizona.biosemantics.oto.oto.client.categorize;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -203,7 +203,7 @@ public class LabelsView extends PortalLayoutContainer {
 	private void bindEvents() {
 		eventBus.addHandler(LabelsMergeEvent.TYPE, new LabelsMergeEvent.MergeLabelsHandler() {
 			@Override
-			public void onMerge(Label destination, LinkedHashSet<Label> sources) {
+			public void onMerge(Label destination, List<Label> sources) {
 				for(Label source : sources) {
 					LabelPortlet sourcePortlet = labelPortletsMap.remove(source);
 					sourcePortlet.removeFromParent();
@@ -244,6 +244,7 @@ public class LabelsView extends PortalLayoutContainer {
 		} else {
 			for(LabelPortlet portlet : labelPortletsMap.values()) {
 				portlet.setCollection(collection);
+				portlet.setLabel(collection.getLabels().get(collection.getLabels().indexOf(portlet.getLabel())));
 			}
 			
 			for(Label label : collection.getLabels()) {

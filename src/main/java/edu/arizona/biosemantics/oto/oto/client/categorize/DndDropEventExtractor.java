@@ -1,6 +1,6 @@
 package edu.arizona.biosemantics.oto.oto.client.categorize;
 
-import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 
 import com.sencha.gxt.data.shared.TreeStore;
@@ -15,8 +15,8 @@ import edu.arizona.biosemantics.oto.oto.shared.model.TermTreeNode;
 
 public class DndDropEventExtractor {
 
-	public static LinkedHashSet<Term> getTerms(DndDropEvent event) {
-		LinkedHashSet<Term> terms = new LinkedHashSet<Term>();
+	public static List<Term> getTerms(DndDropEvent event) {
+		List<Term> terms = new LinkedList<Term>();
 		Object data = event.getData();
 		if (data != null) {
 			if (data instanceof List<?>) {

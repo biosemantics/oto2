@@ -1,10 +1,9 @@
 package edu.arizona.biosemantics.oto.oto.client.categorize;
 
 import java.util.HashMap;
-import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.logical.shared.SelectionEvent;
@@ -118,7 +117,7 @@ public class LabelPortlet extends Portlet {
 				event.setCancelled(true);
 				this.hide();
 			} else {
-				final LinkedHashSet<Term> terms = new LinkedHashSet<Term>();
+				final List<Term> terms = new LinkedList<Term>();
 				for(TermTreeNode node : selected) 
 					terms.add(node.getTerm());
 				
@@ -150,7 +149,7 @@ public class LabelPortlet extends Portlet {
 				if(collection.getLabels().size() > 1) {
 					Menu copyMenu = new Menu();
 					VerticalPanel verticalPanel = new VerticalPanel();
-					final LinkedHashSet<Label> copyLabels = new LinkedHashSet<Label>();
+					final List<Label> copyLabels = new LinkedList<Label>();
 					final TextButton copyButton = new TextButton("Copy");
 					copyButton.setEnabled(false);
 					for(final Label collectionLabel : collection.getLabels()) {
@@ -225,7 +224,7 @@ public class LabelPortlet extends Portlet {
 					@Override
 					public void onSelection(SelectionEvent<Item> event) {
 						for(Term term : terms) {
-							LinkedHashSet<Label> labels = collection.getLabels(term);
+							List<Label> labels = collection.getLabels(term);
 							if(labels.size() > 1) {
 								UncategorizeDialog dialog = new UncategorizeDialog(eventBus, label, 
 										term, labels);
@@ -243,7 +242,7 @@ public class LabelPortlet extends Portlet {
 					Menu synonymMenu = new Menu();
 					
 					VerticalPanel verticalPanel = new VerticalPanel();
-					final LinkedHashSet<Term> synonymTerms = new LinkedHashSet<Term>();
+					final List<Term> synonymTerms = new LinkedList<Term>();
 					final TextButton synonymButton = new TextButton("Synonomize");
 					synonymButton.setEnabled(false);
 					for(final Term synonymTerm : label.getMainTerms()) {
@@ -325,7 +324,7 @@ public class LabelPortlet extends Portlet {
 				merge = new MenuItem("Merge with");
 				Menu mergeMenu = new Menu();
 				VerticalPanel verticalPanel = new VerticalPanel();
-				final LinkedHashSet<Label> mergeLabels = new LinkedHashSet<Label>();
+				final List<Label> mergeLabels = new LinkedList<Label>();
 				final TextButton mergeButton = new TextButton("Merge");
 				mergeButton.setEnabled(false);
 				for(final Label collectionLabel : collection.getLabels()) {
@@ -510,7 +509,7 @@ public class LabelPortlet extends Portlet {
 			portletStore.remove(termTermTreeNodeMap.remove(term));
 	}
 	
-	private void removeTerms(LinkedHashSet<Term> terms) {
+	private void removeTerms(List<Term> terms) {
 		for(Term term : terms)
 			this.removeTerm(term);
 	}
@@ -518,7 +517,7 @@ public class LabelPortlet extends Portlet {
 	private void bindEvents() {
 		eventBus.addHandler(SynonymCreationEvent.TYPE, new SynonymCreationEvent.SynonymCreationHandler() {
 			@Override
-			public void onSynonymCreation(Label label, Term mainTerm, Set<Term> synonymTerms) {
+			public void onSynonymCreation(Label label, Term mainTerm, List<Term> synonymTerms) {
 				if(LabelPortlet.this.label.equals(label)) {
 					for(Term synonymTerm : synonymTerms)
 						LabelPortlet.this.addSynonymTerm(mainTerm, synonymTerm);
@@ -535,7 +534,7 @@ public class LabelPortlet extends Portlet {
 		});
 		eventBus.addHandler(CategorizeCopyTermEvent.TYPE, new CategorizeCopyTermEvent.CategorizeCopyTermHandler() {
 			@Override
-			public void onCategorize(LinkedHashSet<Term> terms, Label sourceCategory, LinkedHashSet<Label> targetCategories) {
+			public void onCategorize(List<Term> terms, Label sourceCategory, List<Label> targetCategories) {
 				for(Label targetCategory : targetCategories) {
 					if(targetCategory.equals(label)) {
 						for(Term term : terms) 
@@ -553,7 +552,7 @@ public class LabelPortlet extends Portlet {
 		});
 		eventBus.addHandler(CategorizeMoveTermEvent.TYPE, new CategorizeMoveTermEvent.CategorizeMoveTermHandler() {
 			@Override
-			public void onCategorize(LinkedHashSet<Term> terms, Label sourceLabel, Label targetLabel) {
+			public void onCategorize(List<Term> terms, Label sourceLabel, Label targetLabel) {
 				if(targetLabel.equals(label)) {
 					for(Term term : terms)
 						addMainTerm(term);
@@ -567,7 +566,7 @@ public class LabelPortlet extends Portlet {
 		});
 		eventBus.addHandler(TermCategorizeEvent.TYPE, new TermCategorizeEvent.TermCategorizeHandler() {
 			@Override
-			public void onCategorize(LinkedHashSet<Term> terms, Set<Label> labels) {
+			public void onCategorize(List<Term> terms, List<Label> labels) {
 				for(Label label : labels)
 					if(LabelPortlet.this.label.equals(label)) {
 						for(Term term : terms) {
@@ -578,7 +577,7 @@ public class LabelPortlet extends Portlet {
 		});
 		eventBus.addHandler(TermUncategorizeEvent.TYPE, new TermUncategorizeEvent.TermUncategorizeHandler() {
 			@Override
-			public void onUncategorize(LinkedHashSet<Term> terms, Set<Label> oldLabels) {
+			public void onUncategorize(List<Term> terms, List<Label> oldLabels) {
 				if(LabelPortlet.this.label.equals(label)) {
 					LabelPortlet.this.removeTerms(terms);
 				}
@@ -586,7 +585,7 @@ public class LabelPortlet extends Portlet {
 		});
 		eventBus.addHandler(CategorizeCopyRemoveTermEvent.TYPE, new CategorizeCopyRemoveTermEvent.CategorizeCopyRemoveTermHandler() {
 			@Override
-			public void onRemove(LinkedHashSet<Term> terms, Label label) {
+			public void onRemove(List<Term> terms, Label label) {
 				if(LabelPortlet.this.label.equals(label)) {
 					LabelPortlet.this.removeTerms(terms);
 				}
@@ -667,7 +666,7 @@ public class LabelPortlet extends Portlet {
 	private void setupDnD() {
 		TreeDragSource<TermTreeNode> dragSource = new TreeDragSource<TermTreeNode>(tree);
 		
-		TreeDropTarget<TermTreeNode> treeDropTarget = new TreeDropTarget<TermTreeNode>(tree);
+		/*TreeDropTarget<TermTreeNode> treeDropTarget = new TreeDropTarget<TermTreeNode>(tree);
 		treeDropTarget.setAllowDropOnLeaf(true);
 		treeDropTarget.setAllowSelfAsSource(true);
 		//let our events take care of tree/list store updates
@@ -683,7 +682,7 @@ public class LabelPortlet extends Portlet {
 				//event fire
 				event.getData();
 			}
-		}); 
+		}); */ 
 		
 		DropTarget dropTarget = new DropTarget(this);
 		dropTarget.setOperation(Operation.COPY);
@@ -701,8 +700,9 @@ public class LabelPortlet extends Portlet {
 			private void onDnd(final DndDropEvent dropEvent, DropSource source) {
 				switch(source) {
 				case INIT:
-					LinkedHashSet<Term> terms = DndDropEventExtractor.getTerms(dropEvent);
+					List<Term> terms = DndDropEventExtractor.getTerms(dropEvent);
 					label.addMainTerms(terms);
+					System.out.println("add to label: " + label);
 					eventBus.fireEvent(new TermCategorizeEvent(terms, label));
 					LabelPortlet.this.expand();
 					break;
@@ -711,7 +711,7 @@ public class LabelPortlet extends Portlet {
 						@Override
 						public void onSelection(SelectionEvent<Item> event) {
 							LabelPortlet sourcePortlet = DndDropEventExtractor.getLabelPortletSource(dropEvent);
-							LinkedHashSet<Term> terms = DndDropEventExtractor.getTerms(dropEvent);
+							List<Term> terms = DndDropEventExtractor.getTerms(dropEvent);
 							label.addMainTerms(terms);
 							eventBus.fireEvent(new CategorizeCopyTermEvent(terms, sourcePortlet.getLabel(), label));
 						}
@@ -719,7 +719,7 @@ public class LabelPortlet extends Portlet {
 						@Override
 						public void onSelection(SelectionEvent<Item> event) {
 							LabelPortlet sourcePortlet = DndDropEventExtractor.getLabelPortletSource(dropEvent);
-							LinkedHashSet<Term> terms = DndDropEventExtractor.getTerms(dropEvent);
+							List<Term> terms = DndDropEventExtractor.getTerms(dropEvent);
 							label.addMainTerms(terms);
 							sourcePortlet.getLabel().removeMainTerms(terms);
 							eventBus.fireEvent(new CategorizeMoveTermEvent(terms, sourcePortlet.getLabel(), label));
@@ -739,8 +739,12 @@ public class LabelPortlet extends Portlet {
 		return label;
 	}
 
+	public void setLabel(Label label) {
+		this.label = label;
+	}
+	
 	public void setCollection(Collection collection) {
 		this.collection = collection;
-	}
+	}	
 
 }

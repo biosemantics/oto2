@@ -1,9 +1,10 @@
 package edu.arizona.biosemantics.oto.oto.shared.model;
 
 import java.io.Serializable;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 public class Label implements Serializable {
 
@@ -11,8 +12,8 @@ public class Label implements Serializable {
 	private String name;
 	private int collectionId;
 	private String description;
-	private LinkedHashSet<Term> mainTerms = new LinkedHashSet<Term>();
-	private LinkedHashMap<Term, LinkedHashSet<Term>> mainTermSynonymsMap = new LinkedHashMap<Term, LinkedHashSet<Term>>();
+	private List<Term> mainTerms = new LinkedList<Term>();
+	private Map<Term, List<Term>> mainTermSynonymsMap = new HashMap<Term, List<Term>>();
 	
 	public Label() { }
 	
@@ -43,11 +44,11 @@ public class Label implements Serializable {
 		this.name = text;
 	}
 
-	public LinkedHashSet<Term> getMainTerms() {
-		return new LinkedHashSet<Term>(mainTerms);
+	public List<Term> getMainTerms() {
+		return new LinkedList<Term>(mainTerms);
 	}
 
-	public void setMainTerms(LinkedHashSet<Term> mainTerms) {
+	public void setMainTerms(List<Term> mainTerms) {
 		mainTerms.clear();
 		mainTermSynonymsMap.clear();
 		this.addMainTerms(mainTerms);
@@ -63,7 +64,7 @@ public class Label implements Serializable {
 
 	public void removeMainTerm(Term term) {
 		if(mainTermSynonymsMap.containsKey(term)) {
-			LinkedHashSet<Term> oldSynonyms = mainTermSynonymsMap.get(term);
+			List<Term> oldSynonyms = mainTermSynonymsMap.get(term);
 			for(Term oldSynonym : oldSynonyms) {
 				this.addMainTerm(oldSynonym);
 			}
@@ -74,10 +75,10 @@ public class Label implements Serializable {
 	
 	public void addMainTerm(Term term) {
 		mainTerms.add(term);
-		mainTermSynonymsMap.put(term, new LinkedHashSet<Term>());
+		mainTermSynonymsMap.put(term, new LinkedList<Term>());
 	}
 	
-	public void addMainTerms(LinkedHashSet<Term> mainTerms) {
+	public void addMainTerms(List<Term> mainTerms) {
 		for(Term mainTerm : mainTerms) {
 			this.addMainTerm(mainTerm);
 		}
@@ -125,18 +126,18 @@ public class Label implements Serializable {
 		return true;
 	}
 
-	public void removeMainTerms(LinkedHashSet<Term> mainTerms) {
+	public void removeMainTerms(List<Term> mainTerms) {
 		for(Term mainTerm : mainTerms)
 			this.removeMainTerm(mainTerm);
 	}
 
-	public void setSynonyms(LinkedHashMap<Term, LinkedHashSet<Term>> mainTermSynonymsMap) {
+	public void setSynonyms(Map<Term, List<Term>> mainTermSynonymsMap) {
 		this.mainTermSynonymsMap = mainTermSynonymsMap;
 	}
 	
-	public LinkedHashSet<Term> getSynonyms(Term mainTerm) {
+	public List<Term> getSynonyms(Term mainTerm) {
 		if(!mainTermSynonymsMap.containsKey(mainTerm))
-			return new LinkedHashSet<Term>();
+			return new LinkedList<Term>();
 		return mainTermSynonymsMap.get(mainTerm);
 	}
 
@@ -144,19 +145,23 @@ public class Label implements Serializable {
 		removeMainTerm(synonymTerm);
 		
 		if(!mainTermSynonymsMap.containsKey(mainTerm)) 
-			mainTermSynonymsMap.put(mainTerm, new LinkedHashSet<Term>());
+			mainTermSynonymsMap.put(mainTerm, new LinkedList<Term>());
 		mainTermSynonymsMap.get(mainTerm).add(synonymTerm);
 	}
 	
-	public void addSynonyms(Term mainTerm, Set<Term> synonymTerms) {
+	public void addSynonyms(Term mainTerm, List<Term> synonymTerms) {
 		for(Term synonym : synonymTerms)
 			addSynonym(mainTerm, synonym);
 	}
 
-	public void setSynonyms(Term mainLabelTerm, LinkedHashSet<Term> synonymTerms) {
+	public void setSynonyms(Term mainLabelTerm, List<Term> synonymTerms) {
 		for(Term synonymTerm : synonymTerms)
 			removeMainTerm(synonymTerm);
 		mainTermSynonymsMap.put(mainLabelTerm, synonymTerms);
+	}
+
+	public Map<Term, List<Term>> getMainTermSynonymsMap() {
+		return mainTermSynonymsMap;
 	}
 
 }

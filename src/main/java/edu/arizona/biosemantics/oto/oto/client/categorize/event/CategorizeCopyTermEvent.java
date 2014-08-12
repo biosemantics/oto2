@@ -1,7 +1,7 @@
 package edu.arizona.biosemantics.oto.oto.client.categorize.event;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
@@ -13,40 +13,40 @@ import edu.arizona.biosemantics.oto.oto.shared.model.Term;
 public class CategorizeCopyTermEvent extends GwtEvent<CategorizeCopyTermHandler> {
 
 	public interface CategorizeCopyTermHandler extends EventHandler {
-		void onCategorize(LinkedHashSet<Term> terms, Label sourceCategory, LinkedHashSet<Label> targetCategories);
+		void onCategorize(List<Term> terms, Label sourceCategory, List<Label> targetCategories);
 	}
 	
     public static Type<CategorizeCopyTermHandler> TYPE = new Type<CategorizeCopyTermHandler>();
     
-    private LinkedHashSet<Term> terms;
+    private List<Term> terms;
 	private Label sourceCategory;
-	private LinkedHashSet<Label> targetCategories;
+	private List<Label> targetCategories;
 	
-	public CategorizeCopyTermEvent(LinkedHashSet<Term> terms, Label sourceCategory, LinkedHashSet<Label> targetCategories) {
+	public CategorizeCopyTermEvent(List<Term> terms, Label sourceCategory, List<Label> targetCategories) {
 		this.terms = terms;
 		this.sourceCategory = sourceCategory;
 		this.targetCategories = targetCategories;
 	}
 	
-	public CategorizeCopyTermEvent(Term term, Label sourceCategory, LinkedHashSet<Label> targetCategories) {
-		this.terms = new LinkedHashSet<Term>();
+	public CategorizeCopyTermEvent(Term term, Label sourceCategory, List<Label> targetCategories) {
+		this.terms = new LinkedList<Term>();
 		terms.add(term);
 		this.sourceCategory = sourceCategory;
 		this.targetCategories = targetCategories;
 	}
 	
 	public CategorizeCopyTermEvent(Term term, Label sourceCategory, Label targetCategory) {
-		this.terms = new LinkedHashSet<Term>();
+		this.terms = new LinkedList<Term>();
 		terms.add(term);
 		this.sourceCategory = sourceCategory;
-		this.targetCategories = new LinkedHashSet<Label>();
+		this.targetCategories = new LinkedList<Label>();
 		targetCategories.add(targetCategory);
 	}
     
-    public CategorizeCopyTermEvent(LinkedHashSet<Term> terms, Label sourceCategory, Label targetCategory) {
+    public CategorizeCopyTermEvent(List<Term> terms, Label sourceCategory, Label targetCategory) {
         this.terms = terms;
         this.sourceCategory = sourceCategory;	
-        this.targetCategories = new LinkedHashSet<Label>();
+        this.targetCategories = new LinkedList<Label>();
 		targetCategories.add(targetCategory);
     }
 	
@@ -60,7 +60,7 @@ public class CategorizeCopyTermEvent extends GwtEvent<CategorizeCopyTermHandler>
 		handler.onCategorize(terms, sourceCategory, targetCategories);
 	}
 
-	public LinkedHashSet<Term> getTerms() {
+	public List<Term> getTerms() {
 		return terms;
 	}
 
@@ -68,7 +68,7 @@ public class CategorizeCopyTermEvent extends GwtEvent<CategorizeCopyTermHandler>
 		return sourceCategory;
 	}
 
-	public Set<Label> getTargetCategories() {
+	public List<Label> getTargetCategories() {
 		return targetCategories;
 	}
 

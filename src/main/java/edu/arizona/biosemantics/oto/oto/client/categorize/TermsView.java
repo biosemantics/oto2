@@ -2,7 +2,6 @@ package edu.arizona.biosemantics.oto.oto.client.categorize;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -95,12 +94,12 @@ public class TermsView extends TabPanel {
 				if(renameRegistration != null)
 					renameRegistration.removeHandler();
 				
-				final LinkedHashSet<Term> terms = new LinkedHashSet<Term>(selected);
+				final List<Term> terms = new LinkedList<Term>(selected);
 				
 				if(!collection.getLabels().isEmpty()) {
 					Menu categorizeMenu = new Menu();
 					VerticalPanel verticalPanel = new VerticalPanel();
-					final LinkedHashSet<Label> categorizeLabels = new LinkedHashSet<Label>();
+					final List<Label> categorizeLabels = new LinkedList<Label>();
 					final TextButton categorizeButton = new TextButton("Categorize");
 					categorizeButton.setEnabled(false);
 					for(final Label collectionLabel : collection.getLabels()) {
@@ -234,7 +233,7 @@ public class TermsView extends TabPanel {
 			@Override
 			public void onRemove(Label label) {
 				for(Term term : label.getMainTerms()) {
-					Set<Label> labels = collection.getLabels(term);
+					List<Label> labels = collection.getLabels(term);
 					if(labels.isEmpty()) {
 						treeStore.add(bucketBucketTreeNodeMap.get(termBucketMap.get(term)), 
 								termTermTreeNodeMap.get(term));
@@ -245,7 +244,7 @@ public class TermsView extends TabPanel {
 		});
 		eventBus.addHandler(TermUncategorizeEvent.TYPE, new TermUncategorizeEvent.TermUncategorizeHandler() {
 			@Override
-			public void onUncategorize(LinkedHashSet<Term> terms, Set<Label> oldLabels) {
+			public void onUncategorize(List<Term> terms, List<Label> oldLabels) {
 				for(Term term : terms) {
 					treeStore.add(bucketBucketTreeNodeMap.get(termBucketMap.get(term)), termTermTreeNodeMap.get(term));
 					listStore.add(term);
@@ -254,7 +253,7 @@ public class TermsView extends TabPanel {
 		});
 		eventBus.addHandler(TermCategorizeEvent.TYPE, new TermCategorizeEvent.TermCategorizeHandler() {
 			@Override
-			public void onCategorize(LinkedHashSet<Term> terms, Set<Label> categories) {
+			public void onCategorize(List<Term> terms, List<Label> categories) {
 				for(Term term : terms) {
 					treeStore.remove(termTermTreeNodeMap.get(term));
 					listStore.remove(term);
@@ -302,11 +301,11 @@ public class TermsView extends TabPanel {
 			public void onDrop(DndDropEvent event) {
 				event.getData();
 				if(DndDropEventExtractor.isSourceLabelPortlet(event)) {
-					final LinkedHashSet<Term> terms = DndDropEventExtractor.getTerms(event);
+					final List<Term> terms = DndDropEventExtractor.getTerms(event);
 					final Label label = DndDropEventExtractor.getLabelPortletSource(event).getLabel();
 					
 					for(Term term : terms) {
-						LinkedHashSet<Label> labels = collection.getLabels(term);
+						List<Label> labels = collection.getLabels(term);
 						if(labels.size() > 1) {
 							UncategorizeDialog dialog = new UncategorizeDialog(eventBus, label, 
 									term, labels);

@@ -1,6 +1,6 @@
 package edu.arizona.biosemantics.oto.oto.client.categorize;
 
-import java.util.LinkedHashSet;
+import java.util.List;
 
 import com.google.web.bindery.event.shared.EventBus;
 import com.sencha.gxt.widget.core.client.box.MessageBox;
@@ -15,7 +15,7 @@ import edu.arizona.biosemantics.oto.oto.shared.model.Term;
 public class UncategorizeDialog extends MessageBox {
 	
 	public UncategorizeDialog(final EventBus eventBus, final Label sourceLabel, final Term term, 
-			final LinkedHashSet<Label> labels) {
+			final List<Label> labels) {
 		super("Remove all categorizations of term?", "");
 		setPredefinedButtons(PredefinedButton.YES,
 				PredefinedButton.NO, PredefinedButton.CANCEL);

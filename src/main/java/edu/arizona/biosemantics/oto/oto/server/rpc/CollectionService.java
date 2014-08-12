@@ -1,6 +1,5 @@
 package edu.arizona.biosemantics.oto.oto.server.rpc;
 
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -23,7 +22,7 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	@Override
 	public Collection get(Collection collection) throws Exception {
 		try {
-		return daoManager.getCollectionDAO().get(collection.getId());
+			return daoManager.getCollectionDAO().get(collection.getId());
 		}catch(Exception e) {
 			e.printStackTrace();
 			return null;
@@ -45,8 +44,8 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 		collection.setSecret(secret);
 	}
 
-	public LinkedHashSet<Label> createDefaultLabels() {
-		LinkedHashSet<Label> result = new LinkedHashSet<Label>();
+	public List<Label> createDefaultLabels() {
+		List<Label> result = new LinkedList<Label>();
 		Label abc = new Label("abc", "d");
 		result.add(abc);
 		result.add(new Label("bcd", "d"));

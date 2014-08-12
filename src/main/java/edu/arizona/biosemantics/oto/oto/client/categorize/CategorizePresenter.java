@@ -1,7 +1,6 @@
 package edu.arizona.biosemantics.oto.oto.client.categorize;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.List;
 
 import com.google.gwt.core.client.GWT;
 import com.google.web.bindery.event.shared.EventBus;
@@ -50,26 +49,26 @@ public class CategorizePresenter {
 		});
 		eventBus.addHandler(CategorizeCopyTermEvent.TYPE, new CategorizeCopyTermEvent.CategorizeCopyTermHandler() {
 			@Override
-			public void onCategorize(LinkedHashSet<Term> terms, Label sourceCategory, LinkedHashSet<Label> targetCategories) {
+			public void onCategorize(List<Term> terms, Label sourceCategory, List<Label> targetCategories) {
 				saveCollection();
 			}
 		});
 		eventBus.addHandler(CategorizeCopyRemoveTermEvent.TYPE, new CategorizeCopyRemoveTermEvent.CategorizeCopyRemoveTermHandler() {
 			@Override
-			public void onRemove(LinkedHashSet<Term> terms, Label label) {
+			public void onRemove(List<Term> terms, Label label) {
 				saveCollection();
 			}
 		});
 		eventBus.addHandler(CategorizeMoveTermEvent.TYPE, new CategorizeMoveTermEvent.CategorizeMoveTermHandler() {
 			@Override
-			public void onCategorize(LinkedHashSet<Term> terms, Label sourceCategory,
+			public void onCategorize(List<Term> terms, Label sourceCategory,
 					Label targetCategory) {
 				saveCollection();
 			}
 		});
 		eventBus.addHandler(SynonymCreationEvent.TYPE, new SynonymCreationEvent.SynonymCreationHandler() {
 			@Override
-			public void onSynonymCreation(Label label, Term mainTerm, Set<Term> synonymTerms) {
+			public void onSynonymCreation(Label label, Term mainTerm, List<Term> synonymTerms) {
 				saveCollection();
 			}
 		});
@@ -81,14 +80,14 @@ public class CategorizePresenter {
 		});
 		eventBus.addHandler(TermCategorizeEvent.TYPE, new TermCategorizeEvent.TermCategorizeHandler() {
 			@Override
-			public void onCategorize(LinkedHashSet<Term> terms, Set<Label> categories) {
+			public void onCategorize(List<Term> terms, List<Label> categories) {
 				saveCollection();
 			}
 		});
 		eventBus.addHandler(TermUncategorizeEvent.TYPE, new TermUncategorizeEvent.TermUncategorizeHandler() {
 			
 			@Override
-			public void onUncategorize(LinkedHashSet<Term> terms, Set<Label> oldCategories) {
+			public void onUncategorize(List<Term> terms, List<Label> oldCategories) {
 				saveCollection();
 			}
 		});
@@ -100,7 +99,7 @@ public class CategorizePresenter {
 		});
 		eventBus.addHandler(LabelsMergeEvent.TYPE, new LabelsMergeEvent.MergeLabelsHandler() {
 			@Override
-			public void onMerge(Label destination, LinkedHashSet<Label> sources) {
+			public void onMerge(Label destination, List<Label> sources) {
 				saveCollection();
 			}
 		});

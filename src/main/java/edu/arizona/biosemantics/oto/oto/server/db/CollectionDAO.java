@@ -5,7 +5,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Date;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -57,16 +56,16 @@ public class CollectionDAO {
 			collection = createCollection(result);
 		}
 		
-		LinkedHashSet<Bucket> buckets = bucketDAO.getBuckets(collection);
+		List<Bucket> buckets = bucketDAO.getBuckets(collection);
 		collection.setBuckets(buckets);
-		LinkedHashSet<Label> labels = labelDAO.getLabels(collection);
+		List<Label> labels = labelDAO.getLabels(collection);
 		// ensure to return same term objects in bucket and labels, so operations are performed
 		// on the same object, e.g. rename
 		List<Term> termsToSend = new LinkedList<Term>();
 		for(Bucket bucket : buckets)
 			termsToSend.addAll(bucket.getTerms());
 		for(Label label : labels) {
-			LinkedHashSet<Term> newMainLabelTerms = new LinkedHashSet<Term>();
+			List<Term> newMainLabelTerms = new LinkedList<Term>();
 			for(Term mainLabelTerm : label.getMainTerms()) {
 				Term termToSend = termsToSend.get(termsToSend.indexOf(mainLabelTerm));
 				newMainLabelTerms.add(termToSend);
@@ -75,7 +74,7 @@ public class CollectionDAO {
 			
 			
 			for(Term mainLabelTerm : label.getMainTerms()) {
-				LinkedHashSet<Term> newSynonymTerms = new LinkedHashSet<Term>();
+				List<Term> newSynonymTerms = new LinkedList<Term>();
 				for(Term synonymTerm : label.getSynonyms(mainLabelTerm)) {
 					Term termToSend = termsToSend.get(termsToSend.indexOf(synonymTerm));
 					newSynonymTerms.add(termToSend);
