@@ -1,5 +1,6 @@
 package edu.arizona.biosemantics.oto.oto.client.categorize;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -13,6 +14,8 @@ import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.web.bindery.event.shared.HandlerRegistration;
+import com.sencha.gxt.data.shared.SortDir;
+import com.sencha.gxt.data.shared.Store.StoreSortInfo;
 import com.sencha.gxt.data.shared.TreeStore;
 import com.sencha.gxt.data.shared.TreeStore.TreeNode;
 import com.sencha.gxt.dnd.core.client.DND.Operation;
@@ -546,6 +549,12 @@ public class LabelPortlet extends Portlet {
 		
 		portletStore = new TreeStore<TermTreeNode>(textTreeNodeProperties.key());
 		portletStore.setAutoCommit(true);
+		portletStore.addSortInfo(new StoreSortInfo<TermTreeNode>(new Comparator<TermTreeNode>() {
+			@Override
+			public int compare(TermTreeNode o1, TermTreeNode o2) {
+				return o1.getText().compareTo(o2.getText());
+			}
+		}, SortDir.ASC));
 		tree = new Tree<TermTreeNode, String>(portletStore, textTreeNodeProperties.text());
 		tree.setContextMenu(new TermMenu());
 		add(tree);
@@ -726,45 +735,7 @@ public class LabelPortlet extends Portlet {
 	private void setupDnD() {
 		TreeDragSource<TermTreeNode> dragSource = new TreeDragSource<TermTreeNode>(tree);
 		
-		// let our events take care of tree/list store updates, hence own
-		// implementation to take care of move/copy
-		final TreeDropTarget<TermTreeNode> treeDropTarget = new TreeDropTarget<TermTreeNode>(
-				tree);
-		treeDropTarget.setAllowDropOnLeaf(true);
-		treeDropTarget.setAllowSelfAsSource(true);
-		treeDropTarget.setOperation(Operation.COPY);
-		treeDropTarget.addDropHandler(new DndDropHandler() {
-			@Override
-			public void onDrop(DndDropEvent event) {
-				Object data = event.getData();
-				List<Term> synonymTerms = new LinkedList<Term>();
-				if (data instanceof List) {
-					List<?> list = (List<?>) data;
-					if (list.get(0) instanceof TreeStore.TreeNode) {
-						@SuppressWarnings("unchecked")
-						List<TreeNode<TermTreeNode>> nodes = (List<TreeNode<TermTreeNode>>) list;
-						for (TreeNode<TermTreeNode> node : nodes) {
-							if (node.getData() != null && node.getData() instanceof MainTermTreeNode) {
-								synonymTerms.add(((MainTermTreeNode) node.getData()).getTerm());
-							}
-						}
-					}
-				}
-				
-				TermTreeNode target = treeDropTarget.getAndNullTarget();
-				if(target != null) {
-					Term mainLabelTerm = target.getTerm();
-					label.setSynonymy(mainLabelTerm, synonymTerms);
-					eventBus.fireEvent(new SynonymCreationEvent(label,
-							mainLabelTerm, synonymTerms));
-				}
-			}
-		});
-		
-		DropTarget dropTarget = new DropTarget(this);
-		dropTarget.setAllowSelfAsSource(false);
-		dropTarget.setOperation(Operation.COPY);
-		dropTarget.addDropHandler(new DndDropHandler() {
+		final DndDropHandler portalDropHandler = new DndDropHandler() {
 			@Override
 			public void onDrop(DndDropEvent event) {
 				if(DndDropEventExtractor.isSourceCategorizeView(event)) {
@@ -812,6 +783,59 @@ public class LabelPortlet extends Portlet {
 					break;
 				default:
 					break;
+				}
+			}
+		};
+		DropTarget dropTarget = new DropTarget(this);
+		dropTarget.setAllowSelfAsSource(false);
+		dropTarget.setOperation(Operation.COPY);
+		dropTarget.addDropHandler(portalDropHandler);
+		
+		// let our events take care of tree/list store updates, hence own
+		// implementation to take care of move/copy		
+		final TreeDropTarget<TermTreeNode> treeDropTarget = new TreeDropTarget<TermTreeNode>(
+				tree);
+		treeDropTarget.setAllowDropOnLeaf(true);
+		treeDropTarget.setAllowSelfAsSource(true);
+		treeDropTarget.setOperation(Operation.COPY);
+		treeDropTarget.addDropHandler(new DndDropHandler() {
+			@Override
+			public void onDrop(DndDropEvent event) {
+				Object data = event.getData();
+				List<Term> synonymTerms = new LinkedList<Term>();
+				if (data instanceof List) {
+					List<?> list = (List<?>) data;
+					if (list.get(0) instanceof TreeStore.TreeNode) {
+						@SuppressWarnings("unchecked")
+						List<TreeNode<TermTreeNode>> nodes = (List<TreeNode<TermTreeNode>>) list;
+						for (TreeNode<TermTreeNode> node : nodes) {
+							//drops from bucket tree are TermTreeNode, SynonymTermTreeNode can't be used as synonym again until made mainterm 
+							if (node.getData() != null && node.getData() instanceof TermTreeNode && !(node.getData() instanceof SynonymTermTreeNode)) {
+								synonymTerms.add(((TermTreeNode) node.getData()).getTerm());
+							}					
+						}
+						//drops from bucket list
+					} else if(list.get(0) instanceof Term) {
+						List<Term> nodes = (List<Term>)list;
+						synonymTerms.addAll(nodes);
+					}
+					
+				}
+				
+				
+				//not a target of this portlet, don't allow for now
+				for(Term synonymTerm : synonymTerms)
+					if(!label.containsTerm(synonymTerm)) {
+						portalDropHandler.onDrop(event);
+						return;
+					}
+						
+				TermTreeNode target = treeDropTarget.getAndNullTarget();
+				if(target != null) { 
+					Term mainLabelTerm = target.getTerm();
+					label.setSynonymy(mainLabelTerm, synonymTerms);
+					eventBus.fireEvent(new SynonymCreationEvent(label,
+							mainLabelTerm, synonymTerms));
 				}
 			}
 		});

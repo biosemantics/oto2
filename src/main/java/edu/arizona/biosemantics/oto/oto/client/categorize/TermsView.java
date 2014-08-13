@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Comparator;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.logical.shared.SelectionEvent;
@@ -16,6 +17,8 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.web.bindery.event.shared.HandlerRegistration;
 import com.sencha.gxt.data.shared.ListStore;
+import com.sencha.gxt.data.shared.SortDir;
+import com.sencha.gxt.data.shared.Store.StoreSortInfo;
 import com.sencha.gxt.data.shared.TreeStore;
 import com.sencha.gxt.dnd.core.client.DND.Operation;
 import com.sencha.gxt.dnd.core.client.DndDropEvent;
@@ -211,8 +214,20 @@ public class TermsView extends TabPanel {
 		this.eventBus = eventBus;
 		treeStore = new TreeStore<TextTreeNode>(textTreeNodeProperties.key());
 		treeStore.setAutoCommit(true);
+		treeStore.addSortInfo(new StoreSortInfo<TextTreeNode>(new Comparator<TextTreeNode>() {
+			@Override
+			public int compare(TextTreeNode o1, TextTreeNode o2) {
+				return o1.getText().compareTo(o2.getText());
+			}
+		}, SortDir.ASC));
 		listStore = new ListStore<Term>(termProperties.key());
 		listStore.setAutoCommit(true);
+		listStore.addSortInfo(new StoreSortInfo<Term>(new Comparator<Term>() {
+			@Override
+			public int compare(Term o1, Term o2) {
+				return o1.getTerm().compareTo(o2.getTerm());
+			}
+		}, SortDir.ASC));
 		listView = new ListView<Term, String>(listStore, termProperties.term());
 		listView.setContextMenu(new TermMenu());
 		termTree = new Tree<TextTreeNode, String>(treeStore, textTreeNodeProperties.text());

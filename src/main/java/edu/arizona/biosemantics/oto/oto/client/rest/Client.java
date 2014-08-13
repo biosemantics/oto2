@@ -44,15 +44,14 @@ public class Client {
 		}
 	}
 
-	public Collection get(Collection collection) {
+	public Collection get(String id, String secret) {
 		String url = this.url + "rest/collection";
 	    WebResource webResource = client.resource(url);
 	    MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
-	    queryParams.add("id", String.valueOf(collection.getId()));
-	    queryParams.add("secret", collection.getSecret());
+	    queryParams.add("id", id);
+	    queryParams.add("secret", secret);
 	    try {
-		    collection = webResource.queryParams(queryParams).get(Collection.class);
-			return collection;
+		    return webResource.queryParams(queryParams).get(Collection.class);
 		} catch(Exception e) {
 			e.printStackTrace();
 			return null;
@@ -63,53 +62,68 @@ public class Client {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		Client client = new Client("http://127.0.0.1:55634/");	
+		Client client = new Client("http://127.0.0.1:8888/");	
 		Collection collection = client.put(createSampleCollection());
-		System.out.println(client.get(collection));
+		System.out.println(client.get(String.valueOf(collection.getId()), collection.getSecret()));
 	}
 	
 	public static Collection createSampleCollection() {
 		List<Bucket> buckets = new LinkedList<Bucket>();
 		Bucket b = new Bucket();
+		Bucket b2 = new Bucket();
+		Bucket b3 = new Bucket();
 		Term t1 = new Term();
-		t1.setTerm("test");
-		Context c1 = new Context();
-		c1.setSource("source");
-		c1.setSentence("sentence");
-		Context c2 = new Context();
-		c2.setSource("source");
-		c2.setSentence("sentence");
-		//t1.addContext(c1);
-		//t1.addContext(c2);
+		t1.setTerm("leaf1");
 		Term t2 = new Term();
-		
-		t2.setTerm("test1");
+		t2.setTerm("stem");
 		Term t3 = new Term();
-		t3.setTerm("test2");
+		t3.setTerm("apex");
+		Term t4 = new Term();
+		t4.setTerm("root");
+		Term t5 = new Term();
+		t5.setTerm("sepal");
 		b.addTerm(t1);
 		b.addTerm(t2);
 		b.addTerm(t3);
+		b.addTerm(t4);
+		b.addTerm(t5);
 		buckets.add(b);
-		b.setName("bucketName");
+		b.setName("structures");
+		Term c1 = new Term("length");
+		Term c2 = new Term("color");
+		b2.addTerm(c1);
+		b2.addTerm(c2);
+		b2.setName("characters");
+		b3.setName("others");
+		Term o1 = new Term("asdfg");
+		b3.addTerm(o1);
+		buckets.add(b2);
+		buckets.add(b3);
 		
 		Collection collection = new Collection();
 		collection.setName("My test");
 		collection.setBuckets(buckets);
 		
-		List<Label> labels = new LinkedList<Label>();
+		/*List<Label> labels = new LinkedList<Label>();
+		Label l0 = new Label();
+		l0.setName("structure");
+		
 		Label l1 = new Label();
-		l1.setName("label1");
+		l1.setName("arrangement");
 		
 		Label l2 = new Label();
-		l2.setName("label1");
+		l2.setName("architecture");
 		
 		Label l3 = new Label();
-		l3.setName("label1");
+		l3.setName("coloration");		
 		
+		labels.add(l0);
 		labels.add(l1);
 		labels.add(l2);
 		labels.add(l3);
-		collection.setLabels(labels);
+		collection.setLabels(labels);*/
+		
+		collection.setSecret("my secret");
 		return collection;
 	}
 }

@@ -203,4 +203,16 @@ public class Label implements Serializable {
 		for(Term mainTerm : this.mainTerms)
 			this.mainTermSynonymsMap.get(mainTerm).remove(term);
 	}
+
+	public boolean containsTerm(Term term) {
+		for(Term mainTerm : mainTerms) {
+			if(mainTerm.equals(term))
+				return true;
+			for(Term synonym : mainTermSynonymsMap.get(mainTerm)) {
+				if(synonym.equals(term))
+					return true;
+			}
+		}
+		return false;
+	}
 }

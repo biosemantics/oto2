@@ -14,21 +14,33 @@ import edu.arizona.biosemantics.oto.oto.client.categorize.CategorizeView;
  */
 public class Oto implements EntryPoint {
 		
+	private SimpleEventBus eventBus;
+	private CategorizeView view;
+	private CategorizePresenter presenter;
+
+	public Oto(int collectionId, String secret) {
+		this.eventBus = new SimpleEventBus();
+		this.view = new CategorizeView(eventBus);
+		this.presenter = new CategorizePresenter(eventBus, view);
+		presenter.loadCollection(collectionId, secret);
+		
+
+	}
+	
+	public CategorizeView getView() {
+		return view;
+	}
+	
 	/**
 	 * This is the entry point method.
 	 */
 	public void onModuleLoad() {
-		EventBus eventBus = new SimpleEventBus();
-		CategorizeView view = new CategorizeView(eventBus);
-		CategorizePresenter presenter = new CategorizePresenter(eventBus, view);
-		
-		int collectionId = 1;
+		int collectionId = 3;
 		String secret = "my secret";
 		
-		presenter.loadCollection(collectionId, secret);
-		
+		Oto oto = new Oto(collectionId, secret);
 		Viewport v = new Viewport();
-		v.add(view.asWidget());
+		v.add(oto.getView().asWidget());
 		RootPanel.get().add(v);
 	}
 }

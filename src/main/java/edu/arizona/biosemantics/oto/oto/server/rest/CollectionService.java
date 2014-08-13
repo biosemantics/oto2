@@ -32,7 +32,6 @@ public class CollectionService {
 	private Logger logger;
 	private edu.arizona.biosemantics.oto.oto.server.rpc.CollectionService rpcCollectionService = 
 			new edu.arizona.biosemantics.oto.oto.server.rpc.CollectionService();
-	private DAOManager daoManager = new DAOManager();
 	
 	public CollectionService() {
 		logger =  LoggerFactory.getLogger(this.getClass());
