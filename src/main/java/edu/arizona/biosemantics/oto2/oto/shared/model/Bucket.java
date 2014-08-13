@@ -14,6 +14,15 @@ public class Bucket implements Serializable {
 	
 	public Bucket() { }
 	
+	public Bucket(String text) {
+		this.name = text;
+	}
+	
+	public Bucket(String text, String description) {
+		this.name = text;
+		this.description = description;
+	}
+	
 	public Bucket(int id, String text) {
 		this.id = id;
 		this.name = text;

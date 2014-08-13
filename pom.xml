@@ -200,6 +200,7 @@
 				</executions>
 				<configuration>
 					<webappDirectory>${webappDirectory}</webappDirectory>
+					<attachClasses>true</attachClasses>
 				</configuration>
 			</plugin>
 			<plugin>
