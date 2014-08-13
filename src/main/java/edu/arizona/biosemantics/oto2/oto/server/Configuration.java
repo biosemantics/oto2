@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto.oto.server;
+package edu.arizona.biosemantics.oto2.oto.server;
 
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
@@ -7,7 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
-import edu.arizona.biosemantics.oto.oto.shared.model.Label;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import au.com.bytecode.opencsv.CSVReader;
 
 public class Configuration {

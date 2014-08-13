@@ -7,7 +7,7 @@
 	<!-- Servlets -->
 	<servlet>
 		<servlet-name>collectionServlet</servlet-name>
-		<servlet-class>edu.arizona.biosemantics.oto.oto.server.rpc.CollectionService</servlet-class>
+		<servlet-class>edu.arizona.biosemantics.oto2.oto.server.rpc.CollectionService</servlet-class>
 	</servlet>
 	
 	<servlet-mapping>
@@ -20,7 +20,7 @@
 		<servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
 		<init-param>
 			<param-name>com.sun.jersey.config.property.packages</param-name>
-			<param-value>edu.arizona.biosemantics.oto.oto.server.rest;org.codehaus.jackson.jaxrs</param-value>
+			<param-value>edu.arizona.biosemantics.oto2.oto.server.rest;org.codehaus.jackson.jaxrs</param-value>
 		</init-param>
 		<load-on-startup>1</load-on-startup>
 	</servlet>

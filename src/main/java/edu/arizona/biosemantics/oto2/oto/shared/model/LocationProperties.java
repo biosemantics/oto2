@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto.oto.shared.model;
+package edu.arizona.biosemantics.oto2.oto.shared.model;
 
 import com.google.gwt.editor.client.Editor.Path;
 import com.sencha.gxt.core.client.ValueProvider;

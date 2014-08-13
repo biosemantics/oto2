@@ -1,15 +1,15 @@
-package edu.arizona.biosemantics.oto.oto.shared.rpc;
+package edu.arizona.biosemantics.oto2.oto.shared.rpc;
 
 import java.util.List;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
 
-import edu.arizona.biosemantics.oto.oto.shared.model.Collection;
-import edu.arizona.biosemantics.oto.oto.shared.model.Context;
-import edu.arizona.biosemantics.oto.oto.shared.model.Label;
-import edu.arizona.biosemantics.oto.oto.shared.model.Location;
-import edu.arizona.biosemantics.oto.oto.shared.model.Ontology;
-import edu.arizona.biosemantics.oto.oto.shared.model.Term;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Context;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Location;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Ontology;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 
 /**
  * The async counterpart of <code>GreetingService</code>.

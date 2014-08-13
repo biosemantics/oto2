@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto.oto.server.db;
+package edu.arizona.biosemantics.oto2.oto.server.db;
 
 import java.io.IOException;
 import java.sql.ResultSet;
@@ -12,10 +12,10 @@ import java.util.Map;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectWriter;
 
-import edu.arizona.biosemantics.oto.oto.shared.model.Bucket;
-import edu.arizona.biosemantics.oto.oto.shared.model.Collection;
-import edu.arizona.biosemantics.oto.oto.shared.model.Label;
-import edu.arizona.biosemantics.oto.oto.shared.model.Term;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Bucket;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 
 public class CollectionDAO {
 	

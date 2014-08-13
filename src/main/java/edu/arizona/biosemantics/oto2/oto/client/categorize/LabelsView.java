@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto.oto.client.categorize;
+package edu.arizona.biosemantics.oto2.oto.client.categorize;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,17 +28,17 @@ import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
-import edu.arizona.biosemantics.oto.oto.client.categorize.LabelPortlet.LabelInfoContainer;
-import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelCreateEvent;
-import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelRemoveEvent;
-import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelsMergeEvent;
-import edu.arizona.biosemantics.oto.oto.shared.model.Collection;
-import edu.arizona.biosemantics.oto.oto.shared.model.Label;
-import edu.arizona.biosemantics.oto.oto.shared.model.Term;
-import edu.arizona.biosemantics.oto.oto.shared.model.Label.AddResult;
-import edu.arizona.biosemantics.oto.oto.shared.rpc.ICollectionService;
-import edu.arizona.biosemantics.oto.oto.shared.rpc.ICollectionServiceAsync;
-import edu.arizona.biosemantics.oto.oto.shared.rpc.RPCCallback;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.LabelPortlet.LabelInfoContainer;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.event.LabelCreateEvent;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.event.LabelRemoveEvent;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.event.LabelsMergeEvent;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Label.AddResult;
+import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionService;
+import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionServiceAsync;
+import edu.arizona.biosemantics.oto2.oto.shared.rpc.RPCCallback;
 
 public class LabelsView extends PortalLayoutContainer {
 	

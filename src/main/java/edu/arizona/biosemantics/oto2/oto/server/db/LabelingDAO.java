@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto.oto.server.db;
+package edu.arizona.biosemantics.oto2.oto.server.db;
 
 import java.io.IOException;
 import java.sql.ResultSet;
@@ -8,8 +8,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import edu.arizona.biosemantics.oto.oto.shared.model.Label;
-import edu.arizona.biosemantics.oto.oto.shared.model.Term;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 
 public class LabelingDAO {
 	

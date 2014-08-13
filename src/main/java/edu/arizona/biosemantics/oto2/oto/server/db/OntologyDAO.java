@@ -1,10 +1,10 @@
-package edu.arizona.biosemantics.oto.oto.server.db;
+package edu.arizona.biosemantics.oto2.oto.server.db;
 
 import java.util.LinkedList;
 import java.util.List;
 
-import edu.arizona.biosemantics.oto.oto.shared.model.Ontology;
-import edu.arizona.biosemantics.oto.oto.shared.model.Term;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Ontology;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 
 public class OntologyDAO {
 	

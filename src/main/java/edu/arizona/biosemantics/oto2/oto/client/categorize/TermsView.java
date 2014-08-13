@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto.oto.client.categorize;
+package edu.arizona.biosemantics.oto2.oto.client.categorize;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -46,20 +46,20 @@ import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 import com.sencha.gxt.widget.core.client.tree.Tree;
 
-import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelRemoveEvent;
-import edu.arizona.biosemantics.oto.oto.client.categorize.event.TermCategorizeEvent;
-import edu.arizona.biosemantics.oto.oto.client.categorize.event.TermRenameEvent;
-import edu.arizona.biosemantics.oto.oto.client.categorize.event.TermSelectEvent;
-import edu.arizona.biosemantics.oto.oto.client.categorize.event.TermUncategorizeEvent;
-import edu.arizona.biosemantics.oto.oto.shared.model.Bucket;
-import edu.arizona.biosemantics.oto.oto.shared.model.Collection;
-import edu.arizona.biosemantics.oto.oto.shared.model.Label;
-import edu.arizona.biosemantics.oto.oto.shared.model.Term;
-import edu.arizona.biosemantics.oto.oto.shared.model.TermProperties;
-import edu.arizona.biosemantics.oto.oto.shared.model.TermTreeNode;
-import edu.arizona.biosemantics.oto.oto.shared.model.TextTreeNode;
-import edu.arizona.biosemantics.oto.oto.shared.model.TextTreeNodeProperties;
-import edu.arizona.biosemantics.oto.oto.shared.model.Label.AddResult;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.event.LabelRemoveEvent;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.event.TermCategorizeEvent;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.event.TermRenameEvent;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.event.TermSelectEvent;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.event.TermUncategorizeEvent;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Bucket;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
+import edu.arizona.biosemantics.oto2.oto.shared.model.TermProperties;
+import edu.arizona.biosemantics.oto2.oto.shared.model.TermTreeNode;
+import edu.arizona.biosemantics.oto2.oto.shared.model.TextTreeNode;
+import edu.arizona.biosemantics.oto2.oto.shared.model.TextTreeNodeProperties;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Label.AddResult;
 
 public class TermsView extends TabPanel {
 	

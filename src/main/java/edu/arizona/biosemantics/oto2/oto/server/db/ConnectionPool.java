@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto.oto.server.db;
+package edu.arizona.biosemantics.oto2.oto.server.db;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -11,7 +11,7 @@ import com.jolbox.bonecp.BoneCP;
 import com.jolbox.bonecp.BoneCPConfig;
 import com.mysql.jdbc.AbandonedConnectionCleanupThread;
 
-import edu.arizona.biosemantics.oto.oto.server.Configuration;
+import edu.arizona.biosemantics.oto2.oto.server.Configuration;
 
 public class ConnectionPool {
 

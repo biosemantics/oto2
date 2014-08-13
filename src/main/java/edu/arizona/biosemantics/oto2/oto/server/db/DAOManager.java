@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto.oto.server.db;
+package edu.arizona.biosemantics.oto2.oto.server.db;
 
 public class DAOManager {
 

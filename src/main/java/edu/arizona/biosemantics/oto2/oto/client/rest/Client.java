@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto.oto.client.rest;
+package edu.arizona.biosemantics.oto2.oto.client.rest;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -13,11 +13,11 @@ import com.sun.jersey.api.client.filter.LoggingFilter;
 import com.sun.jersey.api.json.JSONConfiguration;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
-import edu.arizona.biosemantics.oto.oto.shared.model.Bucket;
-import edu.arizona.biosemantics.oto.oto.shared.model.Collection;
-import edu.arizona.biosemantics.oto.oto.shared.model.Context;
-import edu.arizona.biosemantics.oto.oto.shared.model.Label;
-import edu.arizona.biosemantics.oto.oto.shared.model.Term;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Bucket;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Context;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 
 public class Client {
 

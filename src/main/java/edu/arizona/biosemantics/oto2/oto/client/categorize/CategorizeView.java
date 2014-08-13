@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto.oto.client.categorize;
+package edu.arizona.biosemantics.oto2.oto.client.categorize;
 
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.IsWidget;
@@ -6,7 +6,7 @@ import com.sencha.gxt.core.client.util.Margins;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.container.BorderLayoutContainer;
 
-import edu.arizona.biosemantics.oto.oto.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 
 public class CategorizeView extends BorderLayoutContainer implements IsWidget {
 		

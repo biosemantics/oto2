@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto.oto.server.rest;
+package edu.arizona.biosemantics.oto2.oto.server.rest;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -14,8 +14,8 @@ import javax.ws.rs.core.UriInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.arizona.biosemantics.oto.oto.server.db.DAOManager;
-import edu.arizona.biosemantics.oto.oto.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.oto.server.db.DAOManager;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 
 /**
  * Just a REST-like wrapper around the RPC service
@@ -30,8 +30,8 @@ public class CollectionService {
 	Request request;		
 	
 	private Logger logger;
-	private edu.arizona.biosemantics.oto.oto.server.rpc.CollectionService rpcCollectionService = 
-			new edu.arizona.biosemantics.oto.oto.server.rpc.CollectionService();
+	private edu.arizona.biosemantics.oto2.oto.server.rpc.CollectionService rpcCollectionService = 
+			new edu.arizona.biosemantics.oto2.oto.server.rpc.CollectionService();
 	
 	public CollectionService() {
 		logger =  LoggerFactory.getLogger(this.getClass());

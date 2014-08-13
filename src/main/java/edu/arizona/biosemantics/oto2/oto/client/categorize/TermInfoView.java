@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto.oto.client.categorize;
+package edu.arizona.biosemantics.oto2.oto.client.categorize;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;

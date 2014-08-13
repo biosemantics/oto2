@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto.oto.server.log;
+package edu.arizona.biosemantics.oto2.oto.server.log;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectWriter;

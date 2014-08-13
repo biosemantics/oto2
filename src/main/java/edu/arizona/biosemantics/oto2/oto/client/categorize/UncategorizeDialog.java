@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto.oto.client.categorize;
+package edu.arizona.biosemantics.oto2.oto.client.categorize;
 
 import java.util.List;
 
@@ -7,10 +7,10 @@ import com.sencha.gxt.widget.core.client.box.MessageBox;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 
-import edu.arizona.biosemantics.oto.oto.client.categorize.event.CategorizeCopyRemoveTermEvent;
-import edu.arizona.biosemantics.oto.oto.client.categorize.event.TermUncategorizeEvent;
-import edu.arizona.biosemantics.oto.oto.shared.model.Label;
-import edu.arizona.biosemantics.oto.oto.shared.model.Term;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.event.CategorizeCopyRemoveTermEvent;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.event.TermUncategorizeEvent;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 
 public class UncategorizeDialog extends MessageBox {
 	

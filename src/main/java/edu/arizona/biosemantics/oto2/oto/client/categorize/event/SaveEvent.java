@@ -1,10 +1,10 @@
-package edu.arizona.biosemantics.oto.oto.client.categorize.event;
+package edu.arizona.biosemantics.oto2.oto.client.categorize.event;
 
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
 
-import edu.arizona.biosemantics.oto.oto.client.categorize.event.SaveEvent.SaveHandler;
-import edu.arizona.biosemantics.oto.oto.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.event.SaveEvent.SaveHandler;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 
 public class SaveEvent extends GwtEvent<SaveHandler> {
 

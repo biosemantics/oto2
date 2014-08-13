@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto.oto.client.categorize;
+package edu.arizona.biosemantics.oto2.oto.client.categorize;
 
 import java.util.List;
 import java.util.Map;
@@ -6,28 +6,28 @@ import java.util.Map;
 import com.google.gwt.core.client.GWT;
 import com.google.web.bindery.event.shared.EventBus;
 
-import edu.arizona.biosemantics.oto.oto.client.categorize.event.CategorizeCopyRemoveTermEvent;
-import edu.arizona.biosemantics.oto.oto.client.categorize.event.CategorizeCopyTermEvent;
-import edu.arizona.biosemantics.oto.oto.client.categorize.event.CategorizeMoveTermEvent;
-import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelCreateEvent;
-import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelModifyEvent;
-import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelRemoveEvent;
-import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelsMergeEvent;
-import edu.arizona.biosemantics.oto.oto.client.categorize.event.LoadEvent;
-import edu.arizona.biosemantics.oto.oto.client.categorize.event.SaveEvent;
-import edu.arizona.biosemantics.oto.oto.client.categorize.event.SynonymCreationEvent;
-import edu.arizona.biosemantics.oto.oto.client.categorize.event.SynonymRemovalEvent;
-import edu.arizona.biosemantics.oto.oto.client.categorize.event.TermCategorizeEvent;
-import edu.arizona.biosemantics.oto.oto.client.categorize.event.TermRenameEvent;
-import edu.arizona.biosemantics.oto.oto.client.categorize.event.TermUncategorizeEvent;
-import edu.arizona.biosemantics.oto.oto.shared.model.Bucket;
-import edu.arizona.biosemantics.oto.oto.shared.model.Collection;
-import edu.arizona.biosemantics.oto.oto.shared.model.Label;
-import edu.arizona.biosemantics.oto.oto.shared.model.Label.AddResult;
-import edu.arizona.biosemantics.oto.oto.shared.model.Term;
-import edu.arizona.biosemantics.oto.oto.shared.rpc.ICollectionService;
-import edu.arizona.biosemantics.oto.oto.shared.rpc.ICollectionServiceAsync;
-import edu.arizona.biosemantics.oto.oto.shared.rpc.RPCCallback;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.event.CategorizeCopyRemoveTermEvent;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.event.CategorizeCopyTermEvent;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.event.CategorizeMoveTermEvent;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.event.LabelCreateEvent;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.event.LabelModifyEvent;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.event.LabelRemoveEvent;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.event.LabelsMergeEvent;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.event.LoadEvent;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.event.SaveEvent;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.event.SynonymCreationEvent;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.event.SynonymRemovalEvent;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.event.TermCategorizeEvent;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.event.TermRenameEvent;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.event.TermUncategorizeEvent;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Bucket;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Label.AddResult;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
+import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionService;
+import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionServiceAsync;
+import edu.arizona.biosemantics.oto2.oto.shared.rpc.RPCCallback;
 
 public class CategorizePresenter {
 

@@ -22,7 +22,7 @@
  <inherits name='com.sencha.gxt.theme.gray.Gray' />
 
   <!-- Specify the app entry point class.                         -->
-  <entry-point class='edu.arizona.biosemantics.oto.oto.client.Oto'/>
+  <entry-point class='edu.arizona.biosemantics.oto2.oto.client.Oto'/>
 
   <!-- Specify the paths for translatable code                    -->
   <source path='client'/>

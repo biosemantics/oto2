@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto.oto.server.rpc;
+package edu.arizona.biosemantics.oto2.oto.server.rpc;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -8,15 +8,15 @@ import java.util.Set;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
-import edu.arizona.biosemantics.oto.oto.server.Configuration;
-import edu.arizona.biosemantics.oto.oto.server.db.DAOManager;
-import edu.arizona.biosemantics.oto.oto.shared.model.Collection;
-import edu.arizona.biosemantics.oto.oto.shared.model.Context;
-import edu.arizona.biosemantics.oto.oto.shared.model.Label;
-import edu.arizona.biosemantics.oto.oto.shared.model.Location;
-import edu.arizona.biosemantics.oto.oto.shared.model.Ontology;
-import edu.arizona.biosemantics.oto.oto.shared.model.Term;
-import edu.arizona.biosemantics.oto.oto.shared.rpc.ICollectionService;
+import edu.arizona.biosemantics.oto2.oto.server.Configuration;
+import edu.arizona.biosemantics.oto2.oto.server.db.DAOManager;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Context;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Location;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Ontology;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
+import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionService;
 
 public class CollectionService extends RemoteServiceServlet implements ICollectionService {
 	

@@ -1,10 +1,10 @@
-package edu.arizona.biosemantics.oto.oto.client.categorize.event;
+package edu.arizona.biosemantics.oto2.oto.client.categorize.event;
 
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
 
-import edu.arizona.biosemantics.oto.oto.client.categorize.event.TermSelectEvent.TermSelectHandler;
-import edu.arizona.biosemantics.oto.oto.shared.model.Term;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.event.TermSelectEvent.TermSelectHandler;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 
 public class TermSelectEvent extends GwtEvent<TermSelectHandler> {
 

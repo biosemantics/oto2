@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto.oto.client.categorize;
+package edu.arizona.biosemantics.oto2.oto.client.categorize;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -9,9 +9,9 @@ import com.sencha.gxt.widget.core.client.ListView;
 import com.sencha.gxt.widget.core.client.container.CardLayoutContainer;
 import com.sencha.gxt.widget.core.client.tree.Tree;
 
-import edu.arizona.biosemantics.oto.oto.client.categorize.TermsView.BucketTreeNode;
-import edu.arizona.biosemantics.oto.oto.shared.model.Term;
-import edu.arizona.biosemantics.oto.oto.shared.model.TermTreeNode;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.TermsView.BucketTreeNode;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
+import edu.arizona.biosemantics.oto2.oto.shared.model.TermTreeNode;
 
 public class DndDropEventExtractor {
 

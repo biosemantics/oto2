@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto.oto.shared.model;
+package edu.arizona.biosemantics.oto2.oto.shared.model;
 
 import java.io.Serializable;
 import java.util.HashMap;

@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto.oto.client.categorize;
+package edu.arizona.biosemantics.oto2.oto.client.categorize;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,13 +13,13 @@ import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.Grid;
 
-import edu.arizona.biosemantics.oto.oto.client.categorize.event.TermSelectEvent;
-import edu.arizona.biosemantics.oto.oto.shared.model.Context;
-import edu.arizona.biosemantics.oto.oto.shared.model.ContextProperties;
-import edu.arizona.biosemantics.oto.oto.shared.model.Term;
-import edu.arizona.biosemantics.oto.oto.shared.rpc.ICollectionService;
-import edu.arizona.biosemantics.oto.oto.shared.rpc.ICollectionServiceAsync;
-import edu.arizona.biosemantics.oto.oto.shared.rpc.RPCCallback;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.event.TermSelectEvent;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Context;
+import edu.arizona.biosemantics.oto2.oto.shared.model.ContextProperties;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
+import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionService;
+import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionServiceAsync;
+import edu.arizona.biosemantics.oto2.oto.shared.rpc.RPCCallback;
 
 public class ContextView extends Composite {
 

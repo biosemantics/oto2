@@ -1,4 +1,4 @@
-//package edu.arizona.biosemantics.oto.oto.server.log;
+//package edu.arizona.biosemantics.oto2.oto.server.log;
 //
 //import javax.xml.bind.annotation.XmlTransient;
 //
@@ -40,7 +40,7 @@
 //	 * IPrintables are specified
 //	 */
 //	
-//	declare parents : edu.arizona.biosemantics.oto.oto.shared.model..* implements IPrintable;
-//	declare parents : edu.arizona.biosemantics.oto.oto.server.* implements IPrintable;
+//	declare parents : edu.arizona.biosemantics.oto2.oto.shared.model..* implements IPrintable;
+//	declare parents : edu.arizona.biosemantics.oto2.oto.server.* implements IPrintable;
 //	
 //}

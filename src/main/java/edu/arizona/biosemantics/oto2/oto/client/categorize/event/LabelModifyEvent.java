@@ -1,10 +1,10 @@
-package edu.arizona.biosemantics.oto.oto.client.categorize.event;
+package edu.arizona.biosemantics.oto2.oto.client.categorize.event;
 
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
 
-import edu.arizona.biosemantics.oto.oto.client.categorize.event.LabelModifyEvent.ModifyLabelHandler;
-import edu.arizona.biosemantics.oto.oto.shared.model.Label;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.event.LabelModifyEvent.ModifyLabelHandler;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 
 public class LabelModifyEvent extends GwtEvent<ModifyLabelHandler> {
 
