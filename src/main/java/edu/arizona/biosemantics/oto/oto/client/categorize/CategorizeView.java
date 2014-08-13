@@ -52,10 +52,10 @@ public class CategorizeView extends BorderLayoutContainer implements IsWidget {
 		setSouthWidget(cp, d);
 	}
 
-	public void setCollection(Collection collection, boolean refreshUI) {
+	public void setCollection(Collection collection) {
 		this.collection = collection;
-		termsView.setCollection(collection, refreshUI);
-		labelsView.setCollection(collection, refreshUI);
+		termsView.setCollection(collection);
+		labelsView.setCollection(collection);
 	}
 
 }

@@ -9,6 +9,10 @@ public class Term implements Serializable {
 
 	public Term() { }
 	
+	public Term(String term) {
+		this.term = term;
+	}
+	
 	public Term(int id, String term) {
 		super();
 		this.id = id;

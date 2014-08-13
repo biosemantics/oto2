@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto.oto.shared.model.rpc;
+package edu.arizona.biosemantics.oto.oto.shared.rpc;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
 

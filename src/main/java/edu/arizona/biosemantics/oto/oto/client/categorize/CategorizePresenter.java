@@ -20,13 +20,14 @@ import edu.arizona.biosemantics.oto.oto.client.categorize.event.SynonymRemovalEv
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.TermCategorizeEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.TermRenameEvent;
 import edu.arizona.biosemantics.oto.oto.client.categorize.event.TermUncategorizeEvent;
+import edu.arizona.biosemantics.oto.oto.shared.model.Bucket;
 import edu.arizona.biosemantics.oto.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto.oto.shared.model.Label.AddResult;
 import edu.arizona.biosemantics.oto.oto.shared.model.Term;
-import edu.arizona.biosemantics.oto.oto.shared.model.rpc.ICollectionService;
-import edu.arizona.biosemantics.oto.oto.shared.model.rpc.ICollectionServiceAsync;
-import edu.arizona.biosemantics.oto.oto.shared.model.rpc.RPCCallback;
+import edu.arizona.biosemantics.oto.oto.shared.rpc.ICollectionService;
+import edu.arizona.biosemantics.oto.oto.shared.rpc.ICollectionServiceAsync;
+import edu.arizona.biosemantics.oto.oto.shared.rpc.RPCCallback;
 
 public class CategorizePresenter {
 
@@ -133,12 +134,9 @@ public class CategorizePresenter {
 	}
 
 	private void saveCollection() {
-		collectionService.update(collection, new RPCCallback<Collection>() {
+		collectionService.update(collection, new RPCCallback<Void>() {
 			@Override
-			public void onSuccess(Collection collection) {	
-				CategorizePresenter.this.collection = collection;
-				view.setCollection(collection, false);
-			}
+			public void onSuccess(Void result) {	}
 		});
 	}
 
@@ -150,7 +148,7 @@ public class CategorizePresenter {
 			@Override
 			public void onSuccess(Collection result) {
 				CategorizePresenter.this.collection = result;
-				view.setCollection(result, true);
+				view.setCollection(result);
 			}
 		});
 	}

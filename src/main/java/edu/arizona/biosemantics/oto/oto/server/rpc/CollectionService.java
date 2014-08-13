@@ -7,13 +7,14 @@ import java.util.Set;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
 import edu.arizona.biosemantics.oto.oto.server.db.DAOManager;
+import edu.arizona.biosemantics.oto.oto.shared.model.Bucket;
 import edu.arizona.biosemantics.oto.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto.oto.shared.model.Context;
 import edu.arizona.biosemantics.oto.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto.oto.shared.model.Location;
 import edu.arizona.biosemantics.oto.oto.shared.model.Ontology;
 import edu.arizona.biosemantics.oto.oto.shared.model.Term;
-import edu.arizona.biosemantics.oto.oto.shared.model.rpc.ICollectionService;
+import edu.arizona.biosemantics.oto.oto.shared.rpc.ICollectionService;
 
 public class CollectionService extends RemoteServiceServlet implements ICollectionService {
 	
@@ -30,14 +31,23 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	}
 
 	@Override
-	public Collection update(Collection collection) throws Exception {
+	public void update(Collection collection) throws Exception {
 		try {
-			return daoManager.getCollectionDAO().update(collection);
+			daoManager.getCollectionDAO().update(collection);
 		}catch(Exception e) {
 			e.printStackTrace();
-			return null;
 		}
 	}	
+	
+	@Override
+	public Term addTerm(Term term, int bucketId) throws Exception {
+		return daoManager.getTermDAO().insert(term, bucketId);
+	}
+
+	@Override
+	public Label addLabel(Label label, int collectionId) throws Exception {
+		return daoManager.getLabelDAO().insert(label, collectionId);
+	}
 	
 	public void createDefaultSecret(Collection collection) {
 		String secret = String.valueOf(collection.getId());// Encryptor.getInstance().encrypt(Integer.toString(collection.getId()));
@@ -90,5 +100,7 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	public List<Ontology> getOntologies(Term term) {
 		return daoManager.getOntologyDAO().get(term);
 	}
+
+
 
 }

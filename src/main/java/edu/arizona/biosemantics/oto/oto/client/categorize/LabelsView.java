@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
@@ -35,19 +36,24 @@ import edu.arizona.biosemantics.oto.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto.oto.shared.model.Term;
 import edu.arizona.biosemantics.oto.oto.shared.model.Label.AddResult;
+import edu.arizona.biosemantics.oto.oto.shared.rpc.ICollectionService;
+import edu.arizona.biosemantics.oto.oto.shared.rpc.ICollectionServiceAsync;
+import edu.arizona.biosemantics.oto.oto.shared.rpc.RPCCallback;
 
 public class LabelsView extends PortalLayoutContainer {
 	
 	public class LabelsMenu extends Menu implements BeforeShowHandler {
-		private MenuItem add;
-		private MenuItem collapse;
-		private MenuItem expand;
 
 		public LabelsMenu() {
 			this.setWidth(140);
-			this.addBeforeShowHandler(this);
+			this.addBeforeShowHandler(this);			
+		}
+
+		@Override
+		public void onBeforeShow(BeforeShowEvent event) {
+			this.clear();
 			
-			add = new MenuItem("Add Category");
+			MenuItem add = new MenuItem("Add Category");
 			add.addSelectionHandler(new SelectionHandler<Item>() {
 				@Override
 				public void onSelection(SelectionEvent<Item> event) {
@@ -56,7 +62,7 @@ public class LabelsView extends PortalLayoutContainer {
 				}
 			});
 			
-			collapse = new MenuItem("Collapse All");
+			MenuItem collapse = new MenuItem("Collapse All");
 			collapse.addSelectionHandler(new SelectionHandler<Item>() {
 				@Override
 				public void onSelection(SelectionEvent<Item> event) {
@@ -69,7 +75,7 @@ public class LabelsView extends PortalLayoutContainer {
 			});
 			
 			
-			expand = new MenuItem("Expand All");
+			MenuItem expand = new MenuItem("Expand All");
 			expand.addSelectionHandler(new SelectionHandler<Item>() {
 				@Override
 				public void onSelection(SelectionEvent<Item> event) {
@@ -81,11 +87,6 @@ public class LabelsView extends PortalLayoutContainer {
 				}
 			});
 			
-		}
-
-		@Override
-		public void onBeforeShow(BeforeShowEvent event) {
-			this.clear();
 			this.add(add);
 			this.add(expand);
 			this.add(collapse);
@@ -166,10 +167,15 @@ public class LabelsView extends PortalLayoutContainer {
 						return;
 					}
 					
-					Label newLabel = new Label(labelName.getText(), labelDescription.getText());
-					collection.addLabel(newLabel);
-					eventBus.fireEvent(new LabelCreateEvent(newLabel));
-					LabelAddDialog.this.hide();
+					final Label newLabel = new Label(labelName.getText(), labelDescription.getText());
+					collectionService.addLabel(newLabel, collection.getId(), new RPCCallback<Label>() {
+						@Override
+						public void onSuccess(Label result) {
+							collection.addLabel(result);
+							eventBus.fireEvent(new LabelCreateEvent(result));
+							LabelAddDialog.this.hide();
+						}
+					});
 				}
 		    });
 		    TextButton cancel =  new TextButton("Cancel");
@@ -183,7 +189,8 @@ public class LabelsView extends PortalLayoutContainer {
 		    addButton(cancel);
 		}
 	}
-	
+
+	private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
 	private EventBus eventBus;
 	private int portalColumnCount;
 	private Map<Label, LabelPortlet> labelPortletsMap = new HashMap<Label, LabelPortlet>();
@@ -223,7 +230,9 @@ public class LabelsView extends PortalLayoutContainer {
 		eventBus.addHandler(LabelCreateEvent.TYPE, new LabelCreateEvent.CreateLabelHandler() {
 			@Override
 			public void onCreate(Label label) {
-				//taken care of in setCollection (here the label doesn't have an id yet which is necessary to hash into map)
+				LabelPortlet labelPortlet = new LabelPortlet(eventBus, label, collection);
+				add(labelPortlet, labelPortletsMap.size() % portalColumnCount);
+				labelPortletsMap.put(label, labelPortlet);
 			}
 		});
 		eventBus.addHandler(LabelRemoveEvent.TYPE, new LabelRemoveEvent.RemoveLabelHandler() {
@@ -234,32 +243,16 @@ public class LabelsView extends PortalLayoutContainer {
 				portlet.removeFromParent();
 			}
 		});
-		
 	}
 
-	public void setCollection(Collection collection, boolean refreshUI) {
+	public void setCollection(Collection collection) {
 		this.collection = collection;
 
-		if(refreshUI) {
-			clear();
-			for(Label label : collection.getLabels()) {
-				LabelPortlet labelPortlet = new LabelPortlet(eventBus, label, collection);
-				add(labelPortlet, labelPortletsMap.size() % portalColumnCount);
-				labelPortletsMap.put(label, labelPortlet);
-			}
-		} else {
-			for(LabelPortlet portlet : labelPortletsMap.values()) {
-				portlet.setCollection(collection);
-				portlet.setLabel(collection.getLabels().get(collection.getLabels().indexOf(portlet.getLabel())));
-			}
-			
-			for(Label label : collection.getLabels()) {
-				if(!labelPortletsMap.containsKey(label)) {
-					LabelPortlet labelPortlet = new LabelPortlet(eventBus, label, collection);
-					add(labelPortlet, labelPortletsMap.size() % portalColumnCount);
-					labelPortletsMap.put(label, labelPortlet);
-				}
-			}
+		clear();
+		for(Label label : collection.getLabels()) {
+			LabelPortlet labelPortlet = new LabelPortlet(eventBus, label, collection);
+			add(labelPortlet, labelPortletsMap.size() % portalColumnCount);
+			labelPortletsMap.put(label, labelPortlet);
 		}
 	}
 }

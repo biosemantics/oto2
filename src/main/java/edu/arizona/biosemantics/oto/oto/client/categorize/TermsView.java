@@ -62,15 +62,9 @@ public class TermsView extends TabPanel {
 	
 	private class TermMenu extends Menu implements BeforeShowHandler {
 		
-		private MenuItem categorize;
-		private MenuItem rename;
-
 		public TermMenu() {
 			this.addBeforeShowHandler(this);
 			this.setWidth(140);
-			
-			categorize = new MenuItem("Categorize to");
-			rename = new MenuItem("Rename");
 		}
 
 		@Override
@@ -130,12 +124,14 @@ public class TermsView extends TabPanel {
 					});
 					verticalPanel.add(categorizeButton);
 					categorizeMenu.add(verticalPanel);
+					MenuItem categorize = new MenuItem("Categorize to");
 					categorize.setSubMenu(categorizeMenu);
 					this.add(categorize);
 				}
 				
 				if(selected.size() == 1) {
 					final Term term = selected.get(0);
+					MenuItem rename = new MenuItem("Rename");
 					rename.addSelectionHandler(new SelectionHandler<Item>() {
 						@Override
 						public void onSelection(SelectionEvent<Item> event) {
@@ -261,10 +257,10 @@ public class TermsView extends TabPanel {
 		eventBus.addHandler(TermRenameEvent.TYPE, new TermRenameEvent.RenameTermHandler() {
 			@Override
 			public void onRename(Term term) {
-				if(listStore.indexOf(term) != -1) {
+				if(listStore.getAll().contains(term)) {
 					listStore.update(term);
 				}
-				if(treeStore.indexOf(termTermTreeNodeMap.get(term)) != -1) {
+				if(treeStore.getAll().contains(termTermTreeNodeMap.get(term))) {
 					treeStore.update(termTermTreeNodeMap.get(term));
 				}
 			}
@@ -318,40 +314,25 @@ public class TermsView extends TabPanel {
 		});
 	}
 	
-	public void setCollection(Collection collection, boolean refreshUI) {
+	public void setCollection(Collection collection) {
 		this.collection = collection;
 		
-		if(refreshUI) {
-			termBucketMap = new HashMap<Term, Bucket>();
-			bucketBucketTreeNodeMap = new HashMap<Bucket, BucketTreeNode>();
-			termTermTreeNodeMap = new HashMap<Term, TermTreeNode>();
-			treeStore.clear();
-			listStore.clear();
-			
-			Set<Term> categorizedTerms = new HashSet<Term>();
-			for(Label label : collection.getLabels()) {
-				for(Term term : label.getMainTerms()) {
-					categorizedTerms.add(term);
-					List<Term> synonyms = label.getSynonyms(term);
-					categorizedTerms.addAll(synonyms);
-				}
-			}
-			
-			for(Bucket bucket : collection.getBuckets()) {
-				BucketTreeNode bucketTreeNode = new BucketTreeNode(bucket);
-				bucketBucketTreeNodeMap.put(bucket, bucketTreeNode);
-				treeStore.add(bucketTreeNode);
-				for(Term term : bucket.getTerms()) {
-					termBucketMap.put(term, bucket);
-					TermTreeNode termTreeNode = new TermTreeNode(term);
-					termTermTreeNodeMap.put(term, termTreeNode);
+		termBucketMap = new HashMap<Term, Bucket>();
+		bucketBucketTreeNodeMap = new HashMap<Bucket, BucketTreeNode>();
+		termTermTreeNodeMap = new HashMap<Term, TermTreeNode>();
+		treeStore.clear();
+		listStore.clear();
 					
-					//only if not already in a label actually add them to store
-					if(!categorizedTerms.contains(term)) {
-						treeStore.add(bucketTreeNode, termTreeNode);
-						listStore.add(term);
-					}
-				}
+		for(Bucket bucket : collection.getBuckets()) {
+			BucketTreeNode bucketTreeNode = new BucketTreeNode(bucket);
+			bucketBucketTreeNodeMap.put(bucket, bucketTreeNode);
+			treeStore.add(bucketTreeNode);
+			for(Term term : bucket.getTerms()) {
+				termBucketMap.put(term, bucket);
+				TermTreeNode termTreeNode = new TermTreeNode(term);
+				termTermTreeNodeMap.put(term, termTreeNode);
+				treeStore.add(bucketTreeNode, termTreeNode);
+				listStore.add(term);
 			}
 		}
 	}

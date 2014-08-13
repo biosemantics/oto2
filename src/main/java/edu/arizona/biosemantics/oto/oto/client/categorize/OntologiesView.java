@@ -17,9 +17,9 @@ import edu.arizona.biosemantics.oto.oto.client.categorize.event.TermSelectEvent;
 import edu.arizona.biosemantics.oto.oto.shared.model.Ontology;
 import edu.arizona.biosemantics.oto.oto.shared.model.OntologyProperties;
 import edu.arizona.biosemantics.oto.oto.shared.model.Term;
-import edu.arizona.biosemantics.oto.oto.shared.model.rpc.ICollectionService;
-import edu.arizona.biosemantics.oto.oto.shared.model.rpc.ICollectionServiceAsync;
-import edu.arizona.biosemantics.oto.oto.shared.model.rpc.RPCCallback;
+import edu.arizona.biosemantics.oto.oto.shared.rpc.ICollectionService;
+import edu.arizona.biosemantics.oto.oto.shared.rpc.ICollectionServiceAsync;
+import edu.arizona.biosemantics.oto.oto.shared.rpc.RPCCallback;
 
 public class OntologiesView extends Composite {
 

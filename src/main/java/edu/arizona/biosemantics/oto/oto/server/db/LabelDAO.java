@@ -109,12 +109,27 @@ public class LabelDAO {
 		}
 		ids = (ids.isEmpty() ? ids : ids.substring(0, ids.length() - 1));
 		
-		String removeOldLabelsQuery = ids.isEmpty() ? "DELETE FROM oto_label WHERE collection = ?" : 
-				"DELETE FROM oto_label WHERE collection = ? AND id NOT IN (" + ids + ")";
-		Query removeOldLabels = new Query(removeOldLabelsQuery);
-		removeOldLabels.setParameter(1, collection.getId());
-		removeOldLabels.executeAndClose();
+		String selectOldLabelsQuery = ids.isEmpty() ? "SELECT id FROM oto_label WHERE collection = ?" : 
+			"SELECT id FROM oto_label WHERE collection = ? AND id NOT IN (" + ids + ")";
+		Query selectOldLabels = new Query(selectOldLabelsQuery);
+		selectOldLabels.setParameter(1, collection.getId());
+		ResultSet resultSet = selectOldLabels.execute();
+		while(resultSet.next()) {
+			int idToDelete = resultSet.getInt(1);
+			
+			Query removeOldLabels = new Query("DELETE FROM oto_label WHERE id = ?");
+			removeOldLabels.setParameter(1, idToDelete);
+			removeOldLabels.executeAndClose();
+			
+			Query removeOldSynonyms = new Query("DELETE FROM oto_synonym WHERE label = ?");
+			removeOldSynonyms.setParameter(1, idToDelete);
+			removeOldSynonyms.executeAndClose();
 		
+			Query removeOldLabeling = new Query("DELETE FROM oto_labeling WHERE label = ?");
+			removeOldLabeling.setParameter(1, idToDelete);
+			removeOldLabeling.executeAndClose();
+		}
+			
 		for(Label label : collection.getLabels()) {
 			labelingDAO.ensure(label, label.getMainTerms());
 			synonymDAO.ensure(label, label.getMainTerms());

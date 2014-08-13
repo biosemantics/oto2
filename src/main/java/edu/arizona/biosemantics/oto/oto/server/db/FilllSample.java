@@ -31,38 +31,54 @@ public class FilllSample {
 		
 		List<Bucket> buckets = new LinkedList<Bucket>();
 		Bucket b = new Bucket();
+		Bucket b2 = new Bucket();
+		Bucket b3 = new Bucket();
 		Term t1 = new Term();
-		t1.setTerm("test");
+		t1.setTerm("leaf");
 		Term t2 = new Term();
-		t2.setTerm("test1");
+		t2.setTerm("stem");
 		Term t3 = new Term();
-		t3.setTerm("test2");
+		t3.setTerm("apex");
 		Term t4 = new Term();
-		t4.setTerm("test3");
+		t4.setTerm("root");
 		Term t5 = new Term();
-		t5.setTerm("test4");
+		t5.setTerm("sepal");
 		b.addTerm(t1);
 		b.addTerm(t2);
 		b.addTerm(t3);
 		b.addTerm(t4);
 		b.addTerm(t5);
 		buckets.add(b);
-		b.setName("bucketName");
+		b.setName("structures");
+		Term c1 = new Term("length");
+		Term c2 = new Term("color");
+		b2.addTerm(c1);
+		b2.addTerm(c2);
+		b2.setName("characters");
+		b3.setName("others");
+		Term o1 = new Term("asdfg");
+		b3.addTerm(o1);
+		buckets.add(b2);
+		buckets.add(b3);
 		
 		Collection collection = new Collection();
 		collection.setName("My test");
 		collection.setBuckets(buckets);
 		
 		List<Label> labels = new LinkedList<Label>();
+		Label l0 = new Label();
+		l0.setName("structure");
+		
 		Label l1 = new Label();
-		l1.setName("label1");
+		l1.setName("arrangement");
 		
 		Label l2 = new Label();
-		l2.setName("label2");
+		l2.setName("architecture");
 		
 		Label l3 = new Label();
-		l3.setName("label3");
+		l3.setName("coloration");		
 		
+		labels.add(l0);
 		labels.add(l1);
 		labels.add(l2);
 		labels.add(l3);
@@ -73,15 +89,15 @@ public class FilllSample {
 		daoManager.getCollectionDAO().insert(collection);
 		
 		
-		Context c1 = new Context("source1", "sentence1");
-		Context c2 = new Context("source2", "sentence2");
+		Context con1 = new Context("source1", "sentence1");
+		Context con2 = new Context("source2", "sentence2");
 		
-		Context c3 = new Context("source3", "sentence3");
-		Context c4 = new Context("source4", "sentence4");
-		daoManager.getContextDAO().insert(c1, t1.getId());
-		daoManager.getContextDAO().insert(c2, t2.getId());
-		daoManager.getContextDAO().insert(c3, t1.getId());
-		daoManager.getContextDAO().insert(c4, t2.getId());
+		Context con3 = new Context("source3", "sentence3");
+		Context con4 = new Context("source4", "sentence4");
+		daoManager.getContextDAO().insert(con1, t1.getId());
+		daoManager.getContextDAO().insert(con2, t2.getId());
+		daoManager.getContextDAO().insert(con3, t1.getId());
+		daoManager.getContextDAO().insert(con4, t2.getId());
 		
 		
 	}

@@ -14,12 +14,12 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.web.bindery.event.shared.HandlerRegistration;
 import com.sencha.gxt.data.shared.TreeStore;
+import com.sencha.gxt.data.shared.TreeStore.TreeNode;
 import com.sencha.gxt.dnd.core.client.DND.Operation;
 import com.sencha.gxt.dnd.core.client.DndDropEvent;
 import com.sencha.gxt.dnd.core.client.DndDropEvent.DndDropHandler;
 import com.sencha.gxt.dnd.core.client.DropTarget;
 import com.sencha.gxt.dnd.core.client.TreeDragSource;
-import com.sencha.gxt.dnd.core.client.TreeDropTarget;
 import com.sencha.gxt.widget.core.client.Dialog;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
 import com.sencha.gxt.widget.core.client.Portlet;
@@ -87,25 +87,10 @@ public class LabelPortlet extends Portlet {
 	}
 	
 	public class TermMenu extends Menu implements BeforeShowHandler {
-		private MenuItem move;
-		private MenuItem addSynonym;
-		private MenuItem removeSynonym;
-		private MenuItem removeAllSynonyms;
-		private MenuItem rename;
-		private MenuItem remove;
-		private MenuItem copy;
 
 		public TermMenu() {
 			this.addBeforeShowHandler(this);
 			this.setWidth(140);
-			
-			move = new MenuItem("Move to");
-			copy = new MenuItem("Copy to");
-			rename = new MenuItem("Rename");
-			remove = new MenuItem("Remove");
-			addSynonym = new MenuItem("Add Synonym");
-			removeSynonym = new MenuItem("Remove Synonym");
-			removeAllSynonyms = new MenuItem("Remove all Synonyms");
 		}
 
 		@Override
@@ -137,6 +122,7 @@ public class LabelPortlet extends Portlet {
 							}));
 						}
 					if(moveMenu.getWidgetCount() > 0) {
+						MenuItem move = new MenuItem("Move to");
 						move.setSubMenu(moveMenu);
 						this.add(move);
 					}
@@ -182,12 +168,14 @@ public class LabelPortlet extends Portlet {
 						});
 						verticalPanel.add(copyButton);
 						copyMenu.add(verticalPanel);
+						MenuItem copy = new MenuItem("Copy to");
 						copy.setSubMenu(copyMenu);
 						this.add(copy);
 					}
 				}
 				
 				if(terms.size() == 1) {
+					MenuItem rename = new MenuItem("Rename");
 					final Term term = terms.iterator().next();
 					rename.addSelectionHandler(new SelectionHandler<Item>() {
 						@Override
@@ -219,6 +207,7 @@ public class LabelPortlet extends Portlet {
 					this.add(rename);
 				}
 				
+				MenuItem remove = new MenuItem("Remove");
 				remove.addSelectionHandler(new SelectionHandler<Item>() {
 					@Override
 					public void onSelection(SelectionEvent<Item> event) {
@@ -275,6 +264,7 @@ public class LabelPortlet extends Portlet {
 						});
 						verticalPanel.add(synonymButton);
 						synonymMenu.add(verticalPanel);
+						MenuItem addSynonym = new MenuItem("Add Synonym");
 						addSynonym.setSubMenu(synonymMenu);
 						this.add(addSynonym);
 					}					
@@ -316,6 +306,7 @@ public class LabelPortlet extends Portlet {
 							});
 							verticalPanel.add(synonymRemoveButton);
 							synonymMenu.add(verticalPanel);
+							MenuItem removeSynonym = new MenuItem("Remove Synonym");
 							removeSynonym.setSubMenu(synonymMenu);
 							this.add(removeSynonym);
 						}	
@@ -329,6 +320,7 @@ public class LabelPortlet extends Portlet {
 					}
 				}
 				if(showRemoveAllSynonyms) {
+					MenuItem removeAllSynonyms = new MenuItem("Remove all Synonyms");
 					this.add(removeAllSynonyms);
 					removeAllSynonyms.addSelectionHandler(new SelectionHandler<Item>() {
 						@Override
@@ -352,7 +344,6 @@ public class LabelPortlet extends Portlet {
 	}
 	
 	public class LabelMenu extends Menu implements BeforeShowHandler {
-		private MenuItem merge;
 
 		public LabelMenu(final Label label) {
 			this.addBeforeShowHandler(this);
@@ -383,7 +374,7 @@ public class LabelPortlet extends Portlet {
 			this.add(remove);
 			
 			if(collection.getLabels().size() > 1) {
-				merge = new MenuItem("Merge with");
+				MenuItem merge = new MenuItem("Merge with");
 				Menu mergeMenu = new Menu();
 				VerticalPanel verticalPanel = new VerticalPanel();
 				final List<Label> mergeLabels = new LinkedList<Label>();
@@ -640,8 +631,10 @@ public class LabelPortlet extends Portlet {
 		eventBus.addHandler(TermRenameEvent.TYPE, new TermRenameEvent.RenameTermHandler() {
 			@Override
 			public void onRename(Term term) {
-				if(portletStore.indexOf(termTermTreeNodeMap.get(term)) != -1) {
-					portletStore.update(termTermTreeNodeMap.get(term));
+				if(termTermTreeNodeMap.get(term) != null) {
+					if(portletStore.getAll().contains(termTermTreeNodeMap.get(term))) {
+						portletStore.update(termTermTreeNodeMap.get(term));
+					}
 				}
 			}
 		});
@@ -733,23 +726,40 @@ public class LabelPortlet extends Portlet {
 	private void setupDnD() {
 		TreeDragSource<TermTreeNode> dragSource = new TreeDragSource<TermTreeNode>(tree);
 		
-		/*TreeDropTarget<TermTreeNode> treeDropTarget = new TreeDropTarget<TermTreeNode>(tree);
+		// let our events take care of tree/list store updates, hence own
+		// implementation to take care of move/copy
+		final TreeDropTarget<TermTreeNode> treeDropTarget = new TreeDropTarget<TermTreeNode>(
+				tree);
 		treeDropTarget.setAllowDropOnLeaf(true);
 		treeDropTarget.setAllowSelfAsSource(true);
-		//let our events take care of tree/list store updates
 		treeDropTarget.setOperation(Operation.COPY);
 		treeDropTarget.addDropHandler(new DndDropHandler() {
 			@Override
 			public void onDrop(DndDropEvent event) {
-				//model update
-				System.out.println("drop");
+				Object data = event.getData();
+				List<Term> synonymTerms = new LinkedList<Term>();
+				if (data instanceof List) {
+					List<?> list = (List<?>) data;
+					if (list.get(0) instanceof TreeStore.TreeNode) {
+						@SuppressWarnings("unchecked")
+						List<TreeNode<TermTreeNode>> nodes = (List<TreeNode<TermTreeNode>>) list;
+						for (TreeNode<TermTreeNode> node : nodes) {
+							if (node.getData() != null && node.getData() instanceof MainTermTreeNode) {
+								synonymTerms.add(((MainTermTreeNode) node.getData()).getTerm());
+							}
+						}
+					}
+				}
 				
-				//ui update
-				// <->
-				//event fire
-				event.getData();
+				TermTreeNode target = treeDropTarget.getAndNullTarget();
+				if(target != null) {
+					Term mainLabelTerm = target.getTerm();
+					label.setSynonymy(mainLabelTerm, synonymTerms);
+					eventBus.fireEvent(new SynonymCreationEvent(label,
+							mainLabelTerm, synonymTerms));
+				}
 			}
-		}); */ 
+		});
 		
 		DropTarget dropTarget = new DropTarget(this);
 		dropTarget.setAllowSelfAsSource(false);
@@ -809,10 +819,6 @@ public class LabelPortlet extends Portlet {
 	
 	protected Label getLabel() {
 		return label;
-	}
-
-	public void setLabel(Label label) {
-		this.label = label;
 	}
 	
 	public void setCollection(Collection collection) {
