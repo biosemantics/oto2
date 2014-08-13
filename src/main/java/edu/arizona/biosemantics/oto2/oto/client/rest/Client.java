@@ -2,16 +2,21 @@ package edu.arizona.biosemantics.oto2.oto.client.rest;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.logging.Logger;
 
+import javax.ws.rs.client.AsyncInvoker;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.InvocationCallback;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
-import com.sun.jersey.api.client.filter.LoggingFilter;
-import com.sun.jersey.api.json.JSONConfiguration;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.filter.LoggingFilter;
+import org.glassfish.jersey.jackson.JacksonFeature;
 
 import edu.arizona.biosemantics.oto2.oto.shared.model.Bucket;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
@@ -22,49 +27,64 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 public class Client {
 
 	private String url;
-	private com.sun.jersey.api.client.Client client;
+	private javax.ws.rs.client.Client client;
+	private WebTarget target;	
 
 	public Client(String url) {
 		this.url = url;
-		ClientConfig clientConfig = new DefaultClientConfig();
-		clientConfig.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
-		client = com.sun.jersey.api.client.Client.create(clientConfig);
-		client.addFilter(new LoggingFilter(System.out));
 	}
-
-	public Collection put(Collection collection) {
-		String url = this.url + "rest/collection";
-	    WebResource webResource = client.resource(url);
-	    try {
-		    collection = webResource.type(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).put(Collection.class, collection);
-		    return collection;
-		} catch(Exception e) {
-			e.printStackTrace();
-			return null;
-		}
+	
+	public void open() {		
+		client = ClientBuilder.newBuilder().withConfig(new ClientConfig()).register(JacksonFeature.class).build();
+		client.register(new LoggingFilter(Logger.getAnonymousLogger(), true));
+		
+		//this doesn't seem to work for posts (among others), even though it is documented as such, use authentication header instead there
+		//target = client.target(this.apiUrl).queryParam("apikey", this.apiKey);
+		target = client.target(this.url);
 	}
-
-	public Collection get(String id, String secret) {
-		String url = this.url + "rest/collection";
-	    WebResource webResource = client.resource(url);
-	    MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
-	    queryParams.add("id", id);
-	    queryParams.add("secret", secret);
-	    try {
-		    return webResource.queryParams(queryParams).get(Collection.class);
-		} catch(Exception e) {
-			e.printStackTrace();
-			return null;
-		}
+	
+	public void close() {
+		client.close();
+	}
+	
+	public Future<Collection> put(Collection collection) {
+		return this.getPutInvoker().put(Entity.entity(collection, MediaType.APPLICATION_JSON), Collection.class);
+	}
+	
+	public void put(Collection collection, InvocationCallback<List<Collection>> callback) {
+		this.getPutInvoker().put(Entity.entity(collection, MediaType.APPLICATION_JSON), callback);
+	}
+	
+	public Future<Collection> get(String id, String secret) {
+		return this.getGetInvoker(id, secret).get(Collection.class);
+	}
+	
+	public void get(String id, String secret, InvocationCallback<List<Collection>> callback) {
+		this.getGetInvoker(id, secret).get(callback);
+	}
+	
+	private AsyncInvoker getPutInvoker() {
+		return target.path("rest").path("collection").request(MediaType.APPLICATION_JSON).async();
+	}
+	
+	private AsyncInvoker getGetInvoker(String id, String secret) {
+		return target.path("rest").path("collection").queryParam("id", id)
+				.queryParam("secret", secret).request(MediaType.APPLICATION_JSON).async();
 	}
 	
 	/**
 	 * @param args
+	 * @throws ExecutionException 
+	 * @throws InterruptedException 
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws InterruptedException, ExecutionException {
 		Client client = new Client("http://127.0.0.1:8888/");	
-		Collection collection = client.put(createSampleCollection());
-		System.out.println(client.get(String.valueOf(collection.getId()), collection.getSecret()));
+		client.open();
+		Future<Collection> collectionFuture = client.put(createSampleCollection());
+		Collection collection = collectionFuture.get();
+		collectionFuture = client.get(String.valueOf(collection.getId()), collection.getSecret());
+		System.out.println(collectionFuture.get());
+		client.close();
 	}
 	
 	public static Collection createSampleCollection() {
