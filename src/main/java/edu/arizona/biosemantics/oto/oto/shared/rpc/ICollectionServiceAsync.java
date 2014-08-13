@@ -17,8 +17,12 @@ import edu.arizona.biosemantics.oto.oto.shared.model.Term;
 public interface ICollectionServiceAsync {
 	
 	public void get(Collection collection, AsyncCallback<Collection> callback);
+	
+	public void get(int id, String secret, AsyncCallback<Collection> callback);
 
 	public void update(Collection collection, AsyncCallback<Void> callback);
+	
+	public void insert(Collection collection, AsyncCallback<Collection> callback);
 	
 	public void addTerm(Term term, int bucketId, AsyncCallback<Term> callback);
 	

@@ -21,7 +21,11 @@ public interface ICollectionService extends RemoteService {
 	
 	public Collection get(Collection collection) throws Exception;
 	
+	public Collection get(int id, String secret) throws Exception;
+	
 	public void update(Collection collection) throws Exception; 
+	
+	public Collection insert(Collection collection) throws Exception;
 	
 	public Term addTerm(Term term, int bucketId) throws Exception;
 	

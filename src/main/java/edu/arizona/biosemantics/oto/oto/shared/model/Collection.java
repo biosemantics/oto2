@@ -14,6 +14,12 @@ public class Collection implements Serializable {
 
 	public Collection() { }
 	
+	public Collection(int id, String secret) {
+		this.id = id;
+		this.secret = secret;
+		this.name = "";
+	}
+	
 	public Collection(int id, String name, String secret) {
 		super();
 		this.id = id;

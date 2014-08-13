@@ -138,7 +138,12 @@
 			<groupId>edu.arizona.biosemantics</groupId>
 			<artifactId>bioportal-client</artifactId>
 			<version>0.0.3-SNAPSHOT</version>
-		</dependency>        
+		</dependency>   
+		<dependency>
+			<groupId>net.sf.opencsv</groupId>
+			<artifactId>opencsv</artifactId>
+			<version>2.3</version>
+		</dependency>     
 	</dependencies>
 
 	<build>

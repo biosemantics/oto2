@@ -1,13 +1,15 @@
 package edu.arizona.biosemantics.oto.oto.server.rpc;
 
+import java.io.IOException;
+import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
+import edu.arizona.biosemantics.oto.oto.server.Configuration;
 import edu.arizona.biosemantics.oto.oto.server.db.DAOManager;
-import edu.arizona.biosemantics.oto.oto.shared.model.Bucket;
 import edu.arizona.biosemantics.oto.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto.oto.shared.model.Context;
 import edu.arizona.biosemantics.oto.oto.shared.model.Label;
@@ -29,6 +31,12 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 			return null;
 		}
 	}
+	
+	@Override
+	public Collection get(int id, String secret) throws Exception {
+		Collection collection = new Collection(id, secret);
+		return get(collection);
+	}
 
 	@Override
 	public void update(Collection collection) throws Exception {
@@ -49,34 +57,20 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 		return daoManager.getLabelDAO().insert(label, collectionId);
 	}
 	
-	public void createDefaultSecret(Collection collection) {
+
+	
+	@Override
+	public Collection insert(Collection collection) throws ClassNotFoundException, SQLException, IOException {
+		if(collection.getLabels().isEmpty())
+			collection.setLabels(Configuration.defaultCategories);
+		if(collection.getSecret().isEmpty())
+			createDefaultSecret(collection);
+		return daoManager.getCollectionDAO().insert(collection);
+	}
+	
+	private void createDefaultSecret(Collection collection) {
 		String secret = String.valueOf(collection.getId());// Encryptor.getInstance().encrypt(Integer.toString(collection.getId()));
 		collection.setSecret(secret);
-	}
-
-	public List<Label> createDefaultLabels() {
-		List<Label> result = new LinkedList<Label>();
-		Label abc = new Label("abc", "d");
-		result.add(abc);
-		result.add(new Label("bcd", "d"));
-		result.add(new Label("efg", "d"));
-		result.add(new Label("bcd", "d"));
-		result.add(new Label("bcd", "d"));
-		result.add(new Label("efg", "d"));
-		result.add(new Label("bcd", "d"));
-		result.add(new Label("bcd", "d"));
-		result.add(new Label("efg", "d"));
-		result.add(new Label("bcd", "d"));
-		result.add(new Label("bcd", "d"));
-		result.add(new Label("efg", "d"));
-		result.add(new Label("bcd", "d"));
-		result.add(new Label("bcd", "d"));
-		result.add(new Label("efg", "d"));
-		result.add(new Label("bcd", "d"));
-		result.add(new Label("bcd", "d"));
-		result.add(new Label("efg", "d"));
-		result.add(new Label("bcd", "d"));
-		return result;
 	}
 
 	@Override
@@ -100,7 +94,5 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	public List<Ontology> getOntologies(Term term) {
 		return daoManager.getOntologyDAO().get(term);
 	}
-
-
 
 }

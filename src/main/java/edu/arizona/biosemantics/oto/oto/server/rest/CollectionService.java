@@ -17,7 +17,11 @@ import org.slf4j.LoggerFactory;
 import edu.arizona.biosemantics.oto.oto.server.db.DAOManager;
 import edu.arizona.biosemantics.oto.oto.shared.model.Collection;
 
-@Path("/glossary")
+/**
+ * Just a REST-like wrapper around the RPC service
+ * @author thomas
+ */
+@Path("/collection")
 public class CollectionService {
 
 	@Context
@@ -39,12 +43,7 @@ public class CollectionService {
 	@Consumes({ MediaType.APPLICATION_JSON })
 	public Collection put(Collection collection) {
 		try {
-			if(collection.getLabels().isEmpty())
-				collection.setLabels(rpcCollectionService.createDefaultLabels());
-			if(collection.getSecret().isEmpty())
-				rpcCollectionService.createDefaultSecret(collection);
-			Collection result = daoManager.getCollectionDAO().insert(collection);
-			return result;
+			return rpcCollectionService.insert(collection);
 		} catch (Exception e) {
 			logger.error("Exception " + e.toString());
 			e.printStackTrace();
@@ -56,13 +55,11 @@ public class CollectionService {
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Collection get(@QueryParam("id") int id, @QueryParam("secret") String secret) {
 		try {
-			if(!daoManager.getCollectionDAO().isValidSecret(id, secret))
-				return null;
-			return daoManager.getCollectionDAO().get(id);
+			return rpcCollectionService.get(id, secret);
 		} catch (Exception e) {
 			logger.error("Exception " + e.toString());
 			e.printStackTrace();
+			return null;
 		}
-		return null;
 	}
 }
