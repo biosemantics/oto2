@@ -57,19 +57,19 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 		return daoManager.getLabelDAO().insert(label, collectionId);
 	}
 	
-
-	
 	@Override
 	public Collection insert(Collection collection) throws ClassNotFoundException, SQLException, IOException {
 		if(collection.getLabels() == null || collection.getLabels().isEmpty())
 			collection.setLabels(Configuration.defaultCategories);
 		if(collection.getSecret() == null || collection.getSecret().isEmpty())
 			createDefaultSecret(collection);
-		return daoManager.getCollectionDAO().insert(collection);
+		collection = daoManager.getCollectionDAO().insert(collection);
+		return collection;
 	}
 	
 	private void createDefaultSecret(Collection collection) {
-		String secret = String.valueOf(collection.getId());// Encryptor.getInstance().encrypt(Integer.toString(collection.getId()));
+		//collection id not available here yet
+		String secret = String.valueOf(collection.hashCode());// Encryptor.getInstance().encrypt(Integer.toString(collection.getId()));
 		collection.setSecret(secret);
 	}
 

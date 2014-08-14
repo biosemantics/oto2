@@ -120,11 +120,15 @@ public class CollectionDAO {
 			
 			collection.setId(id);
 			
-			for(Bucket bucket : collection.getBuckets())
+			for(Bucket bucket : collection.getBuckets()) {
 				bucketDAO.insert(bucket, collection.getId());
+				bucket.setCollection(id);
+			}
 					
-			for(Label label : collection.getLabels())
+			for(Label label : collection.getLabels()) {
 				labelDAO.insert(label, collection.getId());
+				label.setCollection(id);
+			}
 		}
 		return collection;
 	}
