@@ -45,9 +45,9 @@ CREATE TABLE IF NOT EXISTS `oto_labeling` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `oto_synonym` (
-  `termA` bigint(20) unsigned NOT NULL,
+  `mainTerm` bigint(20) unsigned NOT NULL,
   `label` bigint(20) unsigned NOT NULL,
-  `termB` bigint(20) unsigned NOT NULL,
+  `synonymTerm` bigint(20) unsigned NOT NULL,
   `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY `synonym` (`termA`,`label`,`termB`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
