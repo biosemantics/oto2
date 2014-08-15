@@ -793,7 +793,7 @@ public class LabelPortlet extends Portlet {
 		
 		// let our events take care of tree/list store updates, hence own
 		// implementation to take care of move/copy		
-		final TreeDropTarget<TermTreeNode> treeDropTarget = new TreeDropTarget<TermTreeNode>(
+		final StoreTargetTreeDropTarget<TermTreeNode> treeDropTarget = new StoreTargetTreeDropTarget<TermTreeNode>(
 				tree);
 		treeDropTarget.setAllowDropOnLeaf(true);
 		treeDropTarget.setAllowSelfAsSource(true);
