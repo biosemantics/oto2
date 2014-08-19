@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>edu.arizona.biosemantics.oto2</groupId>
   <artifactId>theme</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>0.0.1-SNAPSHOT</version>
   <name>oto theme</name>
   <properties>
     <gxt.version>3.1.1</gxt.version>
@@ -13,6 +13,26 @@
     <phantomjs.version>1.9.2</phantomjs.version>
     <bin>bin/phantomjs</bin>
   </properties>
+  
+  	<repositories>
+		<repository>
+			<id>playground-releases</id>
+			<url>http://128.196.105.149:8081/nexus/content/repositories/releases/</url>
+		</repository>
+		<repository>
+			<id>playground-snapshots</id>
+			<url>http://128.196.105.149:8081/nexus/content/repositories/snapshots/</url>
+		</repository>
+		<repository>
+			<id>google-maven-snapshot-repository</id>
+			<name>Google Maven Snapshot Repository</name>
+			<url>https://m2repos.googlecode.com/svn/nexus</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+  
   <dependencies>
     <dependency>
       <groupId>com.google.gwt</groupId>
@@ -29,7 +49,6 @@
       <groupId>com.sencha.gxt</groupId>
       <artifactId>gxt-themebuilder</artifactId>
       <version>${gxt.version}</version>
-      <scope>provided</scope>
     </dependency>
   </dependencies>
   <build>
@@ -235,4 +254,13 @@
       </properties>
     </profile>
   </profiles>
+  
+  	<distributionManagement>
+		<snapshotRepository>
+			<id>playground</id>
+			<name>playground@SBS</name>
+			<url>http://128.196.105.149:8081/nexus/content/repositories/snapshots/</url>
+			<uniqueVersion>false</uniqueVersion>
+		</snapshotRepository>
+	</distributionManagement>
 </project>
