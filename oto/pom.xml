@@ -10,7 +10,7 @@
 	<version>0.0.7-SNAPSHOT</version>
 
 	<properties>
-		<gwtVersion>2.6.0</gwtVersion>
+		<gwtVersion>2.6.1</gwtVersion>
 		<!-- GWT needs at least java 1.5 -->
 		<!-- But we need at least java 1.6 -->
 		<maven.compiler.source>1.6</maven.compiler.source>
@@ -92,7 +92,13 @@
 		<dependency>
 		  <groupId>edu.arizona.biosemantics</groupId>
 		  <artifactId>gxt</artifactId>
-		  <version>0.0.2-SNAPSHOT</version>
+		  <version>0.0.3-SNAPSHOT</version>
+		</dependency> 
+		<dependency>
+		  <groupId>edu.arizona.biosemantics</groupId>
+		  <artifactId>gxt</artifactId>
+		  <version>0.0.3-SNAPSHOT</version>
+		  <classifier>sources</classifier>
 		</dependency> 
 		<dependency>
 			<groupId>com.jolbox</groupId>
