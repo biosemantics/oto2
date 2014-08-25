@@ -19,6 +19,10 @@ public class Configuration {
 	public static String databaseHost;
 	public static String databasePort;
 	
+	/** Bioportal **/
+	public static String bioportalUrl;
+	public static String bioportalApiKey;
+	
 	/** Default Categories **/
 	public static List<Label> defaultCategories = new LinkedList<Label>();
 	
@@ -33,6 +37,9 @@ public class Configuration {
 			databasePassword = properties.getProperty("databasePassword");
 			databaseHost = properties.getProperty("databaseHost");
 			databasePort = properties.getProperty("databasePort");
+			
+			bioportalUrl = properties.getProperty("bioportalUrl");
+			bioportalApiKey = properties.getProperty("bioportalApiKey");
 			
 			CSVReader reader = new CSVReader(new InputStreamReader(loader.getResourceAsStream("defaultCategories.csv")));
 			List<String[]> lines = reader.readAll();

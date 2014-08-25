@@ -4,27 +4,36 @@ import java.io.Serializable;
 
 public class Ontology implements Serializable {
 
-	private String category;
-	private String definition;
+	private String acronym;
+	private String name;
+	private String id;
 	
 	public Ontology() { }
 	
-	public Ontology(String category, String definition) {
+	public Ontology(String id, String acronym, String name) {
 		super();
-		this.category = category;
-		this.definition = definition;
+		this.acronym = acronym;
+		this.name = name;
+		this.id = id;
 	}
-	public String getCategory() {
-		return category;
+	
+	public String getAcronym() {
+		return acronym;
 	}
-	public void setCategory(String category) {
-		this.category = category;
+	public void setAcronym(String acronym) {
+		this.acronym = acronym;
 	}
-	public String getDefinition() {
-		return definition;
+	public String getName() {
+		return name;
 	}
-	public void setDefinition(String definition) {
-		this.definition = definition;
+	public void setName(String name) {
+		this.name = name;
+	}
+	public String getId() {
+		return id;
+	}
+	public void setId(String id) {
+		this.id = id;
 	}
 	
 }

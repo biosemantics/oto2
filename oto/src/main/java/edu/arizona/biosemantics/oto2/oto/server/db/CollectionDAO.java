@@ -22,6 +22,8 @@ public class CollectionDAO {
 	private BucketDAO bucketDAO;
 	private LabelDAO labelDAO;
 	private LabelingDAO labelingDAO;
+	private TermDAO termDAO;
+	private SynonymDAO synonymDAO;
 	
 	protected CollectionDAO() {} 
 	
@@ -35,6 +37,14 @@ public class CollectionDAO {
 	
 	public void setLabelingDAO(LabelingDAO labelingDAO) {
 		this.labelingDAO = labelingDAO;
+	}
+	
+	public void setTermDAO(TermDAO termDAO) {
+		this.termDAO = termDAO;
+	}
+
+	public void setSynonymDAO(SynonymDAO synonymDAO) {
+		this.synonymDAO = synonymDAO;
 	}
 
 	public boolean isValidSecret(int id, String secret) throws ClassNotFoundException, SQLException, IOException {
@@ -159,5 +169,12 @@ public class CollectionDAO {
 		
 		for(Label label : collection.getLabels())
 			labelDAO.remove(label);
+	}
+
+	public Collection reset(Collection collection) throws ClassNotFoundException, SQLException, IOException {
+		labelingDAO.remove(collection);
+		synonymDAO.remove(collection);
+		termDAO.resetTerms(collection);
+		return this.get(collection.getId());
 	}	
 }

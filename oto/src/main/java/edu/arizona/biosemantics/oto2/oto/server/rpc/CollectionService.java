@@ -6,16 +6,19 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
+import edu.arizona.biosemantics.bioportal.client.BioPortalClient;
+import edu.arizona.biosemantics.bioportal.model.Ontology;
 import edu.arizona.biosemantics.oto2.oto.server.Configuration;
 import edu.arizona.biosemantics.oto2.oto.server.db.DAOManager;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Context;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Location;
-import edu.arizona.biosemantics.oto2.oto.shared.model.Ontology;
+import edu.arizona.biosemantics.oto2.oto.shared.model.OntologyEntry;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 import edu.arizona.biosemantics.oto2.oto.shared.model.TypedContext;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionService;
@@ -74,24 +77,7 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 		String secret = String.valueOf(collection.hashCode());// Encryptor.getInstance().encrypt(Integer.toString(collection.getId()));
 		collection.setSecret(secret);
 	}
-
-	public List<TypedContext> getContexts(Collection collection, Term term) throws Exception {
-		return daoManager.getContextDAO().get(collection, term);
-	}
 	
-	@Override
-	public List<Context> insert(int collectionId, String secret, List<Context> contexts) throws Exception {
-		if(daoManager.getCollectionDAO().isValidSecret(collectionId, secret)) {
-			List<Context> result = new ArrayList<Context>(contexts.size());
-			for(Context context : contexts) {
-				context = daoManager.getContextDAO().insert(context);
-				result.add(context);
-			}
-			return result;
-		}
-		return null;
-	}
-
 	@Override
 	public List<Location> getLocations(Term term) throws Exception {
 		List<Location> result = new LinkedList<Location>();
@@ -105,8 +91,8 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	}
 
 	@Override
-	public List<Ontology> getOntologies(Term term) {
-		return daoManager.getOntologyDAO().get(term);
+	public Collection reset(Collection collection) throws Exception {
+		return daoManager.getCollectionDAO().reset(collection);
 	}
 
 }

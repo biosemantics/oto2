@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 
@@ -112,8 +113,13 @@ public class LabelingDAO {
 		Query query = new Query("DELETE FROM `oto_labeling` WHERE term = ? AND label = ?");
 		query.setParameter(1, term.getId());
 		query.setParameter(2, label.getId());
-		ResultSet result = query.execute();
-		query.close();
+		query.executeAndClose();
+	}
+
+	public void remove(Collection collection) throws ClassNotFoundException, SQLException, IOException {
+		Query query = new Query("DELETE FROM oto_labeling l, oto_term t, oto_bucket b WHERE b.collection = ? AND t.bucket = b.id AND l.term = t.id");
+		query.setParameter(1, collection.getId());
+		query.executeAndClose();
 	}
 
 }

@@ -16,6 +16,7 @@ import javax.ws.rs.core.UriInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.arizona.biosemantics.oto2.oto.server.rpc.ContextService;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Context;
 
 /**
@@ -31,8 +32,7 @@ public class ContextResource {
 	Request request;		
 	
 	private Logger logger;
-	private edu.arizona.biosemantics.oto2.oto.server.rpc.CollectionService rpcCollectionService = 
-			new edu.arizona.biosemantics.oto2.oto.server.rpc.CollectionService();
+	private ContextService contextService = new ContextService();
 	
 	public ContextResource() {
 		logger =  LoggerFactory.getLogger(this.getClass());
@@ -44,8 +44,8 @@ public class ContextResource {
 	@Consumes({ MediaType.APPLICATION_JSON })
 	public List<Context> put(@PathParam("collectionId") int collectionId, @QueryParam("secret") String secret, List<Context> contexts) {
 		try {
-			rpcCollectionService.insert(collectionId, secret, contexts);
-			return rpcCollectionService.insert(collectionId, secret, contexts);
+			contextService.insert(collectionId, secret, contexts);
+			return contextService.insert(collectionId, secret, contexts);
 		} catch (Exception e) {
 			logger.error("Exception " + e.toString());
 			e.printStackTrace();

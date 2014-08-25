@@ -26,6 +26,8 @@ public class DAOManager {
 		collectionDAO.setBucketDAO(bucketDAO);
 		collectionDAO.setLabelDAO(labelDAO);
 		collectionDAO.setLabelingDAO(labelingDAO);
+		collectionDAO.setSynonymDAO(synonymDAO);
+		collectionDAO.setTermDAO(termDAO);
 		termDAO.setBucketDAO(bucketDAO);
 		labelDAO.setLabelingDAO(labelingDAO);
 		labelDAO.setSynonymDAO(synonymDAO);

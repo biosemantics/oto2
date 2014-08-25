@@ -1,14 +1,15 @@
 package edu.arizona.biosemantics.oto2.oto.client.categorize;
 
-import java.util.Comparator;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.sencha.gxt.widget.core.client.menu.Item;
+import com.google.gwt.cell.client.TextCell;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.IsWidget;
-import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.cell.core.client.form.ComboBoxCell.TriggerAction;
 import com.sencha.gxt.core.client.resources.ThemeStyles;
@@ -19,30 +20,76 @@ import com.sencha.gxt.data.shared.Store.StoreSortInfo;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.Dialog;
 import com.sencha.gxt.widget.core.client.container.BorderLayoutContainer;
-import com.sencha.gxt.widget.core.client.container.BorderLayoutContainer.BorderLayoutData;
 import com.sencha.gxt.widget.core.client.container.NorthSouthContainer;
 import com.sencha.gxt.widget.core.client.container.Viewport;
+import com.sencha.gxt.widget.core.client.event.SelectEvent;
+import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.form.ComboBox;
-import com.sencha.gxt.widget.core.client.form.TextField;
-import com.sencha.gxt.widget.core.client.menu.CheckMenuItem;
-import com.sencha.gxt.widget.core.client.menu.HeaderMenuItem;
+import com.sencha.gxt.widget.core.client.form.DualListField;
+import com.sencha.gxt.widget.core.client.form.DualListField.Mode;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuBar;
 import com.sencha.gxt.widget.core.client.menu.MenuBarItem;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
+import edu.arizona.biosemantics.oto2.oto.client.categorize.event.LoadEvent;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.event.OntologiesSelectEvent;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.event.SaveEvent;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.event.TermSelectEvent;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Ontology;
+import edu.arizona.biosemantics.oto2.oto.shared.model.OntologyProperties;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 import edu.arizona.biosemantics.oto2.oto.shared.model.TermProperties;
+import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionService;
+import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionServiceAsync;
+import edu.arizona.biosemantics.oto2.oto.shared.rpc.IOntologyService;
+import edu.arizona.biosemantics.oto2.oto.shared.rpc.IOntologyServiceAsync;
+import edu.arizona.biosemantics.oto2.oto.shared.rpc.RPCCallback;
 
 public class OtoView implements IsWidget {
 
-	public static class MenuView extends MenuBar {
+	public class MenuView extends MenuBar {
 
+		private final OntologyProperties ontologyProperties = GWT.create(OntologyProperties.class);
+		private final IOntologyServiceAsync ontologyService = GWT.create(IOntologyService.class);
+
+		public class SelectOntologiesDialog extends Dialog {
+			
+			public SelectOntologiesDialog(List<Ontology> ontologies) {
+				setHeadingText("Ontologies to Search");
+				setPredefinedButtons(PredefinedButton.OK);
+				setBodyStyleName("pad-text");
+				getBody().addClassName("pad-text");
+				setHideOnButtonClick(true);
+				setWidth(500);
+				setHeight(500);
+												
+				final DualListField<Ontology, String> dialListField = new DualListField<Ontology, String>(
+						unselectedListStore, selectedListStore, ontologyProperties.acronym(), new TextCell());
+				dialListField.setMode(Mode.INSERT);
+				add(dialListField);
+
+				this.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
+					@Override
+					public void onSelect(SelectEvent event) {
+						List<Ontology> selectedOntologies = selectedListStore.getAll();
+						List<Ontology> ontologies = new ArrayList<Ontology>(selectedOntologies.size());
+						ontologies.addAll(selectedOntologies);
+						eventBus.fireEvent(new OntologiesSelectEvent(ontologies));
+					}
+				});
+			}
+
+		}
+		
 		private ListStore<Term> termStore = new ListStore<Term>(
 				termProperties.key());
 		private EventBus eventBus;
+		protected List<Ontology> ontologies;
+		private ListStore<Ontology> unselectedListStore = new ListStore<Ontology>(ontologyProperties.key());
+		private ListStore<Ontology> selectedListStore = new ListStore<Ontology>(ontologyProperties.key());
+		private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
 
 		public MenuView(final EventBus eventBus) {
 			this.eventBus = eventBus;
@@ -51,9 +98,27 @@ public class OtoView implements IsWidget {
 			Menu sub = new Menu();
 			MenuBarItem item = new MenuBarItem("Collection", sub);
 			MenuItem resetItem = new MenuItem("Reset");
+			resetItem.addSelectionHandler(new SelectionHandler<Item>() {
+				@Override
+				public void onSelection(SelectionEvent<Item> event) {
+					collectionService.reset(collection, new RPCCallback<Collection>() {
+						@Override
+						public void onSuccess(Collection result) {
+							eventBus.fireEvent(new LoadEvent(collection));
+						}
+					});
+				}
+			});
 			MenuItem saveItem = new MenuItem("Save");
+			saveItem.addSelectionHandler(new SelectionHandler<Item>() {
+				@Override
+				public void onSelection(SelectionEvent<Item> event) {
+					eventBus.fireEvent(new SaveEvent(collection));
+				}
+			});
 			sub.add(resetItem);
 			sub.add(saveItem);
+			add(item);
 
 			sub = new Menu();
 			final ComboBox<Term> searchCombo = new ComboBox<Term>(termStore,
@@ -69,6 +134,19 @@ public class OtoView implements IsWidget {
 			});
 			sub.add(searchCombo);
 			item = new MenuBarItem("Search", sub);
+			add(item);
+			
+			sub = new Menu();
+			MenuItem selectOntologies = new MenuItem("Select");
+			selectOntologies.addSelectionHandler(new SelectionHandler<Item>() {
+				@Override
+				public void onSelection(SelectionEvent<Item> event) {
+					Dialog dialog = new SelectOntologiesDialog(ontologies);
+					dialog.show();
+				}
+			});
+			sub.add(selectOntologies);
+			item = new MenuBarItem("Ontologies", sub);
 			add(item);
 
 			sub = new Menu();
@@ -91,6 +169,18 @@ public class OtoView implements IsWidget {
 			});
 			sub.add(helpItem);
 			add(questionsItem);
+			
+			//already store ontologies, otherwise delay when requested on button press
+			ontologyService.getOntologies(new RPCCallback<List<Ontology>>() {
+				@Override
+				public void onSuccess(List<Ontology> result) {
+					MenuView.this.ontologies = result;
+					selectedListStore.addAll(result);
+					eventBus.fireEvent(new OntologiesSelectEvent(result));
+				}
+			});
+			selectedListStore.addSortInfo(new StoreSortInfo<Ontology>(ontologyProperties.acronym(), SortDir.ASC));
+			unselectedListStore.addSortInfo(new StoreSortInfo<Ontology>(ontologyProperties.acronym(), SortDir.ASC));
 		}
 
 		public void setCollection(Collection collection) {

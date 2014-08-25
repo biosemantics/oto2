@@ -6,17 +6,17 @@ import com.sencha.gxt.data.shared.LabelProvider;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.PropertyAccess;
 
-public interface OntologyProperties extends PropertyAccess<Ontology> {
+public interface OntologyEntryProperties extends PropertyAccess<OntologyEntry> {
 	
   @Path("id")
-  ModelKeyProvider<Ontology> key();
+  ModelKeyProvider<OntologyEntry> key();
    
   @Path("label")
-  LabelProvider<Ontology> acronymLabel();
+  LabelProvider<OntologyEntry> namelabel();
  
-  ValueProvider<Ontology, String> acronym();
+  ValueProvider<OntologyEntry, String> label();
    
-  ValueProvider<Ontology, String> name();
+  ValueProvider<OntologyEntry, String> definition();
   
-  ValueProvider<Ontology, String> id();
+  ValueProvider<OntologyEntry, String> url();
 }

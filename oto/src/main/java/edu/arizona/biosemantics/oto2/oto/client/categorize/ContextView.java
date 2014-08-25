@@ -24,13 +24,15 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.TypedContextProperties;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionService;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionServiceAsync;
+import edu.arizona.biosemantics.oto2.oto.shared.rpc.IContextService;
+import edu.arizona.biosemantics.oto2.oto.shared.rpc.IContextServiceAsync;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.RPCCallback;
 
 public class ContextView extends Composite {
 
 	private static final TypedContextProperties contextProperties = GWT.create(TypedContextProperties.class);
 	private ListStore<TypedContext> store = new ListStore<TypedContext>(contextProperties.key());
-	private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
+	private IContextServiceAsync contextService = GWT.create(IContextService.class);
 	
 	private EventBus eventBus;
 	private Collection collection;
@@ -90,7 +92,7 @@ public class ContextView extends Composite {
 	}
 	
 	private void setContexts(Term term) {
-		collectionService.getContexts(collection, term, new RPCCallback<List<TypedContext>>() {
+		contextService.getContexts(collection, term, new RPCCallback<List<TypedContext>>() {
 			@Override
 			public void onSuccess(List<TypedContext> contexts) {
 				setContexts(contexts);

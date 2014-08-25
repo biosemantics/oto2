@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import edu.arizona.biosemantics.oto2.oto.server.db.DAOManager;
+import edu.arizona.biosemantics.oto2.oto.server.rpc.CollectionService;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 
 /**
@@ -31,8 +32,7 @@ public class CollectionResource {
 	Request request;		
 	
 	private Logger logger;
-	private edu.arizona.biosemantics.oto2.oto.server.rpc.CollectionService rpcCollectionService = 
-			new edu.arizona.biosemantics.oto2.oto.server.rpc.CollectionService();
+	private CollectionService collectionService = new CollectionService();
 	
 	public CollectionResource() {
 		logger =  LoggerFactory.getLogger(this.getClass());
@@ -43,7 +43,7 @@ public class CollectionResource {
 	@Consumes({ MediaType.APPLICATION_JSON })
 	public Collection put(Collection collection) {
 		try {
-			return rpcCollectionService.insert(collection);
+			return collectionService.insert(collection);
 		} catch (Exception e) {
 			logger.error("Exception " + e.toString());
 			e.printStackTrace();
@@ -56,7 +56,7 @@ public class CollectionResource {
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Collection get(@PathParam("id") int id, @QueryParam("secret") String secret) {
 		try {
-			return rpcCollectionService.get(id, secret);
+			return collectionService.get(id, secret);
 		} catch (Exception e) {
 			logger.error("Exception " + e.toString());
 			e.printStackTrace();

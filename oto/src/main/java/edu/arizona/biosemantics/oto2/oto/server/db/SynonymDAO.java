@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 
@@ -78,6 +79,12 @@ public class SynonymDAO {
 				insert.executeAndClose();
 			}
 		}
+	}
+
+	public void remove(Collection collection) throws ClassNotFoundException, SQLException, IOException {
+		Query query = new Query("DELETE FROM oto_synonym s, oto_term t, oto_bucket b WHERE b.collection = ? AND t.bucket = b.id AND s.mainTerm = t.id");
+		query.setParameter(1, collection.getId());
+		query.executeAndClose();
 	}
 	
 }

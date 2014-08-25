@@ -93,5 +93,11 @@ public class TermDAO {
 		}
 		return result;
 	}
+
+	public void resetTerms(Collection collection) throws ClassNotFoundException, SQLException, IOException {
+		Query query = new Query("UPDATE oto_term t, oto_bucket b SET t.term = t.original_term WHERE b.collection = ? AND t.bucket = b.id");
+		query.setParameter(1, collection.getId());
+		query.executeAndClose();
+	}
 	
 }

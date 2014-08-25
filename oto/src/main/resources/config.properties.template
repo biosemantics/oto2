@@ -4,3 +4,7 @@ databaseUser=
 databasePassword=
 databaseHost=
 databasePort=
+
+#Bioportal
+bioportalUrl=http://data.bioontology.org
+bioportalApiKey=

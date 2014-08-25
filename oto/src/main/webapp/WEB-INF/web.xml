@@ -14,6 +14,24 @@
 		<servlet-name>collectionServlet</servlet-name>
 		<url-pattern>/oto/collection</url-pattern>
 	</servlet-mapping>
+		<servlet>
+		<servlet-name>contextServlet</servlet-name>
+		<servlet-class>edu.arizona.biosemantics.oto2.oto.server.rpc.ContextService</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>contextServlet</servlet-name>
+		<url-pattern>/oto/context</url-pattern>
+	</servlet-mapping>
+		<servlet>
+		<servlet-name>ontologyServlet</servlet-name>
+		<servlet-class>edu.arizona.biosemantics.oto2.oto.server.rpc.OntologyService</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>ontologyServlet</servlet-name>
+		<url-pattern>/oto/ontology</url-pattern>
+	</servlet-mapping>
 
 	<servlet>
 		<servlet-name>Jersey Web Application</servlet-name>

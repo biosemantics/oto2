@@ -19,23 +19,11 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.TypedContext;
 /**
  * The client side stub for the RPC service.
  */
-@RemoteServiceRelativePath("collection")
-public interface ICollectionService extends RemoteService {
+@RemoteServiceRelativePath("context")
+public interface IContextService extends RemoteService {
+		
+	public List<TypedContext> getContexts(Collection collection, Term term) throws Exception;
 	
-	public Collection get(Collection collection) throws Exception;
-	
-	public Collection get(int id, String secret) throws Exception;
-	
-	public void update(Collection collection) throws Exception; 
-	
-	public Collection insert(Collection collection) throws Exception;
-	
-	public Term addTerm(Term term, int bucketId) throws Exception;
-	
-	public Label addLabel(Label label, int collectionId) throws Exception;
-	
-	public List<Location> getLocations(Term term) throws Exception;
-	
-	public Collection reset(Collection collection) throws Exception;
+	public List<Context> insert(int collectionId, String secret, List<Context> contexts) throws Exception;
 	
 }
