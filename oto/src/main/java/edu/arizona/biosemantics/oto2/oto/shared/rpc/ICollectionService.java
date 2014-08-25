@@ -2,6 +2,7 @@ package edu.arizona.biosemantics.oto2.oto.shared.rpc;
 
 import java.util.List;
 
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
@@ -11,6 +12,7 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Location;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
+import edu.arizona.biosemantics.oto2.oto.shared.model.TypedContext;
 
 
 /**
@@ -30,8 +32,10 @@ public interface ICollectionService extends RemoteService {
 	public Term addTerm(Term term, int bucketId) throws Exception;
 	
 	public Label addLabel(Label label, int collectionId) throws Exception;
-
-	public List<Context> getContexts(Term term) throws Exception; 
+	
+	public List<TypedContext> getContexts(Collection collection, Term term) throws Exception;
+	
+	public List<Context> insert(int collectionId, String secret, List<Context> contexts) throws Exception;
 	
 	public List<Location> getLocations(Term term) throws Exception;
 	

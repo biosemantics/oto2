@@ -4,6 +4,8 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.sencha.gxt.widget.core.client.TabPanel;
 
+import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
+
 public class TermInfoView extends TabPanel {
 	private LocationsView locationsView;
 	private ContextView contextView;
@@ -17,5 +19,9 @@ public class TermInfoView extends TabPanel {
 		add(locationsView, "Locations");
 		add(contextView, "Context");
 		add(ontologiesView, "Ontologies");
+	}
+
+	public void setCollection(Collection collection) {
+		contextView.setCollection(collection);
 	}
 }

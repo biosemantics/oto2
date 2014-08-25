@@ -16,5 +16,5 @@ public interface ContextProperties extends PropertyAccess<Context> {
 
 	ValueProvider<Context, String> source();
 
-	ValueProvider<Context, String> sentence();
+	ValueProvider<Context, String> text();
 }

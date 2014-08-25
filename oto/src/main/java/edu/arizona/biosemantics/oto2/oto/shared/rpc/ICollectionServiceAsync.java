@@ -10,6 +10,7 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Location;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
+import edu.arizona.biosemantics.oto2.oto.shared.model.TypedContext;
 
 /**
  * The async counterpart of <code>GreetingService</code>.
@@ -28,7 +29,9 @@ public interface ICollectionServiceAsync {
 	
 	public void addLabel(Label label, int collectionid, AsyncCallback<Label> callback);
 
-	public void getContexts(Term term, AsyncCallback<List<Context>> callback); 
+	public void getContexts(Collection collection, Term term, AsyncCallback<List<TypedContext>> callback);
+	
+	public void insert(int collectionId, String secret, List<Context> contexts, AsyncCallback<List<Context>> callback);
 	
 	public void getLocations(Term term, AsyncCallback<List<Location>> callback);
 

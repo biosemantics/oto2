@@ -2,6 +2,7 @@ package edu.arizona.biosemantics.oto2.oto.server.rpc;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -16,6 +17,7 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Location;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
+import edu.arizona.biosemantics.oto2.oto.shared.model.TypedContext;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionService;
 
 public class CollectionService extends RemoteServiceServlet implements ICollectionService {
@@ -73,9 +75,21 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 		collection.setSecret(secret);
 	}
 
+	public List<TypedContext> getContexts(Collection collection, Term term) throws Exception {
+		return daoManager.getContextDAO().get(collection, term);
+	}
+	
 	@Override
-	public List<Context> getContexts(Term term) throws Exception {
-		return daoManager.getContextDAO().get(term);
+	public List<Context> insert(int collectionId, String secret, List<Context> contexts) throws Exception {
+		if(daoManager.getCollectionDAO().isValidSecret(collectionId, secret)) {
+			List<Context> result = new ArrayList<Context>(contexts.size());
+			for(Context context : contexts) {
+				context = daoManager.getContextDAO().insert(context);
+				result.add(context);
+			}
+			return result;
+		}
+		return null;
 	}
 
 	@Override

@@ -29,14 +29,14 @@ import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionService;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionServiceAsync;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.RPCCallback;
 
-public class CategorizePresenter {
+public class OtoPresenter {
 
 	private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
 	private Collection collection;
-	private CategorizeView view;
+	private OtoView view;
 	private EventBus eventBus;
 	
-	public CategorizePresenter(EventBus eventBus, CategorizeView view) {
+	public OtoPresenter(EventBus eventBus, OtoView view) {
 		this.eventBus = eventBus;
 		this.view = view;
 		bindEvents();
@@ -147,7 +147,7 @@ public class CategorizePresenter {
 		collectionService.get(collection, new RPCCallback<Collection>() {
 			@Override
 			public void onSuccess(Collection result) {
-				CategorizePresenter.this.collection = result;
+				OtoPresenter.this.collection = result;
 				view.setCollection(result);
 			}
 		});

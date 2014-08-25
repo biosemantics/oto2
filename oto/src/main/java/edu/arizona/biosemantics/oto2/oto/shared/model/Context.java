@@ -5,23 +5,24 @@ import java.io.Serializable;
 public class Context implements Serializable {
 
 	private int id = -1;
-	private int termId;
+	private int collectionId;
 	private String source;
-	private String sentence;
+	private String text;
 	
 	public Context() { }
 	
-	public Context(String source, String sentence) {
+	public Context(int collectionId, String source, String text) {
+		this.collectionId = collectionId;
 		this.source = source;
-		this.sentence = sentence;
+		this.text = text;
 	}
 
-	public Context(int id, int termId, String source, String sentence) {
+	public Context(int id, int collectionId, String source, String text) {
 		super();
 		this.id = id;
-		this.termId = termId;
+		this.collectionId = collectionId;
 		this.source = source;
-		this.sentence = sentence;
+		this.text = text;
 	}
 	public String getSource() {
 		return source;
@@ -29,17 +30,17 @@ public class Context implements Serializable {
 	public void setSource(String source) {
 		this.source = source;
 	}
-	public String getSentence() {
-		return sentence;
+	public String getText() {
+		return text;
 	}
-	public void setSentence(String sentence) {
-		this.sentence = sentence;
+	public void setText(String text) {
+		this.text = text;
 	}
-	public int getTermId() {
-		return termId;
+	public int getCollectionId() {
+		return collectionId;
 	}
-	public void setTermId(int termId) {
-		this.termId = termId;
+	public void setCollectionId(int collectionId) {
+		this.collectionId = collectionId;
 	}
 	public int getId() {
 		return id;

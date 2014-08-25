@@ -69,6 +69,7 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label.AddResult;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 import edu.arizona.biosemantics.oto2.oto.shared.model.TermTreeNode;
+import edu.arizona.biosemantics.oto2.oto.shared.model.TextTreeNode;
 import edu.arizona.biosemantics.oto2.oto.shared.model.TextTreeNodeProperties;
 
 public class LabelPortlet extends Portlet {
@@ -80,7 +81,7 @@ public class LabelPortlet extends Portlet {
 	public class MainTermTreeNode extends TermTreeNode {
 		public MainTermTreeNode(Term term) {
 			super(term);
-		} 
+		}
 	}
 	
 	public class SynonymTermTreeNode extends TermTreeNode {
@@ -618,6 +619,20 @@ public class LabelPortlet extends Portlet {
 	}
 
 	private void bindEvents() {
+		eventBus.addHandler(TermSelectEvent.TYPE, new TermSelectEvent.TermSelectHandler() {
+			@Override
+			public void onSelect(Term term) {
+				TermTreeNode termTreeNode = termTermTreeNodeMap.get(term);
+				if(termTreeNode != null) {
+					if(!tree.getSelectionModel().isSelected(termTreeNode)) {
+						List<TermTreeNode> selectionTree = new LinkedList<TermTreeNode>();
+						selectionTree.add(termTreeNode);
+						tree.getSelectionModel().setSelection(selectionTree);
+					}
+					LabelPortlet.this.expand();
+				}
+			}
+		});
 		eventBus.addHandler(SynonymRemovalEvent.TYPE, new SynonymRemovalEvent.SynonymRemovalHandler() {
 			@Override
 			public void onSynonymRemoval(Label label, Term mainTerm, List<Term> synonyms) {

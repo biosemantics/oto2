@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS `oto_term` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `bucket` bigint(20) unsigned NOT NULL,
   `term` varchar(100) NOT NULL,
+  `original_term` varchar(100) NOT NULL,
   `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`)
@@ -57,13 +58,15 @@ CREATE TABLE IF NOT EXISTS `oto_synonym` (
 --
 CREATE TABLE IF NOT EXISTS `oto_context` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `term` bigint(2) unsigned NOT NULL,
+  `collection` bigint(20) unsigned NOT NULL,
   `source` varchar(100) NOT NULL,
-  `sentence` varchar(300) NOT NULL,
+  `text` text NOT NULL,
   `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `id` (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0 ;
+  UNIQUE KEY `id` (`id`),
+  FULLTEXT KEY `text` (`text`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;
+
 
 -- Not needed: Info can be extracted from tables above
 --CREATE TABLE IF NOT EXISTS `location` (}

@@ -12,15 +12,10 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 
 public class TermDAO {
 	
-	private ContextDAO contextDAO;
 	private BucketDAO bucketDAO;
 	
 	protected TermDAO() { }
 		
-	public void setContextDAO(ContextDAO contextDAO) {
-		this.contextDAO = contextDAO;
-	}
-
 	public void setBucketDAO(BucketDAO bucketDAO) {
 		this.bucketDAO = bucketDAO;
 	}
@@ -39,17 +34,19 @@ public class TermDAO {
 	
 	private Term createTerm(ResultSet result) throws ClassNotFoundException, SQLException, IOException {
 		int id = result.getInt(1);
-		int bucketId = result.getInt(2);
+		//int bucketId = result.getInt(2);
 		String text = result.getString(3);
-		return new Term(id, text);
+		String originalTerm = result.getString(4);
+		return new Term(id, text, originalTerm);
 	}
 
 	public Term insert(Term term, int bucketId) throws SQLException, ClassNotFoundException, IOException {
 		if(!term.hasId()) {
 			Query insert = new Query("INSERT INTO `oto_term` " +
-					"(`bucket`, `term`) VALUES (?, ?)");
+					"(`bucket`, `term`, `original_term`) VALUES (?, ?, ?)");
 			insert.setParameter(1, bucketId);
 			insert.setParameter(2, term.getTerm());
+			insert.setParameter(3, term.getTerm());
 			insert.execute();
 			ResultSet generatedKeys = insert.getGeneratedKeys();
 			generatedKeys.next();
@@ -64,6 +61,7 @@ public class TermDAO {
 		Query query = new Query("UPDATE oto_term SET bucket = ?, term = ? WHERE id = ?");
 		query.setParameter(1, bucketId);
 		query.setParameter(2, term.getTerm());
+		//never update original_term because it contains the *original* spelling of the term
 		query.setParameter(3, term.getId());	
 		query.executeAndClose();
 	}
@@ -81,7 +79,6 @@ public class TermDAO {
 		ResultSet result = query.execute();
 		while(result.next()) {
 			int id = result.getInt(1);
-			String text = result.getString(2);
 			terms.add(get(id));
 		}
 		query.close();

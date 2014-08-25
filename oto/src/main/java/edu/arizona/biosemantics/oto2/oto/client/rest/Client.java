@@ -11,6 +11,7 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.InvocationCallback;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -55,21 +56,33 @@ public class Client {
 		this.getPutInvoker().put(Entity.entity(collection, MediaType.APPLICATION_JSON), callback);
 	}
 	
-	public Future<Collection> get(String id, String secret) {
+	public Future<Collection> get(int id, String secret) {
 		return this.getGetInvoker(id, secret).get(Collection.class);
 	}
 	
-	public void get(String id, String secret, InvocationCallback<List<Collection>> callback) {
+	public void get(int id, String secret, InvocationCallback<List<Collection>> callback) {
 		this.getGetInvoker(id, secret).get(callback);
 	}
 	
+	public Future<List<Context>> put(int collectionId, String secret, List<Context> contexts) {
+		return this.getPutContextsInvoker(collectionId, secret).put(Entity.entity(contexts, MediaType.APPLICATION_JSON), new GenericType<List<Context>>(){});
+	}
+	
+	public void put(int collectionId, String secret, List<Context> contexts, InvocationCallback<List<Context>> callback) {
+		this.getPutContextsInvoker(collectionId, secret).put(Entity.entity(contexts, MediaType.APPLICATION_JSON), callback);
+	}
+
 	private AsyncInvoker getPutInvoker() {
 		return target.path("rest").path("collection").request(MediaType.APPLICATION_JSON).async();
 	}
 	
-	private AsyncInvoker getGetInvoker(String id, String secret) {
-		return target.path("rest").path("collection").queryParam("id", id)
+	private AsyncInvoker getGetInvoker(int id, String secret) {
+		return target.path("rest").path("collection").path(String.valueOf(id))
 				.queryParam("secret", secret).request(MediaType.APPLICATION_JSON).async();
+	}
+	
+	private AsyncInvoker getPutContextsInvoker(int collectionId, String secret) {
+		return target.path("rest").path("context").path(String.valueOf(collectionId)).queryParam("secret", secret).request(MediaType.APPLICATION_JSON).async();
 	}
 	
 	/**
@@ -78,12 +91,30 @@ public class Client {
 	 * @throws InterruptedException 
 	 */
 	public static void main(String[] args) throws InterruptedException, ExecutionException {
-		Client client = new Client("http://127.0.0.1:8888/");	
+		Client client = new Client("http://127.0.0.1:60137/");	
 		client.open();
+		
+		Collection collection = new Collection("name", "my secret");
+		Future<Collection> col = client.put(collection);
+		col.get();
+		
+		Future<Collection> colFu = client.get(1, "my secret");
+		colFu.get();
+		
+		List<Context> contexts = new LinkedList<Context>();
+		contexts.add(new Context(1, "src", "aaaa"));
+		contexts.add(new Context(1, "src2", "aaaa2"));
+		
+		Future<List<Context>> result = client.put(1, "my secret", contexts);
+		result.get();
+		
+		
+		/*
 		Future<Collection> collectionFuture = client.put(createSampleCollection());
 		Collection collection = collectionFuture.get();
 		collectionFuture = client.get(String.valueOf(collection.getId()), collection.getSecret());
 		System.out.println(collectionFuture.get());
+		*/
 		client.close();
 	}
 	

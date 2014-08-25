@@ -14,11 +14,16 @@ public class Collection implements Serializable {
 
 	public Collection() { }
 	
+	public Collection(String name, String secret) {
+		this.name = name;
+		this.secret = secret;
+	}
+	
 	public Collection(int id, String secret) {
 		this.id = id;
 		this.secret = secret;
 		this.name = "";
-	}
+	}	
 	
 	public Collection(int id, String name, String secret) {
 		super();
@@ -26,6 +31,8 @@ public class Collection implements Serializable {
 		this.name = name;
 		this.secret = secret;
 	}
+
+
 
 	public int getId() {
 		return id;
@@ -131,6 +138,14 @@ public class Collection implements Serializable {
 						result.add(label);
 				}
 			}
+		}
+		return result;
+	}
+
+	public List<Term> getTerms() {
+		List<Term> result = new LinkedList<Term>();
+		for(Bucket bucket : buckets) {
+			result.addAll(bucket.getTerms());
 		}
 		return result;
 	}	

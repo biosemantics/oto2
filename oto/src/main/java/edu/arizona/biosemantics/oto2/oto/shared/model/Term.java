@@ -1,22 +1,33 @@
 package edu.arizona.biosemantics.oto2.oto.shared.model;
 
 import java.io.Serializable;
+import java.util.Comparator;
 
 public class Term implements Serializable {
 
+	public static class TermComparator implements Comparator<Term> {
+		@Override
+		public int compare(Term o1, Term o2) {
+			return o1.getTerm().compareTo(o2.getTerm());
+		}
+	}
+	
 	private int id = -1;
 	private String term;
+	private String originalTerm;
 
 	public Term() { }
 	
 	public Term(String term) {
 		this.term = term;
+		this.originalTerm = term;
 	}
 	
-	public Term(int id, String term) {
+	public Term(int id, String term, String originalTerm) {
 		super();
 		this.id = id;
 		this.term = term;
+		this.originalTerm = originalTerm;
 	}
 
 	public String getTerm() {
@@ -25,6 +36,14 @@ public class Term implements Serializable {
 
 	public void setTerm(String term) {
 		this.term = term;
+	}
+	
+	public String getOriginalTerm() {
+		return originalTerm;
+	}
+
+	public void setOriginalTerm(String originalTerm) {
+		this.originalTerm = originalTerm;
 	}
 
 	public int getId() {
@@ -59,6 +78,10 @@ public class Term implements Serializable {
 		if (id != other.id)
 			return false;
 		return true;
+	}
+
+	public boolean hasChangedSpelling() {
+		return !this.term.equals(this.originalTerm);
 	}	
 	
 }

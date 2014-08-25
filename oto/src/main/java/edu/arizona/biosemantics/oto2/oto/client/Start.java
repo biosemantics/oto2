@@ -7,7 +7,7 @@ import com.sencha.gxt.widget.core.client.container.Viewport;
 public class Start implements EntryPoint {
 
 	public void onModuleLoad() {
-		int collectionId = 3;
+		int collectionId = 1;
 		String secret = "my secret";
 		
 		Oto oto = new Oto(collectionId, secret);

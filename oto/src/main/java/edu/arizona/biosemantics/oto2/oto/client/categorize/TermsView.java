@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Comparator;
 
+import com.gargoylesoftware.htmlunit.javascript.host.Selection;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
@@ -222,12 +223,7 @@ public class TermsView extends TabPanel {
 		}, SortDir.ASC));
 		listStore = new ListStore<Term>(termProperties.key());
 		listStore.setAutoCommit(true);
-		listStore.addSortInfo(new StoreSortInfo<Term>(new Comparator<Term>() {
-			@Override
-			public int compare(Term o1, Term o2) {
-				return o1.getTerm().compareTo(o2.getTerm());
-			}
-		}, SortDir.ASC));
+		listStore.addSortInfo(new StoreSortInfo<Term>(new Term.TermComparator(), SortDir.ASC));
 		listView = new ListView<Term, String>(listStore, termProperties.term());
 		listView.setContextMenu(new TermMenu());
 		termTree = new Tree<TextTreeNode, String>(treeStore, textTreeNodeProperties.text());
@@ -240,6 +236,24 @@ public class TermsView extends TabPanel {
 	}
 	
 	private void bindEvents() {
+		eventBus.addHandler(TermSelectEvent.TYPE, new TermSelectEvent.TermSelectHandler() {
+			@Override
+			public void onSelect(Term term) {
+				if(!listView.getSelectionModel().isSelected(term)) {
+					List<Term> selection = new LinkedList<Term>();
+					selection.add(term);
+					listView.getSelectionModel().setSelection(selection);
+				}
+				
+				TermTreeNode termTreeNode = termTermTreeNodeMap.get(term);
+				if(termTreeNode != null && !termTree.getSelectionModel().isSelected(termTreeNode)) {
+					List<TextTreeNode> selectionTree = new LinkedList<TextTreeNode>();
+					selectionTree.add(termTreeNode);
+					termTree.getSelectionModel().setSelection(selectionTree);
+				}
+				
+			}
+		});
 		eventBus.addHandler(LabelRemoveEvent.TYPE, new LabelRemoveEvent.RemoveLabelHandler() {
 			@Override
 			public void onRemove(Label label) {

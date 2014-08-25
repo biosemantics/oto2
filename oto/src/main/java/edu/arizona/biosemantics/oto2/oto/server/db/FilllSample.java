@@ -86,19 +86,15 @@ public class FilllSample {
 		
 		collection.setSecret("my secret");
 		DAOManager daoManager = new DAOManager();
-		daoManager.getCollectionDAO().insert(collection);
+		collection = daoManager.getCollectionDAO().insert(collection);
+			
+		Context context = new Context(collection.getId(), "rubus", "text");
+		Context context2 = new Context(collection.getId(), "rubus", "text2");
+		Context context3 = new Context(collection.getId(), "rubus argetest", "asdf");
 		
-		
-		Context con1 = new Context("source1", "sentence1");
-		Context con2 = new Context("source2", "sentence2");
-		
-		Context con3 = new Context("source3", "sentence3");
-		Context con4 = new Context("source4", "sentence4");
-		daoManager.getContextDAO().insert(con1, t1.getId());
-		daoManager.getContextDAO().insert(con2, t2.getId());
-		daoManager.getContextDAO().insert(con3, t1.getId());
-		daoManager.getContextDAO().insert(con4, t2.getId());
-		
+		daoManager.getContextDAO().insert(context);
+		daoManager.getContextDAO().insert(context2);
+		daoManager.getContextDAO().insert(context3);
 		
 	}
 

@@ -3,22 +3,23 @@ package edu.arizona.biosemantics.oto2.oto.server.db;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Context;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
+import edu.arizona.biosemantics.oto2.oto.shared.model.TypedContext;
+import edu.arizona.biosemantics.oto2.oto.shared.model.TypedContext.Type;
 
 public class ContextDAO {
 
-	private TermDAO termDAO;
-
 	protected ContextDAO() {} 
 	
-	public void setTermDAO(TermDAO termDAO) {
-		this.termDAO = termDAO;
-	}
-
 	public Context get(int id) throws ClassNotFoundException, SQLException, IOException {
 		Context context = null;
 		Query query = new Query("SELECT * FROM oto_context WHERE id = ?");
@@ -31,10 +32,10 @@ public class ContextDAO {
 		return context;
 	}
 	
-	public List<Context> get(Term term) throws ClassNotFoundException, SQLException, IOException {
+	public List<Context> get(Collection collection) throws ClassNotFoundException, SQLException, IOException {
 		List<Context> contexts = new LinkedList<Context>();
-		Query query = new Query("SELECT * FROM oto_context WHERE term = ?");
-		query.setParameter(1, term.getId());
+		Query query = new Query("SELECT * FROM oto_context WHERE collectionId = ?");
+		query.setParameter(1, collection.getId());
 		ResultSet result = query.execute();
 		while(result.next()) {
 			Context context = createContext(result);
@@ -46,20 +47,19 @@ public class ContextDAO {
 	
 	private Context createContext(ResultSet result) throws SQLException, ClassNotFoundException, IOException {
 		int id = result.getInt(1);
-		int termId = result.getInt(2);
+		int collectionId = result.getInt(2);
 		String source = result.getString(3);
 		String sentence = result.getString(4);
-		return new Context(id, termId, source, sentence);
+		return new Context(id, collectionId, source, sentence);
 	}
 
-	public Context insert(Context context, int termId) throws ClassNotFoundException, SQLException, IOException {
+	public Context insert(Context context) throws ClassNotFoundException, SQLException, IOException {
 		if(!context.hasId()) {
-			Context result = null;
 			Query insert = new Query("INSERT INTO `oto_context` " +
-					"(`term`, `source`, `sentence`) VALUES (?, ?, ?)");
-			insert.setParameter(1, termId);
+					"(`collection`, `source`, `text`) VALUES (?, ?, ?)");
+			insert.setParameter(1, context.getCollectionId());
 			insert.setParameter(2, context.getSource());
-			insert.setParameter(3, context.getSentence());
+			insert.setParameter(3, context.getText());
 			insert.execute();
 			ResultSet generatedKeys = insert.getGeneratedKeys();
 			generatedKeys.next();
@@ -71,10 +71,12 @@ public class ContextDAO {
 	}
 	
 	public void update(Context context) throws SQLException, ClassNotFoundException, IOException {
-		Query query = new Query("UPDATE oto_context SET term = ?, source = ?, sentence = ? WHERE id = ?");
-		query.setParameter(1, context.getTermId());
+		Query query = new Query("UPDATE oto_context "
+				+ "SET collectionId = ?, source = ?, text = ? WHERE id = ?");
+		query.setParameter(1, context.getCollectionId());
 		query.setParameter(2, context.getSource());
-		query.setParameter(1, context.getSentence());
+		query.setParameter(3, context.getText());
+		query.setParameter(4, context.getId());
 		query.executeAndClose();
 	}
 	
@@ -82,6 +84,80 @@ public class ContextDAO {
 		Query query = new Query("DELETE FROM oto_context WHERE id = ?");
 		query.setParameter(1, context.getId());
 		query.executeAndClose();
+	}	
+	
+	public void remove(int collectionId) throws ClassNotFoundException, SQLException, IOException {
+		Query query = new Query("DELETE FROM oto_context WHERE collectionId = ?");
+		query.setParameter(1, collectionId);
+		query.executeAndClose();
+	}
+
+	public List<TypedContext> get(Collection collection, Term term) throws ClassNotFoundException, SQLException, IOException {
+		List<Context> contexts = new LinkedList<Context>();
+		Query query = new Query("SELECT * FROM oto_context WHERE collection = ? AND MATCH (text) AGAINST (? IN NATURAL LANGUAGE MODE)");
+		query.setParameter(1, collection.getId());
+		query.setParameter(2, term.getTerm());	
+		ResultSet result = query.execute();
+		while(result.next()) {
+			Context context = createContext(result);
+			contexts.add(context);
+		}
+		query.close();
+		
+		if(term.hasChangedSpelling()) {
+			query = new Query("SELECT * FROM oto_context WHERE collection = ? AND MATCH (text) AGAINST (? IN NATURAL LANGUAGE MODE)");
+			query.setParameter(1, collection.getId());
+			query.setParameter(2, term.getOriginalTerm());
+			result = query.execute();
+			while(result.next()) {
+				Context context = createContext(result);
+				contexts.add(context);
+			}
+			query.close();
+		}
+		
+		List<TypedContext> typedContexts = createHighlightedAndShortenedTypedContexts(contexts, term);
+		return typedContexts;
+	}
+
+	private List<TypedContext> createHighlightedAndShortenedTypedContexts(List<Context> contexts, Term term) {
+		//shorten the context to be a number of characters before and after ... some text with WORD that appears in text ...
+		//could appear multiple times in text, have to split into multiple contexts
+		List<TypedContext> result = new LinkedList<TypedContext>();
+		
+		Set<Context> contextsSet = new HashSet<Context>();
+		contextsSet.addAll(contexts);
+		
+		for(Context context : contextsSet) {
+			Pattern originalPattern = Pattern.compile("\\b" + term.getOriginalTerm() + "\\b");
+			result.addAll(extract(originalPattern, term.getOriginalTerm(), context, Type.original));
+			if(term.hasChangedSpelling()) {
+				Pattern currentPattern = Pattern.compile("\\b" + term.getTerm() + "\\b");
+				result.addAll(extract(currentPattern, term.getTerm(), context, Type.updated));
+			}
+		}
+		return result;
+	}
+
+	private List<TypedContext> extract(Pattern pattern, String replaceTerm, Context context, Type type) {	
+		List<TypedContext> result = new LinkedList<TypedContext>();
+		Matcher matcher = pattern.matcher(context.getText());
+		
+		int id = 0;
+	    while (matcher.find()) {
+	    	int startText = matcher.start() - 100;
+	    	int endText = matcher.end() + 100;
+	    	if(startText < 0)
+	    		startText = 0;
+	    	if(endText > context.getText().length())
+	    		endText = context.getText().length();
+	    	String extractedText = "..." + context.getText().substring(startText, endText) + "...";
+	    	extractedText = extractedText.replaceAll(pattern.toString(), "<b>" + replaceTerm + "</b>");
+	    	TypedContext typedContext = new TypedContext(String.valueOf(context.getId()) + "-" + type.toString() + "-" + id++, 
+	    			context.getCollectionId(), context.getSource(), extractedText, type);
+	    	result.add(typedContext);
+	    }
+	    return result;
 	}	
 	
 }
