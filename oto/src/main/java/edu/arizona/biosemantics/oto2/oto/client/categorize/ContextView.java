@@ -9,6 +9,7 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
+import com.sencha.gxt.core.client.Style.SelectionMode;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.state.client.GridStateHandler;
 import com.sencha.gxt.widget.core.client.Composite;
@@ -51,23 +52,32 @@ public class ContextView extends Composite {
 		    }
 		});
 		ColumnConfig<TypedContext, String> spellingColumn = new ColumnConfig<TypedContext, String>(contextProperties.typeString(), 100, SafeHtmlUtils.fromTrustedString("<b>Spelling</b>"));
+		sourceColumn.setToolTip(SafeHtmlUtils.fromTrustedString("The source of the term"));
+		textColumn.setToolTip(SafeHtmlUtils.fromTrustedString("The actual text phrase in which the term occurs in the source"));
+		spellingColumn.setToolTip(SafeHtmlUtils.fromTrustedString("Indicateds whether the context is shown for a match of original or updated spelling."));
+		spellingColumn.setMenuDisabled(false);
+		textColumn.setMenuDisabled(false);
+		sourceColumn.setMenuDisabled(false);
 		List<ColumnConfig<TypedContext, ?>> columns = new ArrayList<ColumnConfig<TypedContext, ?>>();
 		columns.add(sourceColumn);
 		columns.add(textColumn);
 		columns.add(spellingColumn);
 		ColumnModel<TypedContext> columnModel = new ColumnModel<TypedContext>(columns);
 		Grid<TypedContext> grid = new Grid<TypedContext>(store, columnModel);
+		grid.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
 		QuickTip quickTip = new QuickTip(grid);
-		sourceColumn.setWidth(200);
+		//sourceColumn.setWidth(200);
 		grid.getView().setAutoExpandColumn(textColumn);
 		grid.getView().setStripeRows(true);
 		grid.getView().setColumnLines(true);
+		grid.getView().setForceFit(true);
 		grid.setBorders(false);
-		grid.setColumnReordering(false);
-		grid.setStateful(true);
+		grid.setAllowTextSelection(true);
+		grid.setColumnReordering(true);
+		/*grid.setStateful(true);
 		grid.setStateId("contextsGrid");
 		GridStateHandler<TypedContext> state = new GridStateHandler<TypedContext>(grid);
-		state.loadState();
+		state.loadState();*/
 		this.initWidget(grid);
 		
 		bindEvents();

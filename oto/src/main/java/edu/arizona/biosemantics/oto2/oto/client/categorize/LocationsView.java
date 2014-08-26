@@ -8,6 +8,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
+import com.sencha.gxt.core.client.Style.SelectionMode;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.state.client.GridStateHandler;
 import com.sencha.gxt.widget.core.client.Composite;
@@ -49,23 +50,29 @@ public class LocationsView extends Composite {
 							"qtip='No category assigned to this term.'>uncategorized</span>");
 			}
 		});
-		
+		instanceColumn.setToolTip(SafeHtmlUtils.fromTrustedString("The selected terml"));
+		categorizationColumn.setToolTip(SafeHtmlUtils.fromTrustedString("The current categorization of the term"));
+		categorizationColumn.setMenuDisabled(false);
+		instanceColumn.setMenuDisabled(false);
 		List<ColumnConfig<Location, ?>> columns = new ArrayList<ColumnConfig<Location, ?>>();
 		columns.add(instanceColumn);
 		columns.add(categorizationColumn);
 		ColumnModel<Location> columnModel = new ColumnModel<Location>(columns);
 		Grid<Location> grid = new Grid<Location>(store, columnModel);
+		grid.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
 		QuickTip quickTip = new QuickTip(grid);
-		instanceColumn.setWidth(200);
+		//instanceColumn.setWidth(200);
 		grid.getView().setAutoExpandColumn(categorizationColumn);
 		grid.getView().setStripeRows(true);
 		grid.getView().setColumnLines(true);
+		grid.getView().setForceFit(true);
 		grid.setBorders(false);
-		grid.setColumnReordering(false);
-		grid.setStateful(true);
+		grid.setAllowTextSelection(true);
+		grid.setColumnReordering(true);
+		/*grid.setStateful(true);
 		grid.setStateId("locationsGrid");
 		GridStateHandler<Location> state = new GridStateHandler<Location>(grid);
-		state.loadState();
+		state.loadState();*/
 		this.initWidget(grid);
 		
 		bindEvents();

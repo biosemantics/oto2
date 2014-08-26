@@ -15,6 +15,7 @@ import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.client.Window;
 import com.sencha.gxt.cell.core.client.TextButtonCell;
+import com.sencha.gxt.core.client.Style.SelectionMode;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.state.client.GridStateHandler;
 import com.sencha.gxt.widget.core.client.Composite;
@@ -54,7 +55,7 @@ public class OntologiesView extends Composite {
 		this.eventBus = eventBus;
 		store.setAutoCommit(true);	
 		ColumnConfig<OntologyEntry, String> ontologyColumn = new ColumnConfig<OntologyEntry, String>(ontologyEntryProperties.ontologyAcronym(), 20, SafeHtmlUtils.fromTrustedString("<b>Ontology</b>"));
-		ColumnConfig<OntologyEntry, String> categoryColumn = new ColumnConfig<OntologyEntry, String>(ontologyEntryProperties.label(), 50, SafeHtmlUtils.fromTrustedString("<b>Label</b>"));
+		ColumnConfig<OntologyEntry, String> labelColumn = new ColumnConfig<OntologyEntry, String>(ontologyEntryProperties.label(), 50, SafeHtmlUtils.fromTrustedString("<b>Label</b>"));
 		ColumnConfig<OntologyEntry, String> definitionColumn = new ColumnConfig<OntologyEntry, String>(ontologyEntryProperties.definition(), 100, SafeHtmlUtils.fromTrustedString("<b>Definition</b>"));
 		ontologyColumn.setCell(new AbstractCell<String>() {
 			@Override
@@ -93,24 +94,35 @@ public class OntologiesView extends Composite {
 	        }
 	      });
 		urlColumn.setCell(buttonCell);*/
+		ontologyColumn.setToolTip(SafeHtmlUtils.fromTrustedString("Ontology accessed via Bioportal"));
+		labelColumn.setToolTip(SafeHtmlUtils.fromTrustedString("Label of ontology entry returned by Bioportal"));
+		definitionColumn.setToolTip(SafeHtmlUtils.fromTrustedString("Definition as returned by Bioportal"));
+		urlColumn.setToolTip(SafeHtmlUtils.fromTrustedString("Link to external ontology source displaying the entry"));
+		urlColumn.setMenuDisabled(false);
+		definitionColumn.setMenuDisabled(false);
+		labelColumn.setMenuDisabled(false);
+		ontologyColumn.setMenuDisabled(false);
 		List<ColumnConfig<OntologyEntry, ?>> columns = new ArrayList<ColumnConfig<OntologyEntry, ?>>();
 		columns.add(ontologyColumn);
-		columns.add(categoryColumn);
+		columns.add(labelColumn);
 		columns.add(definitionColumn);
 		columns.add(urlColumn);
 		ColumnModel<OntologyEntry> columnModel = new ColumnModel<OntologyEntry>(columns);
 		Grid<OntologyEntry> grid = new Grid<OntologyEntry>(store, columnModel);
+		grid.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
 		QuickTip quickTip = new QuickTip(grid);
-		categoryColumn.setWidth(200);
+		//labelColumn.setWidth(200);
 		grid.getView().setAutoExpandColumn(definitionColumn);
 		grid.getView().setStripeRows(true);
 		grid.getView().setColumnLines(true);
+		grid.getView().setForceFit(true);
 		grid.setBorders(false);
-		grid.setColumnReordering(false);
-		grid.setStateful(true);
+		grid.setAllowTextSelection(true);
+		grid.setColumnReordering(true);
+		/*grid.setStateful(true);
 		grid.setStateId("ontologiesGrid");
 		GridStateHandler<OntologyEntry> state = new GridStateHandler<OntologyEntry>(grid);
-		state.loadState();
+		state.loadState();*/
 		this.initWidget(grid);
 		
 		bindEvents();
