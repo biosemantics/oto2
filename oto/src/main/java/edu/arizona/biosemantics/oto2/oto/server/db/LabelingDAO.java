@@ -143,8 +143,8 @@ public class LabelingDAO {
 			while(resultSet.next()) {
 				int toDeleteTerm = resultSet.getInt(1);
 				try(Query deleteQuery = new Query("DELETE FROM oto_labeling WHERE term = ?")) {
-					query.setParameter(1, toDeleteTerm);
-					query.execute();
+					deleteQuery.setParameter(1, toDeleteTerm);
+					deleteQuery.execute();
 				}
 			}
 		} catch(Exception e) {

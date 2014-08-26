@@ -231,7 +231,7 @@ public class LabelsView extends PortalLayoutContainer {
 			@Override
 			public void onCreate(Label label) {
 				LabelPortlet labelPortlet = new LabelPortlet(eventBus, label, collection);
-				add(labelPortlet, labelPortletsMap.size() % portalColumnCount);
+				add(labelPortlet, 0);
 				labelPortletsMap.put(label, labelPortlet);
 			}
 		});
@@ -249,6 +249,7 @@ public class LabelsView extends PortalLayoutContainer {
 		this.collection = collection;
 
 		clear();
+		labelPortletsMap.clear();
 		for(Label label : collection.getLabels()) {
 			LabelPortlet labelPortlet = new LabelPortlet(eventBus, label, collection);
 			add(labelPortlet, labelPortletsMap.size() % portalColumnCount);

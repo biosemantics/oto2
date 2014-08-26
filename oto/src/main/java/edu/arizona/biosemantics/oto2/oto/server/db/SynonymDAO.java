@@ -100,8 +100,8 @@ public class SynonymDAO {
 			while(resultSet.next()) {
 				int toDeleteSynonym = resultSet.getInt(1);
 				try(Query deleteQuery = new Query("DELETE FROM oto_synonym WHERE mainTerm = ?")) {
-					query.setParameter(1, toDeleteSynonym);
-					query.execute();
+					deleteQuery.setParameter(1, toDeleteSynonym);
+					deleteQuery.execute();
 				}
 			}
 		} catch(Exception e) {
