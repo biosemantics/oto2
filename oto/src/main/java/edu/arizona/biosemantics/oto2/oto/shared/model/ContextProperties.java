@@ -17,4 +17,6 @@ public interface ContextProperties extends PropertyAccess<Context> {
 	ValueProvider<Context, String> source();
 
 	ValueProvider<Context, String> text();
+	
+	ValueProvider<Context, String> fullText();
 }

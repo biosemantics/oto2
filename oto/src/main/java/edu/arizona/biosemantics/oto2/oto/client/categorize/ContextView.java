@@ -4,23 +4,34 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.google.gwt.cell.client.AbstractCell;
+import com.google.gwt.cell.client.Cell.Context;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
+import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.core.client.Style.SelectionMode;
 import com.sencha.gxt.data.shared.ListStore;
+import com.sencha.gxt.data.shared.ModelKeyProvider;
+import com.sencha.gxt.data.shared.Store;
 import com.sencha.gxt.state.client.GridStateHandler;
 import com.sencha.gxt.widget.core.client.Composite;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.Grid;
+import com.sencha.gxt.widget.core.client.grid.RowExpander;
+import com.sencha.gxt.widget.core.client.grid.RowNumberer;
+import com.sencha.gxt.widget.core.client.grid.filters.GridFilters;
+import com.sencha.gxt.widget.core.client.grid.filters.ListFilter;
+import com.sencha.gxt.widget.core.client.grid.filters.StringFilter;
 import com.sencha.gxt.widget.core.client.tips.QuickTip;
 
 import edu.arizona.biosemantics.oto2.oto.client.categorize.event.TermRenameEvent;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.event.TermSelectEvent;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Location;
+import edu.arizona.biosemantics.oto2.oto.shared.model.OntologyEntry;
 import edu.arizona.biosemantics.oto2.oto.shared.model.TypedContext;
 import edu.arizona.biosemantics.oto2.oto.shared.model.TypedContextProperties;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
@@ -42,6 +53,14 @@ public class ContextView extends Composite {
 	public ContextView(EventBus eventBus) {
 		this.eventBus = eventBus;
 		store.setAutoCommit(true);
+		RowNumberer<TypedContext> numberer = new RowNumberer<TypedContext>();
+	    RowExpander<TypedContext> expander = new RowExpander<TypedContext>(new AbstractCell<TypedContext>() {
+	        @Override
+	        public void render(Context context, TypedContext value, SafeHtmlBuilder sb) {
+	          sb.appendHtmlConstant("<p style='margin: 5px 5px 10px'><b>Full Text:&nbsp;</b>" + value.getFullText() + "</p>");
+	          //sb.appendHtmlConstant("<p style='margin: 5px 5px 10px'><b>Summary:</b> " + desc);
+	        }
+	      });
 		ColumnConfig<TypedContext, String> sourceColumn = new ColumnConfig<TypedContext, String>(contextProperties.source(), 50, SafeHtmlUtils.fromTrustedString("<b>Source</b>"));
 		ColumnConfig<TypedContext, String> textColumn = new ColumnConfig<TypedContext, String>(contextProperties.text(), 100, SafeHtmlUtils.fromTrustedString("<b>Text</b>"));
 		textColumn.setCell(new AbstractCell<String>() {
@@ -59,6 +78,8 @@ public class ContextView extends Composite {
 		textColumn.setMenuDisabled(false);
 		sourceColumn.setMenuDisabled(false);
 		List<ColumnConfig<TypedContext, ?>> columns = new ArrayList<ColumnConfig<TypedContext, ?>>();
+		columns.add(numberer);
+		columns.add(expander);
 		columns.add(sourceColumn);
 		columns.add(textColumn);
 		columns.add(spellingColumn);
@@ -78,6 +99,27 @@ public class ContextView extends Composite {
 		grid.setStateId("contextsGrid");
 		GridStateHandler<TypedContext> state = new GridStateHandler<TypedContext>(grid);
 		state.loadState();*/
+		
+		StringFilter<TypedContext> sourceFilter = new StringFilter<TypedContext>(contextProperties.source());
+		StringFilter<TypedContext> textFilter = new StringFilter<TypedContext>(contextProperties.text());
+		ListStore<String> spellingStore = new ListStore<String>(new ModelKeyProvider<String>() {
+			@Override
+			public String getKey(String item) {
+				return item;
+			}
+		});
+		for(TypedContext.Type type : TypedContext.Type.values()) 
+			spellingStore.add(type.toString());
+		ListFilter<TypedContext, String> spellingFilter = new ListFilter<TypedContext, String>(contextProperties.typeString(), spellingStore);
+		GridFilters<TypedContext> filters = new GridFilters<TypedContext>();
+	    filters.setLocal(true);
+	    filters.addFilter(sourceFilter);
+	    filters.addFilter(textFilter);
+	    filters.addFilter(spellingFilter);
+	    filters.initPlugin(grid);
+	    expander.initPlugin(grid);
+	    numberer.initPlugin(grid);
+		
 		this.initWidget(grid);
 		
 		bindEvents();

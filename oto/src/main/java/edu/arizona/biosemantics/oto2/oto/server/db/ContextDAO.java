@@ -175,7 +175,7 @@ public class ContextDAO {
 	    	//extractedText = extractedText.replaceAll(pattern.toString(), "<b>" + replaceTerm + "</b>");
 	    	extractedText = extractedText.replaceAll("(?i)" + replaceTerm, "<b>" + replaceTerm + "</b>");
 	    	TypedContext typedContext = new TypedContext(String.valueOf(context.getId()) + "-" + type.toString() + "-" + id++, 
-	    			context.getCollectionId(), context.getSource(), extractedText, type);
+	    			context.getCollectionId(), context.getSource(), extractedText, context.getText(), type);
 	    	result.add(typedContext);
 	    }
 	    return result;

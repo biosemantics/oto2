@@ -240,14 +240,14 @@ public class OtoView implements IsWidget {
 			cp.add(labelsView);
 			cp.setContextMenu(labelsView.new LabelsMenu());
 			d = new BorderLayoutData();
-			// d.setMargins(new Margins(0, 1, 1, 0));
+			d.setMargins(new Margins(0, 20, 0, 0));
 			setCenterWidget(cp, d);
 
 			cp = new ContentPanel();
 			cp.setHeadingText("Term Information");
 			cp.add(termInfoView);
 			d = new BorderLayoutData(.40);
-			d.setMargins(new Margins(0, 0, 20, 0));
+			d.setMargins(new Margins(0, 20, 20, 0));
 			d.setCollapsible(true);
 			d.setSplit(true);
 			d.setCollapseMini(true);

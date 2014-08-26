@@ -10,26 +10,20 @@ public class TypedContext implements Serializable {
 	private int collectionId;
 	private String source;
 	private String text;
+	private String fullText;
 	private Type type;
 	
 	public TypedContext() { }
 	
-	public TypedContext(String id, int collectionId, String source, String text, Type type) { 
+	public TypedContext(String id, int collectionId, String source, String text, String fullText, Type type) { 
 		this.id = id;
 		this.collectionId = collectionId;
 		this.source = source;
 		this.text = text;
+		this.fullText = fullText;
 		this.type = type;
 	}
 	
-	public TypedContext(Context context, Type type) {
-		this.id = String.valueOf(context.getId());
-		this.collectionId = context.getCollectionId();
-		this.source = context.getSource();
-		this.text = context.getText();
-		this.type = type;
-	}
-
 	public String getId() {
 		return id;
 	}
@@ -52,6 +46,10 @@ public class TypedContext implements Serializable {
 	
 	public String getTypeString() {
 		return type.toString();
+	}
+	
+	public String getFullText() {
+		return fullText;
 	}
 
 	@Override

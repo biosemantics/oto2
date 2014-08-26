@@ -9,19 +9,25 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.sencha.gxt.core.client.Style.SelectionMode;
+import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.state.client.GridStateHandler;
 import com.sencha.gxt.widget.core.client.Composite;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.Grid;
+import com.sencha.gxt.widget.core.client.grid.RowNumberer;
+import com.sencha.gxt.widget.core.client.grid.filters.GridFilters;
+import com.sencha.gxt.widget.core.client.grid.filters.StringFilter;
 import com.sencha.gxt.widget.core.client.tips.QuickTip;
 
 import edu.arizona.biosemantics.oto2.oto.client.categorize.event.TermSelectEvent;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Location;
 import edu.arizona.biosemantics.oto2.oto.shared.model.LocationProperties;
+import edu.arizona.biosemantics.oto2.oto.shared.model.OntologyEntry;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
+import edu.arizona.biosemantics.oto2.oto.shared.model.TypedContext;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionService;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionServiceAsync;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.RPCCallback;
@@ -37,6 +43,7 @@ public class LocationsView extends Composite {
 	public LocationsView(EventBus eventBus) {
 		this.eventBus = eventBus;
 		store.setAutoCommit(true);
+		RowNumberer<Location> numberer = new RowNumberer<Location>();
 		ColumnConfig<Location, String> instanceColumn = new ColumnConfig<Location, String>(locationProperties.instance(), 50,SafeHtmlUtils.fromTrustedString("<b>Instance</b>"));
 		ColumnConfig<Location, Label> categorizationColumn = new ColumnConfig<Location, Label>(locationProperties.categorization(), 100, SafeHtmlUtils.fromTrustedString("<b>Categorization</b>"));
 		categorizationColumn.setCell(new AbstractCell<Label>() {
@@ -55,6 +62,7 @@ public class LocationsView extends Composite {
 		categorizationColumn.setMenuDisabled(false);
 		instanceColumn.setMenuDisabled(false);
 		List<ColumnConfig<Location, ?>> columns = new ArrayList<ColumnConfig<Location, ?>>();
+		columns.add(numberer);
 		columns.add(instanceColumn);
 		columns.add(categorizationColumn);
 		ColumnModel<Location> columnModel = new ColumnModel<Location>(columns);
@@ -73,6 +81,31 @@ public class LocationsView extends Composite {
 		grid.setStateId("locationsGrid");
 		GridStateHandler<Location> state = new GridStateHandler<Location>(grid);
 		state.loadState();*/
+		
+		StringFilter<Location> instanceFilter = new StringFilter<Location>(locationProperties.instance());
+		StringFilter<Location> categorizationFilter = new StringFilter<Location>(new ValueProvider<Location, String>() {
+			@Override
+			public String getValue(Location object) {
+				return object.getCategorization().getName();
+			}
+			@Override
+			public void setValue(Location object, String value) {
+				object.getCategorization().setName(value);
+			}
+			@Override
+			public String getPath() {
+				// has to return same path as valueprovider used in columnmodel for filter to work; ideally use same valueprovider 
+				// but not possible here
+				return "categorization";
+			}
+		});
+		GridFilters<Location> filters = new GridFilters<Location>();
+	    filters.setLocal(true);
+	    filters.addFilter(instanceFilter);
+	    filters.addFilter(categorizationFilter);
+	    filters.initPlugin(grid);
+	    numberer.initPlugin(grid);
+		
 		this.initWidget(grid);
 		
 		bindEvents();
