@@ -14,7 +14,7 @@
 		<servlet-name>collectionServlet</servlet-name>
 		<url-pattern>/oto/collection</url-pattern>
 	</servlet-mapping>
-		<servlet>
+	<servlet>
 		<servlet-name>contextServlet</servlet-name>
 		<servlet-class>edu.arizona.biosemantics.oto2.oto.server.rpc.ContextService</servlet-class>
 	</servlet>
