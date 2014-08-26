@@ -6,6 +6,8 @@ import java.util.List;
 import com.sencha.gxt.widget.core.client.menu.Item;
 import com.google.gwt.cell.client.TextCell;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.editor.client.Editor;
+import com.google.gwt.editor.client.EditorError;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.shared.EventBus;
@@ -27,6 +29,8 @@ import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.form.ComboBox;
 import com.sencha.gxt.widget.core.client.form.DualListField;
 import com.sencha.gxt.widget.core.client.form.DualListField.Mode;
+import com.sencha.gxt.widget.core.client.form.error.DefaultEditorError;
+import com.sencha.gxt.widget.core.client.form.Validator;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuBar;
 import com.sencha.gxt.widget.core.client.menu.MenuBarItem;
@@ -56,27 +60,43 @@ public class OtoView implements IsWidget {
 
 		public class SelectOntologiesDialog extends Dialog {
 			
-			public SelectOntologiesDialog(List<Ontology> ontologies) {
+			public SelectOntologiesDialog() {
 				setHeadingText("Ontologies to Search");
 				setPredefinedButtons(PredefinedButton.OK);
 				setBodyStyleName("pad-text");
 				getBody().addClassName("pad-text");
-				setHideOnButtonClick(true);
+				setHideOnButtonClick(false);
 				setWidth(500);
 				setHeight(500);
 												
 				final DualListField<Ontology, String> dialListField = new DualListField<Ontology, String>(
 						unselectedListStore, selectedListStore, ontologyProperties.acronym(), new TextCell());
 				dialListField.setMode(Mode.INSERT);
+				dialListField.addValidator(new Validator<List<Ontology>>() {
+					@Override
+					public List<EditorError> validate(Editor<List<Ontology>> editor, List<Ontology> value) {
+						 if (value.containsAll(ontologies) || value.size() <= 10) 
+							 return null;
+						 else {
+						      List<EditorError> errors = new ArrayList<EditorError>();
+						      errors.add(new DefaultEditorError(editor, "You have to select either all, or <= 10 ontologies.", ""));
+						      return errors;
+						 }
+					}
+				});
+				dialListField.setEnableDnd(true);
 				add(dialListField);
 
 				this.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
 					@Override
 					public void onSelect(SelectEvent event) {
-						List<Ontology> selectedOntologies = selectedListStore.getAll();
-						List<Ontology> ontologies = new ArrayList<Ontology>(selectedOntologies.size());
-						ontologies.addAll(selectedOntologies);
-						eventBus.fireEvent(new OntologiesSelectEvent(ontologies));
+						if(dialListField.validate()) {
+							List<Ontology> selectedOntologies = selectedListStore.getAll();
+							List<Ontology> ontologies = new ArrayList<Ontology>(selectedOntologies.size());
+							ontologies.addAll(selectedOntologies);
+							eventBus.fireEvent(new OntologiesSelectEvent(ontologies));
+							hide();
+						}
 					}
 				});
 			}
@@ -141,7 +161,7 @@ public class OtoView implements IsWidget {
 			selectOntologies.addSelectionHandler(new SelectionHandler<Item>() {
 				@Override
 				public void onSelection(SelectionEvent<Item> event) {
-					Dialog dialog = new SelectOntologiesDialog(ontologies);
+					Dialog dialog = new SelectOntologiesDialog();
 					dialog.show();
 				}
 			});

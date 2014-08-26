@@ -13,6 +13,10 @@ import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.state.client.GridStateHandler;
 import com.sencha.gxt.widget.core.client.Composite;
+import com.sencha.gxt.widget.core.client.button.ToolButton;
+import com.sencha.gxt.widget.core.client.button.Tools;
+import com.sencha.gxt.widget.core.client.button.Tools.ToolStyle;
+import com.sencha.gxt.widget.core.client.button.testing.ToolsTestingImpl;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.Grid;
@@ -41,17 +45,30 @@ public class OntologiesView extends Composite {
 	public OntologiesView(EventBus eventBus) {
 		this.eventBus = eventBus;
 		store.setAutoCommit(true);
+		ToolStyle style = GWT.isClient() ? GWT.<Tools> create(Tools.class).icons() : new ToolsTestingImpl().icons();
+		System.out.println("double " + style.doubleRight());
+		
+		ToolButton linkButton = new ToolButton(ToolButton.MINIMIZE);
+		System.out.println(linkButton.getElement());
+		
+		linkButton = new ToolButton(ToolButton.MINIMIZE);
+		System.out.println(linkButton.getElement().getInnerHTML());
+		
+		
+		ColumnConfig<OntologyEntry, String> ontologyColumn = new ColumnConfig<OntologyEntry, String>(ontologyEntryProperties.ontology(), 20, SafeHtmlUtils.fromTrustedString("<b>Ontology</b>"));
 		ColumnConfig<OntologyEntry, String> categoryColumn = new ColumnConfig<OntologyEntry, String>(ontologyEntryProperties.label(), 50, SafeHtmlUtils.fromTrustedString("<b>Label</b>"));
 		ColumnConfig<OntologyEntry, String> definitionColumn = new ColumnConfig<OntologyEntry, String>(ontologyEntryProperties.definition(), 100, SafeHtmlUtils.fromTrustedString("<b>Definition</b>"));
-		ColumnConfig<OntologyEntry, String> urlColumn = new ColumnConfig<OntologyEntry, String>(ontologyEntryProperties.url(), 100, SafeHtmlUtils.fromTrustedString("<b>Hyperlink</b>"));
+		ColumnConfig<OntologyEntry, String> urlColumn = new ColumnConfig<OntologyEntry, String>(ontologyEntryProperties.url(), 10, SafeHtmlUtils.fromTrustedString(""));//"<b>Hyperlink</b>"));
 		urlColumn.setCell(new AbstractCell<String>() {
 			@Override
 		    public void render(Context context, String value, SafeHtmlBuilder sb) {
-		      SafeHtml safeHtml = SafeHtmlUtils.fromTrustedString("<a target=\"_blank\" href=\"" + value + "\">" + value + "</a>");
-		      sb.append(safeHtml);
+				ToolButton linkButton = new ToolButton(ToolButton.DOUBLERIGHT);
+			    SafeHtml safeHtml = SafeHtmlUtils.fromTrustedString("<a target=\"_blank\" href=\"" + value + "\">" + linkButton.getElement().toString() + "</a>");
+			    sb.append(safeHtml);
 		    }
 		});
 		List<ColumnConfig<OntologyEntry, ?>> columns = new ArrayList<ColumnConfig<OntologyEntry, ?>>();
+		columns.add(ontologyColumn);
 		columns.add(categoryColumn);
 		columns.add(definitionColumn);
 		columns.add(urlColumn);

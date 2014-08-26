@@ -41,12 +41,12 @@ public class Configuration {
 			bioportalUrl = properties.getProperty("bioportalUrl");
 			bioportalApiKey = properties.getProperty("bioportalApiKey");
 			
-			CSVReader reader = new CSVReader(new InputStreamReader(loader.getResourceAsStream("defaultCategories.csv")));
-			List<String[]> lines = reader.readAll();
-			for(String[] line : lines) {
-				defaultCategories.add(new Label(line[0], line[1]));
+			try(CSVReader reader = new CSVReader(new InputStreamReader(loader.getResourceAsStream("defaultCategories.csv")))) {
+				List<String[]> lines = reader.readAll();
+				for(String[] line : lines) {
+					defaultCategories.add(new Label(line[0], line[1]));
+				}
 			}
-			reader.close();
 		} catch(Exception e) {
 			e.printStackTrace();
 		}

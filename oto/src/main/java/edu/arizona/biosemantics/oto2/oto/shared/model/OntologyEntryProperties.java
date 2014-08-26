@@ -19,4 +19,6 @@ public interface OntologyEntryProperties extends PropertyAccess<OntologyEntry> {
   ValueProvider<OntologyEntry, String> definition();
   
   ValueProvider<OntologyEntry, String> url();
+  
+  ValueProvider<OntologyEntry, String> ontology();
 }

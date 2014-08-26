@@ -15,17 +15,10 @@ import edu.arizona.biosemantics.oto2.oto.server.Configuration;
 
 public class ConnectionPool {
 
-	private static ConnectionPool instance;
 	private BoneCP connectionPool;
 	private Driver mySqlDriver;
 	
-	public static ConnectionPool getInstance() throws ClassNotFoundException, SQLException, IOException { 
-		if(instance == null)
-			instance = new ConnectionPool();
-		return instance;
-	}
-	
-	private ConnectionPool() throws ClassNotFoundException, SQLException, IOException {
+	public ConnectionPool() throws ClassNotFoundException, SQLException  {
 		Class.forName("com.mysql.jdbc.Driver");
 		mySqlDriver = DriverManager.getDriver("jdbc:mysql://localhost:3306/");
 		

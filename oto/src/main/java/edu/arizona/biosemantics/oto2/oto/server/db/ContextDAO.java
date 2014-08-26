@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import edu.arizona.biosemantics.oto2.oto.server.db.Query.QueryException;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Context;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
@@ -20,32 +21,36 @@ public class ContextDAO {
 
 	protected ContextDAO() {} 
 	
-	public Context get(int id) throws ClassNotFoundException, SQLException, IOException {
+	public Context get(int id)  {
 		Context context = null;
-		Query query = new Query("SELECT * FROM oto_context WHERE id = ?");
-		query.setParameter(1, id);
-		ResultSet result = query.execute();
-		while(result.next()) {
-			context = createContext(result);
+		try(Query query = new Query("SELECT * FROM oto_context WHERE id = ?")) {
+			query.setParameter(1, id);
+			ResultSet result = query.execute();
+			while(result.next()) {
+				context = createContext(result);
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
 		}
-		query.close();
 		return context;
 	}
 	
-	public List<Context> get(Collection collection) throws ClassNotFoundException, SQLException, IOException {
+	public List<Context> get(Collection collection)  {
 		List<Context> contexts = new LinkedList<Context>();
-		Query query = new Query("SELECT * FROM oto_context WHERE collectionId = ?");
-		query.setParameter(1, collection.getId());
-		ResultSet result = query.execute();
-		while(result.next()) {
-			Context context = createContext(result);
-			contexts.add(context);
+		try(Query query = new Query("SELECT * FROM oto_context WHERE collectionId = ?")) {
+			query.setParameter(1, collection.getId());
+			ResultSet result = query.execute();
+			while(result.next()) {
+				Context context = createContext(result);
+				contexts.add(context);
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
 		}
-		query.close();
 		return contexts;
 	}
 	
-	private Context createContext(ResultSet result) throws SQLException, ClassNotFoundException, IOException {
+	private Context createContext(ResultSet result) throws SQLException  {
 		int id = result.getInt(1);
 		int collectionId = result.getInt(2);
 		String source = result.getString(3);
@@ -53,67 +58,82 @@ public class ContextDAO {
 		return new Context(id, collectionId, source, sentence);
 	}
 
-	public Context insert(Context context) throws ClassNotFoundException, SQLException, IOException {
+	public Context insert(Context context)  {
 		if(!context.hasId()) {
-			Query insert = new Query("INSERT INTO `oto_context` " +
-					"(`collection`, `source`, `text`) VALUES (?, ?, ?)");
-			insert.setParameter(1, context.getCollectionId());
-			insert.setParameter(2, context.getSource());
-			insert.setParameter(3, context.getText());
-			insert.execute();
-			ResultSet generatedKeys = insert.getGeneratedKeys();
-			generatedKeys.next();
-			int id = generatedKeys.getInt(1);
-			insert.close();
-			context.setId(id);
+			try(Query insert = new Query("INSERT INTO `oto_context` " +
+					"(`collection`, `source`, `text`) VALUES (?, ?, ?)")) {
+				insert.setParameter(1, context.getCollectionId());
+				insert.setParameter(2, context.getSource());
+				insert.setParameter(3, context.getText());
+				insert.execute();
+				ResultSet generatedKeys = insert.getGeneratedKeys();
+				generatedKeys.next();
+				int id = generatedKeys.getInt(1);
+				context.setId(id);
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
 		}
 		return context;
 	}
 	
-	public void update(Context context) throws SQLException, ClassNotFoundException, IOException {
-		Query query = new Query("UPDATE oto_context "
-				+ "SET collectionId = ?, source = ?, text = ? WHERE id = ?");
-		query.setParameter(1, context.getCollectionId());
-		query.setParameter(2, context.getSource());
-		query.setParameter(3, context.getText());
-		query.setParameter(4, context.getId());
-		query.executeAndClose();
+	public void update(Context context)  {
+		try(Query query = new Query("UPDATE oto_context "
+				+ "SET collectionId = ?, source = ?, text = ? WHERE id = ?")) {
+			query.setParameter(1, context.getCollectionId());
+			query.setParameter(2, context.getSource());
+			query.setParameter(3, context.getText());
+			query.setParameter(4, context.getId());
+			query.execute();
+		} catch(QueryException e) {
+			e.printStackTrace();
+		}
 	}
 	
-	public void remove(Context context) throws ClassNotFoundException, SQLException, IOException {
-		Query query = new Query("DELETE FROM oto_context WHERE id = ?");
-		query.setParameter(1, context.getId());
-		query.executeAndClose();
+	public void remove(Context context)  {
+		try(Query query = new Query("DELETE FROM oto_context WHERE id = ?")) {
+			query.setParameter(1, context.getId());
+			query.execute();
+		} catch(QueryException e) {
+			e.printStackTrace();
+		}
 	}	
 	
-	public void remove(int collectionId) throws ClassNotFoundException, SQLException, IOException {
-		Query query = new Query("DELETE FROM oto_context WHERE collectionId = ?");
-		query.setParameter(1, collectionId);
-		query.executeAndClose();
+	public void remove(int collectionId)  {
+		try(Query query = new Query("DELETE FROM oto_context WHERE collectionId = ?")) {
+			query.setParameter(1, collectionId);
+			query.execute();
+		} catch(QueryException e) {
+			e.printStackTrace();
+		}
 	}
 
-	public List<TypedContext> get(Collection collection, Term term) throws ClassNotFoundException, SQLException, IOException {
+	public List<TypedContext> get(Collection collection, Term term)  {
 		List<Context> contexts = new LinkedList<Context>();
-		Query query = new Query("SELECT * FROM oto_context WHERE collection = ? AND MATCH (text) AGAINST (? IN NATURAL LANGUAGE MODE)");
-		query.setParameter(1, collection.getId());
-		query.setParameter(2, term.getTerm());	
-		ResultSet result = query.execute();
-		while(result.next()) {
-			Context context = createContext(result);
-			contexts.add(context);
-		}
-		query.close();
-		
-		if(term.hasChangedSpelling()) {
-			query = new Query("SELECT * FROM oto_context WHERE collection = ? AND MATCH (text) AGAINST (? IN NATURAL LANGUAGE MODE)");
+		try(Query query = new Query("SELECT * FROM oto_context WHERE collection = ? AND MATCH (text) AGAINST (? IN NATURAL LANGUAGE MODE)")) {
 			query.setParameter(1, collection.getId());
-			query.setParameter(2, term.getOriginalTerm());
-			result = query.execute();
+			query.setParameter(2, term.getTerm());	
+			ResultSet result = query.execute();
 			while(result.next()) {
 				Context context = createContext(result);
 				contexts.add(context);
 			}
-			query.close();
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		if(term.hasChangedSpelling()) {
+			try(Query query = new Query("SELECT * FROM oto_context WHERE collection = ? AND MATCH (text) AGAINST (? IN NATURAL LANGUAGE MODE)")) {
+				query.setParameter(1, collection.getId());
+				query.setParameter(2, term.getOriginalTerm());
+				ResultSet result = query.execute();
+				while(result.next()) {
+					Context context = createContext(result);
+					contexts.add(context);
+				}
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
 		}
 		
 		List<TypedContext> typedContexts = createHighlightedAndShortenedTypedContexts(contexts, term);

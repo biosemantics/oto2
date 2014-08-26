@@ -5,15 +5,17 @@ import java.io.Serializable;
 public class OntologyEntry implements Serializable {
 
 	private String id;
+	private String ontology;
 	private String label;
 	private String definition;
 	private String url;
 	
 	public OntologyEntry() { }
 	
-	public OntologyEntry(String id, String label, String definition, String url) {
+	public OntologyEntry(String id, String ontology, String label, String definition, String url) {
 		super();
 		this.id = id;
+		this.ontology = ontology;
 		this.label = label;
 		this.definition = definition;
 		this.url = url;
@@ -45,6 +47,14 @@ public class OntologyEntry implements Serializable {
 
 	public void setUrl(String url) {
 		this.url = url;
+	}
+
+	public String getOntology() {
+		return ontology;
+	}
+
+	public void setOntology(String ontology) {
+		this.ontology = ontology;
 	}
 
 	

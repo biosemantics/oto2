@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
 
+import edu.arizona.biosemantics.oto2.oto.server.db.Query.QueryException;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Bucket;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Context;
@@ -13,21 +14,42 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 
 public class FilllSample {
 	
-	public static void main(String[] args) throws ClassNotFoundException, SQLException, IOException {
-		Query query = new Query("TRUNCATE TABLE  `oto_collection`");
-		query.executeAndClose();
-		query = new Query("TRUNCATE TABLE  `oto_bucket`");
-		query.executeAndClose();
-		query = new Query("TRUNCATE TABLE  `oto_label`");
-		query.executeAndClose();
-		query = new Query("TRUNCATE TABLE  `oto_labeling`");
-		query.executeAndClose();
-		query = new Query("TRUNCATE TABLE  `oto_synonym`");
-		query.executeAndClose();
-		query = new Query("TRUNCATE TABLE  `oto_context`");
-		query.executeAndClose();
-		query = new Query("TRUNCATE TABLE  `oto_term`");
-		query.executeAndClose();
+	public static void main(String[] args)  {
+		try(Query query = new Query("TRUNCATE TABLE  `oto_collection`")) {
+			query.execute();
+		} catch(QueryException e) {
+			e.printStackTrace();
+		}
+		try(Query query = new Query("TRUNCATE TABLE  `oto_bucket`")) {
+			query.execute();
+		} catch(QueryException e) {
+			e.printStackTrace();
+		}
+		try(Query query = new Query("TRUNCATE TABLE  `oto_label`")) {
+			query.execute();
+		} catch(QueryException e) {
+			e.printStackTrace();
+		}
+		try(Query query = new Query("TRUNCATE TABLE  `oto_labeling`")) {
+			query.execute();
+		} catch(QueryException e) {
+			e.printStackTrace();
+		}
+		try(Query query = new Query("TRUNCATE TABLE  `oto_synonym`")) {
+			query.execute();
+		} catch(QueryException e) {
+			e.printStackTrace();
+		}
+		try(Query query = new Query("TRUNCATE TABLE  `oto_context`")) {
+			query.execute();
+		} catch(QueryException e) {
+			e.printStackTrace();
+		}
+		try(Query query = new Query("TRUNCATE TABLE  `oto_term`")) {
+			query.execute();
+		} catch(QueryException e) {
+			e.printStackTrace();
+		}
 		
 		List<Bucket> buckets = new LinkedList<Bucket>();
 		Bucket b = new Bucket();

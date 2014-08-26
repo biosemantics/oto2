@@ -50,6 +50,12 @@
 		<servlet-name>Jersey Web Application</servlet-name>
 		<url-pattern>/rest/*</url-pattern>
 	</servlet-mapping>
+	
+	<listener>
+		<listener-class>
+			edu.arizona.biosemantics.oto2.oto.server.OTOServletContextListener
+		</listener-class>
+	</listener>
 
 	<!-- Default page to serve -->
 	<welcome-file-list>

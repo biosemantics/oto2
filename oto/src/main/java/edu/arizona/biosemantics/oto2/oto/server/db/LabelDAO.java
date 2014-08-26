@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
 
+import edu.arizona.biosemantics.oto2.oto.server.db.Query.QueryException;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
@@ -25,19 +26,21 @@ public class LabelDAO {
 		this.synonymDAO = synonymDAO;
 	}
 
-	public Label get(int id) throws SQLException, ClassNotFoundException, IOException {
+	public Label get(int id)  {
 		Label label = null;
-		Query query = new Query("SELECT * FROM oto_label WHERE id = ?");
-		query.setParameter(1, id);
-		ResultSet result = query.execute();
-		while(result.next()) {
-			label = createLabel(result);
+		try(Query query = new Query("SELECT * FROM oto_label WHERE id = ?")) {
+			query.setParameter(1, id);
+			ResultSet result = query.execute();
+			while(result.next()) {
+				label = createLabel(result);
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
 		}
-		query.close();
 		return label;
 	}
 	
-	private Label createLabel(ResultSet result) throws SQLException, ClassNotFoundException, IOException {
+	private Label createLabel(ResultSet result) throws SQLException  {
 		int id = result.getInt(1);
 		int collectionId = result.getInt(2);
 		String name = result.getString(3);
@@ -48,53 +51,63 @@ public class LabelDAO {
 		return label;
 	}
 
-	public Label insert(Label label, int collectionId) throws SQLException, ClassNotFoundException, IOException {
+	public Label insert(Label label, int collectionId)  {
 		if(!label.hasId()) {
 			Label result = null;
-			Query insert = new Query("INSERT INTO `oto_label` " +
-					"(`collection`, `name`, `description`) VALUES (?, ?, ?)");
-			insert.setParameter(1, collectionId);
-			insert.setParameter(2, label.getName());
-			insert.setParameter(3, label.getDescription());
-			insert.execute();
-			ResultSet generatedKeys = insert.getGeneratedKeys();
-			generatedKeys.next();
-			int id = generatedKeys.getInt(1);
-			insert.close();
-			
-			label.setId(id);
+			try(Query insert = new Query("INSERT INTO `oto_label` " +
+					"(`collection`, `name`, `description`) VALUES (?, ?, ?)")) {
+				insert.setParameter(1, collectionId);
+				insert.setParameter(2, label.getName());
+				insert.setParameter(3, label.getDescription());
+				insert.execute();
+				ResultSet generatedKeys = insert.getGeneratedKeys();
+				generatedKeys.next();
+				int id = generatedKeys.getInt(1);
+				
+				label.setId(id);
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
 		}
 		return label;
 	}
 
-	public void update(Label label) throws SQLException, ClassNotFoundException, IOException {
-		Query query = new Query("UPDATE oto_label SET name = ?, description = ? WHERE id = ?");
-		query.setParameter(1, label.getName());
-		query.setParameter(2, label.getDescription());
-		query.setParameter(3, label.getId());
-		query.executeAndClose();
-	}
-
-	public void remove(Label label) throws SQLException, ClassNotFoundException, IOException {
-		Query query = new Query("DELETE FROM oto_label WHERE id = ?");
-		query.setParameter(1, label.getId());
-		query.executeAndClose();
-	}
-
-	public List<Label> getLabels(Collection collection) throws SQLException, ClassNotFoundException, IOException {
-		List<Label> labels = new LinkedList<Label>();
-		Query query = new Query("SELECT * FROM oto_label WHERE collection = ?");
-		query.setParameter(1, collection.getId());
-		ResultSet result = query.execute();
-		while(result.next()) {
-			int id = result.getInt(1);
-			labels.add(get(id));
+	public void update(Label label)  {
+		try(Query query = new Query("UPDATE oto_label SET name = ?, description = ? WHERE id = ?")) {
+			query.setParameter(1, label.getName());
+			query.setParameter(2, label.getDescription());
+			query.setParameter(3, label.getId());
+			query.execute();
+		} catch(QueryException e) {
+			e.printStackTrace();
 		}
-		query.close();
+	}
+
+	public void remove(Label label)  {
+		try (Query query = new Query("DELETE FROM oto_label WHERE id = ?")) {
+			query.setParameter(1, label.getId());
+			query.execute();
+		}catch(QueryException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public List<Label> getLabels(Collection collection)  {
+		List<Label> labels = new LinkedList<Label>();
+		try(Query query = new Query("SELECT * FROM oto_label WHERE collection = ?")) {
+			query.setParameter(1, collection.getId());
+			ResultSet result = query.execute();
+			while(result.next()) {
+				int id = result.getInt(1);
+				labels.add(get(id));
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
 		return labels;		
 	}
 
-	public void ensure(Collection collection) throws ClassNotFoundException, SQLException, IOException {
+	public void ensure(Collection collection)  {
 		String ids = "";
 		for(Label label : collection.getLabels()) {
 			if(!label.hasId()) {
@@ -111,23 +124,29 @@ public class LabelDAO {
 		
 		String selectOldLabelsQuery = ids.isEmpty() ? "SELECT id FROM oto_label WHERE collection = ?" : 
 			"SELECT id FROM oto_label WHERE collection = ? AND id NOT IN (" + ids + ")";
-		Query selectOldLabels = new Query(selectOldLabelsQuery);
-		selectOldLabels.setParameter(1, collection.getId());
-		ResultSet resultSet = selectOldLabels.execute();
-		while(resultSet.next()) {
-			int idToDelete = resultSet.getInt(1);
+		try(Query selectOldLabels = new Query(selectOldLabelsQuery)) {
+			selectOldLabels.setParameter(1, collection.getId());
+			ResultSet resultSet = selectOldLabels.execute();
+			while(resultSet.next()) {
+				int idToDelete = resultSet.getInt(1);
+				
+				try(Query removeOldLabels = new Query("DELETE FROM oto_label WHERE id = ?")) {
+					removeOldLabels.setParameter(1, idToDelete);
+					removeOldLabels.execute();
+				}
+				
+				try(Query removeOldSynonyms = new Query("DELETE FROM oto_synonym WHERE label = ?")) {
+					removeOldSynonyms.setParameter(1, idToDelete);
+					removeOldSynonyms.execute();
+				}
 			
-			Query removeOldLabels = new Query("DELETE FROM oto_label WHERE id = ?");
-			removeOldLabels.setParameter(1, idToDelete);
-			removeOldLabels.executeAndClose();
-			
-			Query removeOldSynonyms = new Query("DELETE FROM oto_synonym WHERE label = ?");
-			removeOldSynonyms.setParameter(1, idToDelete);
-			removeOldSynonyms.executeAndClose();
-		
-			Query removeOldLabeling = new Query("DELETE FROM oto_labeling WHERE label = ?");
-			removeOldLabeling.setParameter(1, idToDelete);
-			removeOldLabeling.executeAndClose();
+				try(Query removeOldLabeling = new Query("DELETE FROM oto_labeling WHERE label = ?")) {
+					removeOldLabeling.setParameter(1, idToDelete);
+					removeOldLabeling.execute();
+				}
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
 		}
 			
 		for(Label label : collection.getLabels()) {

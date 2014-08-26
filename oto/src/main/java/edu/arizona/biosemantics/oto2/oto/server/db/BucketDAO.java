@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
 
+import edu.arizona.biosemantics.oto2.oto.server.db.Query.QueryException;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Bucket;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
@@ -25,19 +26,21 @@ public class BucketDAO {
 		this.labelingDAO = labelingDAO;
 	}
 
-	public Bucket get(int id) throws SQLException, ClassNotFoundException, IOException {
+	public Bucket get(int id) {
 		Bucket bucket = null;
-		Query query = new Query("SELECT * FROM oto_bucket WHERE id = ?");
-		query.setParameter(1, id);
-		ResultSet result = query.execute();
-		while(result.next()) {
-			bucket = createBucket(result);
+		try(Query query = new Query("SELECT * FROM oto_bucket WHERE id = ?")) {
+			query.setParameter(1, id);
+			ResultSet result = query.execute();
+			while(result.next()) {
+				bucket = createBucket(result);
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
 		}
-		query.close();
 		return bucket;
 	}
 	
-	private Bucket createBucket(ResultSet result) throws ClassNotFoundException, SQLException, IOException {
+	private Bucket createBucket(ResultSet result) throws SQLException  {
 		int id = result.getInt(1);
 		int collectionId = result.getInt(2);
 		String name = result.getString(3);
@@ -48,64 +51,75 @@ public class BucketDAO {
 		return bucket;
 	}
 
-	public Bucket insert(Bucket bucket, int collectionId) throws SQLException, ClassNotFoundException, IOException {
+	public Bucket insert(Bucket bucket, int collectionId)  {
 		if(!bucket.hasId()) {
-			Query insert = new Query("INSERT INTO `oto_bucket` " +
-					"(`collection`, `name`, `description`) VALUES (?, ?, ?)");
-			insert.setParameter(1, collectionId);
-			insert.setParameter(2, bucket.getName());
-			insert.setParameter(3, bucket.getDescription());
-			insert.execute();
-			ResultSet generatedKeys = insert.getGeneratedKeys();
-			generatedKeys.next();
-			int id = generatedKeys.getInt(1);
-			insert.close();
-			bucket.setId(id);
-			
-			for(Term term : bucket.getTerms())
-				termDAO.insert(term, bucket.getId());
+			try (Query insert = new Query("INSERT INTO `oto_bucket` " +
+					"(`collection`, `name`, `description`) VALUES (?, ?, ?)")) {
+				insert.setParameter(1, collectionId);
+				insert.setParameter(2, bucket.getName());
+				insert.setParameter(3, bucket.getDescription());
+				insert.execute();
+				ResultSet generatedKeys = insert.getGeneratedKeys();
+				generatedKeys.next();
+				int id = generatedKeys.getInt(1);
+				
+				bucket.setId(id);
+				
+				for(Term term : bucket.getTerms())
+					termDAO.insert(term, bucket.getId());
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
 		}
 		return bucket;
 	}
 
-	public void update(Bucket bucket) throws SQLException, ClassNotFoundException, IOException {
-		Query query = new Query("UPDATE oto_bucket SET name = ?, description = ? WHERE id = ?");
-		query.setParameter(1, bucket.getName());
-		query.setParameter(2, bucket.getDescription());
-		query.setParameter(3, bucket.getId());
-		
-		Bucket oldBucket = this.get(bucket.getId());
-		for(Term term : oldBucket.getTerms()) {
-			termDAO.remove(term);
+	public void update(Bucket bucket)  {
+		try(Query query = new Query("UPDATE oto_bucket SET name = ?, description = ? WHERE id = ?")) {
+			query.setParameter(1, bucket.getName());
+			query.setParameter(2, bucket.getDescription());
+			query.setParameter(3, bucket.getId());
+			
+			Bucket oldBucket = this.get(bucket.getId());
+			for(Term term : oldBucket.getTerms()) {
+				termDAO.remove(term);
+			}
+			for(Term term : bucket.getTerms()) {
+				termDAO.insert(term, bucket.getId());
+			}
+			query.execute();
+		} catch (QueryException e) {
+			e.printStackTrace();
 		}
-		for(Term term : bucket.getTerms()) {
-			termDAO.insert(term, bucket.getId());
-		}
-		query.executeAndClose();
 	}
 
-	public void remove(Bucket bucket) throws SQLException, ClassNotFoundException, IOException {
-		Query query = new Query("DELETE FROM oto_bucket WHERE id = ?");
-		query.setParameter(1, bucket.getId());
-		query.executeAndClose();
+	public void remove(Bucket bucket)  {
+		try(Query query = new Query("DELETE FROM oto_bucket WHERE id = ?")) {
+			query.setParameter(1, bucket.getId());
+			query.execute();
+		} catch (QueryException e) {
+			e.printStackTrace();
+		}
 		
 		for(Term term :  bucket.getTerms())
 			termDAO.remove(term);
 	}
 	
-	public List<Bucket> getBuckets(Collection collection) throws SQLException, ClassNotFoundException, IOException {
+	public List<Bucket> getBuckets(Collection collection)  {
 		List<Bucket> buckets = new LinkedList<Bucket>();
-		Query query = new Query("SELECT * FROM oto_bucket WHERE collection = ?");
-		query.setParameter(1, collection.getId());
-		ResultSet result = query.execute();
-		while(result.next()) {
-			buckets.add(createBucket(result));
+		try(Query query = new Query("SELECT * FROM oto_bucket WHERE collection = ?")) {
+			query.setParameter(1, collection.getId());
+			ResultSet result = query.execute();
+			while(result.next()) {
+				buckets.add(createBucket(result));
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
 		}
-		query.close();
 		return buckets;		
 	}
 
-	public void ensure(Collection collection) throws ClassNotFoundException, SQLException, IOException {
+	public void ensure(Collection collection)  {
 		for(Bucket bucket : collection.getBuckets()) {
 			for(Term term : bucket.getTerms()) {
 				termDAO.update(term, bucket.getId());

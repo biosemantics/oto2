@@ -63,7 +63,7 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	}
 	
 	@Override
-	public Collection insert(Collection collection) throws ClassNotFoundException, SQLException, IOException {
+	public Collection insert(Collection collection)  {
 		if(collection.getLabels() == null || collection.getLabels().isEmpty())
 			collection.setLabels(Configuration.defaultCategories);
 		if(collection.getSecret() == null || collection.getSecret().isEmpty())
