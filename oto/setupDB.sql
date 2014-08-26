@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS `oto_synonym` (
   `label` bigint(20) unsigned NOT NULL,
   `synonymTerm` bigint(20) unsigned NOT NULL,
   `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE KEY `synonym` (`termA`,`label`,`termB`)
+  UNIQUE KEY `synonym` (`mainTerm`,`label`,`synonymTerm`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
