@@ -1,6 +1,7 @@
 package edu.arizona.biosemantics.oto2.oto.server.rpc;
 
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
@@ -26,7 +27,7 @@ public class OntologyService extends RemoteServiceServlet implements IOntologySe
 	}
 	
 	@Override
-	public List<Ontology> getOntologies() throws InterruptedException, ExecutionException {
+	public Set<Ontology> getOntologies() throws InterruptedException, ExecutionException {
 		return daoManager.getOntologyDAO().getOntologies();
 	}
 

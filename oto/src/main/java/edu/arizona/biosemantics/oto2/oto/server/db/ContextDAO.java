@@ -149,10 +149,10 @@ public class ContextDAO {
 		contextsSet.addAll(contexts);
 		
 		for(Context context : contextsSet) {
-			Pattern originalPattern = Pattern.compile("\\b" + term.getOriginalTerm() + "\\b");
+			Pattern originalPattern = Pattern.compile("\\b(?i)" + term.getOriginalTerm() + "\\b");
 			result.addAll(extract(originalPattern, term.getOriginalTerm(), context, Type.original));
 			if(term.hasChangedSpelling()) {
-				Pattern currentPattern = Pattern.compile("\\b" + term.getTerm() + "\\b");
+				Pattern currentPattern = Pattern.compile("\\b(?i)" + term.getTerm() + "\\b");
 				result.addAll(extract(currentPattern, term.getTerm(), context, Type.updated));
 			}
 		}
@@ -172,7 +172,8 @@ public class ContextDAO {
 	    	if(endText > context.getText().length())
 	    		endText = context.getText().length();
 	    	String extractedText = "..." + context.getText().substring(startText, endText) + "...";
-	    	extractedText = extractedText.replaceAll(pattern.toString(), "<b>" + replaceTerm + "</b>");
+	    	//extractedText = extractedText.replaceAll(pattern.toString(), "<b>" + replaceTerm + "</b>");
+	    	extractedText = extractedText.replaceAll("(?i)" + replaceTerm, "<b>" + replaceTerm + "</b>");
 	    	TypedContext typedContext = new TypedContext(String.valueOf(context.getId()) + "-" + type.toString() + "-" + id++, 
 	    			context.getCollectionId(), context.getSource(), extractedText, type);
 	    	result.add(typedContext);

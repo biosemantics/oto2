@@ -1,6 +1,7 @@
 package edu.arizona.biosemantics.oto2.oto.shared.rpc;
 
 import java.util.List;
+import java.util.Set;
 
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
@@ -20,6 +21,6 @@ public interface IOntologyService extends RemoteService {
 	
 	public List<OntologyEntry> getOntologyEntries(Term term, List<Ontology> ontologies) throws Exception;
 	
-	public List<Ontology> getOntologies() throws Exception;
+	public Set<Ontology> getOntologies() throws Exception;
 	
 }

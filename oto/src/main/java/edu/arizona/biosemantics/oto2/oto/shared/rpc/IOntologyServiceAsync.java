@@ -1,6 +1,7 @@
 package edu.arizona.biosemantics.oto2.oto.shared.rpc;
 
 import java.util.List;
+import java.util.Set;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
 
@@ -17,6 +18,6 @@ public interface IOntologyServiceAsync {
 	
 	public void getOntologyEntries(Term term, List<Ontology> ontologies, AsyncCallback<List<OntologyEntry>> callback);
 	
-	public void getOntologies(AsyncCallback<List<Ontology>> callback);
+	public void getOntologies(AsyncCallback<Set<Ontology>> callback);
 		
 }

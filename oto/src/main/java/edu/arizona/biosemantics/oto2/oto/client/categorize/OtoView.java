@@ -1,7 +1,9 @@
 package edu.arizona.biosemantics.oto2.oto.client.categorize;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.sencha.gxt.widget.core.client.menu.Item;
 import com.google.gwt.cell.client.TextCell;
@@ -75,11 +77,12 @@ public class OtoView implements IsWidget {
 				dialListField.addValidator(new Validator<List<Ontology>>() {
 					@Override
 					public List<EditorError> validate(Editor<List<Ontology>> editor, List<Ontology> value) {
-						 if (value.containsAll(ontologies) || value.size() <= 10) 
+						 if (value.size() <= 10) // || value.containsAll(ontologies) ||) 
 							 return null;
 						 else {
 						      List<EditorError> errors = new ArrayList<EditorError>();
-						      errors.add(new DefaultEditorError(editor, "You have to select either all, or <= 10 ontologies.", ""));
+						      // errors.add(new DefaultEditorError(editor, "You have to select either all, or <= 10 ontologies.", ""));
+						       errors.add(new DefaultEditorError(editor, "You can't select more than 10 ontologies.", ""));
 						      return errors;
 						 }
 					}
@@ -92,7 +95,7 @@ public class OtoView implements IsWidget {
 					public void onSelect(SelectEvent event) {
 						if(dialListField.validate()) {
 							List<Ontology> selectedOntologies = selectedListStore.getAll();
-							List<Ontology> ontologies = new ArrayList<Ontology>(selectedOntologies.size());
+							Set<Ontology> ontologies = new LinkedHashSet<Ontology>(selectedOntologies.size());
 							ontologies.addAll(selectedOntologies);
 							eventBus.fireEvent(new OntologiesSelectEvent(ontologies));
 							hide();
@@ -103,10 +106,9 @@ public class OtoView implements IsWidget {
 
 		}
 		
-		private ListStore<Term> termStore = new ListStore<Term>(
-				termProperties.key());
+		private ListStore<Term> termStore = new ListStore<Term>(termProperties.key());
 		private EventBus eventBus;
-		protected List<Ontology> ontologies;
+		protected Set<Ontology> ontologies;
 		private ListStore<Ontology> unselectedListStore = new ListStore<Ontology>(ontologyProperties.key());
 		private ListStore<Ontology> selectedListStore = new ListStore<Ontology>(ontologyProperties.key());
 		private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
@@ -191,12 +193,12 @@ public class OtoView implements IsWidget {
 			add(questionsItem);
 			
 			//already store ontologies, otherwise delay when requested on button press
-			ontologyService.getOntologies(new RPCCallback<List<Ontology>>() {
+			ontologyService.getOntologies(new RPCCallback<Set<Ontology>>() {
 				@Override
-				public void onSuccess(List<Ontology> result) {
+				public void onSuccess(Set<Ontology> result) {
 					MenuView.this.ontologies = result;
-					selectedListStore.addAll(result);
-					eventBus.fireEvent(new OntologiesSelectEvent(result));
+					unselectedListStore.addAll(result);
+					eventBus.fireEvent(new OntologiesSelectEvent(new LinkedHashSet<Ontology>()));
 				}
 			});
 			selectedListStore.addSortInfo(new StoreSortInfo<Ontology>(ontologyProperties.acronym(), SortDir.ASC));
@@ -244,7 +246,7 @@ public class OtoView implements IsWidget {
 			cp = new ContentPanel();
 			cp.setHeadingText("Term Information");
 			cp.add(termInfoView);
-			d = new BorderLayoutData(.20);
+			d = new BorderLayoutData(.40);
 			d.setMargins(new Margins(0, 0, 20, 0));
 			d.setCollapsible(true);
 			d.setSplit(true);

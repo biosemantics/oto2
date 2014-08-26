@@ -1,7 +1,10 @@
 package edu.arizona.biosemantics.oto2.oto.client.categorize;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.cell.client.Cell.Context;
@@ -38,26 +41,24 @@ public class OntologiesView extends Composite {
 	private static final OntologyEntryProperties ontologyEntryProperties = GWT.create(OntologyEntryProperties.class);
 	private ListStore<OntologyEntry> store = new ListStore<OntologyEntry>(ontologyEntryProperties.key());
 	private IOntologyServiceAsync ontologyService = GWT.create(IOntologyService.class);
-	private List<Ontology> selectedOntologies = null;
+	private Set<Ontology> selectedOntologies = null; //will search all if nothing is selected initially
 	
 	private EventBus eventBus;
 	
 	public OntologiesView(EventBus eventBus) {
 		this.eventBus = eventBus;
-		store.setAutoCommit(true);
-		ToolStyle style = GWT.isClient() ? GWT.<Tools> create(Tools.class).icons() : new ToolsTestingImpl().icons();
-		System.out.println("double " + style.doubleRight());
-		
-		ToolButton linkButton = new ToolButton(ToolButton.MINIMIZE);
-		System.out.println(linkButton.getElement());
-		
-		linkButton = new ToolButton(ToolButton.MINIMIZE);
-		System.out.println(linkButton.getElement().getInnerHTML());
-		
-		
+		store.setAutoCommit(true);	
 		ColumnConfig<OntologyEntry, String> ontologyColumn = new ColumnConfig<OntologyEntry, String>(ontologyEntryProperties.ontology(), 20, SafeHtmlUtils.fromTrustedString("<b>Ontology</b>"));
 		ColumnConfig<OntologyEntry, String> categoryColumn = new ColumnConfig<OntologyEntry, String>(ontologyEntryProperties.label(), 50, SafeHtmlUtils.fromTrustedString("<b>Label</b>"));
 		ColumnConfig<OntologyEntry, String> definitionColumn = new ColumnConfig<OntologyEntry, String>(ontologyEntryProperties.definition(), 100, SafeHtmlUtils.fromTrustedString("<b>Definition</b>"));
+		definitionColumn.setCell(new AbstractCell<String>() {
+			@Override
+		    public void render(Context context, String value, SafeHtmlBuilder sb) {
+		      SafeHtml safeHtml = SafeHtmlUtils.fromTrustedString(value);
+		      sb.append(safeHtml);
+		    }
+		});
+		
 		ColumnConfig<OntologyEntry, String> urlColumn = new ColumnConfig<OntologyEntry, String>(ontologyEntryProperties.url(), 10, SafeHtmlUtils.fromTrustedString(""));//"<b>Hyperlink</b>"));
 		urlColumn.setCell(new AbstractCell<String>() {
 			@Override
@@ -89,7 +90,7 @@ public class OntologiesView extends Composite {
 		bindEvents();
 	}
 	
-	public void setOntologyEntries(List<OntologyEntry> ontologyEntries) {
+	public void setOntologyEntries(Collection<OntologyEntry> ontologyEntries) {
 		store.clear();
 		store.addAll(ontologyEntries);
 	}
@@ -97,7 +98,7 @@ public class OntologiesView extends Composite {
 	private void bindEvents() {
 		eventBus.addHandler(OntologiesSelectEvent.TYPE, new OntologiesSelectEvent.OntologiesSelectHandler() {
 			@Override
-			public void onSelect(List<Ontology> ontologies) {
+			public void onSelect(Set<Ontology> ontologies) {
 				selectedOntologies = ontologies;
 			}
 		});
@@ -112,7 +113,8 @@ public class OntologiesView extends Composite {
 						}
 					});
 				} else {
-					ontologyService.getOntologyEntries(term, selectedOntologies, new RPCCallback<List<OntologyEntry>>() {
+					ontologyService.getOntologyEntries(term, new LinkedList<Ontology>(selectedOntologies), 
+							new RPCCallback<List<OntologyEntry>>() {
 						@Override
 						public void onSuccess(List<OntologyEntry> ontologyEntries) {
 							setOntologyEntries(ontologyEntries);
