@@ -25,6 +25,8 @@ import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.Dialog;
 import com.sencha.gxt.widget.core.client.container.BorderLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.NorthSouthContainer;
+import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
+import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
 import com.sencha.gxt.widget.core.client.container.Viewport;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
@@ -275,7 +277,7 @@ public class OtoView implements IsWidget {
 	private MenuView menuView;
 	private CategorizeView categorizeView;
 	private Collection collection;
-	private NorthSouthContainer container = new NorthSouthContainer();
+	private VerticalLayoutContainer verticalLayoutContainer = new VerticalLayoutContainer();
 	private static final TermProperties termProperties = GWT
 			.create(TermProperties.class);
 
@@ -284,11 +286,8 @@ public class OtoView implements IsWidget {
 		categorizeView = new CategorizeView(eventBus);
 		menuView = new MenuView(eventBus);
 
-		container.setNorthWidget(menuView);
-		Viewport southViewport = new Viewport();
-		southViewport.add(categorizeView);
-		container.setSouthWidget(southViewport);
-
+		verticalLayoutContainer.add(menuView,new VerticalLayoutData(1,-1));
+		verticalLayoutContainer.add(categorizeView,new VerticalLayoutData(1,1));
 	}
 
 	public void setCollection(Collection collection) {
@@ -299,7 +298,7 @@ public class OtoView implements IsWidget {
 
 	@Override
 	public Widget asWidget() {
-		return container;
+		return verticalLayoutContainer;
 	}
 
 }
