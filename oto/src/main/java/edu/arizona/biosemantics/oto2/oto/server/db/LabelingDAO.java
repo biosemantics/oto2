@@ -137,10 +137,17 @@ public class LabelingDAO {
 	}
 
 	public void remove(Collection collection)  {
-		try(Query query = new Query("DELETE FROM oto_labeling l, oto_term t, oto_bucket b WHERE b.collection = ? AND t.bucket = b.id AND l.term = t.id")) {
+		try(Query query = new Query("SELECT l.term FROM oto_labeling l, oto_term t, oto_bucket b WHERE b.collection = ? AND t.bucket = b.id AND l.term = t.id")) {
 			query.setParameter(1, collection.getId());
-			query.execute();
-		} catch(QueryException e) {
+			ResultSet resultSet = query.execute();
+			while(resultSet.next()) {
+				int toDeleteTerm = resultSet.getInt(1);
+				try(Query deleteQuery = new Query("DELETE FROM oto_labeling WHERE term = ?")) {
+					query.setParameter(1, toDeleteTerm);
+					query.execute();
+				}
+			}
+		} catch(Exception e) {
 			e.printStackTrace();
 		}	
 	}

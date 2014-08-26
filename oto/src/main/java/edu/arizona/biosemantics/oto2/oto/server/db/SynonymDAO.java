@@ -94,12 +94,19 @@ public class SynonymDAO {
 	}
 
 	public void remove(Collection collection)  {
-		try(Query query = new Query("DELETE FROM oto_synonym s, oto_term t, oto_bucket b WHERE b.collection = ? AND t.bucket = b.id AND s.mainTerm = t.id")) {
+		try(Query query = new Query("SELECT s.mainTerm FROM oto_synonym s, oto_term t, oto_bucket b WHERE b.collection = ? AND t.bucket = b.id AND s.mainTerm = t.id ")) {
 			query.setParameter(1, collection.getId());
-			query.execute();
-		} catch(QueryException e) {
+			ResultSet resultSet = query.execute();
+			while(resultSet.next()) {
+				int toDeleteSynonym = resultSet.getInt(1);
+				try(Query deleteQuery = new Query("DELETE FROM oto_synonym WHERE mainTerm = ?")) {
+					query.setParameter(1, toDeleteSynonym);
+					query.execute();
+				}
+			}
+		} catch(Exception e) {
 			e.printStackTrace();
-		}	
+		}		
 	}
 	
 }
