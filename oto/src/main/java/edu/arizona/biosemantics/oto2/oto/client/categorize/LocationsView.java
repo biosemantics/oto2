@@ -8,6 +8,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
+import com.sencha.gxt.core.client.Style.HideMode;
 import com.sencha.gxt.core.client.Style.SelectionMode;
 import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.data.shared.ListStore;
@@ -39,6 +40,7 @@ public class LocationsView extends Composite {
 	private ListStore<Location> store = new ListStore<Location>(locationProperties.key());
 	private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
 	private EventBus eventBus;
+	private Grid<Location> grid;
 
 	public LocationsView(EventBus eventBus) {
 		this.eventBus = eventBus;
@@ -66,7 +68,7 @@ public class LocationsView extends Composite {
 		columns.add(instanceColumn);
 		columns.add(categorizationColumn);
 		ColumnModel<Location> columnModel = new ColumnModel<Location>(columns);
-		Grid<Location> grid = new Grid<Location>(store, columnModel);
+		grid = new Grid<Location>(store, columnModel);
 		grid.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
 		QuickTip quickTip = new QuickTip(grid);
 		//instanceColumn.setWidth(200);
@@ -128,6 +130,9 @@ public class LocationsView extends Composite {
 	public void setLocations(List<Location> locations) {
 		store.clear();
 		store.addAll(locations);
+		
+		//bug: http://www.sencha.com/forum/showthread.php?285982-Grid-ColumnHeader-Menu-missing
+		grid.getView().refresh(true);
 	}
 
 }

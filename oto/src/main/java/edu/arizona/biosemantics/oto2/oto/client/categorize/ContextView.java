@@ -10,6 +10,7 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
+import com.sencha.gxt.core.client.Style.HideMode;
 import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.core.client.Style.SelectionMode;
 import com.sencha.gxt.data.shared.ListStore;
@@ -49,6 +50,7 @@ public class ContextView extends Composite {
 	
 	private EventBus eventBus;
 	private Collection collection;
+	private Grid<TypedContext> grid;
 	
 	public ContextView(EventBus eventBus) {
 		this.eventBus = eventBus;
@@ -84,7 +86,7 @@ public class ContextView extends Composite {
 		columns.add(textColumn);
 		columns.add(spellingColumn);
 		ColumnModel<TypedContext> columnModel = new ColumnModel<TypedContext>(columns);
-		Grid<TypedContext> grid = new Grid<TypedContext>(store, columnModel);
+		grid = new Grid<TypedContext>(store, columnModel);
 		grid.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
 		QuickTip quickTip = new QuickTip(grid);
 		//sourceColumn.setWidth(200);
@@ -156,5 +158,8 @@ public class ContextView extends Composite {
 
 	public void setCollection(Collection collection) {
 		this.collection = collection;
+		
+		//bug: http://www.sencha.com/forum/showthread.php?285982-Grid-ColumnHeader-Menu-missing
+		grid.getView().refresh(true);
 	}
 }

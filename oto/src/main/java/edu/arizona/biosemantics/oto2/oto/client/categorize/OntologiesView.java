@@ -15,6 +15,7 @@ import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.client.Window;
 import com.sencha.gxt.cell.core.client.TextButtonCell;
+import com.sencha.gxt.core.client.Style.HideMode;
 import com.sencha.gxt.core.client.Style.SelectionMode;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
@@ -57,6 +58,7 @@ public class OntologiesView extends Composite {
 	private Set<Ontology> selectedOntologies = null; //will search all if nothing is selected initially
 	
 	private EventBus eventBus;
+	private Grid<OntologyEntry> grid;
 	
 	public OntologiesView(EventBus eventBus) {
 		this.eventBus = eventBus;
@@ -126,7 +128,7 @@ public class OntologiesView extends Composite {
 		columns.add(urlColumn);
 		ColumnModel<OntologyEntry> columnModel = new ColumnModel<OntologyEntry>(columns);
 				
-	    Grid<OntologyEntry> grid = new Grid<OntologyEntry>(store, columnModel);
+	    grid = new Grid<OntologyEntry>(store, columnModel);
 		grid.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
 		QuickTip quickTip = new QuickTip(grid);
 		//labelColumn.setWidth(200);
@@ -162,6 +164,9 @@ public class OntologiesView extends Composite {
 	public void setOntologyEntries(Collection<OntologyEntry> ontologyEntries) {
 		store.clear();
 		store.addAll(ontologyEntries);
+		
+		//bug: http://www.sencha.com/forum/showthread.php?285982-Grid-ColumnHeader-Menu-missing
+		grid.getView().refresh(true);
 	}
 	
 	private void bindEvents() {
