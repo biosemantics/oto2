@@ -20,7 +20,7 @@ public class Label implements Serializable {
 	private int id = - 1;
 	private String name;
 	private int collectionId;
-	private String description;
+	private String description = "";
 	private List<Term> mainTerms = new LinkedList<Term>();
 	private Map<Term, List<Term>> mainTermSynonymsMap = new HashMap<Term, List<Term>>();
 	

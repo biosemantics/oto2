@@ -83,9 +83,9 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 		List<Location> result = new LinkedList<Location>();
 		Set<Label> labels = daoManager.getLabelingDAO().get(term);
 		if(labels.isEmpty())
-			result.add(new Location(term.getTerm(), "uncategorized"));
+			result.add(new Location(term.getTerm(), null));
 		for(Label label : labels) {
-			result.add(new Location(term.getTerm(), label.getName()));
+			result.add(new Location(term.getTerm(), label));
 		}
 		return result;
 	}

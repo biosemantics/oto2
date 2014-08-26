@@ -15,6 +15,7 @@ import com.sencha.gxt.widget.core.client.Composite;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.Grid;
+import com.sencha.gxt.widget.core.client.tips.QuickTip;
 
 import edu.arizona.biosemantics.oto2.oto.client.categorize.event.TermRenameEvent;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.event.TermSelectEvent;
@@ -56,6 +57,7 @@ public class ContextView extends Composite {
 		columns.add(spellingColumn);
 		ColumnModel<TypedContext> columnModel = new ColumnModel<TypedContext>(columns);
 		Grid<TypedContext> grid = new Grid<TypedContext>(store, columnModel);
+		QuickTip quickTip = new QuickTip(grid);
 		sourceColumn.setWidth(200);
 		grid.getView().setAutoExpandColumn(textColumn);
 		grid.getView().setStripeRows(true);

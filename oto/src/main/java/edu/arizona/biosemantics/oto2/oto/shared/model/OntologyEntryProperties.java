@@ -20,5 +20,7 @@ public interface OntologyEntryProperties extends PropertyAccess<OntologyEntry> {
   
   ValueProvider<OntologyEntry, String> url();
   
-  ValueProvider<OntologyEntry, String> ontology();
+  ValueProvider<OntologyEntry, String> ontologyAcronym();
+  
+  ValueProvider<OntologyEntry, String> ontologyName();
 }

@@ -5,17 +5,19 @@ import java.io.Serializable;
 public class OntologyEntry implements Serializable {
 
 	private String id;
-	private String ontology;
+	private String ontologyAcronym;
+	private String ontologyName;
 	private String label;
 	private String definition;
 	private String url;
 	
 	public OntologyEntry() { }
 	
-	public OntologyEntry(String id, String ontology, String label, String definition, String url) {
+	public OntologyEntry(String id, String ontologyAcronym, String ontologyName, String label, String definition, String url) {
 		super();
 		this.id = id;
-		this.ontology = ontology;
+		this.ontologyAcronym = ontologyAcronym;
+		this.ontologyName = ontologyName;
 		this.label = label;
 		this.definition = definition;
 		this.url = url;
@@ -49,12 +51,12 @@ public class OntologyEntry implements Serializable {
 		this.url = url;
 	}
 
-	public String getOntology() {
-		return ontology;
+	public String getOntologyName() {
+		return ontologyName;
 	}
 
-	public void setOntology(String ontology) {
-		this.ontology = ontology;
+	public void setOntologyName(String ontologyName) {
+		this.ontologyName = ontologyName;
 	}
 
 	@Override
@@ -80,6 +82,14 @@ public class OntologyEntry implements Serializable {
 		} else if (!id.equals(other.id))
 			return false;
 		return true;
+	}
+
+	public String getOntologyAcronym() {
+		return ontologyAcronym;
+	}
+	
+	public void setOntologyAcronym(String ontologyAcronym) {
+		this.ontologyAcronym = ontologyAcronym;
 	}
 
 	

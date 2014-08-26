@@ -59,7 +59,8 @@ public class OntologyDAO {
 				//if(searchResult.getLabel().trim().equalsIgnoreCase(search.getQuery())) 
 					
 					//id's in result are not unique
-					result.add(new OntologyEntry(searchResult.getId() + "-server-" + result.size(), getOntologyAcronym(searchResult.getOntology()),
+					result.add(new OntologyEntry(searchResult.getId() + "-server-" + result.size(), 
+							getOntologyAcronym(searchResult.getOntology()), getOntologyName(searchResult.getOntology()),
 							searchResult.getLabel(), "", searchResult.getId()));
 			} else {
 				
@@ -73,12 +74,19 @@ public class OntologyDAO {
 							definition = definition.replaceAll("(?i)" + search.getQuery(), "<b>" + search.getQuery() + "</b>");
 						
 							//id's in result are not unique
-							result.add(new OntologyEntry(searchResult.getId() + "-server-" + result.size(), getOntologyAcronym(searchResult.getOntology()),
+							result.add(new OntologyEntry(searchResult.getId() + "-server-" + result.size(), 
+									getOntologyAcronym(searchResult.getOntology()), getOntologyName(searchResult.getOntology()),
 									searchResult.getLabel(), definition, searchResult.getId()));
 						//}
 					}
 			}
 		}
+	}
+
+	private String getOntologyName(String ontologyId) {
+		if(this.lastRetrievedOntologiesMap.containsKey(ontologyId)) 
+			return lastRetrievedOntologiesMap.get(ontologyId).getName();
+		return ontologyId;
 	}
 
 	private String getOntologyAcronym(String ontologyId) {

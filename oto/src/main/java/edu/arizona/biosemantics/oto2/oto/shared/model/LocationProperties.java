@@ -15,5 +15,5 @@ public interface LocationProperties extends PropertyAccess<Location> {
  
   ValueProvider<Location, String> instance();
    
-  ValueProvider<Location, String> categorization();
+  ValueProvider<Location, Label> categorization();
 }

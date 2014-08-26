@@ -5,11 +5,11 @@ import java.io.Serializable;
 public class Location implements Serializable {
 
 	private String instance;
-	private String categorization;
+	private Label categorization;
 	
 	public Location() { }
 	
-	public Location(String instance, String categorization) {
+	public Location(String instance, Label categorization) {
 		super();
 		this.instance = instance;
 		this.categorization = categorization;
@@ -21,10 +21,10 @@ public class Location implements Serializable {
 	public void setInstance(String instance) {
 		this.instance = instance;
 	}
-	public String getCategorization() {
+	public Label getCategorization() {
 		return categorization;
 	}
-	public void setCategorization(String categorization) {
+	public void setCategorization(Label categorization) {
 		this.categorization = categorization;
 	}
 }
