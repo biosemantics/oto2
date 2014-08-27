@@ -65,7 +65,7 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	@Override
 	public Collection insert(Collection collection)  {
 		if(collection.getLabels() == null || collection.getLabels().isEmpty())
-			collection.setLabels(Configuration.defaultCategories);
+			collection.setLabels(Configuration.getDefaultCategories());
 		if(collection.getSecret() == null || collection.getSecret().isEmpty())
 			createDefaultSecret(collection);
 		collection = daoManager.getCollectionDAO().insert(collection);

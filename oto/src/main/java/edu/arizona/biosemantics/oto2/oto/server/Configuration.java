@@ -24,7 +24,7 @@ public class Configuration {
 	public static String bioportalApiKey;
 	
 	/** Default Categories **/
-	public static List<Label> defaultCategories = new LinkedList<Label>();
+	private static List<Label> defaultCategories = new LinkedList<Label>();
 	
 	static {
 		try {
@@ -50,5 +50,9 @@ public class Configuration {
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public static List<Label> getDefaultCategories() {
+		return new LinkedList<Label>(defaultCategories);
 	}
 }
