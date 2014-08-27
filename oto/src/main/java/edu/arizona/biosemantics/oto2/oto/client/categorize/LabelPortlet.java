@@ -14,6 +14,7 @@ import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.web.bindery.event.shared.HandlerRegistration;
+import com.sencha.gxt.core.client.Style.HideMode;
 import com.sencha.gxt.data.shared.SortDir;
 import com.sencha.gxt.data.shared.Store.StoreSortInfo;
 import com.sencha.gxt.data.shared.TreeStore;
@@ -535,9 +536,11 @@ public class LabelPortlet extends Portlet {
 		this.label = label;
 		this.collection = collection;
 		this.setHeadingText(label.getName());
-		
+		this.setExpanded(false);
+		this.setAnimationDuration(500);
 		this.setCollapsible(true);
 		this.setAnimCollapse(false);
+		
 		final ToolButton toolButton = new ToolButton(ToolButton.GEAR);
 		toolButton.addSelectHandler(new SelectHandler() {
 			@Override

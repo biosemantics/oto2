@@ -11,16 +11,18 @@ public class Oto {
 	private OtoView view;
 	private OtoPresenter presenter;
 
-	public Oto(int collectionId, String secret) {
+	public Oto() {
 		this.eventBus = new SimpleEventBus();
 		this.view = new OtoView(eventBus);
 		this.presenter = new OtoPresenter(eventBus, view);
-		presenter.loadCollection(collectionId, secret);
 	}
 	
 	public OtoView getView() {
 		return view;
 	}
 	
+	public void loadCollection(int collectionId, String secret) {
+		presenter.loadCollection(collectionId, secret);
+	}
 
 }

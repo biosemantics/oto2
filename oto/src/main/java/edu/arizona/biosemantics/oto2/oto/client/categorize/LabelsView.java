@@ -252,6 +252,7 @@ public class LabelsView extends PortalLayoutContainer {
 		labelPortletsMap.clear();
 		for(Label label : collection.getLabels()) {
 			LabelPortlet labelPortlet = new LabelPortlet(eventBus, label, collection);
+			labelPortlet.collapse();
 			add(labelPortlet, labelPortletsMap.size() % portalColumnCount);
 			labelPortletsMap.put(label, labelPortlet);
 		}

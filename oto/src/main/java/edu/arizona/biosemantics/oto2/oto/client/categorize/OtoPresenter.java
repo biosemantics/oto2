@@ -5,6 +5,7 @@ import java.util.Map;
 
 import com.google.gwt.core.client.GWT;
 import com.google.web.bindery.event.shared.EventBus;
+import com.sencha.gxt.widget.core.client.box.AutoProgressMessageBox;
 
 import edu.arizona.biosemantics.oto2.oto.client.categorize.event.CategorizeCopyRemoveTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.event.CategorizeCopyTermEvent;
@@ -144,11 +145,16 @@ public class OtoPresenter {
 		Collection collection = new Collection();
 		collection.setId(collectionId);
 		collection.setSecret(secret);
+		final AutoProgressMessageBox box = new AutoProgressMessageBox("Progress", "Loading your data, please wait...");
+        box.setProgressText("Loading...");
+        box.auto();
+        box.show();
 		collectionService.get(collection, new RPCCallback<Collection>() {
 			@Override
 			public void onSuccess(Collection result) {
 				OtoPresenter.this.collection = result;
 				view.setCollection(result);
+				box.hide();
 			}
 		});
 	}

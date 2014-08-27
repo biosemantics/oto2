@@ -10,10 +10,11 @@ public class Start implements EntryPoint {
 		int collectionId = 1;
 		String secret = "my secret";
 		
-		Oto oto = new Oto(collectionId, secret);
+		Oto oto = new Oto();
 		Viewport v = new Viewport();
 		v.add(oto.getView().asWidget());
 		RootPanel.get().add(v);
+		oto.loadCollection(collectionId, secret);
 	}
 
 }
