@@ -53,6 +53,9 @@ public class Configuration {
 	}
 	
 	public static List<Label> getDefaultCategories() {
-		return new LinkedList<Label>(defaultCategories);
+		List<Label> result = new LinkedList<Label>();
+		for(Label label : defaultCategories)
+			result.add(new Label(label.getName(), label.getDescription()));
+		return result;
 	}
 }

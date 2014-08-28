@@ -60,7 +60,6 @@ public class OtoView implements IsWidget {
 	public class MenuView extends MenuBar {
 
 		private final OntologyProperties ontologyProperties = GWT.create(OntologyProperties.class);
-		private final IOntologyServiceAsync ontologyService = GWT.create(IOntologyService.class);
 
 		public class SelectOntologiesDialog extends Dialog {
 			
@@ -108,6 +107,7 @@ public class OtoView implements IsWidget {
 
 		}
 		
+		private final IOntologyServiceAsync ontologyService = GWT.create(IOntologyService.class);
 		private ListStore<Term> termStore = new ListStore<Term>(termProperties.key());
 		private EventBus eventBus;
 		protected Set<Ontology> ontologies;
@@ -194,15 +194,6 @@ public class OtoView implements IsWidget {
 			sub.add(helpItem);
 			add(questionsItem);
 			
-			//already store ontologies, otherwise delay when requested on button press
-			ontologyService.getOntologies(new RPCCallback<Set<Ontology>>() {
-				@Override
-				public void onSuccess(Set<Ontology> result) {
-					MenuView.this.ontologies = result;
-					unselectedListStore.addAll(result);
-					eventBus.fireEvent(new OntologiesSelectEvent(new LinkedHashSet<Ontology>()));
-				}
-			});
 			selectedListStore.addSortInfo(new StoreSortInfo<Ontology>(ontologyProperties.acronym(), SortDir.ASC));
 			unselectedListStore.addSortInfo(new StoreSortInfo<Ontology>(ontologyProperties.acronym(), SortDir.ASC));
 		}
@@ -212,6 +203,17 @@ public class OtoView implements IsWidget {
 			termStore.addAll(collection.getTerms());
 			termStore.addSortInfo(new StoreSortInfo<Term>(
 					new Term.TermComparator(), SortDir.ASC));
+			
+			//already store ontologies, otherwise delay when requested on button press
+			ontologyService.getOntologies(new RPCCallback<Set<Ontology>>() {
+				@Override
+				public void onSuccess(Set<Ontology> result) {
+					ontologies = result;
+					unselectedListStore.clear();
+					unselectedListStore.addAll(result);
+					eventBus.fireEvent(new OntologiesSelectEvent(new LinkedHashSet<Ontology>()));
+				}
+			});
 		}
 	}
 
@@ -271,7 +273,7 @@ public class OtoView implements IsWidget {
 		}
 
 	}
-
+	
 	private EventBus eventBus;
 
 	private MenuView menuView;

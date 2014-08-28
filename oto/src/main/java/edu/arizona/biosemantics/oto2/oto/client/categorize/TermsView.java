@@ -357,11 +357,13 @@ public class TermsView extends TabPanel {
 			bucketBucketTreeNodeMap.put(bucket, bucketTreeNode);
 			treeStore.add(bucketTreeNode);
 			for(Term term : bucket.getTerms()) {
-				termBucketMap.put(term, bucket);
-				TermTreeNode termTreeNode = new TermTreeNode(term);
-				termTermTreeNodeMap.put(term, termTreeNode);
-				treeStore.add(bucketTreeNode, termTreeNode);
-				listStore.add(term);
+				if(collection.getLabels(term).isEmpty()) {
+					termBucketMap.put(term, bucket);
+					TermTreeNode termTreeNode = new TermTreeNode(term);
+					termTermTreeNodeMap.put(term, termTreeNode);
+					treeStore.add(bucketTreeNode, termTreeNode);
+					listStore.add(term);
+				}
 			}
 		}
 	}
