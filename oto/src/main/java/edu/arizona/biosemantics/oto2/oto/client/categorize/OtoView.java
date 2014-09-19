@@ -14,6 +14,8 @@ import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.IsWidget;
+import com.google.gwt.user.client.ui.LayoutPanel;
+import com.google.gwt.user.client.ui.SimpleLayoutPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.cell.core.client.form.ComboBoxCell.TriggerAction;
 import com.sencha.gxt.core.client.resources.ThemeStyles;
@@ -55,7 +57,7 @@ import edu.arizona.biosemantics.oto2.oto.shared.rpc.IOntologyService;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.IOntologyServiceAsync;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.RPCCallback;
 
-public class OtoView implements IsWidget {
+public class OtoView extends SimpleLayoutPanel {
 
 	public class MenuView extends MenuBar {
 
@@ -290,17 +292,13 @@ public class OtoView implements IsWidget {
 
 		verticalLayoutContainer.add(menuView,new VerticalLayoutData(1,-1));
 		verticalLayoutContainer.add(categorizeView,new VerticalLayoutData(1,1));
+		this.setWidget(verticalLayoutContainer);
 	}
 
 	public void setCollection(Collection collection) {
 		this.collection = collection;
 		categorizeView.setCollection(collection);
 		menuView.setCollection(collection);
-	}
-
-	@Override
-	public Widget asWidget() {
-		return verticalLayoutContainer;
 	}
 
 }
