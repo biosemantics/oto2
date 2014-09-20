@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto2.oto.client.categorize;
+package edu.arizona.biosemantics.oto2.oto.client.categorize.portlet;
 
 import java.util.Comparator;
 import java.util.HashMap;
@@ -12,9 +12,11 @@ import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.web.bindery.event.shared.HandlerRegistration;
 import com.sencha.gxt.core.client.Style.HideMode;
+import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
 import com.sencha.gxt.data.shared.SortDir;
 import com.sencha.gxt.data.shared.Store.StoreSortInfo;
 import com.sencha.gxt.data.shared.TreeStore;
@@ -26,11 +28,13 @@ import com.sencha.gxt.dnd.core.client.DropTarget;
 import com.sencha.gxt.dnd.core.client.TreeDragSource;
 import com.sencha.gxt.widget.core.client.Dialog;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
+import com.sencha.gxt.widget.core.client.FramedPanel.FramedPanelAppearance;
 import com.sencha.gxt.widget.core.client.Portlet;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.box.PromptMessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.button.ToolButton;
+import com.sencha.gxt.widget.core.client.container.FlowLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.MarginData;
 import com.sencha.gxt.widget.core.client.container.SimpleContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
@@ -53,6 +57,10 @@ import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 import com.sencha.gxt.widget.core.client.tree.Tree;
 
+import edu.arizona.biosemantics.oto2.oto.client.categorize.Alerter;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.DndDropEventExtractor;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.StoreTargetTreeDropTarget;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.UncategorizeDialog;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.event.CategorizeCopyRemoveTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.event.CategorizeCopyTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.event.CategorizeMoveTermEvent;
@@ -74,7 +82,7 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.TextTreeNode;
 import edu.arizona.biosemantics.oto2.oto.shared.model.TextTreeNodeProperties;
 
 public class LabelPortlet extends Portlet {
-		
+	
 	public enum DropSource {
 		INIT, PORTLET
 	}
@@ -532,9 +540,14 @@ public class LabelPortlet extends Portlet {
 	private Collection collection;
 
 	public LabelPortlet(EventBus eventBus, Label label, Collection collection) {
+		this(GWT.<FramedPanelAppearance> create(FramedPanelAppearance.class), eventBus, label, collection);
+	}
+	
+	public LabelPortlet(FramedPanelAppearance appearance, EventBus eventBus, Label label, Collection collection) {
+		super(appearance);
 		this.eventBus = eventBus;
 		this.label = label;
-		this.collection = collection;
+		this.collection = collection; 
 		this.setHeadingText(label.getName());
 		this.setExpanded(false);
 		this.setAnimationDuration(500);
@@ -561,7 +574,14 @@ public class LabelPortlet extends Portlet {
 		}, SortDir.ASC));
 		tree = new Tree<TermTreeNode, String>(portletStore, textTreeNodeProperties.text());
 		tree.setContextMenu(new TermMenu());
-		add(tree);
+		
+		FlowLayoutContainer flowLayoutContainer = new FlowLayoutContainer();
+		flowLayoutContainer.add(tree);
+		flowLayoutContainer.setScrollMode(ScrollMode.AUTO);
+		flowLayoutContainer.getElement().getStyle().setProperty("maxHeight", "200px");
+		
+		add(flowLayoutContainer);
+		
 		bindEvents();
 		setupDnD();
 		
@@ -572,7 +592,7 @@ public class LabelPortlet extends Portlet {
 		}
 	}
 	
-	protected void addMainTerm(Term term) {
+	public void addMainTerm(Term term) {
 		MainTermTreeNode mainTermTreeNode = new MainTermTreeNode(term);
 		if(!termTermTreeNodeMap.containsKey(term))  {
 			portletStore.add(mainTermTreeNode);
@@ -859,7 +879,7 @@ public class LabelPortlet extends Portlet {
 		});
 	}
 	
-	protected Label getLabel() {
+	public Label getLabel() {
 		return label;
 	}
 	

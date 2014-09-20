@@ -7,15 +7,20 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.core.client.Scheduler;
+import com.google.gwt.core.client.Scheduler.ScheduledCommand;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.VerticalPanel;
+import com.sencha.gxt.theme.blue.client.panel.BlueFramedPanelAppearance;
 import com.sencha.gxt.widget.core.client.Dialog;
+import com.sencha.gxt.widget.core.client.FramedPanel.FramedPanelAppearance;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
+import com.sencha.gxt.widget.core.client.container.CssFloatLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.PortalLayoutContainer;
 import com.sencha.gxt.widget.core.client.event.BeforeShowEvent;
 import com.sencha.gxt.widget.core.client.event.BeforeShowEvent.BeforeShowHandler;
@@ -28,10 +33,12 @@ import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
-import edu.arizona.biosemantics.oto2.oto.client.categorize.LabelPortlet.LabelInfoContainer;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.event.LabelCreateEvent;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.event.LabelRemoveEvent;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.event.LabelsMergeEvent;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.portlet.LabelPortlet;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.portlet.LabelPortlet.LabelInfoContainer;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.portlet.OtoFramedPanelAppearance;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
@@ -230,7 +237,10 @@ public class LabelsView extends PortalLayoutContainer {
 		eventBus.addHandler(LabelCreateEvent.TYPE, new LabelCreateEvent.CreateLabelHandler() {
 			@Override
 			public void onCreate(Label label) {
-				LabelPortlet labelPortlet = new LabelPortlet(eventBus, label, collection);
+				
+				LabelPortlet labelPortlet = createLabelPortlet(label);
+
+				
 				add(labelPortlet, 0);
 				labelPortletsMap.put(label, labelPortlet);
 			}
@@ -245,16 +255,44 @@ public class LabelsView extends PortalLayoutContainer {
 		});
 	}
 
+	protected LabelPortlet createLabelPortlet(Label label) {
+		LabelPortlet labelPortlet = null;
+		try { 
+			HighlightLabel.valueOf(label.getName().trim());
+			//labelPortlet = new LabelPortlet(GWT.<OtoFramedPanelAppearance> create(OtoFramedPanelAppearance.class), 
+			//		eventBus, label, collection);
+			labelPortlet = new LabelPortlet(eventBus, label, collection);
+			labelPortlet.setHeadingHtml("<b>" + label.getName() + "</b>");
+		} catch(Exception e) {
+			//labelPortlet = new LabelPortlet(GWT.<OtoFramedPanelAppearance> create(OtoFramedPanelAppearance.class), 
+			//		eventBus, label, collection);
+			labelPortlet = new LabelPortlet(eventBus, label, collection);
+			labelPortlet.setHeadingHtml("<em>" + label.getName() + "</em>");
+		}
+		return labelPortlet;
+	}
+
 	public void setCollection(Collection collection) {
 		this.collection = collection;
 
 		clear();
 		labelPortletsMap.clear();
 		for(Label label : collection.getLabels()) {
-			LabelPortlet labelPortlet = new LabelPortlet(eventBus, label, collection);
+			LabelPortlet labelPortlet = createLabelPortlet(label);
 			labelPortlet.collapse();
 			add(labelPortlet, labelPortletsMap.size() % portalColumnCount);
 			labelPortletsMap.put(label, labelPortlet);
 		}
+		
+		Scheduler.get().scheduleDeferred(new ScheduledCommand() {
+			@Override
+			public void execute() {
+				forceLayout();
+			}
+		});
+	}
+
+	public void forceLayout() {
+		((CssFloatLayoutContainer)getContainer()).forceLayout();
 	}
 }
