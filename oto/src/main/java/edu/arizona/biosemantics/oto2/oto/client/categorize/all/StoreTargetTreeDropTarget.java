@@ -1,10 +1,10 @@
-package edu.arizona.biosemantics.oto2.oto.client.categorize;
+package edu.arizona.biosemantics.oto2.oto.client.categorize.all;
 
 import com.sencha.gxt.dnd.core.client.DndDropEvent;
 import com.sencha.gxt.widget.core.client.tree.Tree;
 
 public class StoreTargetTreeDropTarget<M> extends
-		edu.arizona.biosemantics.oto2.oto.client.categorize.TreeDropTarget<M> {
+		edu.arizona.biosemantics.oto2.oto.client.categorize.all.TreeDropTarget<M> {
 
 	public StoreTargetTreeDropTarget(Tree<M, ?> tree) {
 		super(tree);

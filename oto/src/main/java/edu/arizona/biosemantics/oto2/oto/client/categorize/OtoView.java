@@ -244,7 +244,6 @@ public class OtoView extends SimpleLayoutPanel {
 			cp = new ContentPanel();
 			cp.setHeadingText("Categorization");
 			cp.add(labelsView);
-			cp.setContextMenu(labelsView.new LabelsMenu());
 			d = new BorderLayoutData();
 			d.setMargins(new Margins(0, 0, 0, 0));
 			setCenterWidget(cp, d);

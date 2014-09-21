@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto2.oto.client.categorize.portlet;
+package edu.arizona.biosemantics.oto2.oto.client.categorize.all;
 
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.resources.client.ImageResource.ImageOptions;

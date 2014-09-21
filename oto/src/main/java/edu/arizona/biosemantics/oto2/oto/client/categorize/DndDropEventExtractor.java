@@ -10,7 +10,7 @@ import com.sencha.gxt.widget.core.client.container.CardLayoutContainer;
 import com.sencha.gxt.widget.core.client.tree.Tree;
 
 import edu.arizona.biosemantics.oto2.oto.client.categorize.TermsView.BucketTreeNode;
-import edu.arizona.biosemantics.oto2.oto.client.categorize.portlet.LabelPortlet;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.all.LabelPortlet;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 import edu.arizona.biosemantics.oto2.oto.shared.model.TermTreeNode;
 

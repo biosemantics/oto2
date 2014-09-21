@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto2.oto.client.categorize.portlet;
+package edu.arizona.biosemantics.oto2.oto.client.categorize.all;
 
 import com.google.gwt.core.client.GWT;
 import com.sencha.gxt.theme.base.client.widget.HeaderDefaultAppearance;

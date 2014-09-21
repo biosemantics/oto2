@@ -5,7 +5,7 @@
  *
  * http://www.sencha.com/products/gxt/license/
  */
-package edu.arizona.biosemantics.oto2.oto.client.categorize;
+package edu.arizona.biosemantics.oto2.oto.client.categorize.all;
 
 import java.util.List;
 

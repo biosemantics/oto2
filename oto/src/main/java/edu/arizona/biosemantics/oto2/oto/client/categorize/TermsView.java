@@ -229,7 +229,7 @@ public class TermsView extends TabPanel {
 		termTree = new Tree<TextTreeNode, String>(treeStore, textTreeNodeProperties.text());
 		termTree.setContextMenu(new TermMenu());
 		add(termTree, "tree");
-		add(listView, "list");
+		//add(listView, "list");
 		
 		bindEvents();
 		setupDnD();
@@ -270,6 +270,8 @@ public class TermsView extends TabPanel {
 		eventBus.addHandler(TermUncategorizeEvent.TYPE, new TermUncategorizeEvent.TermUncategorizeHandler() {
 			@Override
 			public void onUncategorize(Term term, List<Label> oldLabels) {
+				BucketTreeNode bucketTreeNode = bucketBucketTreeNodeMap.get(termBucketMap.get(term));
+				TermTreeNode node = termTermTreeNodeMap.get(term);
 				treeStore.add(bucketBucketTreeNodeMap.get(termBucketMap.get(term)), termTermTreeNodeMap.get(term));
 				listStore.add(term);
 			}

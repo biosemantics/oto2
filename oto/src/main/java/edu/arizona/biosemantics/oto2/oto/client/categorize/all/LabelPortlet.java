@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto2.oto.client.categorize.portlet;
+package edu.arizona.biosemantics.oto2.oto.client.categorize.all;
 
 import java.util.Comparator;
 import java.util.HashMap;
@@ -59,7 +59,6 @@ import com.sencha.gxt.widget.core.client.tree.Tree;
 
 import edu.arizona.biosemantics.oto2.oto.client.categorize.Alerter;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.DndDropEventExtractor;
-import edu.arizona.biosemantics.oto2.oto.client.categorize.StoreTargetTreeDropTarget;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.UncategorizeDialog;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.event.CategorizeCopyRemoveTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.event.CategorizeCopyTermEvent;

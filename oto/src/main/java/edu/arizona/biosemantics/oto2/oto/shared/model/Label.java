@@ -215,4 +215,8 @@ public class Label implements Serializable {
 		}
 		return false;
 	}
+
+	public boolean isMainTerm(Term term) {
+		return mainTerms.contains(term);
+	}
 }
