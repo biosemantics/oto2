@@ -57,9 +57,6 @@ import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 import com.sencha.gxt.widget.core.client.tree.Tree;
 
-import edu.arizona.biosemantics.oto2.oto.client.categorize.Alerter;
-import edu.arizona.biosemantics.oto2.oto.client.categorize.DndDropEventExtractor;
-import edu.arizona.biosemantics.oto2.oto.client.categorize.UncategorizeDialog;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.event.CategorizeCopyRemoveTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.event.CategorizeCopyTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.event.CategorizeMoveTermEvent;
@@ -72,6 +69,9 @@ import edu.arizona.biosemantics.oto2.oto.client.categorize.event.TermCategorizeE
 import edu.arizona.biosemantics.oto2.oto.client.categorize.event.TermRenameEvent;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.event.TermSelectEvent;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.event.TermUncategorizeEvent;
+import edu.arizona.biosemantics.oto2.oto.client.common.Alerter;
+import edu.arizona.biosemantics.oto2.oto.client.common.DndDropEventExtractor;
+import edu.arizona.biosemantics.oto2.oto.client.common.UncategorizeDialog;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label.AddResult;

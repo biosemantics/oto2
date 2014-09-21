@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto2.oto.client.categorize;
+package edu.arizona.biosemantics.oto2.oto.client.common;
 
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;

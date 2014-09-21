@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto2.oto.client.categorize;
+package edu.arizona.biosemantics.oto2.oto.client.layout;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -52,6 +52,9 @@ import edu.arizona.biosemantics.oto2.oto.client.categorize.event.TermCategorizeE
 import edu.arizona.biosemantics.oto2.oto.client.categorize.event.TermRenameEvent;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.event.TermSelectEvent;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.event.TermUncategorizeEvent;
+import edu.arizona.biosemantics.oto2.oto.client.common.Alerter;
+import edu.arizona.biosemantics.oto2.oto.client.common.DndDropEventExtractor;
+import edu.arizona.biosemantics.oto2.oto.client.common.UncategorizeDialog;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Bucket;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;

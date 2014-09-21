@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto2.oto.client.categorize;
+package edu.arizona.biosemantics.oto2.oto.client.layout;
 
 import java.util.List;
 import java.util.Map;

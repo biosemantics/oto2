@@ -22,8 +22,8 @@ import com.sencha.gxt.widget.core.client.form.ComboBox;
 import com.sencha.gxt.widget.core.client.toolbar.FillToolItem;
 import com.sencha.gxt.widget.core.client.toolbar.ToolBar;
 
-import edu.arizona.biosemantics.oto2.oto.client.categorize.OtoView.MenuView;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.all.LabelPortlet;
+import edu.arizona.biosemantics.oto2.oto.client.layout.OtoView.MenuView;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.LabelProperties;

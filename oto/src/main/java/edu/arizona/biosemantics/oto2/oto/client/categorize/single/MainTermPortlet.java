@@ -38,8 +38,6 @@ import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 import com.sencha.gxt.widget.core.client.tree.Tree;
 
-import edu.arizona.biosemantics.oto2.oto.client.categorize.Alerter;
-import edu.arizona.biosemantics.oto2.oto.client.categorize.UncategorizeDialog;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.all.LabelPortlet;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.all.LabelPortlet.LabelMenu;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.all.LabelPortlet.MainTermTreeNode;
@@ -50,6 +48,8 @@ import edu.arizona.biosemantics.oto2.oto.client.categorize.event.SynonymCreation
 import edu.arizona.biosemantics.oto2.oto.client.categorize.event.SynonymRemovalEvent;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.event.TermRenameEvent;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.event.TermUncategorizeEvent;
+import edu.arizona.biosemantics.oto2.oto.client.common.Alerter;
+import edu.arizona.biosemantics.oto2.oto.client.common.UncategorizeDialog;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;

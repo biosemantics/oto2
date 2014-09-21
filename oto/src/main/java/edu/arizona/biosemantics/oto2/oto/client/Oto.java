@@ -2,8 +2,8 @@ package edu.arizona.biosemantics.oto2.oto.client;
 
 import com.google.gwt.event.shared.SimpleEventBus;
 
-import edu.arizona.biosemantics.oto2.oto.client.categorize.OtoPresenter;
-import edu.arizona.biosemantics.oto2.oto.client.categorize.OtoView;
+import edu.arizona.biosemantics.oto2.oto.client.layout.OtoPresenter;
+import edu.arizona.biosemantics.oto2.oto.client.layout.OtoView;
 
 public class Oto {
 		
