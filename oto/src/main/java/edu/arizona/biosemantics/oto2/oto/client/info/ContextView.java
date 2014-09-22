@@ -51,6 +51,7 @@ public class ContextView extends Composite {
 	private EventBus eventBus;
 	private Collection collection;
 	private Grid<TypedContext> grid;
+	private Term currentTerm;
 	
 	public ContextView(EventBus eventBus) {
 		this.eventBus = eventBus;
@@ -136,18 +137,23 @@ public class ContextView extends Composite {
 		eventBus.addHandler(TermRenameEvent.TYPE, new TermRenameEvent.RenameTermHandler() {
 			@Override
 			public void onRename(TermRenameEvent event) {
-				Term term = event.getTerm();
-				setContexts(term);
+				if(event.getTerm().equals(currentTerm))
+					refresh();
 			}
 		});
 		eventBus.addHandler(TermSelectEvent.TYPE, new TermSelectEvent.TermSelectHandler() {
 			@Override
 			public void onSelect(TermSelectEvent event) {
-				setContexts(event.getTerm());
+				currentTerm = event.getTerm();
+				refresh();
 			}
 		});
 	}
 	
+	protected void refresh() {
+		setContexts(currentTerm);
+	}
+
 	private void setContexts(Term term) {
 		contextService.getContexts(collection, term, new RPCCallback<List<TypedContext>>() {
 			@Override
