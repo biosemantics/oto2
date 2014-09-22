@@ -38,6 +38,7 @@ import com.sencha.gxt.widget.core.client.grid.filters.StringFilter;
 import com.sencha.gxt.widget.core.client.tips.QuickTip;
 
 import edu.arizona.biosemantics.oto2.oto.client.event.OntologiesSelectEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.TermRenameEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermSelectEvent;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.oto.shared.model.OntologyEntry;
@@ -59,6 +60,7 @@ public class OntologiesView extends Composite {
 	
 	private EventBus eventBus;
 	private Grid<OntologyEntry> grid;
+	private Term currentTerm;
 	
 	public OntologiesView(EventBus eventBus) {
 		this.eventBus = eventBus;
@@ -174,30 +176,42 @@ public class OntologiesView extends Composite {
 			@Override
 			public void onSelect(OntologiesSelectEvent event) {
 				selectedOntologies = event.getOntologies();
+				refresh();
 			}
 		});
 		eventBus.addHandler(TermSelectEvent.TYPE, new TermSelectEvent.TermSelectHandler() {
 			@Override
 			public void onSelect(TermSelectEvent event) {
-				Term term = event.getTerm();
-				if(selectedOntologies == null) {
-					ontologyService.getOntologyEntries(term, new RPCCallback<List<OntologyEntry>>() {
-						@Override
-						public void onSuccess(List<OntologyEntry> ontologyEntries) {
-							setOntologyEntries(ontologyEntries);
-						}
-					});
-				} else {
-					ontologyService.getOntologyEntries(term, new LinkedList<Ontology>(selectedOntologies), 
-							new RPCCallback<List<OntologyEntry>>() {
-						@Override
-						public void onSuccess(List<OntologyEntry> ontologyEntries) {
-							setOntologyEntries(ontologyEntries);
-						}
-					});
-				}
+				OntologiesView.this.currentTerm = event.getTerm();
+				refresh();
 			}
 		});
+		eventBus.addHandler(TermRenameEvent.TYPE, new TermRenameEvent.RenameTermHandler() {
+			@Override
+			public void onRename(TermRenameEvent event) {
+				if(event.getTerm().equals(currentTerm))
+					refresh();
+			}
+		});
+	}
+
+	protected void refresh() {
+		if(selectedOntologies == null) {
+			ontologyService.getOntologyEntries(currentTerm, new RPCCallback<List<OntologyEntry>>() {
+				@Override
+				public void onSuccess(List<OntologyEntry> ontologyEntries) {
+					setOntologyEntries(ontologyEntries);
+				}
+			});
+		} else {
+			ontologyService.getOntologyEntries(currentTerm, new LinkedList<Ontology>(selectedOntologies), 
+					new RPCCallback<List<OntologyEntry>>() {
+				@Override
+				public void onSuccess(List<OntologyEntry> ontologyEntries) {
+					setOntologyEntries(ontologyEntries);
+				}
+			});
+		}
 	}
 	
 }

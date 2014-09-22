@@ -154,6 +154,7 @@ public class TermsView extends TabPanel {
 									}
 								}
 							});
+							box.getTextField().setValue(term.getTerm());
 							box.getTextField().setAllowBlank(false);
 							box.addHideHandler(new HideHandler() {
 								@Override
