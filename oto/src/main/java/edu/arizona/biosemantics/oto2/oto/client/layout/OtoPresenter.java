@@ -38,11 +38,14 @@ public class OtoPresenter {
 	private EventBus eventBus;
 	private ModelControler modelControler;
 	
-	public OtoPresenter(EventBus eventBus, OtoView view) {
+	public OtoPresenter(EventBus eventBus) {
 		this.eventBus = eventBus;
-		this.view = view;
 		this.modelControler = new ModelControler(eventBus);
 		bindEvents();
+	}
+	
+	public void setView(OtoView view) {
+		this.view = view;
 	}
 
 	private void bindEvents() {

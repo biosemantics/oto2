@@ -22,7 +22,16 @@ import com.sencha.gxt.widget.core.client.grid.filters.GridFilters;
 import com.sencha.gxt.widget.core.client.grid.filters.StringFilter;
 import com.sencha.gxt.widget.core.client.tips.QuickTip;
 
+import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeCopyRemoveTermEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeCopyTermEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeMoveTermEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.LabelModifyEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.LabelRemoveEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.LabelsMergeEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.TermCategorizeEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.TermRenameEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermSelectEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.TermUncategorizeEvent;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Location;
 import edu.arizona.biosemantics.oto2.oto.shared.model.LocationProperties;
@@ -41,6 +50,7 @@ public class LocationsView extends Composite {
 	private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
 	private EventBus eventBus;
 	private Grid<Location> grid;
+	protected Term currentTerm;
 
 	public LocationsView(EventBus eventBus) {
 		this.eventBus = eventBus;
@@ -117,13 +127,107 @@ public class LocationsView extends Composite {
 		eventBus.addHandler(TermSelectEvent.TYPE, new TermSelectEvent.TermSelectHandler() {
 			@Override
 			public void onSelect(TermSelectEvent event) {
-				Term term = event.getTerm();
-				collectionService.getLocations(term, new RPCCallback<List<Location>>() {
-					@Override
-					public void onSuccess(List<Location> locations) {
-						setLocations(locations);
+				currentTerm = event.getTerm();
+				refresh();
+			}
+		});
+		eventBus.addHandler(TermCategorizeEvent.TYPE, new TermCategorizeEvent.TermCategorizeHandler() {
+			@Override
+			public void onCategorize(TermCategorizeEvent event) {
+				if(event.getTerms().contains(currentTerm)) {
+					store.clear();
+					for(Label label: event.getLabels())
+						store.add(new Location(currentTerm.getTerm(), label));
+				}
+			}
+		});
+		eventBus.addHandler(TermUncategorizeEvent.TYPE, new TermUncategorizeEvent.TermUncategorizeHandler() {
+			@Override
+			public void onUncategorize(TermUncategorizeEvent event) {
+				if(event.getTerms().contains(currentTerm)) {
+					store.clear();
+				}
+			}
+		});
+		eventBus.addHandler(CategorizeCopyRemoveTermEvent.TYPE, new CategorizeCopyRemoveTermEvent.CategorizeCopyRemoveTermHandler() {
+			@Override
+			public void onRemove(CategorizeCopyRemoveTermEvent event) {
+				if(event.getTerms().contains(currentTerm)) {
+					Location location = store.findModelWithKey(event.getLabel().toString());
+					if(location != null) 
+						store.remove(location);
+				}
+			}
+		});
+		eventBus.addHandler(CategorizeCopyTermEvent.TYPE, new CategorizeCopyTermEvent.CategorizeCopyTermHandler() {
+			@Override
+			public void onCategorize(CategorizeCopyTermEvent event) {
+				if(event.getTerms().contains(currentTerm)) {
+					for(Label label: event.getTargetCategories())
+						store.add(new Location(currentTerm.getTerm(), label));
+				}
+			}
+		});
+		eventBus.addHandler(CategorizeMoveTermEvent.TYPE, new CategorizeMoveTermEvent.CategorizeMoveTermHandler() {
+			@Override
+			public void onCategorize(CategorizeMoveTermEvent event) {
+				if(event.getTerms().contains(currentTerm)) {
+					Location location = store.findModelWithKey(event.getSourceCategory().toString());
+					if(location != null) 
+						store.remove(location);
+					store.add(new Location(currentTerm.getTerm(), event.getTargetCategory()));
+				}
+			}
+		});
+		eventBus.addHandler(LabelRemoveEvent.TYPE, new LabelRemoveEvent.RemoveLabelHandler() {
+			@Override
+			public void onRemove(LabelRemoveEvent event) {
+				Location location = store.findModelWithKey(event.getLabel().toString());
+				if(location != null) 
+					store.remove(location);
+			}
+		});
+		eventBus.addHandler(LabelModifyEvent.TYPE, new LabelModifyEvent.ModifyLabelHandler() {
+			@Override
+			public void onModify(LabelModifyEvent event) {
+				Location location = store.findModelWithKey(event.getLabel().toString());
+				if(location != null) 
+					store.update(location);
+			}
+		});
+		eventBus.addHandler(LabelsMergeEvent.TYPE, new LabelsMergeEvent.MergeLabelsHandler() {
+			@Override
+			public void onMerge(LabelsMergeEvent event) {
+				boolean found = false;
+				for(Label source : event.getSources()) {
+					if(source.containsTerm(currentTerm)) {
+						Location location = store.findModelWithKey(source.toString());
+						if(location != null) 
+							store.remove(location);
+						found = true;
 					}
-				});
+				}
+				if(found)
+					store.add(new Location(currentTerm.getTerm(), event.getDestination()));
+			}
+		});
+		eventBus.addHandler(TermRenameEvent.TYPE, new TermRenameEvent.RenameTermHandler() {
+			@Override
+			public void onRename(TermRenameEvent event) {
+				if(currentTerm.equals(event.getTerm()))
+					for(Location location : store.getAll()) {
+						location.setInstance(currentTerm.getTerm());
+						store.update(location);
+					}
+			}
+		});
+	}
+	
+	protected void refresh() {
+		collectionService.getLocations(currentTerm, new RPCCallback<List<Location>>() {
+			@Override
+			public void onSuccess(List<Location> locations) {
+				setLocations(locations);
 			}
 		});
 	}

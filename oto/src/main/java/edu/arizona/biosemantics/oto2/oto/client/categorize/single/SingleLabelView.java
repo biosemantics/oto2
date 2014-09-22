@@ -161,11 +161,13 @@ public class SingleLabelView extends SimpleContainer {
 		eventBus.addHandler(LabelsMergeEvent.TYPE, new LabelsMergeEvent.MergeLabelsHandler() {
 			@Override
 			public void onMerge(LabelsMergeEvent event) {
-				for(Label label : event.getSources()) {
-					labelStore.remove(label);
-					
-					for(Term mainTerm : label.getMainTerms()) {
-						addMainTerm(mainTerm, 0);
+				if(event.getDestination().equals(currentLabel)) {
+					for(Label label : event.getSources()) {
+						labelStore.remove(label);
+						
+						for(Term mainTerm : label.getMainTerms()) {
+							addMainTerm(mainTerm, 0);
+						}
 					}
 				}
 			}

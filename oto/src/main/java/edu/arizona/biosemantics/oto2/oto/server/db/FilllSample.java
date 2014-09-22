@@ -111,7 +111,7 @@ public class FilllSample {
 		labels.add(l2);
 		labels.add(l3);
 		
-		for(int i=0; i<200; i++) {
+		for(int i=0; i<50; i++) {
 			Label l = new Label();
 			l.setName("label " + i);	
 			labels.add(l);

@@ -13,8 +13,9 @@ public class Oto {
 
 	public Oto() {
 		this.eventBus = new SimpleEventBus();
+		this.presenter = new OtoPresenter(eventBus);
 		this.view = new OtoView(eventBus);
-		this.presenter = new OtoPresenter(eventBus, view);
+		presenter.setView(view);
 	}
 	
 	public OtoView getView() {
