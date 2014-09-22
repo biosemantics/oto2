@@ -1,5 +1,6 @@
 package edu.arizona.biosemantics.oto2.oto.client.event;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -50,7 +51,7 @@ public class SynonymCreationEvent extends GwtEvent<SynonymCreationHandler> {
 	}
 	
 	public List<Term> getSynonymTerm() {
-		return synonymTerms;
+		return new ArrayList<Term>(synonymTerms);
 	}
 
 	public Label getLabel() {

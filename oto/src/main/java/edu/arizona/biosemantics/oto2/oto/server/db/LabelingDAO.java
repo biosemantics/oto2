@@ -28,9 +28,21 @@ public class LabelingDAO {
 		this.labelDAO = labelDAO;
 	}
 	
-	public Set<Label> get(Term term)  {
+	public Set<Label> getLabels(Term term)  {
 		Set<Label> labels = new HashSet<Label>();
 		try(Query query = new Query("SELECT * FROM oto_labeling WHERE term = ?")) {
+			query.setParameter(1, term.getId());
+			ResultSet result = query.execute();
+			while(result.next()) {
+				int labelId = result.getInt(2);
+				Label label = labelDAO.get(labelId);
+				if(label != null)
+					labels.add(label);
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		try(Query query = new Query("SELECT * FROM oto_synonym WHERE synonymTerm = ?")) {
 			query.setParameter(1, term.getId());
 			ResultSet result = query.execute();
 			while(result.next()) {
