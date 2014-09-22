@@ -26,6 +26,7 @@ import com.sencha.gxt.dnd.core.client.DndDropEvent;
 import com.sencha.gxt.dnd.core.client.DndDropEvent.DndDropHandler;
 import com.sencha.gxt.dnd.core.client.DropTarget;
 import com.sencha.gxt.dnd.core.client.TreeDragSource;
+import com.sencha.gxt.widget.core.client.Component;
 import com.sencha.gxt.widget.core.client.Dialog;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
 import com.sencha.gxt.widget.core.client.FramedPanel.FramedPanelAppearance;
@@ -484,7 +485,9 @@ public class LabelPortlet extends Portlet {
 	
 	}
 	
+	private static int ID;
 	private static final TextTreeNodeProperties textTreeNodeProperties = GWT.create(TextTreeNodeProperties.class);
+	private int id = ID++;
 	private TreeStore<TermTreeNode> portletStore;
 	private Label label;
 	private Tree<TermTreeNode, String> tree;
@@ -526,6 +529,7 @@ public class LabelPortlet extends Portlet {
 			}
 		}, SortDir.ASC));
 		tree = new Tree<TermTreeNode, String>(portletStore, textTreeNodeProperties.text());
+		tree.getElement().setAttribute("source", "labelportlet-" + id);
 		tree.setContextMenu(new TermMenu());
 		
 		FlowLayoutContainer flowLayoutContainer = new FlowLayoutContainer();
@@ -684,7 +688,7 @@ public class LabelPortlet extends Portlet {
 		eventBus.addHandler(TermCategorizeEvent.TYPE, new TermCategorizeEvent.TermCategorizeHandler() {
 			@Override
 			public void onCategorize(TermCategorizeEvent event) {
-				List<Label> labels = event.getCategories();
+				List<Label> labels = event.getLabels();
 				List<Term> terms = event.getTerms();
 				for(Label label : labels)
 					if(LabelPortlet.this.label.equals(label)) {
@@ -854,6 +858,10 @@ public class LabelPortlet extends Portlet {
 		if(termTermTreeNodeMap.containsKey(term)) 
 			return termTermTreeNodeMap.get(term) instanceof MainTermTreeNode;
 		return false;
+	}
+
+	public Tree<TermTreeNode, String> getTree() {
+		return tree;
 	}	
 
 }

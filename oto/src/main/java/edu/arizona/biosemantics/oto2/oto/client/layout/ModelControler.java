@@ -40,7 +40,6 @@ public class ModelControler {
 	}
 
 	private void bindEvents() {
-		//save triggers
 		eventBus.addHandler(LabelCreateEvent.TYPE, new LabelCreateEvent.CreateLabelHandler() {
 			@Override
 			public void onCreate(LabelCreateEvent event) {
@@ -82,7 +81,7 @@ public class ModelControler {
 		eventBus.addHandler(TermCategorizeEvent.TYPE, new TermCategorizeEvent.TermCategorizeHandler() {
 			@Override
 			public void onCategorize(TermCategorizeEvent event) {
-				categorizeTerms(event.getTerms(), event.getCategories());
+				categorizeTerms(event.getTerms(), event.getLabels());
 			}
 		});
 		eventBus.addHandler(TermUncategorizeEvent.TYPE, new TermUncategorizeEvent.TermUncategorizeHandler() {

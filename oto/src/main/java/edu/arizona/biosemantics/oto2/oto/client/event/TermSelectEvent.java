@@ -33,7 +33,5 @@ public class TermSelectEvent extends GwtEvent<TermSelectHandler> {
 	public Term getTerm() {
 		return term;
 	}
-	
-	
 
 }

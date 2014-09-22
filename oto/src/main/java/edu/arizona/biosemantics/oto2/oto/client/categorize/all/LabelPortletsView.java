@@ -262,12 +262,13 @@ public class LabelPortletsView extends PortalLayoutContainer {
 			//labelPortlet = new LabelPortlet(GWT.<OtoFramedPanelAppearance> create(OtoFramedPanelAppearance.class), 
 			//		eventBus, label, collection);
 			labelPortlet = new LabelPortlet(eventBus, label, collection);
-			labelPortlet.setHeadingHtml("<b>" + label.getName() + "</b>");
+			labelPortlet.setHeadingHtml("<div>" + label.getName() + "</div>");
 		} catch(Exception e) {
 			//labelPortlet = new LabelPortlet(GWT.<OtoFramedPanelAppearance> create(OtoFramedPanelAppearance.class), 
 			//		eventBus, label, collection);
 			labelPortlet = new LabelPortlet(eventBus, label, collection);
-			labelPortlet.setHeadingHtml("<em>" + label.getName() + "</em>");
+			labelPortlet.setHeadingHtml("<div style='font-weight: normal'>" 
+			+ label.getName() + "</div>");
 		}
 		return labelPortlet;
 	}

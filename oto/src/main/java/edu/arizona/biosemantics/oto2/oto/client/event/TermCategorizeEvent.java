@@ -48,7 +48,7 @@ public class TermCategorizeEvent extends GwtEvent<TermCategorizeHandler> {
 		return terms;
 	}
 
-	public List<Label> getCategories() {
+	public List<Label> getLabels() {
 		return categories;
 	}
 	

@@ -221,8 +221,10 @@ public class TermsView extends TabPanel {
 		listStore.setAutoCommit(true);
 		listStore.addSortInfo(new StoreSortInfo<Term>(new Term.TermComparator(), SortDir.ASC));
 		listView = new ListView<Term, String>(listStore, termProperties.term());
+		listView.getElement().setAttribute("source", "termsview");
 		listView.setContextMenu(new TermMenu());
 		termTree = new Tree<TextTreeNode, String>(treeStore, textTreeNodeProperties.text());
+		termTree.getElement().setAttribute("source", "termsview");
 		termTree.setContextMenu(new TermMenu());
 		add(termTree, "tree");
 		//add(listView, "list");
@@ -243,7 +245,7 @@ public class TermsView extends TabPanel {
 				}
 				
 				TermTreeNode termTreeNode = termTermTreeNodeMap.get(term);
-				if(termTreeNode != null && !termTree.getSelectionModel().isSelected(termTreeNode)) {
+				if(termTreeNode != null && treeStore.findModel(termTreeNode) != null && !termTree.getSelectionModel().isSelected(termTreeNode)) {
 					List<TextTreeNode> selectionTree = new LinkedList<TextTreeNode>();
 					selectionTree.add(termTreeNode);
 					termTree.getSelectionModel().setSelection(selectionTree);

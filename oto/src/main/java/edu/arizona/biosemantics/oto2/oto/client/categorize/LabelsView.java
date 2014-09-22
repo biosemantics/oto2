@@ -22,8 +22,6 @@ public class LabelsView extends TabPanel {
 		
 		this.add(labelPortletsView, "All Labels");
 		this.add(singleLabelView, "Single Label");
-		
-		
 	}
 
 	public void setCollection(Collection collection) {

@@ -69,9 +69,7 @@ public class DndDropEventExtractor {
 	public static boolean isSourceLabelPortlet(DndDropEvent event) {
 		if(event.getTarget() instanceof Tree) {
 			Tree tree = (Tree)event.getTarget();
-			if(tree.getParent() instanceof LabelPortlet) {
-				return true;
-			}
+			return tree.getElement().getAttribute("source").startsWith("labelportlet");
 		}
 		return false;
 	}
@@ -79,8 +77,9 @@ public class DndDropEventExtractor {
 	public static boolean isSourceLabelOtherPortlet(DndDropEvent event, LabelPortlet portlet) {
 		if(event.getTarget() instanceof Tree) {
 			Tree tree = (Tree)event.getTarget();
-			if(tree.getParent() instanceof LabelPortlet && !tree.getParent().equals(portlet)) {
-				return true;
+			if(tree.getElement().getAttribute("source").startsWith("labelportlet")) {
+				return !tree.getElement().getAttribute("source").split("-")[1].equals(
+						portlet.getTree().getElement().getAttribute("source").split("-")[1]);
 			}
 		}
 		return false;
@@ -89,21 +88,17 @@ public class DndDropEventExtractor {
 	public static boolean isSourceCategorizeView(DndDropEvent event) {
 		if(event.getTarget() instanceof Tree) {
 			Tree tree = (Tree)event.getTarget();
-			if(tree.getParent() instanceof CardLayoutContainer) {
-				return true;
-			}
+			return tree.getElement().getAttribute("source").equals("termsview");
 		}
 		if(event.getTarget() instanceof ListView) {
 			ListView listView = (ListView)event.getTarget();
-			if(listView.getParent() instanceof CardLayoutContainer) {
-				return true;
-			}
+			return listView.getElement().getAttribute("source").equals("termsview");
 		}
 		return false;
 	}
 	
 	public static LabelPortlet getLabelPortletSource(DndDropEvent event) {
-		return (LabelPortlet)event.getTarget().getParent();
+		return (LabelPortlet)event.getTarget().getParent().getParent();
 	}
 	
 	public static TermsView getTermsViewSource(DndDropEvent event) {

@@ -46,8 +46,10 @@ import edu.arizona.biosemantics.oto2.oto.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.oto.client.common.UncategorizeDialog;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeCopyTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeMoveTermEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.LabelsMergeEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.SynonymCreationEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.SynonymRemovalEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.TermCategorizeEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermRenameEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermUncategorizeEvent;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
@@ -75,7 +77,7 @@ public class MainTermPortlet extends Portlet {
 		this.label = label;
 		this.collection = collection;
 		this.setHeadingText(mainTerm.getTerm());
-		this.setExpanded(true);
+		this.setExpanded(false);
 		this.setAnimationDuration(500);
 		this.setCollapsible(true);
 		this.setAnimCollapse(false);
@@ -111,6 +113,58 @@ public class MainTermPortlet extends Portlet {
 		for(Term synonymTerm : label.getSynonyms(mainTerm)) {
 			addSynonymTerm(synonymTerm);
 		}
+		
+		bindEvents();
+	}
+
+	private void bindEvents() {
+		eventBus.addHandler(TermRenameEvent.TYPE, new TermRenameEvent.RenameTermHandler() {
+			@Override
+			public void onRename(TermRenameEvent event) {
+				if(termTermTreeNodeMap.containsKey(event.getTerm())) {
+					TermTreeNode node = termTermTreeNodeMap.get(event.getTerm());
+					portletStore.update(node);
+				}
+				if(event.getTerm().equals(mainTerm))
+					MainTermPortlet.this.setHeadingText(mainTerm.getTerm());
+			}
+		});
+		eventBus.addHandler(TermUncategorizeEvent.TYPE, new TermUncategorizeEvent.TermUncategorizeHandler() {
+			@Override
+			public void onUncategorize(TermUncategorizeEvent event) {
+				for(Term term : event.getTerms()) {
+					if(termTermTreeNodeMap.containsKey(term)) {
+						TermTreeNode node = termTermTreeNodeMap.remove(term);
+						portletStore.remove(node);
+					}
+				}
+			}
+		});
+		eventBus.addHandler(SynonymCreationEvent.TYPE, new SynonymCreationEvent.SynonymCreationHandler() {
+			@Override
+			public void onSynonymCreation(SynonymCreationEvent event) {
+				if(event.getLabel().equals(label) && event.getMainTerm().equals(mainTerm)) {
+					for(Term synonym : event.getSynonymTerm()) {
+						addSynonymTerm(synonym);
+					}
+				}
+			}
+		});
+		eventBus.addHandler(SynonymRemovalEvent.TYPE, new SynonymRemovalEvent.SynonymRemovalHandler() {
+			@Override
+			public void onSynonymRemoval(SynonymRemovalEvent event) {
+				if(label.equals(event.getLabel()) && mainTerm.equals(event.getMainTerm())) {
+					for(Term synonym : event.getSynonyms()) {
+						removeSynonymTerm(synonym);
+					}
+				}
+			}
+		});
+	}
+
+	protected void removeSynonymTerm(Term synonym) {
+		TermTreeNode termTreeNode = termTermTreeNodeMap.remove(synonym);
+		portletStore.remove(termTreeNode);
 	}
 
 	private void addSynonymTerm(Term term) {
