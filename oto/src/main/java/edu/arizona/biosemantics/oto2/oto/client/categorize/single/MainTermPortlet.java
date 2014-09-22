@@ -24,6 +24,7 @@ import com.sencha.gxt.widget.core.client.box.PromptMessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.button.ToolButton;
 import com.sencha.gxt.widget.core.client.container.FlowLayoutContainer;
+import com.sencha.gxt.widget.core.client.container.PortalLayoutContainer;
 import com.sencha.gxt.widget.core.client.event.BeforeSelectEvent;
 import com.sencha.gxt.widget.core.client.event.BeforeShowEvent;
 import com.sencha.gxt.widget.core.client.event.HideEvent;
@@ -69,13 +70,15 @@ public class MainTermPortlet extends Portlet {
 	private Label label;
 	private Collection collection;
 	private Map<Term, TermTreeNode> termTermTreeNodeMap = new HashMap<Term, TermTreeNode>();
+	private PortalLayoutContainer portalLayoutContainer;
 
 	public MainTermPortlet(final EventBus eventBus, 
-			final Collection collection, final Label label, final Term mainTerm) {
+			final Collection collection, final Label label, final Term mainTerm, PortalLayoutContainer portalLayoutContainer) {
 		this.eventBus = eventBus;
 		this.mainTerm = mainTerm;
 		this.label = label;
 		this.collection = collection;
+		this.portalLayoutContainer = portalLayoutContainer;
 		this.setHeadingText(mainTerm.getTerm());
 		this.setExpanded(false);
 		this.setAnimationDuration(500);

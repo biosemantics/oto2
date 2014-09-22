@@ -1,6 +1,5 @@
 package edu.arizona.biosemantics.oto2.oto.server.db;
 
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
@@ -14,7 +13,10 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 
 public class FilllSample {
 	
-	public static void main(String[] args)  {
+	public static void main(String[] args) throws ClassNotFoundException, SQLException  {
+		ConnectionPool connectionPool = new ConnectionPool();
+		Query.connectionPool = connectionPool;
+		
 		try(Query query = new Query("TRUNCATE TABLE  `oto_collection`")) {
 			query.execute();
 		} catch(QueryException e) {
@@ -70,6 +72,10 @@ public class FilllSample {
 		b.addTerm(t3);
 		b.addTerm(t4);
 		b.addTerm(t5);
+		for(int i=0; i<100; i++) {
+			Term term = new Term("term " + i);
+			b.addTerm(term);
+		}
 		buckets.add(b);
 		b.setName("structures");
 		Term c1 = new Term("length");
@@ -98,12 +104,19 @@ public class FilllSample {
 		l2.setName("architecture");
 		
 		Label l3 = new Label();
-		l3.setName("coloration");		
+		l3.setName("coloration");	
 		
 		labels.add(l0);
 		labels.add(l1);
 		labels.add(l2);
 		labels.add(l3);
+		
+		for(int i=0; i<200; i++) {
+			Label l = new Label();
+			l.setName("label " + i);	
+			labels.add(l);
+		}
+		
 		collection.setLabels(labels);
 		
 		collection.setSecret("my secret");

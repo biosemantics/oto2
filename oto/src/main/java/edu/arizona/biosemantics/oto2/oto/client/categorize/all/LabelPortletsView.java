@@ -15,6 +15,7 @@ import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.VerticalPanel;
+import com.sencha.gxt.core.client.dom.AutoScrollSupport;
 import com.sencha.gxt.theme.blue.client.panel.BlueFramedPanelAppearance;
 import com.sencha.gxt.widget.core.client.Dialog;
 import com.sencha.gxt.widget.core.client.FramedPanel.FramedPanelAppearance;
@@ -261,12 +262,12 @@ public class LabelPortletsView extends PortalLayoutContainer {
 			HighlightLabel.valueOf(label.getName().trim());
 			//labelPortlet = new LabelPortlet(GWT.<OtoFramedPanelAppearance> create(OtoFramedPanelAppearance.class), 
 			//		eventBus, label, collection);
-			labelPortlet = new LabelPortlet(eventBus, label, collection);
+			labelPortlet = new LabelPortlet(eventBus, label, collection, this);
 			labelPortlet.setHeadingHtml("<div>" + label.getName() + "</div>");
 		} catch(Exception e) {
 			//labelPortlet = new LabelPortlet(GWT.<OtoFramedPanelAppearance> create(OtoFramedPanelAppearance.class), 
 			//		eventBus, label, collection);
-			labelPortlet = new LabelPortlet(eventBus, label, collection);
+			labelPortlet = new LabelPortlet(eventBus, label, collection, this);
 			labelPortlet.setHeadingHtml("<div style='font-weight: normal'>" 
 			+ label.getName() + "</div>");
 		}

@@ -11,6 +11,7 @@ import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.sencha.gxt.cell.core.client.form.ComboBoxCell.TriggerAction;
+import com.sencha.gxt.core.client.dom.AutoScrollSupport;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.container.CssFloatLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.PortalLayoutContainer;
@@ -93,7 +94,7 @@ public class SingleLabelView extends SimpleContainer {
 			public void onCategorize(TermCategorizeEvent event) {
 				if(event.getLabels().contains(currentLabel)) {
 					for(Term mainTerm : event.getTerms()) {
-						addMainTerm(mainTerm);
+						addMainTerm(mainTerm, 0);
 					}
 				}
 			}
@@ -103,7 +104,7 @@ public class SingleLabelView extends SimpleContainer {
 			public void onCategorize(CategorizeCopyTermEvent event) {
 				if(event.getTargetCategories().contains(currentLabel)) {
 					for(Term mainTerm : event.getTerms()) {
-						addMainTerm(mainTerm);
+						addMainTerm(mainTerm, 0);
 					}
 				}
 			}
@@ -113,7 +114,7 @@ public class SingleLabelView extends SimpleContainer {
 			public void onCategorize(CategorizeMoveTermEvent event) {
 				if(event.getTargetCategory().equals(currentLabel)) {
 					for(Term mainTerm : event.getTerms()) {
-						addMainTerm(mainTerm);
+						addMainTerm(mainTerm, 0);
 					}
 				}
 			}
@@ -133,7 +134,7 @@ public class SingleLabelView extends SimpleContainer {
 			public void onSynonymRemoval(SynonymRemovalEvent event) {
 				if(event.getLabel().equals(currentLabel)) {
 					for(Term term : event.getSynonyms()) {
-						addMainTerm(term);
+						addMainTerm(term, 0);
 					}
 				}
 			}
@@ -164,17 +165,16 @@ public class SingleLabelView extends SimpleContainer {
 					labelStore.remove(label);
 					
 					for(Term mainTerm : label.getMainTerms()) {
-						addMainTerm(mainTerm);
+						addMainTerm(mainTerm, 0);
 					}
 				}
 			}
 		});
 	}
 
-	protected void addMainTerm(Term mainTerm) {
-		MainTermPortlet mainTermPortlet = new MainTermPortlet(eventBus, collection, currentLabel, mainTerm);
-		
-		portalLayoutContainer.add(mainTermPortlet, 0);
+	protected void addMainTerm(Term mainTerm, int column) {
+		MainTermPortlet mainTermPortlet = new MainTermPortlet(eventBus, collection, currentLabel, mainTerm, portalLayoutContainer);
+		portalLayoutContainer.add(mainTermPortlet, column);
 		termPortletsMap.put(mainTerm, mainTermPortlet);
 	}
 
@@ -196,9 +196,7 @@ public class SingleLabelView extends SimpleContainer {
 				portalLayoutContainer.clear();
 				termPortletsMap.clear();
 				for(Term mainTerm : currentLabel.getMainTerms()) {
-					MainTermPortlet mainTermPortlet = new MainTermPortlet(eventBus, collection, currentLabel, mainTerm);
-					portalLayoutContainer.add(mainTermPortlet, termPortletsMap.size() % portalColumnCount);
-					termPortletsMap.put(mainTerm, mainTermPortlet);
+					addMainTerm(mainTerm, termPortletsMap.size() % portalColumnCount);
 				}
 				
 				Scheduler.get().scheduleDeferred(new ScheduledCommand() {

@@ -10,6 +10,7 @@ import java.util.Comparator;
 
 import com.gargoylesoftware.htmlunit.javascript.host.Selection;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
@@ -17,6 +18,9 @@ import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.web.bindery.event.shared.HandlerRegistration;
+import com.sencha.gxt.core.client.dom.AutoScrollSupport;
+import com.sencha.gxt.core.client.util.Point;
+import com.sencha.gxt.core.client.util.Rectangle;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.SortDir;
 import com.sencha.gxt.data.shared.Store.StoreSortInfo;
@@ -24,6 +28,7 @@ import com.sencha.gxt.data.shared.TreeStore;
 import com.sencha.gxt.dnd.core.client.DND.Operation;
 import com.sencha.gxt.dnd.core.client.DndDropEvent;
 import com.sencha.gxt.dnd.core.client.DndDropEvent.DndDropHandler;
+import com.sencha.gxt.dnd.core.client.DndDragEnterEvent;
 import com.sencha.gxt.dnd.core.client.DndDragStartEvent;
 import com.sencha.gxt.dnd.core.client.DropTarget;
 import com.sencha.gxt.dnd.core.client.ListViewDragSource;
@@ -321,7 +326,7 @@ public class TermsView extends TabPanel {
 		});
 	}
 	
-	private void setupDnD() {
+	private void setupDnD() {		
 		ListViewDragSource<Term> dragSource = new ListViewDragSource<Term>(listView) {
 			@Override
 			 protected void onDragStart(DndDragStartEvent event) {
@@ -338,7 +343,27 @@ public class TermsView extends TabPanel {
 					 event.setCancelled(true);
 			 }
 		};
-		DropTarget dropTarget = new DropTarget(this);
+		DropTarget dropTarget = new DropTarget(this) {
+			//scrollSupport can only work correctly when initialized once the element to be scrolled is already attached to the page
+			private AutoScrollSupport treeScrollSupport;
+			private AutoScrollSupport listScrollSupport;
+			protected void onDragEnter(DndDragEnterEvent event) {
+				super.onDragEnter(event);
+				if (treeScrollSupport == null) {
+					treeScrollSupport = new AutoScrollSupport(termTree.getElement());
+					treeScrollSupport.setScrollRegionHeight(50);
+					treeScrollSupport.setScrollDelay(100);
+					treeScrollSupport.setScrollRepeatDelay(100);
+				}
+				if (listScrollSupport == null) {
+					listScrollSupport = new AutoScrollSupport(termTree.getElement());
+					listScrollSupport.setScrollRegionHeight(50);
+					listScrollSupport.setScrollDelay(100);
+					listScrollSupport.setScrollRepeatDelay(100);
+				}	
+				treeScrollSupport.start();
+			}
+		};
 		dropTarget.setAllowSelfAsSource(false);
 		// actual drop action is taken care of by events
 		dropTarget.setOperation(Operation.COPY);

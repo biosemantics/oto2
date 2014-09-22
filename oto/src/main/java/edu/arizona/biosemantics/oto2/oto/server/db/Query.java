@@ -41,6 +41,7 @@ public class Query implements AutoCloseable {
 			preparedStatement = connection.prepareStatement(sql,
 					Statement.RETURN_GENERATED_KEYS);
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw new QueryException(e.getMessage(), e.getCause());
 		}
 	}

@@ -16,6 +16,7 @@ import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.web.bindery.event.shared.HandlerRegistration;
 import com.sencha.gxt.core.client.Style.HideMode;
+import com.sencha.gxt.core.client.dom.AutoScrollSupport;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
 import com.sencha.gxt.data.shared.SortDir;
 import com.sencha.gxt.data.shared.Store.StoreSortInfo;
@@ -24,6 +25,7 @@ import com.sencha.gxt.data.shared.TreeStore.TreeNode;
 import com.sencha.gxt.dnd.core.client.DND.Operation;
 import com.sencha.gxt.dnd.core.client.DndDropEvent;
 import com.sencha.gxt.dnd.core.client.DndDropEvent.DndDropHandler;
+import com.sencha.gxt.dnd.core.client.DndDragEnterEvent;
 import com.sencha.gxt.dnd.core.client.DropTarget;
 import com.sencha.gxt.dnd.core.client.TreeDragSource;
 import com.sencha.gxt.widget.core.client.Component;
@@ -35,8 +37,10 @@ import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.box.PromptMessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.button.ToolButton;
+import com.sencha.gxt.widget.core.client.container.CssFloatLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.FlowLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.MarginData;
+import com.sencha.gxt.widget.core.client.container.PortalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.SimpleContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
@@ -494,16 +498,18 @@ public class LabelPortlet extends Portlet {
 	private EventBus eventBus;
 	private Map<Term, TermTreeNode> termTermTreeNodeMap = new HashMap<Term, TermTreeNode>();
 	private Collection collection;
+	private LabelPortletsView labelPortletsView;
 
-	public LabelPortlet(EventBus eventBus, Label label, Collection collection) {
-		this(GWT.<FramedPanelAppearance> create(FramedPanelAppearance.class), eventBus, label, collection);
+	public LabelPortlet(EventBus eventBus, Label label, Collection collection, LabelPortletsView labelPortletsView) {
+		this(GWT.<FramedPanelAppearance> create(FramedPanelAppearance.class), eventBus, label, collection, labelPortletsView);
 	}
 	
-	public LabelPortlet(FramedPanelAppearance appearance, EventBus eventBus, Label label, Collection collection) {
+	public LabelPortlet(FramedPanelAppearance appearance, EventBus eventBus, Label label, Collection collection, LabelPortletsView labelPortletsView) {
 		super(appearance);
 		this.eventBus = eventBus;
 		this.label = label;
 		this.collection = collection; 
+		this.labelPortletsView = labelPortletsView;
 		this.setHeadingText(label.getName());
 		this.setExpanded(false);
 		this.setAnimationDuration(500);
@@ -791,7 +797,22 @@ public class LabelPortlet extends Portlet {
 				}
 			}
 		};
-		DropTarget dropTarget = new DropTarget(this);
+		DropTarget dropTarget = new DropTarget(this) {
+			private AutoScrollSupport scrollSupport;
+
+			//scrollSupport can only work correctly when initialized once the element to be scrolled is already attached to the page
+			protected void onDragEnter(DndDragEnterEvent event) {
+				super.onDragEnter(event);
+				//AutoScrollSupport scrollSupport = ((PortalLayoutContainer)LabelPortlet.this.getParentLayoutWidget()).getScrollSupport();
+				if (scrollSupport == null) {
+					scrollSupport = new AutoScrollSupport(labelPortletsView.getElement());
+					scrollSupport.setScrollRegionHeight(50);
+					scrollSupport.setScrollDelay(100);
+					scrollSupport.setScrollRepeatDelay(100);
+				}	
+				scrollSupport.start();
+			}
+		};
 		dropTarget.setAllowSelfAsSource(false);
 		dropTarget.setOperation(Operation.COPY);
 		dropTarget.addDropHandler(portalDropHandler);
