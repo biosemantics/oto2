@@ -1,8 +1,10 @@
 package edu.arizona.biosemantics.oto2.oto.shared.model;
 
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 public class Bucket implements Serializable {
 
@@ -52,6 +54,16 @@ public class Bucket implements Serializable {
 
 	public List<Term> getTerms() {
 		return new LinkedList<Term>(terms);
+	}
+	
+	public List<Term> getUncategorizedTerms(Collection collection) {
+		Set<Term> categorizedTerms = new HashSet<Term>();
+		for(Label label : collection.getLabels()) {
+			categorizedTerms.addAll(label.getTerms());
+		}
+		List<Term> uncategorizedTerms = new LinkedList<Term>(getTerms());
+		uncategorizedTerms.removeAll(categorizedTerms);
+		return uncategorizedTerms;
 	}
 
 	public void setTerms(List<Term> terms) {

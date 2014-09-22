@@ -24,6 +24,7 @@ import com.sencha.gxt.data.shared.TreeStore;
 import com.sencha.gxt.dnd.core.client.DND.Operation;
 import com.sencha.gxt.dnd.core.client.DndDropEvent;
 import com.sencha.gxt.dnd.core.client.DndDropEvent.DndDropHandler;
+import com.sencha.gxt.dnd.core.client.DndDragStartEvent;
 import com.sencha.gxt.dnd.core.client.DropTarget;
 import com.sencha.gxt.dnd.core.client.ListViewDragSource;
 import com.sencha.gxt.dnd.core.client.TreeDragSource;
@@ -321,8 +322,22 @@ public class TermsView extends TabPanel {
 	}
 	
 	private void setupDnD() {
-		ListViewDragSource<Term> dragSource = new ListViewDragSource<Term>(listView);
-		TreeDragSource<TextTreeNode> treeDragSource = new TreeDragSource<TextTreeNode>(termTree);			
+		ListViewDragSource<Term> dragSource = new ListViewDragSource<Term>(listView) {
+			@Override
+			 protected void onDragStart(DndDragStartEvent event) {
+				 super.onDragStart(event);
+				 if(DndDropEventExtractor.getTerms(event, collection).isEmpty())
+					 event.setCancelled(true);
+			 }
+		};
+		TreeDragSource<TextTreeNode> treeDragSource = new TreeDragSource<TextTreeNode>(termTree) {
+			 @Override
+			 protected void onDragStart(DndDragStartEvent event) {
+				 super.onDragStart(event);
+				 if(DndDropEventExtractor.getTerms(event, collection).isEmpty())
+					 event.setCancelled(true);
+			 }
+		};
 		DropTarget dropTarget = new DropTarget(this);
 		dropTarget.setAllowSelfAsSource(false);
 		// actual drop action is taken care of by events
@@ -332,7 +347,7 @@ public class TermsView extends TabPanel {
 			public void onDrop(DndDropEvent event) {
 				event.getData();
 				if(DndDropEventExtractor.isSourceLabelPortlet(event)) {
-					final List<Term> terms = DndDropEventExtractor.getTerms(event);
+					final List<Term> terms = DndDropEventExtractor.getTerms(event, collection);
 					final Label label = DndDropEventExtractor.getLabelPortletSource(event).getLabel();
 					
 					for(Term term : terms) {

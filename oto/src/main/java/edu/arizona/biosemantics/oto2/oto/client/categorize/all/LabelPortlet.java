@@ -535,7 +535,7 @@ public class LabelPortlet extends Portlet {
 		FlowLayoutContainer flowLayoutContainer = new FlowLayoutContainer();
 		flowLayoutContainer.add(tree);
 		flowLayoutContainer.setScrollMode(ScrollMode.AUTO);
-		flowLayoutContainer.getElement().getStyle().setProperty("maxHeight", "200px");
+		flowLayoutContainer.getElement().getStyle().setProperty("maxHeight", "150px");
 		
 		add(flowLayoutContainer);
 		
@@ -762,7 +762,7 @@ public class LabelPortlet extends Portlet {
 			private void onDnd(final DndDropEvent dropEvent, DropSource source) {
 				switch(source) {
 				case INIT:
-					List<Term> terms = DndDropEventExtractor.getTerms(dropEvent);
+					List<Term> terms = DndDropEventExtractor.getTerms(dropEvent, collection);
 					eventBus.fireEvent(new TermCategorizeEvent(terms, label));
 					LabelPortlet.this.expand();
 					break;
@@ -771,7 +771,7 @@ public class LabelPortlet extends Portlet {
 						@Override
 						public void onSelection(SelectionEvent<Item> event) {
 							LabelPortlet sourcePortlet = DndDropEventExtractor.getLabelPortletSource(dropEvent);
-							List<Term> terms = DndDropEventExtractor.getTerms(dropEvent);
+							List<Term> terms = DndDropEventExtractor.getTerms(dropEvent, collection);
 							
 							eventBus.fireEvent(new CategorizeCopyTermEvent(terms, sourcePortlet.getLabel(), label));
 						}
@@ -779,7 +779,7 @@ public class LabelPortlet extends Portlet {
 						@Override
 						public void onSelection(SelectionEvent<Item> event) {
 							LabelPortlet sourcePortlet = DndDropEventExtractor.getLabelPortletSource(dropEvent);
-							List<Term> terms = DndDropEventExtractor.getTerms(dropEvent);
+							List<Term> terms = DndDropEventExtractor.getTerms(dropEvent, collection);
 							eventBus.fireEvent(new CategorizeMoveTermEvent(terms, sourcePortlet.getLabel(), label));
 						}
 					});

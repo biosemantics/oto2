@@ -1,6 +1,8 @@
 package edu.arizona.biosemantics.oto2.oto.shared.model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -54,7 +56,7 @@ public class Label implements Serializable {
 	}
 
 	public List<Term> getMainTerms() {
-		return new LinkedList<Term>(mainTerms);
+		return new ArrayList<Term>(mainTerms);
 	}
 
 	public void setMainTerms(List<Term> mainTerms) {
@@ -161,7 +163,7 @@ public class Label implements Serializable {
 	public List<Term> getSynonyms(Term mainTerm) {
 		if(!mainTermSynonymsMap.containsKey(mainTerm))
 			return new LinkedList<Term>();
-		return mainTermSynonymsMap.get(mainTerm);
+		return new ArrayList<Term>(mainTermSynonymsMap.get(mainTerm));
 	}
 
 	public void addSynonym(Term mainTerm, Term synonymTerm) {
@@ -219,5 +221,14 @@ public class Label implements Serializable {
 
 	public boolean isMainTerm(Term term) {
 		return mainTerms.contains(term);
+	}
+
+	public List<Term> getTerms() {
+		List<Term> result = new LinkedList<Term>();
+		for(Term mainTerm : this.getMainTerms()) {
+			result.add(mainTerm);
+			result.addAll(this.getSynonyms(mainTerm));
+		}
+		return result;
 	}
 }
