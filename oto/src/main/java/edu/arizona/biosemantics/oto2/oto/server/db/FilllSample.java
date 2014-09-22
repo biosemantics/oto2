@@ -123,7 +123,7 @@ public class FilllSample {
 		DAOManager daoManager = new DAOManager();
 		collection = daoManager.getCollectionDAO().insert(collection);
 			
-		Context context = new Context(collection.getId(), "rubus", "text");
+		Context context = new Context(collection.getId(), "rubus", "text with label 1 and label 2 and apex and leaf");
 		Context context2 = new Context(collection.getId(), "rubus", "text2");
 		Context context3 = new Context(collection.getId(), "rubus argetest", "asdf");
 		

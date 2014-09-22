@@ -84,7 +84,7 @@ public class ContextView extends Composite {
 		columns.add(expander);
 		columns.add(sourceColumn);
 		columns.add(textColumn);
-		columns.add(spellingColumn);
+		//columns.add(spellingColumn);
 		ColumnModel<TypedContext> columnModel = new ColumnModel<TypedContext>(columns);
 		grid = new Grid<TypedContext>(store, columnModel);
 		grid.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
