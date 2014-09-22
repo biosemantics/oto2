@@ -1,15 +1,15 @@
-package edu.arizona.biosemantics.oto2.oto.client.categorize.event;
+package edu.arizona.biosemantics.oto2.oto.client.event;
 
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
 
-import edu.arizona.biosemantics.oto2.oto.client.categorize.event.LabelRemoveEvent.RemoveLabelHandler;
+import edu.arizona.biosemantics.oto2.oto.client.event.LabelRemoveEvent.RemoveLabelHandler;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 
 public class LabelRemoveEvent extends GwtEvent<RemoveLabelHandler> {
 
 	public interface RemoveLabelHandler extends EventHandler {
-		void onRemove(Label label);
+		void onRemove(LabelRemoveEvent event);
 	}
 	
     public static Type<RemoveLabelHandler> TYPE = new Type<RemoveLabelHandler>();
@@ -27,7 +27,11 @@ public class LabelRemoveEvent extends GwtEvent<RemoveLabelHandler> {
 
 	@Override
 	protected void dispatch(RemoveLabelHandler handler) {
-		handler.onRemove(label);
+		handler.onRemove(this);
+	}
+
+	public Label getLabel() {
+		return label;
 	}
 
 }

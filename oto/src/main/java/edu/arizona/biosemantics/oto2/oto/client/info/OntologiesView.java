@@ -37,8 +37,8 @@ import com.sencha.gxt.widget.core.client.grid.filters.ListFilter;
 import com.sencha.gxt.widget.core.client.grid.filters.StringFilter;
 import com.sencha.gxt.widget.core.client.tips.QuickTip;
 
-import edu.arizona.biosemantics.oto2.oto.client.categorize.event.OntologiesSelectEvent;
-import edu.arizona.biosemantics.oto2.oto.client.categorize.event.TermSelectEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.OntologiesSelectEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.TermSelectEvent;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.oto.shared.model.OntologyEntry;
 import edu.arizona.biosemantics.oto2.oto.shared.model.OntologyEntryProperties;
@@ -172,13 +172,14 @@ public class OntologiesView extends Composite {
 	private void bindEvents() {
 		eventBus.addHandler(OntologiesSelectEvent.TYPE, new OntologiesSelectEvent.OntologiesSelectHandler() {
 			@Override
-			public void onSelect(Set<Ontology> ontologies) {
-				selectedOntologies = ontologies;
+			public void onSelect(OntologiesSelectEvent event) {
+				selectedOntologies = event.getOntologies();
 			}
 		});
 		eventBus.addHandler(TermSelectEvent.TYPE, new TermSelectEvent.TermSelectHandler() {
 			@Override
-			public void onSelect(Term term) {
+			public void onSelect(TermSelectEvent event) {
+				Term term = event.getTerm();
 				if(selectedOntologies == null) {
 					ontologyService.getOntologyEntries(term, new RPCCallback<List<OntologyEntry>>() {
 						@Override

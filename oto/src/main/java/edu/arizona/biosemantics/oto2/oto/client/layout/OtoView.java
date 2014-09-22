@@ -43,11 +43,11 @@ import com.sencha.gxt.widget.core.client.menu.MenuBarItem;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
 import edu.arizona.biosemantics.oto2.oto.client.categorize.LabelsView;
-import edu.arizona.biosemantics.oto2.oto.client.categorize.event.LoadEvent;
-import edu.arizona.biosemantics.oto2.oto.client.categorize.event.OntologiesSelectEvent;
-import edu.arizona.biosemantics.oto2.oto.client.categorize.event.SaveEvent;
-import edu.arizona.biosemantics.oto2.oto.client.categorize.event.TermSelectEvent;
 import edu.arizona.biosemantics.oto2.oto.client.common.HelpView;
+import edu.arizona.biosemantics.oto2.oto.client.event.LoadEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.OntologiesSelectEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.SaveEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.TermSelectEvent;
 import edu.arizona.biosemantics.oto2.oto.client.info.TermInfoView;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Ontology;

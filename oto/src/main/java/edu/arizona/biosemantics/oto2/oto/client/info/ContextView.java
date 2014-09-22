@@ -28,8 +28,8 @@ import com.sencha.gxt.widget.core.client.grid.filters.ListFilter;
 import com.sencha.gxt.widget.core.client.grid.filters.StringFilter;
 import com.sencha.gxt.widget.core.client.tips.QuickTip;
 
-import edu.arizona.biosemantics.oto2.oto.client.categorize.event.TermRenameEvent;
-import edu.arizona.biosemantics.oto2.oto.client.categorize.event.TermSelectEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.TermRenameEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.TermSelectEvent;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Location;
 import edu.arizona.biosemantics.oto2.oto.shared.model.OntologyEntry;
@@ -135,14 +135,15 @@ public class ContextView extends Composite {
 	private void bindEvents() {
 		eventBus.addHandler(TermRenameEvent.TYPE, new TermRenameEvent.RenameTermHandler() {
 			@Override
-			public void onRename(Term term) {
+			public void onRename(TermRenameEvent event) {
+				Term term = event.getTerm();
 				setContexts(term);
 			}
 		});
 		eventBus.addHandler(TermSelectEvent.TYPE, new TermSelectEvent.TermSelectHandler() {
 			@Override
-			public void onSelect(Term term) {
-				setContexts(term);
+			public void onSelect(TermSelectEvent event) {
+				setContexts(event.getTerm());
 			}
 		});
 	}

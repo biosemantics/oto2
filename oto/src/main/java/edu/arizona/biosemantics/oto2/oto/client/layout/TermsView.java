@@ -47,14 +47,14 @@ import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 import com.sencha.gxt.widget.core.client.tree.Tree;
 
-import edu.arizona.biosemantics.oto2.oto.client.categorize.event.LabelRemoveEvent;
-import edu.arizona.biosemantics.oto2.oto.client.categorize.event.TermCategorizeEvent;
-import edu.arizona.biosemantics.oto2.oto.client.categorize.event.TermRenameEvent;
-import edu.arizona.biosemantics.oto2.oto.client.categorize.event.TermSelectEvent;
-import edu.arizona.biosemantics.oto2.oto.client.categorize.event.TermUncategorizeEvent;
 import edu.arizona.biosemantics.oto2.oto.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.oto.client.common.DndDropEventExtractor;
 import edu.arizona.biosemantics.oto2.oto.client.common.UncategorizeDialog;
+import edu.arizona.biosemantics.oto2.oto.client.event.LabelRemoveEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.TermCategorizeEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.TermRenameEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.TermSelectEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.TermUncategorizeEvent;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Bucket;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
@@ -119,13 +119,7 @@ public class TermsView extends TabPanel {
 					categorizeButton.addSelectHandler(new SelectHandler() {
 						@Override
 						public void onSelect(SelectEvent event) {
-							Map<Term, AddResult> addResults = new HashMap<Term, AddResult>();
-							for(Label categorizeLabel : categorizeLabels) {
-								Map<Term, AddResult> addResult = categorizeLabel.addMainTerms(terms);
-								Alerter.alertNotAddedTerms(terms, addResult);
-								addResults.putAll(addResult);
-							}
-							eventBus.fireEvent(new TermCategorizeEvent(terms, categorizeLabels, addResults));
+							eventBus.fireEvent(new TermCategorizeEvent(terms, categorizeLabels));
 							TermMenu.this.hide();
 						}
 					});
@@ -159,8 +153,7 @@ public class TermsView extends TabPanel {
 								@Override
 								public void onHide(HideEvent event) {
 									String newName = box.getValue();
-									term.setTerm(newName);
-									eventBus.fireEvent(new TermRenameEvent(term));
+									eventBus.fireEvent(new TermRenameEvent(term, newName));
 								}
 							});
 							box.show();
@@ -241,7 +234,8 @@ public class TermsView extends TabPanel {
 	private void bindEvents() {
 		eventBus.addHandler(TermSelectEvent.TYPE, new TermSelectEvent.TermSelectHandler() {
 			@Override
-			public void onSelect(Term term) {
+			public void onSelect(TermSelectEvent event) {
+				Term term = event.getTerm();
 				if(!listView.getSelectionModel().isSelected(term)) {
 					List<Term> selection = new LinkedList<Term>();
 					selection.add(term);
@@ -259,7 +253,8 @@ public class TermsView extends TabPanel {
 		});
 		eventBus.addHandler(LabelRemoveEvent.TYPE, new LabelRemoveEvent.RemoveLabelHandler() {
 			@Override
-			public void onRemove(Label label) {
+			public void onRemove(LabelRemoveEvent event) {
+				Label label = event.getLabel();
 				for(Term term : label.getMainTerms()) {
 					List<Label> labels = collection.getLabels(term);
 					if(labels.isEmpty()) {
@@ -272,16 +267,20 @@ public class TermsView extends TabPanel {
 		});
 		eventBus.addHandler(TermUncategorizeEvent.TYPE, new TermUncategorizeEvent.TermUncategorizeHandler() {
 			@Override
-			public void onUncategorize(Term term, List<Label> oldLabels) {
-				BucketTreeNode bucketTreeNode = bucketBucketTreeNodeMap.get(termBucketMap.get(term));
-				TermTreeNode node = termTermTreeNodeMap.get(term);
-				treeStore.add(bucketBucketTreeNodeMap.get(termBucketMap.get(term)), termTermTreeNodeMap.get(term));
-				listStore.add(term);
+			public void onUncategorize(TermUncategorizeEvent event) {
+				List<Term> terms = event.getTerms();
+				for(Term term : terms) {
+					BucketTreeNode bucketTreeNode = bucketBucketTreeNodeMap.get(termBucketMap.get(term));
+					TermTreeNode node = termTermTreeNodeMap.get(term);
+					treeStore.add(bucketBucketTreeNodeMap.get(termBucketMap.get(term)), termTermTreeNodeMap.get(term));
+					listStore.add(term);
+				}
 			}
 		});
 		eventBus.addHandler(TermCategorizeEvent.TYPE, new TermCategorizeEvent.TermCategorizeHandler() {
 			@Override
-			public void onCategorize(List<Term> terms, List<Label> categories) {
+			public void onCategorize(TermCategorizeEvent event) {
+				List<Term> terms = event.getTerms();
 				for(Term term : terms) {
 					treeStore.remove(termTermTreeNodeMap.get(term));
 					listStore.remove(term);
@@ -290,7 +289,8 @@ public class TermsView extends TabPanel {
 		});
 		eventBus.addHandler(TermRenameEvent.TYPE, new TermRenameEvent.RenameTermHandler() {
 			@Override
-			public void onRename(Term term) {
+			public void onRename(TermRenameEvent event) {
+				Term term = event.getTerm();
 				if(listStore.getAll().contains(term)) {
 					listStore.update(term);
 				}
@@ -362,10 +362,10 @@ public class TermsView extends TabPanel {
 			bucketBucketTreeNodeMap.put(bucket, bucketTreeNode);
 			treeStore.add(bucketTreeNode);
 			for(Term term : bucket.getTerms()) {
+				TermTreeNode termTreeNode = new TermTreeNode(term);
+				termBucketMap.put(term, bucket);
+				termTermTreeNodeMap.put(term, termTreeNode);
 				if(collection.getLabels(term).isEmpty()) {
-					termBucketMap.put(term, bucket);
-					TermTreeNode termTreeNode = new TermTreeNode(term);
-					termTermTreeNodeMap.put(term, termTreeNode);
 					treeStore.add(bucketTreeNode, termTreeNode);
 					listStore.add(term);
 				}

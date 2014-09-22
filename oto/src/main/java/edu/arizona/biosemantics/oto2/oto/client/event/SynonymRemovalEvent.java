@@ -1,18 +1,18 @@
-package edu.arizona.biosemantics.oto2.oto.client.categorize.event;
+package edu.arizona.biosemantics.oto2.oto.client.event;
 
 import java.util.List;
 
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
 
-import edu.arizona.biosemantics.oto2.oto.client.categorize.event.SynonymRemovalEvent.SynonymRemovalHandler;
+import edu.arizona.biosemantics.oto2.oto.client.event.SynonymRemovalEvent.SynonymRemovalHandler;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 
 public class SynonymRemovalEvent extends GwtEvent<SynonymRemovalHandler> {
 
 	public interface SynonymRemovalHandler extends EventHandler {
-		void onSynonymRemoval(Label label, Term mainTerm, List<Term> synonyms);
+		void onSynonymRemoval(SynonymRemovalEvent event);
 	}
 	
     public static Type<SynonymRemovalHandler> TYPE = new Type<SynonymRemovalHandler>();
@@ -34,7 +34,7 @@ public class SynonymRemovalEvent extends GwtEvent<SynonymRemovalHandler> {
 
 	@Override
 	protected void dispatch(SynonymRemovalHandler handler) {
-		handler.onSynonymRemoval(label, mainTerm, synonyms);
+		handler.onSynonymRemoval(this);
 	}
 
 	public Label getLabel() {

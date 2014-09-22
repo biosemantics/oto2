@@ -29,14 +29,14 @@ import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
 import edu.arizona.biosemantics.oto2.oto.client.categorize.all.LabelPortlet.MainTermTreeNode;
-import edu.arizona.biosemantics.oto2.oto.client.categorize.event.CategorizeCopyTermEvent;
-import edu.arizona.biosemantics.oto2.oto.client.categorize.event.CategorizeMoveTermEvent;
-import edu.arizona.biosemantics.oto2.oto.client.categorize.event.SynonymCreationEvent;
-import edu.arizona.biosemantics.oto2.oto.client.categorize.event.SynonymRemovalEvent;
-import edu.arizona.biosemantics.oto2.oto.client.categorize.event.TermRenameEvent;
-import edu.arizona.biosemantics.oto2.oto.client.categorize.event.TermUncategorizeEvent;
 import edu.arizona.biosemantics.oto2.oto.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.oto.client.common.UncategorizeDialog;
+import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeCopyTermEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeMoveTermEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.SynonymCreationEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.SynonymRemovalEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.TermRenameEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.TermUncategorizeEvent;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
@@ -100,7 +100,6 @@ public abstract class TermMenu extends Menu implements BeforeShowHandler {
 					for(Term term : terms) {
 						if(label.isMainTerm(term)) {
 							List<Term> oldSynonyms = label.getSynonyms(term);
-							label.removeSynonymy(term, oldSynonyms);
 							eventBus.fireEvent(new SynonymRemovalEvent(label, term, oldSynonyms));
 						}
 					}
@@ -139,7 +138,6 @@ public abstract class TermMenu extends Menu implements BeforeShowHandler {
 					synonymRemoveButton.addSelectHandler(new SelectHandler() {
 						@Override
 						public void onSelect(SelectEvent event) {
-							label.removeSynonymy(term, toRemove);
 							eventBus.fireEvent(new SynonymRemovalEvent(label, term, toRemove));
 							TermMenu.this.hide();
 						}
@@ -187,7 +185,6 @@ public abstract class TermMenu extends Menu implements BeforeShowHandler {
 				synonymButton.addSelectHandler(new SelectHandler() {
 					@Override
 					public void onSelect(SelectEvent event) {
-						label.addSynonymy(term, synonymTerms);
 						eventBus.fireEvent(new SynonymCreationEvent(label, term, synonymTerms));
 						TermMenu.this.hide();
 					}
@@ -212,7 +209,6 @@ public abstract class TermMenu extends Menu implements BeforeShowHandler {
 						UncategorizeDialog dialog = new UncategorizeDialog(eventBus, label, 
 								term, labels);
 					} else {
-						label.uncategorizeTerm(term);
 						eventBus.fireEvent(new TermUncategorizeEvent(term, label));
 					}
 				}
@@ -245,8 +241,7 @@ public abstract class TermMenu extends Menu implements BeforeShowHandler {
 						@Override
 						public void onHide(HideEvent event) {
 							String newName = box.getValue();
-							term.setTerm(newName);
-							eventBus.fireEvent(new TermRenameEvent(term));
+							eventBus.fireEvent(new TermRenameEvent(term, newName));
 						}
 					});
 					box.show();
@@ -285,13 +280,7 @@ public abstract class TermMenu extends Menu implements BeforeShowHandler {
 				copyButton.addSelectHandler(new SelectHandler() {
 					@Override
 					public void onSelect(SelectEvent event) {
-						Map<Term, AddResult> addResults = new HashMap<Term, AddResult>();
-						for(Label copyLabel : copyLabels) {
-							Map<Term, AddResult> addResult = copyLabel.addMainTerms(terms);
-							Alerter.alertNotAddedTerms(terms, addResult);
-							addResults.putAll(addResult);
-						}
-						eventBus.fireEvent(new CategorizeCopyTermEvent(terms, label, copyLabels, addResults));
+						eventBus.fireEvent(new CategorizeCopyTermEvent(terms, label, copyLabels));
 						TermMenu.this.hide();
 					}
 				});
@@ -312,10 +301,7 @@ public abstract class TermMenu extends Menu implements BeforeShowHandler {
 					moveMenu.add(new MenuItem(collectionLabel.getName(), new SelectionHandler<MenuItem>() {
 						@Override
 						public void onSelection(SelectionEvent<MenuItem> event) {
-							Map<Term, AddResult> addResult = collectionLabel.addMainTerms(terms);
-							Alerter.alertNotAddedTerms(terms, addResult);
-							label.uncategorizeMainTerms(terms);
-							eventBus.fireEvent(new CategorizeMoveTermEvent(terms, label, collectionLabel, addResult));
+							eventBus.fireEvent(new CategorizeMoveTermEvent(terms, label, collectionLabel));
 							TermMenu.this.hide();
 						}
 					}));

@@ -83,7 +83,8 @@ public class Label implements Serializable {
 	
 	/**
 	 * @param term
-	 * @return true if added as main term, false if was already specified as synonym for another mainTerm
+	 * @return true if added as main term, false if was already 
+	 *  specified as synonym for another mainTerm
 	 */
 	public AddResult addMainTerm(Term term) {
 		for(Term mainTerm : mainTerms) {

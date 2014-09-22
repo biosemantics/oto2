@@ -22,7 +22,7 @@ import com.sencha.gxt.widget.core.client.grid.filters.GridFilters;
 import com.sencha.gxt.widget.core.client.grid.filters.StringFilter;
 import com.sencha.gxt.widget.core.client.tips.QuickTip;
 
-import edu.arizona.biosemantics.oto2.oto.client.categorize.event.TermSelectEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.TermSelectEvent;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Location;
 import edu.arizona.biosemantics.oto2.oto.shared.model.LocationProperties;
@@ -116,7 +116,8 @@ public class LocationsView extends Composite {
 	private void bindEvents() {
 		eventBus.addHandler(TermSelectEvent.TYPE, new TermSelectEvent.TermSelectHandler() {
 			@Override
-			public void onSelect(Term term) {
+			public void onSelect(TermSelectEvent event) {
+				Term term = event.getTerm();
 				collectionService.getLocations(term, new RPCCallback<List<Location>>() {
 					@Override
 					public void onSuccess(List<Location> locations) {

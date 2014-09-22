@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto2.oto.client.categorize.event;
+package edu.arizona.biosemantics.oto2.oto.client.event;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -6,14 +6,14 @@ import java.util.List;
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
 
-import edu.arizona.biosemantics.oto2.oto.client.categorize.event.CategorizeCopyRemoveTermEvent.CategorizeCopyRemoveTermHandler;
+import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeCopyRemoveTermEvent.CategorizeCopyRemoveTermHandler;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 
 public class CategorizeCopyRemoveTermEvent extends GwtEvent<CategorizeCopyRemoveTermHandler> {
 
 	public interface CategorizeCopyRemoveTermHandler extends EventHandler {
-		void onRemove(List<Term> terms, Label label);
+		void onRemove(CategorizeCopyRemoveTermEvent event);
 	}
 	
     public static Type<CategorizeCopyRemoveTermHandler> TYPE = new Type<CategorizeCopyRemoveTermHandler>();
@@ -39,7 +39,7 @@ public class CategorizeCopyRemoveTermEvent extends GwtEvent<CategorizeCopyRemove
 
 	@Override
 	protected void dispatch(CategorizeCopyRemoveTermHandler handler) {
-		handler.onRemove(terms, label);
+		handler.onRemove(this);
 	}
 
 	public List<Term> getTerms() {

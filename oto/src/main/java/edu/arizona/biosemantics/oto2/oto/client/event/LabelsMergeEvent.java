@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto2.oto.client.categorize.event;
+package edu.arizona.biosemantics.oto2.oto.client.event;
 
 import java.util.List;
 import java.util.Map;
@@ -6,7 +6,7 @@ import java.util.Map;
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
 
-import edu.arizona.biosemantics.oto2.oto.client.categorize.event.LabelsMergeEvent.MergeLabelsHandler;
+import edu.arizona.biosemantics.oto2.oto.client.event.LabelsMergeEvent.MergeLabelsHandler;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label.AddResult;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
@@ -14,19 +14,17 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 public class LabelsMergeEvent extends GwtEvent<MergeLabelsHandler> {
 
 	public interface MergeLabelsHandler extends EventHandler {
-		void onMerge(Label destination, List<Label> sources, Map<Term, AddResult> addResults);
+		void onMerge(LabelsMergeEvent event);
 	}
 	
     public static Type<MergeLabelsHandler> TYPE = new Type<MergeLabelsHandler>();
     
     private List<Label> sources;
     private Label destination;
-	private Map<Term, AddResult> addResults;
     
-    public LabelsMergeEvent(Label destination, List<Label> sources, Map<Term, AddResult> addResults) {
+    public LabelsMergeEvent(Label destination, List<Label> sources) {
         this.sources = sources;
         this.destination = destination;
-        this.addResults = addResults;
     }
 	
 	@Override
@@ -36,7 +34,7 @@ public class LabelsMergeEvent extends GwtEvent<MergeLabelsHandler> {
 
 	@Override
 	protected void dispatch(MergeLabelsHandler handler) {
-		handler.onMerge(destination, sources, addResults);
+		handler.onMerge(this);
 	}
 
 	public List<Label> getSources() {
@@ -46,11 +44,6 @@ public class LabelsMergeEvent extends GwtEvent<MergeLabelsHandler> {
 	public Label getDestination() {
 		return destination;
 	}
-
-	public Map<Term, AddResult> getAddResults() {
-		return addResults;
-	}
-	
 	
 
 }

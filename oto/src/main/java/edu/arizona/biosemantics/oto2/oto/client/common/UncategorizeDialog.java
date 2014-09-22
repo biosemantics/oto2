@@ -7,8 +7,8 @@ import com.sencha.gxt.widget.core.client.box.MessageBox;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 
-import edu.arizona.biosemantics.oto2.oto.client.categorize.event.CategorizeCopyRemoveTermEvent;
-import edu.arizona.biosemantics.oto2.oto.client.categorize.event.TermUncategorizeEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeCopyRemoveTermEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.TermUncategorizeEvent;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 
@@ -25,15 +25,12 @@ public class UncategorizeDialog extends MessageBox {
 		getButton(PredefinedButton.YES).addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
-				for(Label label : labels)
-					label.uncategorizeTerm(term);
 				eventBus.fireEvent(new TermUncategorizeEvent(term, labels));
 			}
 		});
 		getButton(PredefinedButton.NO).addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
-				sourceLabel.uncategorizeTerm(term);
 				eventBus.fireEvent(new CategorizeCopyRemoveTermEvent(term, sourceLabel));
 			}
 		});
