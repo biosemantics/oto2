@@ -140,12 +140,12 @@ public class TermsView extends TabPanel {
 				
 				if(selected.size() == 1) {
 					final Term term = selected.get(0);
-					MenuItem rename = new MenuItem("Rename");
+					MenuItem rename = new MenuItem("Correct Spelling");
 					rename.addSelectionHandler(new SelectionHandler<Item>() {
 						@Override
 						public void onSelection(SelectionEvent<Item> event) {
 							final PromptMessageBox box = new PromptMessageBox(
-									"Term rename", "Please input new spelling");
+									"Correct Spelling", "Please input new spelling");
 							box.getButton(PredefinedButton.OK).addBeforeSelectHandler(new BeforeSelectHandler() {
 								@Override
 								public void onBeforeSelect(BeforeSelectEvent event) {

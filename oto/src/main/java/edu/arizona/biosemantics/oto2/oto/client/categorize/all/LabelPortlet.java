@@ -184,13 +184,13 @@ public class LabelPortlet extends Portlet {
 				}
 				
 				if(terms.size() == 1) {
-					MenuItem rename = new MenuItem("Rename");
+					MenuItem rename = new MenuItem("Correct Spelling");
 					final Term term = terms.iterator().next();
 					rename.addSelectionHandler(new SelectionHandler<Item>() {
 						@Override
 						public void onSelection(SelectionEvent<Item> event) {
 							final PromptMessageBox box = new PromptMessageBox(
-									"Term rename", "Please input new spelling");
+									"Correct spelling", "Please input new spelling");
 							box.getButton(PredefinedButton.OK).addBeforeSelectHandler(new BeforeSelectHandler() {
 								@Override
 								public void onBeforeSelect(BeforeSelectEvent event) {
