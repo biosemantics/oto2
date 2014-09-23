@@ -8,8 +8,10 @@ import edu.arizona.biosemantics.oto2.oto.server.db.Query.QueryException;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Bucket;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Context;
+import edu.arizona.biosemantics.oto2.oto.shared.model.HighlightLabel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
+import edu.arizona.biosemantics.oto2.oto.shared.model.TrashLabel;
 
 public class FilllSample {
 	
@@ -94,7 +96,7 @@ public class FilllSample {
 		collection.setBuckets(buckets);
 		
 		List<Label> labels = new LinkedList<Label>();
-		Label l0 = new Label();
+		Label l0 = new HighlightLabel();
 		l0.setName("structure");
 		
 		Label l1 = new Label();
@@ -117,6 +119,8 @@ public class FilllSample {
 			labels.add(l);
 		}
 		
+		Label trashLabel = new TrashLabel("Useless", "This category can be uesd to label terms as uselss");
+		labels.add(trashLabel);
 		collection.setLabels(labels);
 		
 		collection.setSecret("my secret");

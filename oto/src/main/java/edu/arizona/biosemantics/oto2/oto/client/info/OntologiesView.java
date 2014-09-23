@@ -161,7 +161,10 @@ public class OntologiesView extends Composite {
 	
 	public void setOntologyEntries(Collection<OntologyEntry> ontologyEntries) {
 		store.clear();
-		store.addAll(ontologyEntries);
+		if(ontologyEntries.isEmpty())
+			store.add(new OntologyEntry("nothing-found", "No match found", "", "", "", ""));
+		else
+			store.addAll(ontologyEntries);
 		
 		//bug: http://www.sencha.com/forum/showthread.php?285982-Grid-ColumnHeader-Menu-missing
 		grid.getView().refresh(true);

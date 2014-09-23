@@ -1,14 +1,24 @@
 package edu.arizona.biosemantics.oto2.oto.server;
 
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
+import edu.arizona.biosemantics.oto2.oto.shared.model.HighlightLabel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import au.com.bytecode.opencsv.CSVReader;
+import au.com.bytecode.opencsv.CSVWriter;
 
 public class Configuration {
 
@@ -44,7 +54,10 @@ public class Configuration {
 			try(CSVReader reader = new CSVReader(new InputStreamReader(loader.getResourceAsStream("defaultCategories.csv")))) {
 				List<String[]> lines = reader.readAll();
 				for(String[] line : lines) {
-					defaultCategories.add(new Label(line[0], line[1]));
+					if(line[2].equals("y"))
+						defaultCategories.add(new HighlightLabel(line[0], line[1]));
+					else
+						defaultCategories.add(new Label(line[0], line[1]));
 				}
 			}
 		} catch(Exception e) {
@@ -54,8 +67,30 @@ public class Configuration {
 	
 	public static List<Label> getDefaultCategories() {
 		List<Label> result = new LinkedList<Label>();
-		for(Label label : defaultCategories)
-			result.add(new Label(label.getName(), label.getDescription()));
+		for(Label label : defaultCategories) {
+			if(label instanceof HighlightLabel)
+				result.add(new HighlightLabel(label.getName(), label.getDescription()));
+			else
+				result.add(new Label(label.getName(), label.getDescription()));
+		}
 		return result;
+	}
+	
+	public static void main(String[] args) throws FileNotFoundException, IOException {
+		/*try(CSVReader reader = new CSVReader(new FileReader(new File("src/main/resources/defaultCategories.csv")))) {
+			List<String[]> lines = reader.readAll();
+			List<String[]> newLines = new ArrayList<String[]>();
+			for(String[] line : lines) {
+				List<String> newLineList = new ArrayList<String>(Arrays.asList(line));
+				if(line[0].startsWith("structure") || line[0].equals("substance") || line[0].equals("taxon_name")) {
+					newLineList.add("y");
+				} else
+					newLineList.add("n");
+				newLines.add(newLineList.toArray(new String[newLineList.size()]));
+			}
+			try(CSVWriter writer = new CSVWriter(new FileWriter(new File("src/main/resources/defCategories.csv")))) {
+				writer.writeAll(newLines);
+			}
+		}*/
 	}
 }

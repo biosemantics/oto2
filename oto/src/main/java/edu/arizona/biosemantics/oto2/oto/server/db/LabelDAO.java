@@ -8,8 +8,10 @@ import java.util.List;
 
 import edu.arizona.biosemantics.oto2.oto.server.db.Query.QueryException;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.oto.shared.model.HighlightLabel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
+import edu.arizona.biosemantics.oto2.oto.shared.model.TrashLabel;
 
 public class LabelDAO {
 	
@@ -43,9 +45,21 @@ public class LabelDAO {
 	private Label createLabel(ResultSet result) throws SQLException  {
 		int id = result.getInt(1);
 		int collectionId = result.getInt(2);
-		String name = result.getString(3);
-		String description = result.getString(4);
-		Label label = new Label(id, collectionId, name, description);
+		String type = result.getString(3);
+		String name = result.getString(4);
+		String description = result.getString(5);
+		Label label;
+		switch(type) {
+		case "TrashLabel":
+			label = new TrashLabel(id, collectionId, name, description);
+			break;
+		case "HighlightLabel":
+			label = new HighlightLabel(id, collectionId, name, description);
+			break;
+		default:
+			label = new Label(id, collectionId, name, description);
+		}
+		
 		label.setMainTerms(labelingDAO.getMainTerms(label));
 		label.setMainTermSynonymsMap(synonymDAO.get(label));
 		return label;
@@ -55,10 +69,11 @@ public class LabelDAO {
 		if(!label.hasId()) {
 			Label result = null;
 			try(Query insert = new Query("INSERT INTO `oto_label` " +
-					"(`collection`, `name`, `description`) VALUES (?, ?, ?)")) {
+					"(`collection`, `type`, `name`, `description`) VALUES (?, ?, ?, ?)")) {
 				insert.setParameter(1, collectionId);
-				insert.setParameter(2, label.getName());
-				insert.setParameter(3, label.getDescription());
+				insert.setParameter(2, label.getClass().getSimpleName());
+				insert.setParameter(3, label.getName());
+				insert.setParameter(4, label.getDescription());
 				insert.execute();
 				ResultSet generatedKeys = insert.getGeneratedKeys();
 				generatedKeys.next();

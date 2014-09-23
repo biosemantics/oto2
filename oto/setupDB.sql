@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS `oto_bucket` (
 CREATE TABLE IF NOT EXISTS `oto_label` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `collection` bigint(20) unsigned NOT NULL,
+  `type` varchar(100),
   `name` varchar(100) NOT NULL,
   `description` varchar(1000),
   `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,

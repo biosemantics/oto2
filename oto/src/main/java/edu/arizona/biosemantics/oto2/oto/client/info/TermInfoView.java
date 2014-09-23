@@ -37,7 +37,7 @@ public class TermInfoView extends TabPanel {
 					Dialog dialog = new SelectOntologiesDialog(eventBus);
 					dialog.show();
 					Alerter.alertNoOntoloygySelected();
-					event.cancel();
+					//event.cancel();
 				}
 			}
 		});

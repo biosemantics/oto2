@@ -39,9 +39,11 @@ import edu.arizona.biosemantics.oto2.oto.client.event.LabelCreateEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelRemoveEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelsMergeEvent;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.oto.shared.model.HighlightLabel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label.AddResult;
+import edu.arizona.biosemantics.oto2.oto.shared.model.TrashLabel;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionService;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionServiceAsync;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.RPCCallback;
@@ -257,20 +259,17 @@ public class LabelPortletsView extends PortalLayoutContainer {
 	}
 
 	protected LabelPortlet createLabelPortlet(Label label) {
-		LabelPortlet labelPortlet = null;
-		try { 
-			HighlightLabel.valueOf(label.getName().trim());
-			//labelPortlet = new LabelPortlet(GWT.<OtoFramedPanelAppearance> create(OtoFramedPanelAppearance.class), 
-			//		eventBus, label, collection);
-			labelPortlet = new LabelPortlet(eventBus, label, collection, this);
+		//labelPortlet = new LabelPortlet(GWT.<OtoFramedPanelAppearance> create(OtoFramedPanelAppearance.class), 
+		//		eventBus, label, collection);
+		LabelPortlet labelPortlet = new LabelPortlet(eventBus, label, collection, this);
+		if(label instanceof HighlightLabel)
 			labelPortlet.setHeadingHtml("<div>" + label.getName() + "</div>");
-		} catch(Exception e) {
-			//labelPortlet = new LabelPortlet(GWT.<OtoFramedPanelAppearance> create(OtoFramedPanelAppearance.class), 
-			//		eventBus, label, collection);
-			labelPortlet = new LabelPortlet(eventBus, label, collection, this);
+		else if(label instanceof TrashLabel)
+			labelPortlet.setHeadingHtml("<div style='color: black'>" 
+					+ label.getName() + "</div>");
+		else 
 			labelPortlet.setHeadingHtml("<div style='font-weight: normal'>" 
-			+ label.getName() + "</div>");
-		}
+					+ label.getName() + "</div>");
 		return labelPortlet;
 	}
 

@@ -20,6 +20,7 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Location;
 import edu.arizona.biosemantics.oto2.oto.shared.model.OntologyEntry;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
+import edu.arizona.biosemantics.oto2.oto.shared.model.TrashLabel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.TypedContext;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionService;
 
@@ -68,6 +69,7 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 			collection.setLabels(Configuration.getDefaultCategories());
 		if(collection.getSecret() == null || collection.getSecret().isEmpty())
 			createDefaultSecret(collection);
+		collection.getLabels().add(new TrashLabel("Useless", "This category can be uesd to label terms as uselss"));
 		collection = daoManager.getCollectionDAO().insert(collection);
 		return collection;
 	}

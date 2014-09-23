@@ -1,5 +1,7 @@
 package edu.arizona.biosemantics.oto2.oto.server.rest;
 
+import java.util.Iterator;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
@@ -18,6 +20,8 @@ import org.slf4j.LoggerFactory;
 import edu.arizona.biosemantics.oto2.oto.server.db.DAOManager;
 import edu.arizona.biosemantics.oto2.oto.server.rpc.CollectionService;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
+import edu.arizona.biosemantics.oto2.oto.shared.model.TrashLabel;
 
 /**
  * Just a REST-like wrapper around the RPC service
@@ -56,11 +60,26 @@ public class CollectionResource {
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Collection get(@PathParam("id") int id, @QueryParam("secret") String secret) {
 		try {
-			return collectionService.get(id, secret);
+			Collection result = collectionService.get(id, secret);
+			//remove trashlabel as charaparser will use it in output if returned
+			//move this part into charaparser itself at some point, IF other clients do want
+			//to retrieve trash
+			removeTrashLabel(result);
+			return result;
 		} catch (Exception e) {
 			logger.error("Exception " + e.toString());
 			e.printStackTrace();
 			return null;
+		}
+	}
+
+	private void removeTrashLabel(Collection collection) {
+		Iterator<Label> labelIterator = collection.getLabels().iterator();
+		while(labelIterator.hasNext()) {
+			Label label = labelIterator.next();
+			if(label instanceof TrashLabel) {
+				labelIterator.remove();
+			}
 		}
 	}
 }
