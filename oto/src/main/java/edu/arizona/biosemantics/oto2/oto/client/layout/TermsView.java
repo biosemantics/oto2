@@ -19,6 +19,7 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.web.bindery.event.shared.HandlerRegistration;
 import com.sencha.gxt.core.client.dom.AutoScrollSupport;
+import com.sencha.gxt.core.client.util.Format;
 import com.sencha.gxt.core.client.util.Point;
 import com.sencha.gxt.core.client.util.Rectangle;
 import com.sencha.gxt.data.shared.ListStore;
@@ -33,6 +34,7 @@ import com.sencha.gxt.dnd.core.client.DndDragStartEvent;
 import com.sencha.gxt.dnd.core.client.DropTarget;
 import com.sencha.gxt.dnd.core.client.ListViewDragSource;
 import com.sencha.gxt.dnd.core.client.TreeDragSource;
+import com.sencha.gxt.messages.client.DefaultMessages;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
 import com.sencha.gxt.widget.core.client.ListView;
 import com.sencha.gxt.widget.core.client.TabPanel;
@@ -267,9 +269,7 @@ public class TermsView extends TabPanel {
 				for(Term term : label.getMainTerms()) {
 					List<Label> labels = collection.getLabels(term);
 					if(labels.isEmpty()) {
-						treeStore.add(bucketBucketTreeNodeMap.get(termBucketMap.get(term)), 
-								termTermTreeNodeMap.get(term));
-						listStore.add(term);
+						addTerm(term);
 					}
 				}
 			}
@@ -278,11 +278,8 @@ public class TermsView extends TabPanel {
 			@Override
 			public void onUncategorize(TermUncategorizeEvent event) {
 				List<Term> terms = event.getTerms();
-				for(Term term : terms) {
-					BucketTreeNode bucketTreeNode = bucketBucketTreeNodeMap.get(termBucketMap.get(term));
-					TermTreeNode node = termTermTreeNodeMap.get(term);
-					treeStore.add(bucketBucketTreeNodeMap.get(termBucketMap.get(term)), termTermTreeNodeMap.get(term));
-					listStore.add(term);
+				for(Term term : terms) {					
+					addTerm(term);
 				}
 			}
 		});
@@ -291,8 +288,7 @@ public class TermsView extends TabPanel {
 			public void onCategorize(TermCategorizeEvent event) {
 				List<Term> terms = event.getTerms();
 				for(Term term : terms) {
-					treeStore.remove(termTermTreeNodeMap.get(term));
-					listStore.remove(term);
+					removeTerm(term);
 				}
 			}
 		});
@@ -327,6 +323,25 @@ public class TermsView extends TabPanel {
 		});
 	}
 	
+	protected void removeTerm(Term term) {
+		BucketTreeNode bucketTreeNode = bucketBucketTreeNodeMap.get(termBucketMap.get(term));
+		TermTreeNode node = termTermTreeNodeMap.get(term);
+		treeStore.remove(node);
+		if(treeStore.getChildCount(bucketTreeNode) == 0) {
+			treeStore.remove(bucketTreeNode);
+		}
+		listStore.remove(term);
+	}
+
+	protected void addTerm(Term term) {
+		TermTreeNode node = termTermTreeNodeMap.get(term);
+		BucketTreeNode bucketTreeNode = bucketBucketTreeNodeMap.get(termBucketMap.get(term));
+		if(treeStore.findModel(bucketTreeNode) == null) 
+			treeStore.add(bucketTreeNode);
+		treeStore.add(bucketTreeNode, node);
+		listStore.add(term);
+	}
+
 	private void setupDnD() {		
 		ListViewDragSource<Term> dragSource = new ListViewDragSource<Term>(listView) {
 			@Override
@@ -340,8 +355,13 @@ public class TermsView extends TabPanel {
 			 @Override
 			 protected void onDragStart(DndDragStartEvent event) {
 				 super.onDragStart(event);
-				 if(DndDropEventExtractor.getTerms(event, collection).isEmpty())
+				 List<Term> terms = DndDropEventExtractor.getTerms(event, collection);
+				 if(terms.isEmpty())
 					 event.setCancelled(true);
+				 else {
+					 setStatusText(terms.size() + " term(s) selected");
+					 event.getStatusProxy().update(Format.substitute(getStatusText(), terms.size()));
+				 }
 			 }
 		};
 		DropTarget dropTarget = new DropTarget(this) {
@@ -403,14 +423,12 @@ public class TermsView extends TabPanel {
 		for(Bucket bucket : collection.getBuckets()) {
 			BucketTreeNode bucketTreeNode = new BucketTreeNode(bucket);
 			bucketBucketTreeNodeMap.put(bucket, bucketTreeNode);
-			treeStore.add(bucketTreeNode);
 			for(Term term : bucket.getTerms()) {
 				TermTreeNode termTreeNode = new TermTreeNode(term);
 				termBucketMap.put(term, bucket);
 				termTermTreeNodeMap.put(term, termTreeNode);
 				if(collection.getLabels(term).isEmpty()) {
-					treeStore.add(bucketTreeNode, termTreeNode);
-					listStore.add(term);
+					addTerm(term);
 				}
 			}
 		}
