@@ -45,6 +45,7 @@ import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
 import edu.arizona.biosemantics.oto2.oto.client.categorize.LabelsView;
 import edu.arizona.biosemantics.oto2.oto.client.common.HelpView;
+import edu.arizona.biosemantics.oto2.oto.client.common.SelectOntologiesDialog;
 import edu.arizona.biosemantics.oto2.oto.client.event.LoadEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.OntologiesSelectEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.SaveEvent;
@@ -65,60 +66,9 @@ public class OtoView extends SimpleLayoutPanel {
 
 	public class MenuView extends MenuBar {
 
-		private final OntologyProperties ontologyProperties = GWT.create(OntologyProperties.class);
-
-		public class SelectOntologiesDialog extends Dialog {
-			
-			public SelectOntologiesDialog() {
-				setHeadingText("Ontologies to Search");
-				setPredefinedButtons(PredefinedButton.OK);
-				setBodyStyleName("pad-text");
-				getBody().addClassName("pad-text");
-				setHideOnButtonClick(false);
-				setWidth(500);
-				setHeight(500);
-												
-				final DualListField<Ontology, String> dialListField = new DualListField<Ontology, String>(
-						unselectedListStore, selectedListStore, ontologyProperties.acronym(), new TextCell());
-				dialListField.setMode(Mode.INSERT);
-				dialListField.addValidator(new Validator<List<Ontology>>() {
-					@Override
-					public List<EditorError> validate(Editor<List<Ontology>> editor, List<Ontology> value) {
-						 if (value.size() <= 10) // || value.containsAll(ontologies) ||) 
-							 return null;
-						 else {
-						      List<EditorError> errors = new ArrayList<EditorError>();
-						      // errors.add(new DefaultEditorError(editor, "You have to select either all, or <= 10 ontologies.", ""));
-						       errors.add(new DefaultEditorError(editor, "You can't select more than 10 ontologies.", ""));
-						      return errors;
-						 }
-					}
-				});
-				dialListField.setEnableDnd(true);
-				add(dialListField);
-
-				this.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
-					@Override
-					public void onSelect(SelectEvent event) {
-						if(dialListField.validate()) {
-							List<Ontology> selectedOntologies = selectedListStore.getAll();
-							Set<Ontology> ontologies = new LinkedHashSet<Ontology>(selectedOntologies.size());
-							ontologies.addAll(selectedOntologies);
-							eventBus.fireEvent(new OntologiesSelectEvent(ontologies));
-							hide();
-						}
-					}
-				});
-			}
-
-		}
-		
 		private final IOntologyServiceAsync ontologyService = GWT.create(IOntologyService.class);
 		private ListStore<Term> termStore = new ListStore<Term>(termProperties.key());
 		private EventBus eventBus;
-		protected Set<Ontology> ontologies;
-		private ListStore<Ontology> unselectedListStore = new ListStore<Ontology>(ontologyProperties.key());
-		private ListStore<Ontology> selectedListStore = new ListStore<Ontology>(ontologyProperties.key());
 		private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
 
 		public MenuView(final EventBus eventBus) {
@@ -171,7 +121,7 @@ public class OtoView extends SimpleLayoutPanel {
 			selectOntologies.addSelectionHandler(new SelectionHandler<Item>() {
 				@Override
 				public void onSelection(SelectionEvent<Item> event) {
-					Dialog dialog = new SelectOntologiesDialog();
+					Dialog dialog = new SelectOntologiesDialog(eventBus);
 					dialog.show();
 				}
 			});
@@ -200,8 +150,7 @@ public class OtoView extends SimpleLayoutPanel {
 			sub.add(helpItem);
 			add(questionsItem);
 			
-			selectedListStore.addSortInfo(new StoreSortInfo<Ontology>(ontologyProperties.acronym(), SortDir.ASC));
-			unselectedListStore.addSortInfo(new StoreSortInfo<Ontology>(ontologyProperties.acronym(), SortDir.ASC));
+
 		}
 
 		public void setCollection(Collection collection) {
@@ -209,17 +158,6 @@ public class OtoView extends SimpleLayoutPanel {
 			termStore.addAll(collection.getTerms());
 			termStore.addSortInfo(new StoreSortInfo<Term>(
 					new Term.TermComparator(), SortDir.ASC));
-			
-			//already store ontologies, otherwise delay when requested on button press
-			ontologyService.getOntologies(new RPCCallback<Set<Ontology>>() {
-				@Override
-				public void onSuccess(Set<Ontology> result) {
-					ontologies = result;
-					unselectedListStore.clear();
-					unselectedListStore.addAll(result);
-					eventBus.fireEvent(new OntologiesSelectEvent(new LinkedHashSet<Ontology>()));
-				}
-			});
 		}
 	}
 

@@ -2,11 +2,14 @@ package edu.arizona.biosemantics.oto2.oto.client.layout;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.google.gwt.core.client.GWT;
 import com.google.web.bindery.event.shared.EventBus;
 import com.sencha.gxt.widget.core.client.box.AutoProgressMessageBox;
 
+import edu.arizona.biosemantics.oto2.oto.client.common.Alerter;
+import edu.arizona.biosemantics.oto2.oto.client.common.SelectOntologiesDialog;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeCopyRemoveTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeCopyTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeMoveTermEvent;
@@ -24,15 +27,19 @@ import edu.arizona.biosemantics.oto2.oto.client.event.TermUncategorizeEvent;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Bucket;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label.AddResult;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionService;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionServiceAsync;
+import edu.arizona.biosemantics.oto2.oto.shared.rpc.IOntologyService;
+import edu.arizona.biosemantics.oto2.oto.shared.rpc.IOntologyServiceAsync;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.RPCCallback;
 
 public class OtoPresenter {
-
-	private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
+	
+	private final IOntologyServiceAsync ontologyService = GWT.create(IOntologyService.class);
+	private final ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
 	private Collection collection;
 	private OtoView view;
 	private EventBus eventBus;
@@ -159,7 +166,26 @@ public class OtoPresenter {
 				modelControler.setCollection(result);
 				OtoPresenter.this.collection = result;
 				view.setCollection(result);
+				
+				//already store ontologies, otherwise delay when requested on button press
+				ontologyService.getOntologies(new RPCCallback<Set<Ontology>>() {
+					@Override
+					public void onSuccess(Set<Ontology> result) {
+						SelectOntologiesDialog.setOntologies(result);
+						box.hide();
+					}
+					@Override
+					public void onFailure(Throwable caught) {
+						caught.printStackTrace();
+						box.hide();
+					}
+				});
+			}
+			@Override
+			public void onFailure(Throwable caught) {
+				caught.printStackTrace();
 				box.hide();
+				Alerter.alertFailedToLoadCollection();
 			}
 		});
 	}

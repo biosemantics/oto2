@@ -9,24 +9,46 @@ import java.util.Set;
 import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.cell.client.Cell.Context;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.logical.shared.AttachEvent;
+import com.google.gwt.event.logical.shared.AttachEvent.Handler;
+import com.google.gwt.event.logical.shared.ResizeEvent;
+import com.google.gwt.event.logical.shared.ResizeHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.client.Window;
 import com.sencha.gxt.cell.core.client.TextButtonCell;
+import com.sencha.gxt.core.client.Style.Anchor;
+import com.sencha.gxt.core.client.Style.AnchorAlignment;
 import com.sencha.gxt.core.client.Style.HideMode;
 import com.sencha.gxt.core.client.Style.SelectionMode;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.state.client.GridStateHandler;
+import com.sencha.gxt.widget.core.client.Component;
 import com.sencha.gxt.widget.core.client.Composite;
+import com.sencha.gxt.widget.core.client.box.AutoProgressMessageBox;
 import com.sencha.gxt.widget.core.client.button.ToolButton;
 import com.sencha.gxt.widget.core.client.button.Tools;
 import com.sencha.gxt.widget.core.client.button.Tools.ToolStyle;
 import com.sencha.gxt.widget.core.client.button.testing.ToolsTestingImpl;
+import com.sencha.gxt.widget.core.client.event.BeforeShowEvent;
+import com.sencha.gxt.widget.core.client.event.BeforeShowEvent.BeforeShowHandler;
+import com.sencha.gxt.widget.core.client.event.BlurEvent;
+import com.sencha.gxt.widget.core.client.event.BlurEvent.BlurHandler;
+import com.sencha.gxt.widget.core.client.event.EnableEvent;
+import com.sencha.gxt.widget.core.client.event.EnableEvent.EnableHandler;
+import com.sencha.gxt.widget.core.client.event.FocusEvent;
+import com.sencha.gxt.widget.core.client.event.FocusEvent.FocusHandler;
+import com.sencha.gxt.widget.core.client.event.HideEvent;
+import com.sencha.gxt.widget.core.client.event.HideEvent.HideHandler;
+import com.sencha.gxt.widget.core.client.event.MoveEvent;
+import com.sencha.gxt.widget.core.client.event.MoveEvent.MoveHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
+import com.sencha.gxt.widget.core.client.event.ShowEvent;
+import com.sencha.gxt.widget.core.client.event.ShowEvent.ShowHandler;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.Grid;
@@ -61,6 +83,7 @@ public class OntologiesView extends Composite {
 	private EventBus eventBus;
 	private Grid<OntologyEntry> grid;
 	private Term currentTerm;
+	private AutoProgressMessageBox searchingBox;
 	
 	public OntologiesView(EventBus eventBus) {
 		this.eventBus = eventBus;
@@ -193,25 +216,83 @@ public class OntologiesView extends Composite {
 					refresh();
 			}
 		});
+		//show would show the box not relative to this widget yet, not ready in 
+		//final location yet
+		this.addResizeHandler(new ResizeHandler() {
+			@Override
+			public void onResize(ResizeEvent event) {
+				showSearchingBox();
+			}
+		});
+		this.addShowHandler(new ShowHandler() {
+			@Override
+			public void onShow(ShowEvent event) {
+				showSearchingBox();
+			}
+		});
 	}
 
 	protected void refresh() {
 		if(selectedOntologies == null) {
-			ontologyService.getOntologyEntries(currentTerm, new RPCCallback<List<OntologyEntry>>() {
+			/*ontologyService.getOntologyEntries(currentTerm, new RPCCallback<List<OntologyEntry>>() {
 				@Override
 				public void onSuccess(List<OntologyEntry> ontologyEntries) {
 					setOntologyEntries(ontologyEntries);
+					box.hide();
 				}
-			});
+			});*/
 		} else {
+			createSearchingBox();
+	        if(this.isVisible()) {
+	        	showSearchingBox();
+	        }
 			ontologyService.getOntologyEntries(currentTerm, new LinkedList<Ontology>(selectedOntologies), 
 					new RPCCallback<List<OntologyEntry>>() {
 				@Override
 				public void onSuccess(List<OntologyEntry> ontologyEntries) {
 					setOntologyEntries(ontologyEntries);
+					destroySearchingBox();
+				}
+				@Override
+				public void onFailure(Throwable caught) {
+					caught.printStackTrace();
+					destroySearchingBox();
 				}
 			});
 		}
+	}
+
+	private void createSearchingBox() {
+		System.out.println("create searching box");
+		if(searchingBox == null) {
+			searchingBox = new AutoProgressMessageBox("Progress", 
+					"Searching ontologies, please wait...");
+			searchingBox.setProgressText("Searching...");
+			searchingBox.auto();
+			searchingBox.setClosable(true); // in case user figures search takes too long / some technical problem
+			searchingBox.setModal(false);
+		}
+	}
+
+	protected void destroySearchingBox() {
+		System.out.println("destroy searching box");
+		if(searchingBox != null) {
+			searchingBox.hide();
+			searchingBox = null;
+		}
+	}
+
+	private void showSearchingBox() {
+		System.out.println("show searching box");
+		if(searchingBox != null) {
+			searchingBox.getElement().alignTo(this.getElement(), 
+	        		 new AnchorAlignment(Anchor.CENTER, Anchor.CENTER), 0, 0);
+			searchingBox.show();
+		}
+	}
+
+	public Set<Ontology> getSelectedOntologies() {
+		return selectedOntologies;
 	}
 	
 }

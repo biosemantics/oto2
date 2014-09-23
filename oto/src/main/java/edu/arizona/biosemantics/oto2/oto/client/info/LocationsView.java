@@ -5,15 +5,22 @@ import java.util.List;
 
 import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.logical.shared.ResizeEvent;
+import com.google.gwt.event.logical.shared.ResizeHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
+import com.sencha.gxt.core.client.Style.Anchor;
+import com.sencha.gxt.core.client.Style.AnchorAlignment;
 import com.sencha.gxt.core.client.Style.HideMode;
 import com.sencha.gxt.core.client.Style.SelectionMode;
 import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.state.client.GridStateHandler;
 import com.sencha.gxt.widget.core.client.Composite;
+import com.sencha.gxt.widget.core.client.box.AutoProgressMessageBox;
+import com.sencha.gxt.widget.core.client.event.ShowEvent;
+import com.sencha.gxt.widget.core.client.event.ShowEvent.ShowHandler;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.Grid;
@@ -51,6 +58,7 @@ public class LocationsView extends Composite {
 	private EventBus eventBus;
 	private Grid<Location> grid;
 	protected Term currentTerm;
+	private AutoProgressMessageBox searchingBox;
 
 	public LocationsView(EventBus eventBus) {
 		this.eventBus = eventBus;
@@ -221,13 +229,37 @@ public class LocationsView extends Composite {
 					}
 			}
 		});
+		//show would show the box not relative to this widget yet, not ready in 
+		//final location yet
+		this.addResizeHandler(new ResizeHandler() {
+			@Override
+			public void onResize(ResizeEvent event) {
+				showSearchingBox();
+			}
+		});
+		this.addShowHandler(new ShowHandler() {
+			@Override
+			public void onShow(ShowEvent event) {
+				showSearchingBox();
+			}
+		});
 	}
 	
 	protected void refresh() {
+		createSearchingBox();
+		 if(this.isVisible()) {
+        	showSearchingBox();
+        }
 		collectionService.getLocations(currentTerm, new RPCCallback<List<Location>>() {
 			@Override
 			public void onSuccess(List<Location> locations) {
 				setLocations(locations);
+				destroySearchingBox();
+			}
+			@Override
+			public void onFailure(Throwable caught) {
+				caught.printStackTrace();
+				destroySearchingBox();
 			}
 		});
 	}
@@ -240,4 +272,29 @@ public class LocationsView extends Composite {
 		grid.getView().refresh(true);
 	}
 
+	private void createSearchingBox() {
+		if(searchingBox == null) {
+			searchingBox = new AutoProgressMessageBox("Progress", 
+					"Searching locations, please wait...");
+			searchingBox.setProgressText("Searching...");
+			searchingBox.auto();
+			searchingBox.setClosable(true); // in case user figures search takes too long / some technical problem
+			searchingBox.setModal(false);
+		}
+	}
+
+	protected void destroySearchingBox() {
+		if(searchingBox != null) {
+			searchingBox.hide();
+			searchingBox = null;
+		}
+	}
+
+	private void showSearchingBox() {
+		if(searchingBox != null) {
+			searchingBox.getElement().alignTo(this.getElement(), 
+	        		 new AnchorAlignment(Anchor.CENTER, Anchor.CENTER), 0, 0);
+			searchingBox.show();
+		}
+	}
 }

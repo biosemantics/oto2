@@ -26,5 +26,17 @@ public class Alerter {
 			}
 		}
 	}
+	
+	public static void alertNoOntoloygySelected() {
+		AlertMessageBox alert = new AlertMessageBox("Ontology Selection", "Before you can use this feature" +
+				" you have to select a set " +
+				"of ontologies to search.");
+		alert.show();
+	}
+
+	public static void alertFailedToLoadCollection() {
+		AlertMessageBox alert = new AlertMessageBox("Load Collection Failed", "Failed to load the collection. Please come back later.");
+		alert.show();
+	}
 
 }
