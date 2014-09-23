@@ -1,5 +1,6 @@
 package edu.arizona.biosemantics.oto2.oto.server.db;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -26,16 +27,19 @@ public class OntologyDAO {
 	protected OntologyDAO() { }
 
 	public List<OntologyEntry> get(Term term) {
+		return getOntologyEntries(createSearch(term));
+	}
+	
+	private Search createSearch(Term term) {
 		Search search = new Search();
 		search.setQuery(term.getTerm());
 		search.setExactMatch(true);
 		search.setRequiresDefinition(true);
 		search.setIncludeObsolete(false);
-		return getOntologyEntries(search);
+		return search;
 	}
-	
+
 	private List<OntologyEntry> getOntologyEntries(Search search) {
-		
 		List<OntologyEntry> result = new LinkedList<OntologyEntry>();
 		try {
 			SearchResultPage searchResultPage = bioportalClient.searchClasses(search).get();
@@ -47,6 +51,27 @@ public class OntologyDAO {
 			}
 		} catch(Exception e) {
 			e.printStackTrace();
+		}
+		
+		highlightDefinitions(search.getQuery(), result);
+		if(search.isExactMatch())
+			return filterNonExactMatches(search.getQuery(), result);
+		return result;
+	}
+	
+	private void highlightDefinitions(String query, List<OntologyEntry> ontologyEntries) {
+		for(OntologyEntry entry : ontologyEntries) {
+			String definition = entry.getDefinition().replaceAll("(?i)" + query, "<b>" + query + "</b>");
+			entry.setDefinition(definition);
+		}
+	}
+
+	private List<OntologyEntry> filterNonExactMatches(String query, List<OntologyEntry> ontologyEntries) {
+		List<OntologyEntry> result = new LinkedList<OntologyEntry>();
+		for(OntologyEntry entry : ontologyEntries) {
+			if(entry.getLabel().trim().equalsIgnoreCase(query)) {
+				result.add(entry);
+			}
 		}
 		return result;
 	}
@@ -95,10 +120,8 @@ public class OntologyDAO {
 		return ontologyId;
 	}
 
-	public List<OntologyEntry> get(Term term, List<Ontology> ontologies) {
-		Search search = new Search();
-		search.setQuery(term.getTerm());
-		
+	public List<OntologyEntry> get(Term term, List<Ontology> ontologies) {		
+		Search search = createSearch(term);
 		// no ontologies set will in bioportal automaticlaly search all of them
 		// with this option one won't run into the problem of sending off a too long query URL when appending the string of all
 		// the ontologies to be searched which causes it to fail
