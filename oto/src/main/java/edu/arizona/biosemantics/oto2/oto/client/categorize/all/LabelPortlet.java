@@ -84,6 +84,7 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 import edu.arizona.biosemantics.oto2.oto.shared.model.TermTreeNode;
 import edu.arizona.biosemantics.oto2.oto.shared.model.TextTreeNode;
 import edu.arizona.biosemantics.oto2.oto.shared.model.TextTreeNodeProperties;
+import edu.arizona.biosemantics.oto2.oto.shared.model.TrashLabel;
 
 public class LabelPortlet extends Portlet {
 	
@@ -516,15 +517,17 @@ public class LabelPortlet extends Portlet {
 		this.setCollapsible(true);
 		this.setAnimCollapse(false);
 		
-		final ToolButton toolButton = new ToolButton(ToolButton.GEAR);
-		toolButton.addSelectHandler(new SelectHandler() {
-			@Override
-			public void onSelect(SelectEvent event) {
-				LabelMenu menu = new LabelMenu(LabelPortlet.this.label);
-				menu.show(toolButton);
-			}});
-		this.getHeader().addTool(toolButton);
-		this.setContextMenu(new LabelMenu(label));
+		if(!(this.label instanceof TrashLabel)) {
+			final ToolButton toolButton = new ToolButton(ToolButton.GEAR);
+			toolButton.addSelectHandler(new SelectHandler() {
+				@Override
+				public void onSelect(SelectEvent event) {
+					LabelMenu menu = new LabelMenu(LabelPortlet.this.label);
+					menu.show(toolButton);
+				}});
+			this.getHeader().addTool(toolButton);
+			this.setContextMenu(new LabelMenu(label));
+		}
 		
 		portletStore = new TreeStore<TermTreeNode>(textTreeNodeProperties.key());
 		portletStore.setAutoCommit(true);
