@@ -5,16 +5,21 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.web.bindery.event.shared.EventBus;
+import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
+import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.box.PromptMessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
+import com.sencha.gxt.widget.core.client.container.FlowLayoutContainer;
+import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.event.BeforeSelectEvent;
 import com.sencha.gxt.widget.core.client.event.BeforeShowEvent;
 import com.sencha.gxt.widget.core.client.event.HideEvent;
@@ -24,6 +29,7 @@ import com.sencha.gxt.widget.core.client.event.BeforeShowEvent.BeforeShowHandler
 import com.sencha.gxt.widget.core.client.event.HideEvent.HideHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.form.CheckBox;
+import com.sencha.gxt.widget.core.client.form.ComboBox;
 import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
@@ -39,11 +45,14 @@ import edu.arizona.biosemantics.oto2.oto.client.event.TermRenameEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermUncategorizeEvent;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
+import edu.arizona.biosemantics.oto2.oto.shared.model.LabelProperties;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 import edu.arizona.biosemantics.oto2.oto.shared.model.TermTreeNode;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label.AddResult;
 
 public abstract class TermMenu extends Menu implements BeforeShowHandler {
+	
+	private static final LabelProperties labelProperties = GWT.create(LabelProperties.class);
 	
 	private EventBus eventBus;
 	private Collection collection;
@@ -113,10 +122,16 @@ public abstract class TermMenu extends Menu implements BeforeShowHandler {
 			final Term term = terms.iterator().next();
 			if(!label.getSynonyms(term).isEmpty()) {
 				Menu synonymMenu = new Menu();
-				VerticalPanel verticalPanel = new VerticalPanel();
+				VerticalLayoutContainer verticalLayoutContainer = new VerticalLayoutContainer();
 				final List<Term> toRemove = new LinkedList<Term>();
 				final TextButton synonymRemoveButton = new TextButton("Remove");
 				synonymRemoveButton.setEnabled(false);
+				
+				FlowLayoutContainer flowLayoutContainer = new FlowLayoutContainer();
+				VerticalLayoutContainer checkBoxPanel = new VerticalLayoutContainer();
+				flowLayoutContainer.add(checkBoxPanel);
+				flowLayoutContainer.setScrollMode(ScrollMode.AUTOY);
+				flowLayoutContainer.getElement().getStyle().setProperty("maxHeight", "150px");
 				for(final Term synonymTerm : label.getSynonyms(term)) {
 					CheckBox checkBox = new CheckBox();
 					checkBox.setBoxLabel(synonymTerm.getTerm());
@@ -131,10 +146,10 @@ public abstract class TermMenu extends Menu implements BeforeShowHandler {
 							synonymRemoveButton.setEnabled(!toRemove.isEmpty());
 						}
 					});
-					verticalPanel.add(checkBox);
+					checkBoxPanel.add(checkBox);
 				}
-				
-				if(verticalPanel.getWidgetCount() > 0) {
+				verticalLayoutContainer.add(flowLayoutContainer);
+				if(verticalLayoutContainer.getWidgetCount() > 0) {
 					synonymRemoveButton.addSelectHandler(new SelectHandler() {
 						@Override
 						public void onSelect(SelectEvent event) {
@@ -142,8 +157,8 @@ public abstract class TermMenu extends Menu implements BeforeShowHandler {
 							TermMenu.this.hide();
 						}
 					});
-					verticalPanel.add(synonymRemoveButton);
-					synonymMenu.add(verticalPanel);
+					verticalLayoutContainer.add(synonymRemoveButton);
+					synonymMenu.add(verticalLayoutContainer);
 					MenuItem removeSynonym = new MenuItem("Remove Synonym");
 					removeSynonym.setSubMenu(synonymMenu);
 					this.add(removeSynonym);
@@ -158,10 +173,16 @@ public abstract class TermMenu extends Menu implements BeforeShowHandler {
 			final Term term = terms.iterator().next();
 			Menu synonymMenu = new Menu();
 			
-			VerticalPanel verticalPanel = new VerticalPanel();
+			VerticalLayoutContainer verticalLayoutContainer = new VerticalLayoutContainer();
 			final List<Term> synonymTerms = new LinkedList<Term>();
 			final TextButton synonymButton = new TextButton("Synonomize");
 			synonymButton.setEnabled(false);
+			
+			FlowLayoutContainer flowLayoutContainer = new FlowLayoutContainer();
+			VerticalLayoutContainer checkBoxPanel = new VerticalLayoutContainer();
+			flowLayoutContainer.add(checkBoxPanel);
+			flowLayoutContainer.setScrollMode(ScrollMode.AUTOY);
+			flowLayoutContainer.getElement().getStyle().setProperty("maxHeight", "150px");
 			for(final Term synonymTerm : label.getMainTerms()) {
 				if(!synonymTerm.equals(term)) {
 					CheckBox checkBox = new CheckBox();
@@ -177,11 +198,11 @@ public abstract class TermMenu extends Menu implements BeforeShowHandler {
 							synonymButton.setEnabled(!synonymTerms.isEmpty());
 						}
 					});
-					verticalPanel.add(checkBox);
+					checkBoxPanel.add(checkBox);
 				}
 			}
-			
-			if(verticalPanel.getWidgetCount() > 0) {
+			verticalLayoutContainer.add(flowLayoutContainer);
+			if(verticalLayoutContainer.getWidgetCount() > 0) {
 				synonymButton.addSelectHandler(new SelectHandler() {
 					@Override
 					public void onSelect(SelectEvent event) {
@@ -189,8 +210,8 @@ public abstract class TermMenu extends Menu implements BeforeShowHandler {
 						TermMenu.this.hide();
 					}
 				});
-				verticalPanel.add(synonymButton);
-				synonymMenu.add(verticalPanel);
+				verticalLayoutContainer.add(synonymButton);
+				synonymMenu.add(verticalLayoutContainer);
 				MenuItem addSynonym = new MenuItem("Add Synonym");
 				addSynonym.setSubMenu(synonymMenu);
 				this.add(addSynonym);
@@ -254,10 +275,16 @@ public abstract class TermMenu extends Menu implements BeforeShowHandler {
 	protected void createCopy(final List<Term> terms) {
 		if(collection.getLabels().size() > 1) {
 			Menu copyMenu = new Menu();
-			VerticalPanel verticalPanel = new VerticalPanel();
+			VerticalLayoutContainer verticalLayoutContainer = new VerticalLayoutContainer();
 			final List<Label> copyLabels = new LinkedList<Label>();
 			final TextButton copyButton = new TextButton("Copy");
 			copyButton.setEnabled(false);
+			
+			FlowLayoutContainer flowLayoutContainer = new FlowLayoutContainer();
+			VerticalLayoutContainer checkBoxPanel = new VerticalLayoutContainer();
+			flowLayoutContainer.add(checkBoxPanel);
+			flowLayoutContainer.setScrollMode(ScrollMode.AUTOY);
+			flowLayoutContainer.getElement().getStyle().setProperty("maxHeight", "150px");
 			for(final Label collectionLabel : collection.getLabels()) {
 				if(!label.equals(collectionLabel) && !collectionLabel.getMainTerms().containsAll(terms)) {
 					CheckBox checkBox = new CheckBox();
@@ -273,10 +300,11 @@ public abstract class TermMenu extends Menu implements BeforeShowHandler {
 							copyButton.setEnabled(!copyLabels.isEmpty());
 						}
 					});
-					verticalPanel.add(checkBox);
+					checkBoxPanel.add(checkBox);
 				}
 			}
-			if(verticalPanel.getWidgetCount() > 0) {
+			verticalLayoutContainer.add(flowLayoutContainer);
+			if(verticalLayoutContainer.getWidgetCount() > 0) {
 				copyButton.addSelectHandler(new SelectHandler() {
 					@Override
 					public void onSelect(SelectEvent event) {
@@ -284,8 +312,8 @@ public abstract class TermMenu extends Menu implements BeforeShowHandler {
 						TermMenu.this.hide();
 					}
 				});
-				verticalPanel.add(copyButton);
-				copyMenu.add(verticalPanel);
+				verticalLayoutContainer.add(copyButton);
+				copyMenu.add(verticalLayoutContainer);
 				MenuItem copy = new MenuItem("Copy to");
 				copy.setSubMenu(copyMenu);
 				this.add(copy);
@@ -296,17 +324,25 @@ public abstract class TermMenu extends Menu implements BeforeShowHandler {
 	protected void createMoveTo(final List<Term> terms) {
 		if(collection.getLabels().size() > 1) {
 			Menu moveMenu = new Menu();
+			
+			ListStore<Label> labelStore = new ListStore<Label>(labelProperties.key());
+			final ComboBox<Label> moveComboBox = new ComboBox<Label>(labelStore, labelProperties.nameLabel());
 			for(final Label collectionLabel : collection.getLabels())
 				if(!label.equals(collectionLabel) && !collectionLabel.getMainTerms().containsAll(terms)) {
-					moveMenu.add(new MenuItem(collectionLabel.getName(), new SelectionHandler<MenuItem>() {
-						@Override
-						public void onSelection(SelectionEvent<MenuItem> event) {
-							eventBus.fireEvent(new CategorizeMoveTermEvent(terms, label, collectionLabel));
-							TermMenu.this.hide();
-						}
-					}));
+					labelStore.add(collectionLabel);
 				}
-			if(moveMenu.getWidgetCount() > 0) {
+			
+			TextButton moveButton = new TextButton("Move");
+			moveButton.addSelectHandler(new SelectHandler() {
+				@Override
+				public void onSelect(SelectEvent event) {
+					eventBus.fireEvent(new CategorizeMoveTermEvent(terms, label, moveComboBox.getValue()));
+					TermMenu.this.hide();
+				}
+			});
+			moveMenu.add(moveComboBox);
+			moveMenu.add(moveButton);
+			if(labelStore.size() > 0) {
 				MenuItem move = new MenuItem("Move to");
 				move.setSubMenu(moveMenu);
 				this.add(move);

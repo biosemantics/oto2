@@ -16,6 +16,7 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
+import com.google.gwt.user.client.Timer;
 import com.sencha.gxt.core.client.Style.Anchor;
 import com.sencha.gxt.core.client.Style.AnchorAlignment;
 import com.sencha.gxt.core.client.Style.SelectionMode;

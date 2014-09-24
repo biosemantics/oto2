@@ -16,13 +16,16 @@ import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.sencha.gxt.core.client.dom.AutoScrollSupport;
+import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
 import com.sencha.gxt.theme.blue.client.panel.BlueFramedPanelAppearance;
 import com.sencha.gxt.widget.core.client.Dialog;
 import com.sencha.gxt.widget.core.client.FramedPanel.FramedPanelAppearance;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.CssFloatLayoutContainer;
+import com.sencha.gxt.widget.core.client.container.FlowLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.PortalLayoutContainer;
+import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.event.BeforeShowEvent;
 import com.sencha.gxt.widget.core.client.event.BeforeShowEvent.BeforeShowHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
@@ -34,7 +37,6 @@ import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
-import edu.arizona.biosemantics.oto2.oto.client.categorize.all.LabelPortlet.LabelInfoContainer;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelCreateEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelRemoveEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelsMergeEvent;
@@ -99,13 +101,36 @@ public class LabelPortletsView extends PortalLayoutContainer {
 			this.add(expand);
 			this.add(collapse);
 			
+			MenuItem expandCollapseEmpty = new MenuItem("Expand Non-empty");
+			expandCollapseEmpty.addSelectionHandler(new SelectionHandler<Item>() {
+				@Override
+				public void onSelection(SelectionEvent<Item> event) {
+					for(Label label : collection.getLabels()) {
+						LabelPortlet portlet = labelPortletsMap.get(label);
+						if(portlet != null) {
+							if(label.hasTerms()) 
+								portlet.expand();
+							else
+								portlet.collapse();
+						}
+					}
+				}
+			});
+			this.add(expandCollapseEmpty);
+			
 			MenuItem collapseExpand = new MenuItem("Collapse/Expand");
 			Menu collapseExpandMenu = new Menu();
-			VerticalPanel verticalPanel = new VerticalPanel();
+			VerticalLayoutContainer verticalLayoutContainer = new VerticalLayoutContainer();
 			final Set<Label> collapseLabels = new HashSet<Label>();
 			final Set<Label> expandLabels = new HashSet<Label>();
 			final TextButton collapseExpandButton = new TextButton("Collapse/Expand");
-			collapseExpandButton.setEnabled(false);			
+			collapseExpandButton.setEnabled(false);	
+			
+			FlowLayoutContainer flowLayoutContainer = new FlowLayoutContainer();
+			VerticalLayoutContainer checkBoxPanel = new VerticalLayoutContainer();
+			flowLayoutContainer.add(checkBoxPanel);
+			flowLayoutContainer.setScrollMode(ScrollMode.AUTOY);
+			flowLayoutContainer.getElement().getStyle().setProperty("maxHeight", "150px");
 			for(final Label collectionLabel : collection.getLabels()) {
 				LabelPortlet portlet = labelPortletsMap.get(collectionLabel);
 				if(portlet != null) {
@@ -126,10 +151,11 @@ public class LabelPortletsView extends PortalLayoutContainer {
 							collapseExpandButton.setEnabled(!collapseLabels.isEmpty() || !expandLabels.isEmpty());
 						}
 					});
-					verticalPanel.add(checkBox);
+					checkBoxPanel.add(checkBox);
 				}
 			}
-			if(verticalPanel.getWidgetCount() > 0) {
+			verticalLayoutContainer.add(flowLayoutContainer);
+			if(verticalLayoutContainer.getWidgetCount() > 0) {
 				collapseExpandButton.addSelectHandler(new SelectHandler() {
 					@Override
 					public void onSelect(SelectEvent event) {
@@ -146,8 +172,8 @@ public class LabelPortletsView extends PortalLayoutContainer {
 						LabelsMenu.this.hide();
 					}
 				});
-				verticalPanel.add(collapseExpandButton);
-				collapseExpandMenu.add(verticalPanel);
+				verticalLayoutContainer.add(collapseExpandButton);
+				collapseExpandMenu.add(verticalLayoutContainer);
 				collapseExpand.setSubMenu(collapseExpandMenu);
 				this.add(collapseExpand);
 			}
@@ -212,7 +238,8 @@ public class LabelPortletsView extends PortalLayoutContainer {
 			this.setColumnWidth(i, portalColumnWidth);
 		}
 		this.getElement().getStyle().setBackgroundColor("white");
-		this.setContextMenu(new LabelsMenu());
+		this.getContainer().setContextMenu(new LabelsMenu());
+		
 		bindEvents();
 	}
 
@@ -263,9 +290,9 @@ public class LabelPortletsView extends PortalLayoutContainer {
 		//		eventBus, label, collection);
 		LabelPortlet labelPortlet = new LabelPortlet(eventBus, label, collection, this);
 		if(label instanceof HighlightLabel)
-			labelPortlet.setHeadingHtml("<div>" + label.getName() + "</div>");
+			labelPortlet.setHeadingHtml("<div style='color: black'>" + label.getName() + "</div>");
 		else if(label instanceof TrashLabel)
-			labelPortlet.setHeadingHtml("<div style='color: black'>" 
+			labelPortlet.setHeadingHtml("<div style='color: gray'>" 
 					+ label.getName() + "</div>");
 		else 
 			labelPortlet.setHeadingHtml("<div style='font-weight: normal'>" 

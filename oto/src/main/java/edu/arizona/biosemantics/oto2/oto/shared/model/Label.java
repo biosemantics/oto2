@@ -231,4 +231,8 @@ public class Label implements Serializable {
 		}
 		return result;
 	}
+
+	public boolean hasTerms() {
+		return !this.mainTerms.isEmpty();
+	}
 }

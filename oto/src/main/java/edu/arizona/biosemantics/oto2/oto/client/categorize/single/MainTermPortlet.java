@@ -2,55 +2,24 @@ package edu.arizona.biosemantics.oto2.oto.client.categorize.single;
 
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.event.logical.shared.SelectionEvent;
-import com.google.gwt.event.logical.shared.SelectionHandler;
-import com.google.gwt.event.logical.shared.ValueChangeEvent;
-import com.google.gwt.event.logical.shared.ValueChangeHandler;
-import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.web.bindery.event.shared.EventBus;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
 import com.sencha.gxt.data.shared.SortDir;
-import com.sencha.gxt.data.shared.TreeStore;
 import com.sencha.gxt.data.shared.Store.StoreSortInfo;
+import com.sencha.gxt.data.shared.TreeStore;
 import com.sencha.gxt.widget.core.client.Portlet;
-import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
-import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
-import com.sencha.gxt.widget.core.client.box.PromptMessageBox;
-import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.button.ToolButton;
 import com.sencha.gxt.widget.core.client.container.FlowLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.PortalLayoutContainer;
-import com.sencha.gxt.widget.core.client.event.BeforeSelectEvent;
-import com.sencha.gxt.widget.core.client.event.BeforeShowEvent;
-import com.sencha.gxt.widget.core.client.event.HideEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
-import com.sencha.gxt.widget.core.client.event.BeforeSelectEvent.BeforeSelectHandler;
-import com.sencha.gxt.widget.core.client.event.BeforeShowEvent.BeforeShowHandler;
-import com.sencha.gxt.widget.core.client.event.HideEvent.HideHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
-import com.sencha.gxt.widget.core.client.form.CheckBox;
-import com.sencha.gxt.widget.core.client.menu.Item;
-import com.sencha.gxt.widget.core.client.menu.Menu;
-import com.sencha.gxt.widget.core.client.menu.MenuItem;
 import com.sencha.gxt.widget.core.client.tree.Tree;
 
-import edu.arizona.biosemantics.oto2.oto.client.categorize.all.LabelPortlet;
-import edu.arizona.biosemantics.oto2.oto.client.categorize.all.LabelPortlet.LabelMenu;
-import edu.arizona.biosemantics.oto2.oto.client.categorize.all.LabelPortlet.MainTermTreeNode;
-import edu.arizona.biosemantics.oto2.oto.client.categorize.all.LabelPortlet.TermMenu;
-import edu.arizona.biosemantics.oto2.oto.client.common.Alerter;
-import edu.arizona.biosemantics.oto2.oto.client.common.UncategorizeDialog;
-import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeCopyTermEvent;
-import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeMoveTermEvent;
-import edu.arizona.biosemantics.oto2.oto.client.event.LabelsMergeEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.SynonymCreationEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.SynonymRemovalEvent;
-import edu.arizona.biosemantics.oto2.oto.client.event.TermCategorizeEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermRenameEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermUncategorizeEvent;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
@@ -58,7 +27,6 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 import edu.arizona.biosemantics.oto2.oto.shared.model.TermTreeNode;
 import edu.arizona.biosemantics.oto2.oto.shared.model.TextTreeNodeProperties;
-import edu.arizona.biosemantics.oto2.oto.shared.model.Label.AddResult;
 
 public class MainTermPortlet extends Portlet {
 	

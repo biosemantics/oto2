@@ -19,6 +19,7 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.web.bindery.event.shared.HandlerRegistration;
 import com.sencha.gxt.core.client.dom.AutoScrollSupport;
+import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
 import com.sencha.gxt.core.client.util.Format;
 import com.sencha.gxt.core.client.util.Point;
 import com.sencha.gxt.core.client.util.Rectangle;
@@ -41,6 +42,8 @@ import com.sencha.gxt.widget.core.client.TabPanel;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.box.PromptMessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
+import com.sencha.gxt.widget.core.client.container.FlowLayoutContainer;
+import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.event.BeforeSelectEvent;
 import com.sencha.gxt.widget.core.client.event.BeforeSelectEvent.BeforeSelectHandler;
 import com.sencha.gxt.widget.core.client.event.BeforeShowEvent;
@@ -62,6 +65,7 @@ import edu.arizona.biosemantics.oto2.oto.client.event.LabelRemoveEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermCategorizeEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermRenameEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermSelectEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.TermSplitEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermUncategorizeEvent;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Bucket;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
@@ -104,10 +108,16 @@ public class TermsView extends TabPanel {
 				
 				if(!collection.getLabels().isEmpty()) {
 					Menu categorizeMenu = new Menu();
-					VerticalPanel verticalPanel = new VerticalPanel();
+					VerticalLayoutContainer verticalLayoutContainer = new VerticalLayoutContainer();
 					final List<Label> categorizeLabels = new LinkedList<Label>();
 					final TextButton categorizeButton = new TextButton("Categorize");
 					categorizeButton.setEnabled(false);
+					
+					FlowLayoutContainer flowLayoutContainer = new FlowLayoutContainer();
+					VerticalLayoutContainer checkBoxPanel = new VerticalLayoutContainer();
+					flowLayoutContainer.add(checkBoxPanel);
+					flowLayoutContainer.setScrollMode(ScrollMode.AUTOY);
+					flowLayoutContainer.getElement().getStyle().setProperty("maxHeight", "150px");
 					for(final Label collectionLabel : collection.getLabels()) {
 						CheckBox checkBox = new CheckBox();
 						checkBox.setBoxLabel(collectionLabel.getName());
@@ -122,8 +132,9 @@ public class TermsView extends TabPanel {
 								categorizeButton.setEnabled(!categorizeLabels.isEmpty());
 							}
 						});
-						verticalPanel.add(checkBox);
+						checkBoxPanel.add(checkBox);
 					}
+					verticalLayoutContainer.add(flowLayoutContainer);
 					categorizeButton.addSelectHandler(new SelectHandler() {
 						@Override
 						public void onSelect(SelectEvent event) {
@@ -131,8 +142,8 @@ public class TermsView extends TabPanel {
 							TermMenu.this.hide();
 						}
 					});
-					verticalPanel.add(categorizeButton);
-					categorizeMenu.add(verticalPanel);
+					verticalLayoutContainer.add(categorizeButton);
+					categorizeMenu.add(verticalLayoutContainer);
 					MenuItem categorize = new MenuItem("Categorize to");
 					categorize.setSubMenu(categorizeMenu);
 					this.add(categorize);
@@ -169,6 +180,35 @@ public class TermsView extends TabPanel {
 						}
 					});
 					this.add(rename);
+					/*MenuItem split = new MenuItem("Split Term");
+					split.addSelectionHandler(new SelectionHandler<Item>() {
+						@Override
+						public void onSelection(SelectionEvent<Item> event) {
+							final PromptMessageBox box = new PromptMessageBox(
+									"Split Term", "Please input splitted terms' separated by space.");
+							box.getButton(PredefinedButton.OK).addBeforeSelectHandler(new BeforeSelectHandler() {
+								@Override
+								public void onBeforeSelect(BeforeSelectEvent event) {
+									if(box.getTextField().getValue().trim().isEmpty()) {
+										event.setCancelled(true);
+										AlertMessageBox alert = new AlertMessageBox("Empty", "Empty not allowed");
+										alert.show();
+									}
+								}
+							});
+							box.getTextField().setValue(term.getTerm());
+							box.getTextField().setAllowBlank(false);
+							box.addHideHandler(new HideHandler() {
+								@Override
+								public void onHide(HideEvent event) {
+									String newName = box.getValue();
+									eventBus.fireEvent(new TermSplitEvent(term, newName));
+								}
+							});
+							box.show();
+						}
+					});
+					this.add(split);*/
 				}
 			}
 			
