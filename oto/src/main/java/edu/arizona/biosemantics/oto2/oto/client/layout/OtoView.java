@@ -76,7 +76,7 @@ public class OtoView extends SimpleLayoutPanel {
 			addStyleName(ThemeStyles.get().style().borderBottom());
 
 			Menu sub = new Menu();
-			MenuBarItem item = new MenuBarItem("Collection", sub);
+			MenuBarItem item = new MenuBarItem("File", sub);
 			MenuItem resetItem = new MenuItem("Reset");
 			resetItem.addSelectionHandler(new SelectionHandler<Item>() {
 				@Override
@@ -140,9 +140,11 @@ public class OtoView extends SimpleLayoutPanel {
 					dialog.setHeadingText("Help");
 					dialog.setHideOnButtonClick(true);
 					dialog.setWidget(new HelpView());
-					dialog.setWidth(400);
-					dialog.setHeight(225);
-					dialog.setResizable(false);
+					dialog.setWidth(600);
+					dialog.setMaximizable(true);
+					//dialog.setMinimizable(true);
+					dialog.setHeight(400);
+					dialog.setResizable(true);
 					dialog.setShadow(true);
 					dialog.show();
 				}

@@ -1,10 +1,13 @@
 package edu.arizona.biosemantics.oto2.oto.client.common;
 
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
+import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.widget.core.client.TabItemConfig;
 import com.sencha.gxt.widget.core.client.TabPanel;
+import com.sencha.gxt.widget.core.client.container.SimpleContainer;
 
 public class HelpView implements IsWidget {
 
@@ -12,16 +15,15 @@ public class HelpView implements IsWidget {
 	public Widget asWidget() {
 		TabPanel panel = new TabPanel();
 		panel.setBorders(false);
+		
+		Instructions instructions = new Instructions();
+		LearnTermCategorization learnTermCategorization = new LearnTermCategorization();
 
-		Label label1 = new Label("Help1");
-		label1.addStyleName("pad-text");
-
-		Label label2 = new Label("Help2");
-		label2.addStyleName("pad-text");
-
-		panel.add(label1, new TabItemConfig("Help1"));
-		panel.add(label2, new TabItemConfig("Help2"));
+		panel.add(instructions, new TabItemConfig("Instructions"));
+		panel.add(learnTermCategorization, new TabItemConfig("Learn Term Categorization"));
 		return panel;
 	}
+
+	
 
 }
