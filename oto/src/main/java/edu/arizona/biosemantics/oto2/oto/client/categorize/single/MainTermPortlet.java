@@ -2,25 +2,55 @@ package edu.arizona.biosemantics.oto2.oto.client.categorize.single;
 
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.logical.shared.SelectionEvent;
+import com.google.gwt.event.logical.shared.SelectionHandler;
+import com.google.gwt.user.client.ui.Widget;
 import com.google.web.bindery.event.shared.EventBus;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
+import com.sencha.gxt.core.client.util.Format;
 import com.sencha.gxt.data.shared.SortDir;
 import com.sencha.gxt.data.shared.Store.StoreSortInfo;
 import com.sencha.gxt.data.shared.TreeStore;
+import com.sencha.gxt.dnd.core.client.DndDragStartEvent;
+import com.sencha.gxt.dnd.core.client.DndDragStartEvent.DndDragStartHandler;
+import com.sencha.gxt.dnd.core.client.DndDropEvent;
+import com.sencha.gxt.dnd.core.client.DragSource;
+import com.sencha.gxt.dnd.core.client.DropTarget;
+import com.sencha.gxt.dnd.core.client.TreeDragSource;
+import com.sencha.gxt.dnd.core.client.DndDropEvent.DndDropHandler;
 import com.sencha.gxt.widget.core.client.Portlet;
 import com.sencha.gxt.widget.core.client.button.ToolButton;
 import com.sencha.gxt.widget.core.client.container.FlowLayoutContainer;
-import com.sencha.gxt.widget.core.client.container.PortalLayoutContainer;
+import com.sencha.gxt.widget.core.client.event.CollapseEvent;
+import com.sencha.gxt.widget.core.client.event.ExpandEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
+import com.sencha.gxt.widget.core.client.event.CollapseEvent.CollapseHandler;
+import com.sencha.gxt.widget.core.client.event.ExpandEvent.ExpandHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
+import com.sencha.gxt.widget.core.client.menu.Item;
+import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.tree.Tree;
 
+import edu.arizona.biosemantics.oto2.oto.client.categorize.all.LabelMenu;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.all.LabelPortlet;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.all.LabelPortlet.CopyMoveMenu;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.all.LabelPortlet.DropSource;
+import edu.arizona.biosemantics.oto2.oto.client.common.DndDropEventExtractor;
+import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeCopyTermEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeMoveTermEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.LabelSelectEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.SynonymCreationEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.SynonymRemovalEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.TermCategorizeEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermRenameEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.TermSelectEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermUncategorizeEvent;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
@@ -39,6 +69,7 @@ public class MainTermPortlet extends Portlet {
 	private Collection collection;
 	private Map<Term, TermTreeNode> termTermTreeNodeMap = new HashMap<Term, TermTreeNode>();
 	private PortalLayoutContainer portalLayoutContainer;
+	private ToolButton toolButton;
 
 	public MainTermPortlet(final EventBus eventBus, 
 			final Collection collection, final Label label, final Term mainTerm, PortalLayoutContainer portalLayoutContainer) {
@@ -53,13 +84,7 @@ public class MainTermPortlet extends Portlet {
 		this.setCollapsible(true);
 		this.setAnimCollapse(false);
 		
-		final ToolButton toolButton = new ToolButton(ToolButton.GEAR);
-		toolButton.addSelectHandler(new SelectHandler() {
-			@Override
-			public void onSelect(SelectEvent event) {
-				MainTermMenu menu = new MainTermMenu(eventBus, collection, label, mainTerm);
-				menu.show(toolButton);
-			}});
+		toolButton = new ToolButton(ToolButton.GEAR);
 		this.getHeader().addTool(toolButton);
 		this.setContextMenu(new MainTermMenu(eventBus, collection, label, mainTerm));
 		
@@ -85,7 +110,40 @@ public class MainTermPortlet extends Portlet {
 			addSynonymTerm(synonymTerm);
 		}
 		
+		setupDnd();
 		bindEvents();
+	}
+
+	private void setupDnd() {
+		TreeDragSource<TermTreeNode> treeDragSource = new TreeDragSource<TermTreeNode>(tree);
+		
+		DragSource dragSource = new DragSource(this);
+		dragSource.addDragStartHandler(new DndDragStartHandler() {
+			@Override
+			public void onDragStart(DndDragStartEvent event) {
+				List<Object> dataList = new LinkedList<Object>();
+				dataList.add(mainTerm);
+				dataList.addAll(label.getSynonyms(mainTerm));
+				dataList.add(label);
+				event.setData(dataList);
+			}
+		});
+		
+		/*
+			@Override
+			protected void onDragStart(DndDragStartEvent event) {
+				super.onDragStart(event);
+				event.setData(mainTerm);
+				List<Term> terms = DndDropEventExtractor.getTerms(event, collection);
+				if (terms.isEmpty())
+					event.setCancelled(true);
+				else {
+					setStatusText(terms.size() + " term(s) selected");
+					event.getStatusProxy().update(
+							Format.substitute(getStatusText(), terms.size()));
+				}
+			}
+		};*/
 	}
 
 	private void bindEvents() {
@@ -131,6 +189,42 @@ public class MainTermPortlet extends Portlet {
 				}
 			}
 		});
+		tree.getSelectionModel().addSelectionHandler(new SelectionHandler<TermTreeNode>() {
+			@Override
+			public void onSelection(SelectionEvent<TermTreeNode> event) {
+				TermTreeNode termTreeNode = event.getSelectedItem();
+				Term term = termTreeNode.getTerm();
+				eventBus.fireEvent(new TermSelectEvent(term));
+			}
+		});
+		toolButton.addSelectHandler(new SelectHandler() {
+			@Override
+			public void onSelect(SelectEvent event) {
+				MainTermMenu menu = new MainTermMenu(eventBus, collection,
+						label, mainTerm);
+				menu.show(toolButton);
+			}
+		});
+		this.addDomHandler(new ClickHandler() {
+			@Override
+			public void onClick(ClickEvent event) {
+				eventBus.fireEvent(new TermSelectEvent(mainTerm));
+			}
+		}, ClickEvent.getType());
+	}
+	
+	//collapse button will only be available on attach, when initTools is called  in ContentPanel
+	@Override
+	protected void initTools() {
+		super.initTools();
+		for(Widget tool : this.getHeader().getTools()) {
+			tool.addDomHandler(new ClickHandler() {
+				@Override
+				public void onClick(ClickEvent event) {
+					eventBus.fireEvent(new TermSelectEvent(mainTerm));
+				}
+			}, ClickEvent.getType());
+		}
 	}
 
 	protected void removeSynonymTerm(Term synonym) {
@@ -144,5 +238,9 @@ public class MainTermPortlet extends Portlet {
 			portletStore.add(termTreeNode);
 			this.termTermTreeNodeMap.put(term, termTreeNode);
 		}
+	}
+		
+	public Term getMainTerm() {
+		return mainTerm;
 	}
 }

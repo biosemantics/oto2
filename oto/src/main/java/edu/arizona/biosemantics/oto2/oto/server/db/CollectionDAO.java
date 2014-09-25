@@ -156,14 +156,14 @@ public class CollectionDAO {
 	}
 	
 	public void update(Collection collection)  {
-		System.out.println("update collection");
+		/*System.out.println("update collection");
 		ObjectMapper mapper = new ObjectMapper();
 		ObjectWriter writer = mapper.writerWithDefaultPrettyPrinter();
 		try {
 			System.out.println(writer.writeValueAsString(collection));
 		} catch (Exception e1) {
 			e1.printStackTrace();
-		}
+		}*/
 		
 		try(Query query = new Query("UPDATE oto_collection SET name = ?, secret = ? WHERE id = ?")) {
 			query.setParameter(1, collection.getName());

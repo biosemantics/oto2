@@ -74,10 +74,10 @@ public class FilllSample {
 		b.addTerm(t3);
 		b.addTerm(t4);
 		b.addTerm(t5);
-		for(int i=0; i<100; i++) {
-			Term term = new Term("term " + i);
-			b.addTerm(term);
-		}
+		//for(int i=0; i<100; i++) {
+		//	Term term = new Term("term " + i);
+		//	b.addTerm(term);
+		//}
 		buckets.add(b);
 		b.setName("structures");
 		Term c1 = new Term("length");
@@ -113,11 +113,11 @@ public class FilllSample {
 		labels.add(l2);
 		labels.add(l3);
 		
-		for(int i=0; i<50; i++) {
+		/*for(int i=0; i<50; i++) {
 			Label l = new Label();
 			l.setName("label " + i);	
 			labels.add(l);
-		}
+		}*/
 		
 		Label trashLabel = new TrashLabel("Useless", "This category can be uesd to label terms as uselss");
 		labels.add(trashLabel);

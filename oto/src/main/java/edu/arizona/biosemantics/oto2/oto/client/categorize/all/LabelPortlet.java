@@ -7,9 +7,13 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.core.client.dom.AutoScrollSupport;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
 import com.sencha.gxt.data.shared.SortDir;
@@ -25,6 +29,10 @@ import com.sencha.gxt.dnd.core.client.TreeDragSource;
 import com.sencha.gxt.widget.core.client.Portlet;
 import com.sencha.gxt.widget.core.client.button.ToolButton;
 import com.sencha.gxt.widget.core.client.container.FlowLayoutContainer;
+import com.sencha.gxt.widget.core.client.event.CollapseEvent;
+import com.sencha.gxt.widget.core.client.event.CollapseEvent.CollapseHandler;
+import com.sencha.gxt.widget.core.client.event.ExpandEvent;
+import com.sencha.gxt.widget.core.client.event.ExpandEvent.ExpandHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.menu.Item;
@@ -32,12 +40,13 @@ import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 import com.sencha.gxt.widget.core.client.tree.Tree;
 
-import edu.arizona.biosemantics.oto2.oto.client.categorize.single.TermMenu;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.TermMenu;
 import edu.arizona.biosemantics.oto2.oto.client.common.DndDropEventExtractor;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeCopyRemoveTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeCopyTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeMoveTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelModifyEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.LabelSelectEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.SynonymCreationEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.SynonymRemovalEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermCategorizeEvent;
@@ -67,10 +76,7 @@ public class LabelPortlet extends Portlet {
 		public SynonymTermTreeNode(Term term) {
 			super(term);
 		} 
-	}
-	
-	
-	
+	}	
 	
 	private static int ID;
 	private static final TextTreeNodeProperties textTreeNodeProperties = GWT.create(TextTreeNodeProperties.class);
@@ -83,6 +89,7 @@ public class LabelPortlet extends Portlet {
 	private Map<Term, TermTreeNode> termTermTreeNodeMap = new HashMap<Term, TermTreeNode>();
 	private Collection collection;
 	private LabelPortletsView labelPortletsView;
+	private ToolButton toolButton;
 
 	public LabelPortlet(EventBus eventBus, Label label, Collection collection, LabelPortletsView labelPortletsView) {
 		this(GWT.<FramedPanelAppearance> create(FramedPanelAppearance.class), eventBus, label, collection, labelPortletsView);
@@ -100,14 +107,8 @@ public class LabelPortlet extends Portlet {
 		this.setCollapsible(true);
 		this.setAnimCollapse(false);
 		
+		toolButton = new ToolButton(ToolButton.GEAR);
 		if(!(this.label instanceof TrashLabel)) {
-			final ToolButton toolButton = new ToolButton(ToolButton.GEAR);
-			toolButton.addSelectHandler(new SelectHandler() {
-				@Override
-				public void onSelect(SelectEvent event) {
-					LabelMenu menu = new LabelMenu(eventBus, LabelPortlet.this.label, collection);
-					menu.show(toolButton);
-				}});
 			this.getHeader().addTool(toolButton);
 			this.setContextMenu(new LabelMenu(eventBus, label, collection));
 		}
@@ -139,7 +140,6 @@ public class LabelPortlet extends Portlet {
 		
 		add(flowLayoutContainer);
 		
-		bindEvents();
 		setupDnD();
 		
 		for(Term mainTerm : label.getMainTerms()) {
@@ -147,17 +147,20 @@ public class LabelPortlet extends Portlet {
 			for(Term synonym : label.getSynonyms(mainTerm)) 
 				this.addSynonymTerm(mainTerm, synonym);
 		}
+		
+		bindEvents();
 	}
 	
-	public void addMainTerm(Term term) {
+	public MainTermTreeNode addMainTerm(Term term) {
 		MainTermTreeNode mainTermTreeNode = new MainTermTreeNode(term);
 		if(!termTermTreeNodeMap.containsKey(term))  {
 			portletStore.add(mainTermTreeNode);
 			this.termTermTreeNodeMap.put(term, mainTermTreeNode);
 		}
+		return mainTermTreeNode;
 	}
 	
-	protected void addSynonymTerm(Term mainTerm, Term synonymTerm) {
+	protected SynonymTermTreeNode addSynonymTerm(Term mainTerm, Term synonymTerm) {
 		MainTermTreeNode mainTermTreeNode = null;
 		TermTreeNode termTreeNode = termTermTreeNodeMap.get(mainTerm);
 		if(termTreeNode != null) {
@@ -168,8 +171,10 @@ public class LabelPortlet extends Portlet {
 				termTermTreeNodeMap.put(synonymTerm, synonymTermTreeNode);
 				portletStore.add(mainTermTreeNode, synonymTermTreeNode);
 				this.termTermTreeNodeMap.put(synonymTerm, synonymTermTreeNode);
+				return synonymTermTreeNode;
 			} 	
 		}
+		return null;
 	}
 	
 	protected void removeSynonymTerm(Term mainTerm, Term synonym) {
@@ -205,12 +210,7 @@ public class LabelPortlet extends Portlet {
 				Term term = event.getTerm();
 				TermTreeNode termTreeNode = termTermTreeNodeMap.get(term);
 				if(termTreeNode != null) {
-					if(!tree.getSelectionModel().isSelected(termTreeNode)) {
-						List<TermTreeNode> selectionTree = new LinkedList<TermTreeNode>();
-						selectionTree.add(termTreeNode);
-						tree.getSelectionModel().setSelection(selectionTree);
-					}
-					LabelPortlet.this.expand();
+					setTreeSelection(termTreeNode);
 				}
 			}
 		});
@@ -242,10 +242,12 @@ public class LabelPortlet extends Portlet {
 			public void onRename(TermRenameEvent event) {
 				Term term = event.getTerm();
 				if(termTermTreeNodeMap.get(term) != null) {
-					if(portletStore.getAll().contains(termTermTreeNodeMap.get(term))) {
-						portletStore.update(termTermTreeNodeMap.get(term));
+					TermTreeNode termTreeNode = termTermTreeNodeMap.get(term);
+					if(portletStore.getAll().contains(termTreeNode)) {
+						portletStore.update(termTreeNode);
 					}
-				}
+					setTreeSelection(termTreeNode);
+				}				
 			}
 		});
 		eventBus.addHandler(CategorizeCopyTermEvent.TYPE, new CategorizeCopyTermEvent.CategorizeCopyTermHandler() {
@@ -255,8 +257,12 @@ public class LabelPortlet extends Portlet {
 				List<Label> targetCategories = event.getTargetCategories();
 				for(Label targetCategory : targetCategories) {
 					if(targetCategory.equals(label)) {
-						for(Term term : terms) 
-							addMainTerm(term);
+						List<TermTreeNode> nodes = new LinkedList<TermTreeNode>();
+						for(Term term : terms) {
+							MainTermTreeNode node = addMainTerm(term);
+							nodes.add(node);
+						}
+						setTreeSelection(nodes);
 					}
 				}
 			}
@@ -275,13 +281,18 @@ public class LabelPortlet extends Portlet {
 				Label sourceLabel = event.getSourceCategory();
 				List<Term> terms = event.getTerms();
 				if(targetLabel.equals(label)) {
-					for(Term term : terms)
-						addMainTerm(term);
+					List<TermTreeNode> nodes = new LinkedList<TermTreeNode>();
+					for(Term term : terms) {
+						MainTermTreeNode node = addMainTerm(term);
+						nodes.add(node);
+					}
+					setTreeSelection(nodes);
 				}
 				if(sourceLabel.equals(label)) {
 					for(Term term : terms) {
 						removeTerm(term);
 					}
+					LabelPortlet.this.expand();
 				}
 			}
 		});
@@ -292,9 +303,12 @@ public class LabelPortlet extends Portlet {
 				List<Term> terms = event.getTerms();
 				for(Label label : labels)
 					if(LabelPortlet.this.label.equals(label)) {
+						List<TermTreeNode> nodes = new LinkedList<TermTreeNode>();
 						for(Term term : terms) {
-							addMainTerm(term);
+							MainTermTreeNode node = addMainTerm(term);
+							nodes.add(node);
 						}
+						setTreeSelection(nodes);
 					}
 			}
 		});
@@ -308,6 +322,7 @@ public class LabelPortlet extends Portlet {
 						for(Term term : terms)
 							LabelPortlet.this.removeTerm(term);
 					}
+					LabelPortlet.this.expand();
 				}
 			}
 		});
@@ -318,6 +333,7 @@ public class LabelPortlet extends Portlet {
 				List<Term> terms = event.getTerms();
 				if(LabelPortlet.this.label.equals(label)) {
 					LabelPortlet.this.removeTerms(terms);
+					LabelPortlet.this.expand();
 				}
 			}
 		});
@@ -328,8 +344,56 @@ public class LabelPortlet extends Portlet {
 				TermTreeNode termTreeNode = event.getSelectedItem();
 				Term term = termTreeNode.getTerm();
 				eventBus.fireEvent(new TermSelectEvent(term));
+				eventBus.fireEvent(new LabelSelectEvent(label));
 			}
 		});
+		toolButton.addSelectHandler(new SelectHandler() {
+			@Override
+			public void onSelect(SelectEvent event) {
+				LabelMenu menu = new LabelMenu(eventBus, LabelPortlet.this.label, collection);
+				menu.show(toolButton);
+				eventBus.fireEvent(new LabelSelectEvent(label));
+		}});
+		this.addDomHandler(new ClickHandler() {
+			@Override
+			public void onClick(ClickEvent event) {
+				eventBus.fireEvent(new LabelSelectEvent(label));
+			}
+		}, ClickEvent.getType());
+	}
+	
+	protected void setTreeSelection(TermTreeNode termTreeNode) {
+		List<TermTreeNode> selection = new LinkedList<TermTreeNode>();
+		selection.add(termTreeNode);
+		this.setTreeSelection(selection);
+	}
+
+	protected void setTreeSelection(List<TermTreeNode> termTreeNodes) {
+		List<TermTreeNode> selectionTree = new LinkedList<TermTreeNode>();
+		selectionTree.addAll(termTreeNodes);
+		
+		//if this check not made infinite loop will be caused with selectionmodel and select event
+		boolean allAlreadySelected = true;
+		for(TermTreeNode node : termTreeNodes) {
+			allAlreadySelected &= tree.getSelectionModel().isSelected(node);
+		}
+		if(!allAlreadySelected) 
+			tree.getSelectionModel().setSelection(selectionTree);
+		LabelPortlet.this.expand();
+	}
+
+	//collapse button will only be available on attach, when initTools is called  in ContentPanel
+	@Override
+	protected void initTools() {
+		super.initTools();
+		for(Widget tool : this.getHeader().getTools()) {
+			tool.addDomHandler(new ClickHandler() {
+				@Override
+				public void onClick(ClickEvent event) {
+					eventBus.fireEvent(new LabelSelectEvent(label));
+				}
+			}, ClickEvent.getType());
+		}
 	}
 
 	public class CopyMoveMenu extends Menu {
@@ -351,7 +415,7 @@ public class LabelPortlet extends Portlet {
 		final DndDropHandler portalDropHandler = new DndDropHandler() {
 			@Override
 			public void onDrop(DndDropEvent event) {
-				if(DndDropEventExtractor.isSourceCategorizeView(event)) {
+				if(DndDropEventExtractor.isSourceTermsView(event)) {
 					onDnd(event, DropSource.INIT);
 				}
 				if(DndDropEventExtractor.isSourceLabelOtherPortlet(event, LabelPortlet.this)) {

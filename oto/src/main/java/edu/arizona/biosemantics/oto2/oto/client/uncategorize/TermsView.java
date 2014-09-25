@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto2.oto.client.layout;
+package edu.arizona.biosemantics.oto2.oto.client.uncategorize;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -38,6 +38,7 @@ import com.sencha.gxt.dnd.core.client.TreeDragSource;
 import com.sencha.gxt.messages.client.DefaultMessages;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
 import com.sencha.gxt.widget.core.client.ListView;
+import com.sencha.gxt.widget.core.client.ListViewSelectionModel;
 import com.sencha.gxt.widget.core.client.TabPanel;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.box.PromptMessageBox;
@@ -57,6 +58,7 @@ import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 import com.sencha.gxt.widget.core.client.tree.Tree;
+import com.sencha.gxt.widget.core.client.tree.TreeSelectionModel;
 
 import edu.arizona.biosemantics.oto2.oto.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.oto.client.common.DndDropEventExtractor;
@@ -241,6 +243,18 @@ public class TermsView extends TabPanel {
 		
 	}
 	
+	public class AllowSurpressSelectEventsTreeSelectionModel<M> extends TreeSelectionModel<M> {
+		public void setSelection(List<M> selection, boolean surpressEvents) {
+			doSelect(selection, false, surpressEvents);
+		}
+	}
+	
+	public class AllowSurpressSelectEventsListViewSelectionModel<M> extends ListViewSelectionModel<M> {
+		public void setSelection(List<M> selection, boolean surpressEvents) {
+			doSelect(selection, false, surpressEvents);
+		}
+	}
+	
 	private static final TermProperties termProperties = GWT.create(TermProperties.class);
 	private static final TextTreeNodeProperties textTreeNodeProperties = GWT.create(TextTreeNodeProperties.class);
 	
@@ -254,6 +268,10 @@ public class TermsView extends TabPanel {
 	private EventBus eventBus;
 	private Map<Term, Bucket> termBucketMap;
 	private Collection collection;
+	private AllowSurpressSelectEventsTreeSelectionModel<TextTreeNode> termTreeSelectionModel = 
+			new AllowSurpressSelectEventsTreeSelectionModel<TextTreeNode>();
+	private AllowSurpressSelectEventsListViewSelectionModel<Term> listViewSelectionModel = 
+			new AllowSurpressSelectEventsListViewSelectionModel<Term>();
 	
 	public TermsView(EventBus eventBus) {
 		super(GWT.<TabPanelAppearance> create(TabPanelBottomAppearance.class));
@@ -270,9 +288,13 @@ public class TermsView extends TabPanel {
 		listStore.setAutoCommit(true);
 		listStore.addSortInfo(new StoreSortInfo<Term>(new Term.TermComparator(), SortDir.ASC));
 		listView = new ListView<Term, String>(listStore, termProperties.term());
+		listView.setSelectionModel(listViewSelectionModel);
 		listView.getElement().setAttribute("source", "termsview");
 		listView.setContextMenu(new TermMenu());
 		termTree = new Tree<TextTreeNode, String>(treeStore, textTreeNodeProperties.text());
+		
+		termTree.setSelectionModel(termTreeSelectionModel);
+		termTree.getSelectionModel();
 		termTree.getElement().setAttribute("source", "termsview");
 		termTree.setContextMenu(new TermMenu());
 		add(termTree, "tree");
@@ -290,14 +312,14 @@ public class TermsView extends TabPanel {
 				if(!listView.getSelectionModel().isSelected(term)) {
 					List<Term> selection = new LinkedList<Term>();
 					selection.add(term);
-					listView.getSelectionModel().setSelection(selection);
+					listViewSelectionModel.setSelection(selection, true);
 				}
 				
 				TermTreeNode termTreeNode = termTermTreeNodeMap.get(term);
 				if(termTreeNode != null && treeStore.findModel(termTreeNode) != null && !termTree.getSelectionModel().isSelected(termTreeNode)) {
 					List<TextTreeNode> selectionTree = new LinkedList<TextTreeNode>();
 					selectionTree.add(termTreeNode);
-					termTree.getSelectionModel().setSelection(selectionTree);
+					termTreeSelectionModel.setSelection(selectionTree, true);
 				}
 				
 			}
@@ -404,11 +426,42 @@ public class TermsView extends TabPanel {
 				 }
 			 }
 		};
+		/*DropTarget treeDropTarget = new DropTarget(termTree);
+		treeDropTarget.addDropHandler(new DndDropHandler() {
+			@Override
+			public void onDrop(DndDropEvent event) {
+				event.getData();
+				if(DndDropEventExtractor.isSourceLabelPortlet(event)) {
+					final List<Term> terms = DndDropEventExtractor.getTerms(event, collection);
+					final Label label = DndDropEventExtractor.getLabelPortletSource(event).getLabel();
+					uncategorizeTerms(terms, label);
+				}
+				if(DndDropEventExtractor.isSourceMainTermPortlet(event)) {
+					final List<Term> terms = DndDropEventExtractor.getTerms(event, collection);
+					final Label label = DndDropEventExtractor.getLabel(event);
+					uncategorizeTerms(terms, label);
+				}
+			}
+
+			private void uncategorizeTerms(List<Term> terms, Label label) {
+				for(Term term : terms) {
+					List<Label> labels = collection.getLabels(term);
+					if(labels.size() > 1) {
+						UncategorizeDialog dialog = new UncategorizeDialog(eventBus, label, 
+								term, labels);
+					} else {
+						eventBus.fireEvent(new TermUncategorizeEvent(term, label));
+					}
+				}
+			}
+		});*/
+		
 		DropTarget dropTarget = new DropTarget(this) {
 			//scrollSupport can only work correctly when initialized once the element to be scrolled is already attached to the page
 			private AutoScrollSupport treeScrollSupport;
 			private AutoScrollSupport listScrollSupport;
 			protected void onDragEnter(DndDragEnterEvent event) {
+				 System.out.println("enter");
 				super.onDragEnter(event);
 				if (treeScrollSupport == null) {
 					treeScrollSupport = new AutoScrollSupport(termTree.getElement());
@@ -424,6 +477,9 @@ public class TermsView extends TabPanel {
 				}	
 				treeScrollSupport.start();
 			}
+			protected void onDragDrop(DndDropEvent event) {
+				System.out.println("drop");
+			}			
 		};
 		dropTarget.setAllowSelfAsSource(false);
 		// actual drop action is taken care of by events
@@ -435,16 +491,23 @@ public class TermsView extends TabPanel {
 				if(DndDropEventExtractor.isSourceLabelPortlet(event)) {
 					final List<Term> terms = DndDropEventExtractor.getTerms(event, collection);
 					final Label label = DndDropEventExtractor.getLabelPortletSource(event).getLabel();
-					
-					for(Term term : terms) {
-						List<Label> labels = collection.getLabels(term);
-						if(labels.size() > 1) {
-							UncategorizeDialog dialog = new UncategorizeDialog(eventBus, label, 
-									term, labels);
-						} else {
-							label.uncategorizeTerm(term);
-							eventBus.fireEvent(new TermUncategorizeEvent(term, label));
-						}
+					uncategorizeTerms(terms, label);
+				}
+				if(DndDropEventExtractor.isSourceMainTermPortlet(event)) {
+					final List<Term> terms = DndDropEventExtractor.getTerms(event, collection);
+					final Label label = DndDropEventExtractor.getLabel(event);
+					uncategorizeTerms(terms, label);
+				}
+			}
+
+			private void uncategorizeTerms(List<Term> terms, Label label) {
+				for(Term term : terms) {
+					List<Label> labels = collection.getLabels(term);
+					if(labels.size() > 1) {
+						UncategorizeDialog dialog = new UncategorizeDialog(eventBus, label, 
+								term, labels);
+					} else {
+						eventBus.fireEvent(new TermUncategorizeEvent(term, label));
 					}
 				}
 			}

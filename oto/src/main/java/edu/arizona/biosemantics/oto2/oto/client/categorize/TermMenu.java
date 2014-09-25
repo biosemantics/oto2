@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto2.oto.client.categorize.single;
+package edu.arizona.biosemantics.oto2.oto.client.categorize;
 
 import java.util.HashMap;
 import java.util.LinkedList;

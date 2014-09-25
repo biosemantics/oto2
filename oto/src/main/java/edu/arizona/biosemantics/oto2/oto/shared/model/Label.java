@@ -90,7 +90,7 @@ public class Label implements Serializable {
 	 */
 	public AddResult addMainTerm(Term term) {
 		for(Term mainTerm : mainTerms) {
-			if(mainTermSynonymsMap.get(mainTerm).contains(term)) {				
+			if(mainTermSynonymsMap.get(mainTerm) != null && mainTermSynonymsMap.get(mainTerm).contains(term)) {				
 				return new AddResult(false, mainTerm);
 			}
 		}
@@ -234,5 +234,9 @@ public class Label implements Serializable {
 
 	public boolean hasTerms() {
 		return !this.mainTerms.isEmpty();
+	}
+
+	public boolean hasSynonyms(Term mainTerm) {
+		return !this.getSynonyms(mainTerm).isEmpty();
 	}
 }

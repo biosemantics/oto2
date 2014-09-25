@@ -11,9 +11,11 @@ import com.sencha.gxt.widget.core.client.container.CardLayoutContainer;
 import com.sencha.gxt.widget.core.client.tree.Tree;
 
 import edu.arizona.biosemantics.oto2.oto.client.categorize.all.LabelPortlet;
-import edu.arizona.biosemantics.oto2.oto.client.layout.TermsView;
-import edu.arizona.biosemantics.oto2.oto.client.layout.TermsView.BucketTreeNode;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.single.MainTermPortlet;
+import edu.arizona.biosemantics.oto2.oto.client.uncategorize.TermsView;
+import edu.arizona.biosemantics.oto2.oto.client.uncategorize.TermsView.BucketTreeNode;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 import edu.arizona.biosemantics.oto2.oto.shared.model.TermTreeNode;
 
@@ -71,14 +73,27 @@ public class DndDropEventExtractor {
 				 */
 			}
 		}
+		if(data instanceof Term)
+			terms.add((Term)data);
 		return terms;
 	}
 			
 	public static List<Term> getTerms(DndDropEvent event, Collection collection) {
 		List<Term> terms = new LinkedList<Term>();
 		Object data = event.getData();
-		if (data != null) {
-			return getTerms(data, collection);
+		if(data != null) {
+			if(isSourceMainTermPortlet(event)) {
+				if(data != null && data instanceof List) {
+					List<Object> dataList = (List<Object>)data;
+					Label label = (Label)dataList.remove(dataList.size() - 1);
+					for(Object object : dataList) {
+						terms.add((Term)object);
+					}
+				}
+				return terms;
+			} else {
+				return getTerms(data, collection);
+			}
 		}
 		return terms;
 	}
@@ -102,7 +117,7 @@ public class DndDropEventExtractor {
 		return false;
 	}
 	
-	public static boolean isSourceCategorizeView(DndDropEvent event) {
+	public static boolean isSourceTermsView(DndDropEvent event) {
 		if(event.getTarget() instanceof Tree) {
 			Tree tree = (Tree)event.getTarget();
 			return tree.getElement().getAttribute("source").equals("termsview");
@@ -120,6 +135,23 @@ public class DndDropEventExtractor {
 	
 	public static TermsView getTermsViewSource(DndDropEvent event) {
 		return (TermsView)event.getTarget().getParent().getParent();
+	}
+
+	public static boolean isSourceMainTermPortlet(DndDropEvent event) {
+		return event.getTarget() instanceof MainTermPortlet;
+	}
+
+	public static Label getLabel(DndDropEvent event) {
+		Object data = event.getData();
+		if(isSourceMainTermPortlet(event)) {
+			if(data != null && data instanceof List) {
+				List<Object> dataList = (List<Object>)data;
+				if(dataList.size() == 2 && dataList.get(0) instanceof Term && dataList.get(1) instanceof Label) {
+					return (Label)dataList.get(1);
+				}
+			}
+		}
+		return null;
 	}
 	
 }
