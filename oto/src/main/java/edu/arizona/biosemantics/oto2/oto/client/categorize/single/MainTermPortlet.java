@@ -195,6 +195,14 @@ public class MainTermPortlet extends Portlet {
 	}
 
 	private void bindEvents() {
+		eventBus.addHandler(TermSelectEvent.TYPE, new TermSelectEvent.TermSelectHandler() {
+			@Override
+			public void onSelect(TermSelectEvent event) {
+				if(termTermTreeNodeMap.containsKey(event.getTerm())) {
+					MainTermPortlet.this.expand();
+				}
+			}
+		});
 		eventBus.addHandler(TermRenameEvent.TYPE, new TermRenameEvent.RenameTermHandler() {
 			@Override
 			public void onRename(TermRenameEvent event) {
