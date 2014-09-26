@@ -188,8 +188,9 @@ public class ContextDAO {
 	    	String extractedText = "..." + context.getText().substring(startText, endText) + "...";
 	    	//extractedText = extractedText.replaceAll(pattern.toString(), "<b>" + replaceTerm + "</b>");
 	    	extractedText = extractedText.replaceAll("(?i)" + replaceTerm, "<b>" + replaceTerm + "</b>");
+	    	String fullText = context.getText().replaceAll("(?i)" + replaceTerm, "<b>" + replaceTerm + "</b>");
 	    	TypedContext typedContext = new TypedContext(String.valueOf(context.getId()) + "-" + type.toString() + "-" + id++, 
-	    			context.getCollectionId(), context.getSource(), extractedText, context.getText(), type);
+	    			context.getCollectionId(), context.getSource(), extractedText, fullText, type);
 	    	result.add(typedContext);
 	    }
 	    return result;
