@@ -46,6 +46,7 @@ import edu.arizona.biosemantics.oto2.oto.client.categorize.all.LabelPortlet;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.all.LabelPortlet.CopyMoveMenu;
 import edu.arizona.biosemantics.oto2.oto.client.common.dnd.TermDnd;
 import edu.arizona.biosemantics.oto2.oto.client.common.dnd.TermLabelDnd;
+import edu.arizona.biosemantics.oto2.oto.client.common.dnd.MainTermSynonymsLabelDnd;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeCopyTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeMoveTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelSelectEvent;
@@ -146,7 +147,7 @@ public class MainTermPortlet extends Portlet {
 				super.onDragStart(event);
 				List<Term> selection = new LinkedList<Term>();
 				selection.add(mainTerm);
-				selection.addAll(label.getSynonyms(mainTerm));
+				selection.addAll(getSynonymTerms());
 				if (selection.isEmpty())
 					event.setCancelled(true);
 				else {
@@ -155,7 +156,7 @@ public class MainTermPortlet extends Portlet {
 							.update(Format.substitute(getStatusText(),
 									selection.size()));
 				}
-				event.setData(new TermLabelDnd(MainTermPortlet.this, selection, label));
+				event.setData(new MainTermSynonymsLabelDnd(MainTermPortlet.this, mainTerm, getSynonymTerms(), label));
 			}
 		};
 		DropTarget dropTarget = new DropTarget(this) {
@@ -295,6 +296,14 @@ public class MainTermPortlet extends Portlet {
 			portletStore.add(termTreeNode);
 			this.termTermTreeNodeMap.put(term, termTreeNode);
 		}
+	}
+	
+	public List<Term> getSynonymTerms() {
+		List<Term> result = new LinkedList<Term>();
+		for(TermTreeNode node : portletStore.getAll()) {
+			result.add(node.getTerm());
+		}
+		return result;
 	}
 		
 	public Term getMainTerm() {

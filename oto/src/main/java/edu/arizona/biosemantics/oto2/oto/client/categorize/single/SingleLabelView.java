@@ -432,11 +432,15 @@ public class SingleLabelView extends SimpleContainer {
 		for(Term mainTerm : mainTerms) {
 			if(termPortletsMap.containsKey(mainTerm)) {
 				MainTermPortlet portlet = termPortletsMap.remove(mainTerm);
+				
 				//could already be removed by dnd
 				if(portalLayoutContainer.getPortletColumn(portlet) != -1) {
 					portalLayoutContainer.remove(portlet, portalLayoutContainer.getPortletColumn(portlet));
 					portlet.removeFromParent();
 				}
+				
+				List<Term> oldSynonyms = portlet.getSynonymTerms();
+				this.addMainTerms(oldSynonyms, 0);
 			}
 		}
 		box.hide();

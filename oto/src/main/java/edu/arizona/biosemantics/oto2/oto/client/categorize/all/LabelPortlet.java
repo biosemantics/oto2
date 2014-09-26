@@ -41,9 +41,12 @@ import com.sencha.gxt.widget.core.client.menu.MenuItem;
 import com.sencha.gxt.widget.core.client.tree.Tree;
 
 import edu.arizona.biosemantics.oto2.oto.client.categorize.TermMenu;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.single.MainTermPortlet;
 import edu.arizona.biosemantics.oto2.oto.client.common.Alerter;
+import edu.arizona.biosemantics.oto2.oto.client.common.dnd.MainTermSynonymsLabelDnd;
 import edu.arizona.biosemantics.oto2.oto.client.common.dnd.TermDnd;
 import edu.arizona.biosemantics.oto2.oto.client.common.dnd.TermLabelDnd;
+import edu.arizona.biosemantics.oto2.oto.client.common.dnd.MainTermSynonymsLabelDnd.MainTermSynonyms;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeCopyRemoveTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeCopyTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeMoveTermEvent;
@@ -428,11 +431,8 @@ public class LabelPortlet extends Portlet {
 			@Override
 			protected void onDragStart(DndDragStartEvent event) {
 				super.onDragStart(event);
-				List<TermTreeNode> nodeSelection = tree.getSelectionModel().getSelectedItems();
-				List<Term> selection = new LinkedList<Term>();
-				for (TermTreeNode node : nodeSelection) {
-					selection.add(node.getTerm());
-				}
+				
+				List<Term> selection = getSelectedTerms();
 				if (selection.isEmpty())
 					event.setCancelled(true);
 				else {
@@ -441,7 +441,13 @@ public class LabelPortlet extends Portlet {
 							.update(Format.substitute(getStatusText(),
 									selection.size()));
 				}
-				event.setData(new TermLabelDnd(LabelPortlet.this, selection, label));
+				
+				List<MainTermSynonyms> mainTermSynonyms = createSelectedMainTermSynonyms();
+				//could be that only synonyms without mainTerms are selected
+				if(!mainTermSynonyms.isEmpty()) 
+					event.setData(new MainTermSynonymsLabelDnd(LabelPortlet.this, mainTermSynonyms, label));
+				else
+					event.setData(new TermLabelDnd(LabelPortlet.this, selection, label));
 			}
 		};
 
@@ -552,6 +558,33 @@ public class LabelPortlet extends Portlet {
 		});
 	}
 	
+	protected List<MainTermSynonyms> createSelectedMainTermSynonyms() {
+		List<MainTermSynonyms> result = new LinkedList<MainTermSynonyms>();
+		List<TermTreeNode> nodeSelection = tree.getSelectionModel().getSelectedItems();
+		
+		for (TermTreeNode node : nodeSelection) {
+			if(portletStore.getParent(node) == null) {
+				Term mainTerm = node.getTerm();
+				List<TermTreeNode> synonymNodes = new LinkedList<TermTreeNode>(portletStore.getChildren(node));
+				synonymNodes.retainAll(nodeSelection);
+				List<Term> synonyms = new LinkedList<Term>();
+				for(TermTreeNode synonymNode : synonymNodes)
+					synonyms.add(synonymNode.getTerm());
+				result.add(new MainTermSynonyms(mainTerm, synonyms));
+			}
+		}
+		return result;
+	}
+
+	protected List<Term> getSelectedTerms() {
+		List<Term> result = new LinkedList<Term>();
+		List<TermTreeNode> nodeSelection = tree.getSelectionModel().getSelectedItems();
+		for (TermTreeNode node : nodeSelection) {
+			result.add(node.getTerm());
+		}
+		return result;
+	}
+
 	public Label getLabel() {
 		return label;
 	}
