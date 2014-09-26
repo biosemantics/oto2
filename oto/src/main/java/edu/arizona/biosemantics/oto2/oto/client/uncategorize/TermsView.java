@@ -60,8 +60,11 @@ import com.sencha.gxt.widget.core.client.menu.MenuItem;
 import com.sencha.gxt.widget.core.client.tree.Tree;
 import com.sencha.gxt.widget.core.client.tree.TreeSelectionModel;
 
+import edu.arizona.biosemantics.oto2.oto.client.categorize.all.LabelPortlet;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.single.MainTermPortlet;
 import edu.arizona.biosemantics.oto2.oto.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.oto.client.common.UncategorizeDialog;
+import edu.arizona.biosemantics.oto2.oto.client.common.dnd.MainTermSynonymsLabelDnd;
 import edu.arizona.biosemantics.oto2.oto.client.common.dnd.TermDnd;
 import edu.arizona.biosemantics.oto2.oto.client.common.dnd.TermLabelDnd;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelRemoveEvent;
@@ -470,7 +473,16 @@ public class TermsView extends TabPanel {
 			@Override
 			public void onDrop(DndDropEvent event) {
 				event.getData();
-				if(event.getData() instanceof TermLabelDnd) {
+				if(event.getData() instanceof MainTermSynonymsLabelDnd && event.getSource().getClass().equals(MainTermPortlet.class)) {
+					MainTermSynonymsLabelDnd mainTermSynonymsLabelDnd = (MainTermSynonymsLabelDnd)event.getData();
+					if(event.getSource().getClass().equals(MainTermPortlet.class)) {
+						uncategorize(mainTermSynonymsLabelDnd.getMainTerms(), mainTermSynonymsLabelDnd.getLabels());
+					}
+					if(event.getSource().getClass().equals(LabelPortlet.class)) {
+						uncategorize(mainTermSynonymsLabelDnd.getTerms(), mainTermSynonymsLabelDnd.getLabels());
+					}
+				}
+				else if(event.getData() instanceof TermLabelDnd) {
 					TermLabelDnd termLabelDnd = (TermLabelDnd)event.getData();
 					uncategorize(termLabelDnd.getTerms(), termLabelDnd.getLabels());
 				}
