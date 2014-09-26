@@ -161,9 +161,11 @@ public class LocationsView extends Composite {
 			@Override
 			public void onRemove(CategorizeCopyRemoveTermEvent event) {
 				if(event.getTerms().contains(currentTerm)) {
-					Location location = store.findModelWithKey(event.getLabel().toString());
-					if(location != null) 
-						store.remove(location);
+					for(Label label : event.getLabels()) {
+						Location location = store.findModelWithKey(label.toString());
+						if(location != null) 
+							store.remove(location);
+					}
 				}
 			}
 		});
@@ -171,8 +173,11 @@ public class LocationsView extends Composite {
 			@Override
 			public void onCategorize(CategorizeCopyTermEvent event) {
 				if(event.getTerms().contains(currentTerm)) {
-					for(Label label: event.getTargetCategories())
-						store.add(new Location(currentTerm.getTerm(), label));
+					for(Label label: event.getTargetCategories()) {
+						Location toAdd = new Location(currentTerm.getTerm(), label);
+						if(store.findModel(toAdd) == null)
+							store.add(toAdd);
+					}
 				}
 			}
 		});
@@ -183,7 +188,9 @@ public class LocationsView extends Composite {
 					Location location = store.findModelWithKey(event.getSourceCategory().toString());
 					if(location != null) 
 						store.remove(location);
-					store.add(new Location(currentTerm.getTerm(), event.getTargetCategory()));
+					Location toAdd = new Location(currentTerm.getTerm(), event.getTargetCategory());
+					if(store.findModel(toAdd) == null)
+						store.add(toAdd);
 				}
 			}
 		});

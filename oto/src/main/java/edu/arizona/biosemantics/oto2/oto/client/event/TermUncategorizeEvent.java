@@ -33,6 +33,11 @@ public class TermUncategorizeEvent extends GwtEvent<TermUncategorizeHandler> {
 		this.terms.add(term);
 		this.oldLabels = oldLabels;
 	}
+	
+	public TermUncategorizeEvent(List<Term> terms, List<Label> oldLabels) {
+		this.terms = terms;
+		this.oldLabels = oldLabels;
+	}
     
     /*public TermUncategorizeEvent(List<Term> terms, Label oldLabel) {
         this.terms = terms;

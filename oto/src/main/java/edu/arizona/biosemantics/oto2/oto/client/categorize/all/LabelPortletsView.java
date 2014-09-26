@@ -72,11 +72,7 @@ public class LabelPortletsView extends PortalLayoutContainer {
 			collapse.addSelectionHandler(new SelectionHandler<Item>() {
 				@Override
 				public void onSelection(SelectionEvent<Item> event) {
-					for(Label label : collection.getLabels()) {
-						LabelPortlet portlet = labelPortletsMap.get(label);
-						if(portlet != null)
-							portlet.collapse();
-					}
+					collapseAll();
 				}
 			});
 			
@@ -85,11 +81,7 @@ public class LabelPortletsView extends PortalLayoutContainer {
 			expand.addSelectionHandler(new SelectionHandler<Item>() {
 				@Override
 				public void onSelection(SelectionEvent<Item> event) {
-					for(Label label : collection.getLabels()) {
-						LabelPortlet portlet = labelPortletsMap.get(label);
-						if(portlet != null)
-							portlet.expand();
-					}
+					expandAll();
 				}
 			});
 			
@@ -101,15 +93,7 @@ public class LabelPortletsView extends PortalLayoutContainer {
 			expandCollapseEmpty.addSelectionHandler(new SelectionHandler<Item>() {
 				@Override
 				public void onSelection(SelectionEvent<Item> event) {
-					for(Label label : collection.getLabels()) {
-						LabelPortlet portlet = labelPortletsMap.get(label);
-						if(portlet != null) {
-							if(label.hasTerms()) 
-								portlet.expand();
-							else
-								portlet.collapse();
-						}
-					}
+					expandNonEmptyCollapseEmpty();
 				}
 			});
 			this.add(expandCollapseEmpty);
@@ -155,16 +139,8 @@ public class LabelPortletsView extends PortalLayoutContainer {
 				collapseExpandButton.addSelectHandler(new SelectHandler() {
 					@Override
 					public void onSelect(SelectEvent event) {
-						for(Label expandLabel : expandLabels) {
-							LabelPortlet portlet = labelPortletsMap.get(expandLabel);
-							if(portlet != null)
-								portlet.expand();
-						}
-						for(Label collapseLabel : collapseLabels) {
-							LabelPortlet portlet = labelPortletsMap.get(collapseLabel);
-							if(portlet != null)
-								portlet.collapse();
-						}
+						expand(expandLabels);
+						collapse(collapseLabels);
 						LabelsMenu.this.hide();
 					}
 				});
@@ -296,7 +272,7 @@ public class LabelPortletsView extends PortalLayoutContainer {
 		return labelPortlet;
 	}
 
-	public void setCollection(Collection collection) {
+	public void setCollection(final Collection collection) {
 		this.collection = collection;
 
 		clear();
@@ -312,8 +288,53 @@ public class LabelPortletsView extends PortalLayoutContainer {
 			@Override
 			public void execute() {
 				forceLayout();
+				expandNonEmptyCollapseEmpty();
 			}
 		});
+	}
+
+	protected void expandNonEmptyCollapseEmpty() {
+		for(Label label : collection.getLabels()) {
+			LabelPortlet portlet = labelPortletsMap.get(label);
+			if(portlet != null) {
+				if(label.hasTerms()) 
+					portlet.expand();
+				else
+					portlet.collapse();
+			}
+		}
+	}
+	
+	protected void expandAll() {
+		for(Label label : collection.getLabels()) {
+			LabelPortlet portlet = labelPortletsMap.get(label);
+			if(portlet != null)
+				portlet.expand();
+		}
+	}
+	
+	protected void collapseAll() {
+		for(Label label : collection.getLabels()) {
+			LabelPortlet portlet = labelPortletsMap.get(label);
+			if(portlet != null)
+				portlet.collapse();
+		}
+	}
+	
+	protected void collapse(Set<Label> collapseLabels) {
+		for(Label collapseLabel : collapseLabels) {
+			LabelPortlet portlet = labelPortletsMap.get(collapseLabel);
+			if(portlet != null)
+				portlet.collapse();
+		}
+	}
+
+	protected void expand(Set<Label> expandLabels) {
+		for(Label expandLabel : expandLabels) {
+			LabelPortlet portlet = labelPortletsMap.get(expandLabel);
+			if(portlet != null)
+				portlet.expand();
+		}
 	}
 
 	public void forceLayout() {

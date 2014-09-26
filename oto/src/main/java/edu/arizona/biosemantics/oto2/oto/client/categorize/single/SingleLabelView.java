@@ -50,8 +50,9 @@ import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 import com.sencha.gxt.widget.core.client.toolbar.ToolBar;
 
-import edu.arizona.biosemantics.oto2.oto.client.common.DndDropEventExtractor;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.all.LabelPortlet;
 import edu.arizona.biosemantics.oto2.oto.client.common.UncategorizeDialog;
+import edu.arizona.biosemantics.oto2.oto.client.common.dnd.TermDnd;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeCopyRemoveTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeCopyTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeMoveTermEvent;
@@ -86,11 +87,7 @@ public class SingleLabelView extends SimpleContainer {
 			collapse.addSelectionHandler(new SelectionHandler<Item>() {
 				@Override
 				public void onSelection(SelectionEvent<Item> event) {
-					for(Term mainTerm : currentLabel.getMainTerms()) {
-						MainTermPortlet portlet = termPortletsMap.get(mainTerm);
-						if(portlet != null)
-							portlet.collapse();
-					}
+					collapseAll();
 				}
 			});
 			
@@ -98,11 +95,7 @@ public class SingleLabelView extends SimpleContainer {
 			expand.addSelectionHandler(new SelectionHandler<Item>() {
 				@Override
 				public void onSelection(SelectionEvent<Item> event) {
-					for(Term mainTerm : currentLabel.getMainTerms()) {
-						MainTermPortlet portlet = termPortletsMap.get(mainTerm);
-						if(portlet != null)
-							portlet.expand();
-					}
+					expandAll();
 				}
 			});
 			
@@ -113,15 +106,7 @@ public class SingleLabelView extends SimpleContainer {
 			expandCollapseEmpty.addSelectionHandler(new SelectionHandler<Item>() {
 				@Override
 				public void onSelection(SelectionEvent<Item> event) {
-					for(Term mainTerm : currentLabel.getMainTerms()) {
-						MainTermPortlet portlet = termPortletsMap.get(mainTerm);
-						if(portlet != null) {
-							if(currentLabel.hasSynonyms(mainTerm)) 
-								portlet.expand();
-							else
-								portlet.collapse();
-						}
-					}
+					expandNonEmptyCollapseEmpty();
 				}
 			});
 			this.add(expandCollapseEmpty);
@@ -167,16 +152,8 @@ public class SingleLabelView extends SimpleContainer {
 				collapseExpandButton.addSelectHandler(new SelectHandler() {
 					@Override
 					public void onSelect(SelectEvent event) {
-						for(Term expandTerm : expandTerms) {
-							MainTermPortlet portlet = termPortletsMap.get(expandTerm);
-							if(portlet != null)
-								portlet.expand();
-						}
-						for(Term collapseTerm : collapseTerms) {
-							MainTermPortlet portlet = termPortletsMap.get(collapseTerm);
-							if(portlet != null)
-								portlet.collapse();
-						}
+						expand(expandTerms);
+						collapse(collapseTerms);
 						TermsMenu.this.hide();
 					}
 				});
@@ -237,10 +214,10 @@ public class SingleLabelView extends SimpleContainer {
 		dropTarget.addDropHandler(new DndDropHandler() {
 			@Override
 			public void onDrop(DndDropEvent event) {
-				event.getData();
-				if(DndDropEventExtractor.isSourceTermsView(event)) {
-					final List<Term> terms = DndDropEventExtractor.getTerms(event, collection);
-					eventBus.fireEvent(new TermCategorizeEvent(terms, currentLabel));
+				Object data = event.getData();
+				if(data instanceof TermDnd) {
+					TermDnd termDnd = (TermDnd)data;
+					eventBus.fireEvent(new TermCategorizeEvent(termDnd.getTerms(), currentLabel));
 				}
 			}
 		});
@@ -388,7 +365,6 @@ public class SingleLabelView extends SimpleContainer {
 			Scheduler.get().scheduleDeferred(new ScheduledCommand() {
 				@Override
 				public void execute() {
-					
 					portalLayoutContainer.clear();
 					termPortletsMap.clear();
 					for(Term mainTerm : currentLabel.getMainTerms()) {
@@ -398,6 +374,7 @@ public class SingleLabelView extends SimpleContainer {
 						@Override
 						public void execute() {
 							((CssFloatLayoutContainer)portalLayoutContainer.getContainer()).forceLayout();
+							expandNonEmptyCollapseEmpty();
 							refreshBox.hide();
 						}
 					});
@@ -541,4 +518,48 @@ public class SingleLabelView extends SimpleContainer {
 		}
 		setCurrentLabel(collection.getLabels().get(0));
 	}
+	
+	protected void collapseAll() {
+		for(Term mainTerm : currentLabel.getMainTerms()) {
+			MainTermPortlet portlet = termPortletsMap.get(mainTerm);
+			if(portlet != null)
+				portlet.collapse();
+		}
+	}
+	
+	protected void expandAll() {
+		for(Term mainTerm : currentLabel.getMainTerms()) {
+			MainTermPortlet portlet = termPortletsMap.get(mainTerm);
+			if(portlet != null)
+				portlet.expand();
+		}
+	}
+	
+	protected void expandNonEmptyCollapseEmpty() {
+		for(Term mainTerm : currentLabel.getMainTerms()) {
+			MainTermPortlet portlet = termPortletsMap.get(mainTerm);
+			if(portlet != null) {
+				if(currentLabel.hasSynonyms(mainTerm)) 
+					portlet.expand();
+				else
+					portlet.collapse();
+			}
+		}
+	}
+	
+	protected void collapse(Set<Term> collapseTerms) {
+		for(Term collapseTerm : collapseTerms) {
+			MainTermPortlet portlet = termPortletsMap.get(collapseTerm);
+			if(portlet != null)
+				portlet.collapse();
+		}
+	}
+
+	protected void expand(Set<Term> expandTerms) {
+		for(Term expandTerm : expandTerms) {
+			MainTermPortlet portlet = termPortletsMap.get(expandTerm);
+			if(portlet != null)
+				portlet.expand();
+		}
+	}	
 }

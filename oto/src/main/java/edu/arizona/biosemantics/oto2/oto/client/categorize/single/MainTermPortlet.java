@@ -13,13 +13,16 @@ import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.web.bindery.event.shared.EventBus;
+import com.sencha.gxt.core.client.dom.AutoScrollSupport;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
 import com.sencha.gxt.core.client.util.Format;
 import com.sencha.gxt.data.shared.SortDir;
 import com.sencha.gxt.data.shared.Store.StoreSortInfo;
 import com.sencha.gxt.data.shared.TreeStore;
 import com.sencha.gxt.dnd.core.client.DndDragStartEvent;
+import com.sencha.gxt.dnd.core.client.DND.Operation;
 import com.sencha.gxt.dnd.core.client.DndDragStartEvent.DndDragStartHandler;
+import com.sencha.gxt.dnd.core.client.DndDragEnterEvent;
 import com.sencha.gxt.dnd.core.client.DndDropEvent;
 import com.sencha.gxt.dnd.core.client.DragSource;
 import com.sencha.gxt.dnd.core.client.DropTarget;
@@ -41,8 +44,8 @@ import com.sencha.gxt.widget.core.client.tree.Tree;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.all.LabelMenu;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.all.LabelPortlet;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.all.LabelPortlet.CopyMoveMenu;
-import edu.arizona.biosemantics.oto2.oto.client.categorize.all.LabelPortlet.DropSource;
-import edu.arizona.biosemantics.oto2.oto.client.common.DndDropEventExtractor;
+import edu.arizona.biosemantics.oto2.oto.client.common.dnd.TermDnd;
+import edu.arizona.biosemantics.oto2.oto.client.common.dnd.TermLabelDnd;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeCopyTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeMoveTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelSelectEvent;
@@ -52,6 +55,7 @@ import edu.arizona.biosemantics.oto2.oto.client.event.TermCategorizeEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermRenameEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermSelectEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermUncategorizeEvent;
+import edu.arizona.biosemantics.oto2.oto.client.uncategorize.TermsView;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
@@ -115,35 +119,79 @@ public class MainTermPortlet extends Portlet {
 	}
 
 	private void setupDnd() {
-		TreeDragSource<TermTreeNode> treeDragSource = new TreeDragSource<TermTreeNode>(tree);
-		
-		DragSource dragSource = new DragSource(this);
-		dragSource.addDragStartHandler(new DndDragStartHandler() {
-			@Override
-			public void onDragStart(DndDragStartEvent event) {
-				List<Object> dataList = new LinkedList<Object>();
-				dataList.add(mainTerm);
-				dataList.addAll(label.getSynonyms(mainTerm));
-				dataList.add(label);
-				event.setData(dataList);
-			}
-		});
-		
-		/*
+		TreeDragSource<TermTreeNode> treeDragSource = new TreeDragSource<TermTreeNode>(tree) {
 			@Override
 			protected void onDragStart(DndDragStartEvent event) {
 				super.onDragStart(event);
-				event.setData(mainTerm);
-				List<Term> terms = DndDropEventExtractor.getTerms(event, collection);
-				if (terms.isEmpty())
+				List<TermTreeNode> nodeSelection = tree.getSelectionModel().getSelectedItems();
+				List<Term> selection = new LinkedList<Term>();
+				for (TermTreeNode node : nodeSelection) {
+					selection.add(node.getTerm());
+				}
+				if (selection.isEmpty())
 					event.setCancelled(true);
 				else {
-					setStatusText(terms.size() + " term(s) selected");
-					event.getStatusProxy().update(
-							Format.substitute(getStatusText(), terms.size()));
+					setStatusText(selection.size() + " term(s) selected");
+					event.getStatusProxy()
+							.update(Format.substitute(getStatusText(),
+									selection.size()));
+				}
+				event.setData(new TermLabelDnd(MainTermPortlet.this, selection, label));
+			}
+		};
+		
+		DragSource dragSource = new DragSource(this) {
+			@Override
+			protected void onDragStart(DndDragStartEvent event) {
+				super.onDragStart(event);
+				List<Term> selection = new LinkedList<Term>();
+				selection.add(mainTerm);
+				selection.addAll(label.getSynonyms(mainTerm));
+				if (selection.isEmpty())
+					event.setCancelled(true);
+				else {
+					setStatusText(selection.size() + " term(s) selected");
+					event.getStatusProxy()
+							.update(Format.substitute(getStatusText(),
+									selection.size()));
+				}
+				event.setData(new TermLabelDnd(MainTermPortlet.this, selection, label));
+			}
+		};
+		DropTarget dropTarget = new DropTarget(this) {
+			private AutoScrollSupport scrollSupport;
+	
+			//scrollSupport can only work correctly when initialized once the element to be scrolled is already attached to the page
+			protected void onDragEnter(DndDragEnterEvent event) {
+				super.onDragEnter(event);
+				//AutoScrollSupport scrollSupport = ((PortalLayoutContainer)LabelPortlet.this.getParentLayoutWidget()).getScrollSupport();
+				if (scrollSupport == null) {
+					scrollSupport = new AutoScrollSupport(portalLayoutContainer.getElement());
+					scrollSupport.setScrollRegionHeight(50);
+					scrollSupport.setScrollDelay(100);
+					scrollSupport.setScrollRepeatDelay(100);
+				}	
+				scrollSupport.start();
+			}
+		};
+		dropTarget.setAllowSelfAsSource(false);
+		dropTarget.setOperation(Operation.COPY);
+		dropTarget.addDropHandler(new DndDropHandler() {
+			@Override
+			public void onDrop(DndDropEvent event) {
+				Object data = event.getData();
+				if(data instanceof TermDnd) {
+					TermDnd termDnd = (TermDnd)data;
+					if(termDnd.getSource().getClass().equals(TermsView.class)) {
+						eventBus.fireEvent(new TermCategorizeEvent(termDnd.getTerms(), label));
+						eventBus.fireEvent(new SynonymCreationEvent(label, mainTerm, termDnd.getTerms()));
+					}
+					if(termDnd.getSource().getClass().equals(MainTermPortlet.class)) {
+						eventBus.fireEvent(new SynonymCreationEvent(label, mainTerm, termDnd.getTerms()));
+					}
 				}
 			}
-		};*/
+		});
 	}
 
 	private void bindEvents() {
@@ -177,6 +225,7 @@ public class MainTermPortlet extends Portlet {
 						addSynonymTerm(synonym);
 					}
 				}
+				MainTermPortlet.this.expand();
 			}
 		});
 		eventBus.addHandler(SynonymRemovalEvent.TYPE, new SynonymRemovalEvent.SynonymRemovalHandler() {

@@ -92,12 +92,12 @@
 		<dependency>
 		  <groupId>edu.arizona.biosemantics</groupId>
 		  <artifactId>gxt</artifactId>
-		  <version>0.0.8-SNAPSHOT</version>
+		  <version>0.0.9-SNAPSHOT</version>
 		</dependency> 
 		<dependency>
 		  <groupId>edu.arizona.biosemantics</groupId>
 		  <artifactId>gxt</artifactId>
-		  <version>0.0.8-SNAPSHOT</version>
+		  <version>0.0.9-SNAPSHOT</version>
 		  <classifier>sources</classifier>
 		</dependency> 
 		<dependency>

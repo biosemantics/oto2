@@ -15,12 +15,14 @@ public class Alerter {
 			AddResult addResult = addResults.get(possibleMainTerm);
 			if(!addResult.result) {
 				if(addResult.parent != null) {
-					AlertMessageBox alert = new AlertMessageBox("Already contained", possibleMainTerm.getTerm() + " " +
-							"already contained as synonym of " + addResult.parent.getTerm() + ".");
+					AlertMessageBox alert = new AlertMessageBox("Term exists in label", 
+							"The term " + possibleMainTerm.getTerm() + " already exists in this label as synonym of " + 
+									addResult.parent.getTerm() + ". A term can only appear once inside a label.");
 					alert.show();
 				} else {
-					AlertMessageBox alert = new AlertMessageBox("Already contained", possibleMainTerm.getTerm() + " " +
-							"already contained.");
+					AlertMessageBox alert = new AlertMessageBox("Term exists in label", 
+							"The term " + possibleMainTerm.getTerm() + " already exists in this label" + 
+									". A term can only appear once inside a label.");
 					alert.show();
 				}
 			}
@@ -36,6 +38,11 @@ public class Alerter {
 
 	public static void alertFailedToLoadCollection() {
 		AlertMessageBox alert = new AlertMessageBox("Load Collection Failed", "Failed to load the collection. Please come back later.");
+		alert.show();
+	}
+
+	public static void alertTermWithNameExists() {
+		AlertMessageBox alert = new AlertMessageBox("Term with name exists", "Failed to rename term. Another term with the same spelling exists already.");
 		alert.show();
 	}
 

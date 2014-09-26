@@ -61,8 +61,9 @@ import com.sencha.gxt.widget.core.client.tree.Tree;
 import com.sencha.gxt.widget.core.client.tree.TreeSelectionModel;
 
 import edu.arizona.biosemantics.oto2.oto.client.common.Alerter;
-import edu.arizona.biosemantics.oto2.oto.client.common.DndDropEventExtractor;
 import edu.arizona.biosemantics.oto2.oto.client.common.UncategorizeDialog;
+import edu.arizona.biosemantics.oto2.oto.client.common.dnd.TermDnd;
+import edu.arizona.biosemantics.oto2.oto.client.common.dnd.TermLabelDnd;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelRemoveEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermCategorizeEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermRenameEvent;
@@ -175,7 +176,7 @@ public class TermsView extends TabPanel {
 								@Override
 								public void onHide(HideEvent event) {
 									String newName = box.getValue();
-									eventBus.fireEvent(new TermRenameEvent(term, newName));
+									eventBus.fireEvent(new TermRenameEvent(term, newName, collection));
 								}
 							});
 							box.show();
@@ -409,59 +410,43 @@ public class TermsView extends TabPanel {
 			@Override
 			 protected void onDragStart(DndDragStartEvent event) {
 				 super.onDragStart(event);
-				 if(DndDropEventExtractor.getTerms(event, collection).isEmpty())
+				 List<Term> selection = listView.getSelectionModel().getSelectedItems();
+				 if(selection.isEmpty())
 					 event.setCancelled(true);
+				 event.setData(new TermDnd(TermsView.this, selection));
 			 }
 		};
 		TreeDragSource<TextTreeNode> treeDragSource = new TreeDragSource<TextTreeNode>(termTree) {
 			 @Override
 			 protected void onDragStart(DndDragStartEvent event) {
 				 super.onDragStart(event);
-				 List<Term> terms = DndDropEventExtractor.getTerms(event, collection);
-				 if(terms.isEmpty())
+				 List<TextTreeNode> nodeSelection = termTree.getSelectionModel().getSelectedItems();
+				 List<Term> selection = new LinkedList<Term>();
+				 for(TextTreeNode node : nodeSelection) {
+					 if(node instanceof BucketTreeNode) {
+						 BucketTreeNode bucketTreeNode = (BucketTreeNode) node;
+						 selection.addAll(bucketTreeNode.getBucket().getUncategorizedTerms(collection));
+					 }
+					 if(node instanceof TermTreeNode) {
+						 TermTreeNode termTreeNode = (TermTreeNode) node;
+						 selection.add(termTreeNode.getTerm());
+					 }
+				 }
+				 if(selection.isEmpty())
 					 event.setCancelled(true);
 				 else {
-					 setStatusText(terms.size() + " term(s) selected");
-					 event.getStatusProxy().update(Format.substitute(getStatusText(), terms.size()));
+					 setStatusText(selection.size() + " term(s) selected");
+					 event.getStatusProxy().update(Format.substitute(getStatusText(), selection.size()));
 				 }
+				 event.setData(new TermDnd(TermsView.this, selection));
 			 }
 		};
-		/*DropTarget treeDropTarget = new DropTarget(termTree);
-		treeDropTarget.addDropHandler(new DndDropHandler() {
-			@Override
-			public void onDrop(DndDropEvent event) {
-				event.getData();
-				if(DndDropEventExtractor.isSourceLabelPortlet(event)) {
-					final List<Term> terms = DndDropEventExtractor.getTerms(event, collection);
-					final Label label = DndDropEventExtractor.getLabelPortletSource(event).getLabel();
-					uncategorizeTerms(terms, label);
-				}
-				if(DndDropEventExtractor.isSourceMainTermPortlet(event)) {
-					final List<Term> terms = DndDropEventExtractor.getTerms(event, collection);
-					final Label label = DndDropEventExtractor.getLabel(event);
-					uncategorizeTerms(terms, label);
-				}
-			}
-
-			private void uncategorizeTerms(List<Term> terms, Label label) {
-				for(Term term : terms) {
-					List<Label> labels = collection.getLabels(term);
-					if(labels.size() > 1) {
-						UncategorizeDialog dialog = new UncategorizeDialog(eventBus, label, 
-								term, labels);
-					} else {
-						eventBus.fireEvent(new TermUncategorizeEvent(term, label));
-					}
-				}
-			}
-		});*/
 		
 		DropTarget dropTarget = new DropTarget(this) {
 			//scrollSupport can only work correctly when initialized once the element to be scrolled is already attached to the page
 			private AutoScrollSupport treeScrollSupport;
 			private AutoScrollSupport listScrollSupport;
 			protected void onDragEnter(DndDragEnterEvent event) {
-				 System.out.println("enter");
 				super.onDragEnter(event);
 				if (treeScrollSupport == null) {
 					treeScrollSupport = new AutoScrollSupport(termTree.getElement());
@@ -476,10 +461,7 @@ public class TermsView extends TabPanel {
 					listScrollSupport.setScrollRepeatDelay(100);
 				}	
 				treeScrollSupport.start();
-			}
-			protected void onDragDrop(DndDropEvent event) {
-				System.out.println("drop");
-			}			
+			}		
 		};
 		dropTarget.setAllowSelfAsSource(false);
 		// actual drop action is taken care of by events
@@ -488,26 +470,20 @@ public class TermsView extends TabPanel {
 			@Override
 			public void onDrop(DndDropEvent event) {
 				event.getData();
-				if(DndDropEventExtractor.isSourceLabelPortlet(event)) {
-					final List<Term> terms = DndDropEventExtractor.getTerms(event, collection);
-					final Label label = DndDropEventExtractor.getLabelPortletSource(event).getLabel();
-					uncategorizeTerms(terms, label);
-				}
-				if(DndDropEventExtractor.isSourceMainTermPortlet(event)) {
-					final List<Term> terms = DndDropEventExtractor.getTerms(event, collection);
-					final Label label = DndDropEventExtractor.getLabel(event);
-					uncategorizeTerms(terms, label);
+				if(event.getData() instanceof TermLabelDnd) {
+					TermLabelDnd termLabelDnd = (TermLabelDnd)event.getData();
+					uncategorize(termLabelDnd.getTerms(), termLabelDnd.getLabels());
 				}
 			}
 
-			private void uncategorizeTerms(List<Term> terms, Label label) {
+			private void uncategorize(List<Term> terms, List<Label> labels) {
 				for(Term term : terms) {
-					List<Label> labels = collection.getLabels(term);
-					if(labels.size() > 1) {
-						UncategorizeDialog dialog = new UncategorizeDialog(eventBus, label, 
-								term, labels);
+					List<Label> currentLabels = collection.getLabels(term);
+					if(!labels.containsAll(currentLabels)) {
+						UncategorizeDialog dialog = new UncategorizeDialog(eventBus, labels, 
+								term, currentLabels);
 					} else {
-						eventBus.fireEvent(new TermUncategorizeEvent(term, label));
+						eventBus.fireEvent(new TermUncategorizeEvent(term, labels));
 					}
 				}
 			}

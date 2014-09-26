@@ -56,7 +56,7 @@ public class ModelControler {
 			@Override
 			public void onRemove(CategorizeCopyRemoveTermEvent event) {
 				List<Label> labels = new LinkedList<Label>();
-				labels.add(event.getLabel());
+				labels.addAll(event.getLabels());
 				uncategorizeTerms(event.getTerms(), labels);
 			}
 		});

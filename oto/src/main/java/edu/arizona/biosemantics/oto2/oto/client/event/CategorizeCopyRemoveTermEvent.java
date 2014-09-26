@@ -19,17 +19,25 @@ public class CategorizeCopyRemoveTermEvent extends GwtEvent<CategorizeCopyRemove
     public static Type<CategorizeCopyRemoveTermHandler> TYPE = new Type<CategorizeCopyRemoveTermHandler>();
     
     private List<Term> terms;
-	private Label label;
+	private List<Label> labels;
     
 	public CategorizeCopyRemoveTermEvent(Term term, Label label) {
 		this.terms = new LinkedList<Term>();
 		this.terms.add(term);
-		this.label = label;
+        this.labels = new LinkedList<Label>();
+        this.labels.add(label);
 	}
 	
     public CategorizeCopyRemoveTermEvent(List<Term> terms, Label label) {
         this.terms = terms;
-        this.label = label;
+        this.labels = new LinkedList<Label>();
+        this.labels.add(label);
+    }
+    
+    public CategorizeCopyRemoveTermEvent(Term term, List<Label> labels) {
+    	this.terms = new LinkedList<Term>();
+		this.terms.add(term);
+        this.labels = labels;
     }
 	
 	@Override
@@ -46,8 +54,8 @@ public class CategorizeCopyRemoveTermEvent extends GwtEvent<CategorizeCopyRemove
 		return terms;
 	}
 
-	public Label getLabel() {
-		return label;
+	public List<Label> getLabels() {
+		return labels;
 	}
 
 }

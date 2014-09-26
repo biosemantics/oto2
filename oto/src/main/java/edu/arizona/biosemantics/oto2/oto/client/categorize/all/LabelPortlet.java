@@ -12,16 +12,18 @@ import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.shared.EventBus;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.core.client.dom.AutoScrollSupport;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
+import com.sencha.gxt.core.client.util.Format;
 import com.sencha.gxt.data.shared.SortDir;
 import com.sencha.gxt.data.shared.Store.StoreSortInfo;
 import com.sencha.gxt.data.shared.TreeStore;
 import com.sencha.gxt.data.shared.TreeStore.TreeNode;
 import com.sencha.gxt.dnd.core.client.DND.Operation;
 import com.sencha.gxt.dnd.core.client.DndDragEnterEvent;
+import com.sencha.gxt.dnd.core.client.DndDragStartEvent;
+import com.sencha.gxt.dnd.core.client.DndDragStartEvent.DndDragStartHandler;
 import com.sencha.gxt.dnd.core.client.DndDropEvent;
 import com.sencha.gxt.dnd.core.client.DndDropEvent.DndDropHandler;
 import com.sencha.gxt.dnd.core.client.DropTarget;
@@ -29,10 +31,6 @@ import com.sencha.gxt.dnd.core.client.TreeDragSource;
 import com.sencha.gxt.widget.core.client.Portlet;
 import com.sencha.gxt.widget.core.client.button.ToolButton;
 import com.sencha.gxt.widget.core.client.container.FlowLayoutContainer;
-import com.sencha.gxt.widget.core.client.event.CollapseEvent;
-import com.sencha.gxt.widget.core.client.event.CollapseEvent.CollapseHandler;
-import com.sencha.gxt.widget.core.client.event.ExpandEvent;
-import com.sencha.gxt.widget.core.client.event.ExpandEvent.ExpandHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.menu.Item;
@@ -41,7 +39,9 @@ import com.sencha.gxt.widget.core.client.menu.MenuItem;
 import com.sencha.gxt.widget.core.client.tree.Tree;
 
 import edu.arizona.biosemantics.oto2.oto.client.categorize.TermMenu;
-import edu.arizona.biosemantics.oto2.oto.client.common.DndDropEventExtractor;
+import edu.arizona.biosemantics.oto2.oto.client.common.Alerter;
+import edu.arizona.biosemantics.oto2.oto.client.common.dnd.TermDnd;
+import edu.arizona.biosemantics.oto2.oto.client.common.dnd.TermLabelDnd;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeCopyRemoveTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeCopyTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeMoveTermEvent;
@@ -53,19 +53,18 @@ import edu.arizona.biosemantics.oto2.oto.client.event.TermCategorizeEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermRenameEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermSelectEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermUncategorizeEvent;
+import edu.arizona.biosemantics.oto2.oto.client.uncategorize.TermsView;
+import edu.arizona.biosemantics.oto2.oto.client.uncategorize.TermsView.BucketTreeNode;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 import edu.arizona.biosemantics.oto2.oto.shared.model.TermTreeNode;
+import edu.arizona.biosemantics.oto2.oto.shared.model.TextTreeNode;
 import edu.arizona.biosemantics.oto2.oto.shared.model.TextTreeNodeProperties;
 import edu.arizona.biosemantics.oto2.oto.shared.model.TrashLabel;
 
 public class LabelPortlet extends Portlet {
-	
-	public enum DropSource {
-		INIT, PORTLET
-	}
-	
+		
 	public class MainTermTreeNode extends TermTreeNode {
 		public MainTermTreeNode(Term term) {
 			super(term);
@@ -76,7 +75,7 @@ public class LabelPortlet extends Portlet {
 		public SynonymTermTreeNode(Term term) {
 			super(term);
 		} 
-	}	
+	}
 	
 	private static int ID;
 	private static final TextTreeNodeProperties textTreeNodeProperties = GWT.create(TextTreeNodeProperties.class);
@@ -231,6 +230,7 @@ public class LabelPortlet extends Portlet {
 			public void onSynonymCreation(SynonymCreationEvent event) {
 				Term mainTerm = event.getMainTerm();
 				List<Term> synonymTerms = event.getSynonymTerm();
+				Label label = event.getLabel();
 				if(LabelPortlet.this.label.equals(label)) {
 					for(Term synonymTerm : synonymTerms)
 						LabelPortlet.this.addSynonymTerm(mainTerm, synonymTerm);
@@ -259,8 +259,10 @@ public class LabelPortlet extends Portlet {
 					if(targetCategory.equals(label)) {
 						List<TermTreeNode> nodes = new LinkedList<TermTreeNode>();
 						for(Term term : terms) {
-							MainTermTreeNode node = addMainTerm(term);
-							nodes.add(node);
+							if(!termTermTreeNodeMap.containsKey(term)) {
+								MainTermTreeNode node = addMainTerm(term);
+								nodes.add(node);
+							} 
 						}
 						setTreeSelection(nodes);
 					}
@@ -283,8 +285,10 @@ public class LabelPortlet extends Portlet {
 				if(targetLabel.equals(label)) {
 					List<TermTreeNode> nodes = new LinkedList<TermTreeNode>();
 					for(Term term : terms) {
-						MainTermTreeNode node = addMainTerm(term);
-						nodes.add(node);
+						if(!termTermTreeNodeMap.containsKey(term)) {
+							MainTermTreeNode node = addMainTerm(term);
+							nodes.add(node);
+						}
 					}
 					setTreeSelection(nodes);
 				}
@@ -301,15 +305,16 @@ public class LabelPortlet extends Portlet {
 			public void onCategorize(TermCategorizeEvent event) {
 				List<Label> labels = event.getLabels();
 				List<Term> terms = event.getTerms();
-				for(Label label : labels)
-					if(LabelPortlet.this.label.equals(label)) {
-						List<TermTreeNode> nodes = new LinkedList<TermTreeNode>();
-						for(Term term : terms) {
+				if(labels.contains(LabelPortlet.this.label)) {
+					List<TermTreeNode> nodes = new LinkedList<TermTreeNode>();
+					for(Term term : terms) {
+						if(!termTermTreeNodeMap.containsKey(term)) {
 							MainTermTreeNode node = addMainTerm(term);
 							nodes.add(node);
 						}
-						setTreeSelection(nodes);
 					}
+					setTreeSelection(nodes);
+				}
 			}
 		});
 		eventBus.addHandler(TermUncategorizeEvent.TYPE, new TermUncategorizeEvent.TermUncategorizeHandler() {
@@ -329,9 +334,9 @@ public class LabelPortlet extends Portlet {
 		eventBus.addHandler(CategorizeCopyRemoveTermEvent.TYPE, new CategorizeCopyRemoveTermEvent.CategorizeCopyRemoveTermHandler() {
 			@Override
 			public void onRemove(CategorizeCopyRemoveTermEvent event) {
-				Label label = event.getLabel();
+				List<Label> labels = event.getLabels();
 				List<Term> terms = event.getTerms();
-				if(LabelPortlet.this.label.equals(label)) {
+				if(labels.contains(LabelPortlet.this.label)) {
 					LabelPortlet.this.removeTerms(terms);
 					LabelPortlet.this.expand();
 				}
@@ -410,51 +415,27 @@ public class LabelPortlet extends Portlet {
 	}
 	
 	private void setupDnD() {
-		TreeDragSource<TermTreeNode> dragSource = new TreeDragSource<TermTreeNode>(tree);
-		
-		final DndDropHandler portalDropHandler = new DndDropHandler() {
+		TreeDragSource<TermTreeNode> dragSource = new TreeDragSource<TermTreeNode>(tree) {
 			@Override
-			public void onDrop(DndDropEvent event) {
-				if(DndDropEventExtractor.isSourceTermsView(event)) {
-					onDnd(event, DropSource.INIT);
+			protected void onDragStart(DndDragStartEvent event) {
+				super.onDragStart(event);
+				List<TermTreeNode> nodeSelection = tree.getSelectionModel().getSelectedItems();
+				List<Term> selection = new LinkedList<Term>();
+				for (TermTreeNode node : nodeSelection) {
+					selection.add(node.getTerm());
 				}
-				if(DndDropEventExtractor.isSourceLabelOtherPortlet(event, LabelPortlet.this)) {
-					onDnd(event, DropSource.PORTLET);
+				if (selection.isEmpty())
+					event.setCancelled(true);
+				else {
+					setStatusText(selection.size() + " term(s) selected");
+					event.getStatusProxy()
+							.update(Format.substitute(getStatusText(),
+									selection.size()));
 				}
-			}
-
-			private void onDnd(final DndDropEvent dropEvent, DropSource source) {
-				switch(source) {
-				case INIT:
-					List<Term> terms = DndDropEventExtractor.getTerms(dropEvent, collection);
-					eventBus.fireEvent(new TermCategorizeEvent(terms, label));
-					LabelPortlet.this.expand();
-					break;
-				case PORTLET:
-					Menu menu = new CopyMoveMenu(new SelectionHandler<Item>() {
-						@Override
-						public void onSelection(SelectionEvent<Item> event) {
-							LabelPortlet sourcePortlet = DndDropEventExtractor.getLabelPortletSource(dropEvent);
-							List<Term> terms = DndDropEventExtractor.getTerms(dropEvent, collection);
-							
-							eventBus.fireEvent(new CategorizeCopyTermEvent(terms, sourcePortlet.getLabel(), label));
-						}
-					}, new SelectionHandler<Item>() {
-						@Override
-						public void onSelection(SelectionEvent<Item> event) {
-							LabelPortlet sourcePortlet = DndDropEventExtractor.getLabelPortletSource(dropEvent);
-							List<Term> terms = DndDropEventExtractor.getTerms(dropEvent, collection);
-							eventBus.fireEvent(new CategorizeMoveTermEvent(terms, sourcePortlet.getLabel(), label));
-						}
-					});
-					menu.show(LabelPortlet.this);
-					LabelPortlet.this.expand();
-					break;
-				default:
-					break;
-				}
+				event.setData(new TermLabelDnd(LabelPortlet.this, selection, label));
 			}
 		};
+
 		DropTarget dropTarget = new DropTarget(this) {
 			private AutoScrollSupport scrollSupport;
 
@@ -473,7 +454,39 @@ public class LabelPortlet extends Portlet {
 		};
 		dropTarget.setAllowSelfAsSource(false);
 		dropTarget.setOperation(Operation.COPY);
-		dropTarget.addDropHandler(portalDropHandler);
+		dropTarget.addDropHandler(new DndDropHandler() {
+			@Override
+			public void onDrop(DndDropEvent event) {
+				Object data = event.getData();
+				if(data instanceof TermDnd) {
+					TermDnd termDnd = (TermDnd)data;
+					if(termDnd.getSource().getClass().equals(TermsView.class)) {
+						List<Term> terms = termDnd.getTerms();
+						eventBus.fireEvent(new TermCategorizeEvent(terms, label));
+						LabelPortlet.this.expand();
+					}
+					if(termDnd.getSource().getClass().equals(LabelPortlet.class) && termDnd instanceof TermLabelDnd) {
+						final TermLabelDnd termLabelDnd = (TermLabelDnd)termDnd;
+						final Label sourceLabel = termLabelDnd.getLabels().get(0);
+						if(!sourceLabel.equals(label)) {
+							Menu menu = new CopyMoveMenu(new SelectionHandler<Item>() {
+								@Override
+								public void onSelection(SelectionEvent<Item> event) {								
+									eventBus.fireEvent(new CategorizeCopyTermEvent(termLabelDnd.getTerms(), sourceLabel, label));
+								}
+							}, new SelectionHandler<Item>() {
+								@Override
+								public void onSelection(SelectionEvent<Item> event) {
+									eventBus.fireEvent(new CategorizeMoveTermEvent(termLabelDnd.getTerms(), sourceLabel, label));
+								}
+							});
+							menu.show(LabelPortlet.this);
+							LabelPortlet.this.expand();
+						}
+					}
+				}
+			}
+		});
 		
 		// let our events take care of tree/list store updates, hence own
 		// implementation to take care of move/copy		
@@ -486,41 +499,46 @@ public class LabelPortlet extends Portlet {
 			@Override
 			public void onDrop(DndDropEvent event) {
 				Object data = event.getData();
-				List<Term> synonymTerms = new LinkedList<Term>();
-				if (data instanceof List) {
-					List<?> list = (List<?>) data;
-					if (list.get(0) instanceof TreeStore.TreeNode) {
-						@SuppressWarnings("unchecked")
-						List<TreeNode<TermTreeNode>> nodes = (List<TreeNode<TermTreeNode>>) list;
-						for (TreeNode<TermTreeNode> node : nodes) {
-							//drops from bucket tree are TermTreeNode, SynonymTermTreeNode can't be used as synonym again until made mainterm 
-							if (node.getData() != null && node.getData() instanceof TermTreeNode && !(node.getData() instanceof SynonymTermTreeNode)) {
-								synonymTerms.add(((TermTreeNode) node.getData()).getTerm());
-							}					
-						}
-						//drops from bucket list
-					} else if(list.get(0) instanceof Term) {
-						List<Term> nodes = (List<Term>)list;
-						synonymTerms.addAll(nodes);
-					}
+				if(data instanceof TermDnd) {
+					TermDnd termDnd = (TermDnd)data;
+					final List<Term> synonymTerms = new LinkedList<Term>();
+					synonymTerms.addAll(termDnd.getTerms());
 					
-				}
-				
-				
-				//not a target of this portlet, don't allow for now
-				for(Term synonymTerm : synonymTerms)
-					if(!label.containsTerm(synonymTerm)) {
-						portalDropHandler.onDrop(event);
-						return;
-					}
+					TermTreeNode target = treeDropTarget.getAndNullTarget();
+					if(target != null) {
+						final Term mainLabelTerm = target.getTerm();
 						
-				TermTreeNode target = treeDropTarget.getAndNullTarget();
-				if(target != null) { 
-					Term mainLabelTerm = target.getTerm();
-					label.setSynonymy(mainLabelTerm, synonymTerms);
-					eventBus.fireEvent(new SynonymCreationEvent(label,
-							mainLabelTerm, synonymTerms));
-				}
+						if(termDnd.getSource().getClass().equals(TermsView.class)) {
+							if(target != null) { 
+								eventBus.fireEvent(new TermCategorizeEvent(synonymTerms, label));
+								eventBus.fireEvent(new SynonymCreationEvent(label, mainLabelTerm, synonymTerms));
+							}
+						}
+						if(termDnd.getSource().getClass().equals(LabelPortlet.class) && termDnd instanceof TermLabelDnd) {
+							final TermLabelDnd termLabelDnd = (TermLabelDnd)termDnd;
+							final Label sourceLabel = termLabelDnd.getLabels().get(0);
+							if(!sourceLabel.equals(label)) {
+								Menu menu = new CopyMoveMenu(new SelectionHandler<Item>() {
+									@Override
+									public void onSelection(SelectionEvent<Item> event) {								
+										eventBus.fireEvent(new CategorizeCopyTermEvent(synonymTerms, sourceLabel, label));
+										eventBus.fireEvent(new SynonymCreationEvent(label, mainLabelTerm, synonymTerms));
+									}
+								}, new SelectionHandler<Item>() {
+									@Override
+									public void onSelection(SelectionEvent<Item> event) {
+										eventBus.fireEvent(new CategorizeMoveTermEvent(synonymTerms, sourceLabel, label));
+										eventBus.fireEvent(new SynonymCreationEvent(label, mainLabelTerm, synonymTerms));
+									}
+								});
+								menu.show(LabelPortlet.this);
+								LabelPortlet.this.expand();
+							} else {
+								eventBus.fireEvent(new SynonymCreationEvent(label, mainLabelTerm, synonymTerms));
+							}
+						}
+					}
+				}				
 			}
 		});
 	}

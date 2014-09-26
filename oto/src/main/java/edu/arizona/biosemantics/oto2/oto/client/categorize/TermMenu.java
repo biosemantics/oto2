@@ -262,7 +262,7 @@ public abstract class TermMenu extends Menu implements BeforeShowHandler {
 						@Override
 						public void onHide(HideEvent event) {
 							String newName = box.getValue();
-							eventBus.fireEvent(new TermRenameEvent(term, newName));
+							eventBus.fireEvent(new TermRenameEvent(term, newName, collection));
 						}
 					});
 					box.show();
