@@ -9,6 +9,8 @@ import java.util.Map;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.dom.client.DoubleClickEvent;
+import com.google.gwt.event.dom.client.DoubleClickHandler;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.shared.EventBus;
@@ -47,6 +49,7 @@ import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeCopyTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeMoveTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelModifyEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelSelectEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.ShowSingleLabelEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.SynonymCreationEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.SynonymRemovalEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermCategorizeEvent;
@@ -365,6 +368,12 @@ public class LabelPortlet extends Portlet {
 				eventBus.fireEvent(new LabelSelectEvent(label));
 			}
 		}, ClickEvent.getType());
+		this.addDomHandler(new DoubleClickHandler() {
+			@Override
+			public void onDoubleClick(DoubleClickEvent event) {
+				eventBus.fireEvent(new ShowSingleLabelEvent(label));
+			} 
+		}, DoubleClickEvent.getType());
 	}
 	
 	protected void setTreeSelection(TermTreeNode termTreeNode) {
