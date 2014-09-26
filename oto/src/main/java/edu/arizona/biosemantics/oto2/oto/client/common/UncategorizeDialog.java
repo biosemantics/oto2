@@ -48,7 +48,7 @@ public class UncategorizeDialog extends MessageBox {
 				PredefinedButton.NO, PredefinedButton.CANCEL);
 		setIcon(MessageBox.ICONS.question());
 		setMessage("You are uncategorizing a term with multiple categories. Would you like to "
-				+ "remove it from all its categories?");
+				+ "remove <b>" + term.getTerm() + "</b> from from all its categories?");
 		getButton(PredefinedButton.YES).addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {

@@ -176,7 +176,7 @@ public class ModelControler {
 	protected void moveTerms(List<Term> terms, Label sourceLabel, Label targetLabel) {
 		Map<Term, AddResult> addResult = targetLabel.addMainTerms(terms);
 		Alerter.alertNotAddedTerms(terms, addResult);
-		sourceLabel.uncategorizeMainTerms(terms);
+		sourceLabel.uncategorizeTerm(terms);
 	}
 
 	protected void categorizeTerms(List<Term> terms, List<Label> targetLabels) {	

@@ -22,7 +22,7 @@ public class MainTermMenu extends TermMenu {
 	@Override
 	public void builtMenu(List<Term> terms) {
 		createMoveTo(terms);
-		//createCopy(terms);
+		createCopy(terms);
 		createRename(terms);
 		createRemove(terms);
 		createAddSynonom(terms);

@@ -454,7 +454,7 @@ public class SingleLabelView extends SimpleContainer {
 		
 		ToolBar toolBar = new ToolBar();
 		//toolBar.add(new FillToolItem());
-		toolBar.add(new com.google.gwt.user.client.ui.Label("Label:"));
+		toolBar.add(new com.google.gwt.user.client.ui.Label("Category:"));
 		toolBar.add(labelComboBox);
 		return toolBar;
 	}

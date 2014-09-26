@@ -26,7 +26,7 @@ public class TermRenameEvent extends GwtEvent<RenameTermHandler> {
         
 		for(Term collectionTerm : collection.getTerms()) {
 			if(collectionTerm.getTerm().equals(newName)) {
-				Alerter.alertTermWithNameExists();
+				Alerter.alertTermWithNameExists(newName);
 				validRename = false;
 			}
 		}

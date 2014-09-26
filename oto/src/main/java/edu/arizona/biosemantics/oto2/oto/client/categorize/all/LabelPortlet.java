@@ -43,6 +43,7 @@ import com.sencha.gxt.widget.core.client.tree.Tree;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.TermMenu;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.single.MainTermPortlet;
 import edu.arizona.biosemantics.oto2.oto.client.common.Alerter;
+import edu.arizona.biosemantics.oto2.oto.client.common.AllowSurpressSelectEventsTreeSelectionModel;
 import edu.arizona.biosemantics.oto2.oto.client.common.dnd.MainTermSynonymsLabelDnd;
 import edu.arizona.biosemantics.oto2.oto.client.common.dnd.TermDnd;
 import edu.arizona.biosemantics.oto2.oto.client.common.dnd.TermLabelDnd;
@@ -90,6 +91,7 @@ public class LabelPortlet extends Portlet {
 	private TreeStore<TermTreeNode> portletStore;
 	private Label label;
 	private Tree<TermTreeNode, String> tree;
+	private AllowSurpressSelectEventsTreeSelectionModel<TermTreeNode> treeSelectionModel;
 	private EventBus eventBus;
 	private Map<Term, TermTreeNode> termTermTreeNodeMap = new HashMap<Term, TermTreeNode>();
 	private Collection collection;
@@ -128,10 +130,12 @@ public class LabelPortlet extends Portlet {
 		}, SortDir.ASC));
 		tree = new Tree<TermTreeNode, String>(portletStore, textTreeNodeProperties.text());
 		tree.getElement().setAttribute("source", "labelportlet-" + id);
+		treeSelectionModel = new AllowSurpressSelectEventsTreeSelectionModel<TermTreeNode>();
+		tree.setSelectionModel(treeSelectionModel);
 		tree.setContextMenu(new TermMenu(eventBus, collection, label) {
 			@Override
 			public List<Term> getTerms() {
-				final List<TermTreeNode> selected = tree.getSelectionModel().getSelectedItems();
+				final List<TermTreeNode> selected = treeSelectionModel.getSelectedItems();
 				final List<Term> terms = new LinkedList<Term>();
 				for(TermTreeNode node : selected) 
 					terms.add(node.getTerm());
@@ -349,7 +353,7 @@ public class LabelPortlet extends Portlet {
 			}
 		});
 		
-		tree.getSelectionModel().addSelectionHandler(new SelectionHandler<TermTreeNode>() {
+		treeSelectionModel.addSelectionHandler(new SelectionHandler<TermTreeNode>() {
 			@Override
 			public void onSelection(SelectionEvent<TermTreeNode> event) {
 				TermTreeNode termTreeNode = event.getSelectedItem();
@@ -392,10 +396,10 @@ public class LabelPortlet extends Portlet {
 		//if this check not made infinite loop will be caused with selectionmodel and select event
 		boolean allAlreadySelected = true;
 		for(TermTreeNode node : termTreeNodes) {
-			allAlreadySelected &= tree.getSelectionModel().isSelected(node);
+			allAlreadySelected &= treeSelectionModel.isSelected(node);
 		}
 		if(!allAlreadySelected) 
-			tree.getSelectionModel().setSelection(selectionTree);
+			treeSelectionModel.setSelection(selectionTree, true);
 		LabelPortlet.this.expand();
 	}
 
@@ -560,7 +564,7 @@ public class LabelPortlet extends Portlet {
 	
 	protected List<MainTermSynonyms> createSelectedMainTermSynonyms() {
 		List<MainTermSynonyms> result = new LinkedList<MainTermSynonyms>();
-		List<TermTreeNode> nodeSelection = tree.getSelectionModel().getSelectedItems();
+		List<TermTreeNode> nodeSelection = treeSelectionModel.getSelectedItems();
 		
 		for (TermTreeNode node : nodeSelection) {
 			if(portletStore.getParent(node) == null) {
@@ -578,7 +582,7 @@ public class LabelPortlet extends Portlet {
 
 	protected List<Term> getSelectedTerms() {
 		List<Term> result = new LinkedList<Term>();
-		List<TermTreeNode> nodeSelection = tree.getSelectionModel().getSelectedItems();
+		List<TermTreeNode> nodeSelection = treeSelectionModel.getSelectedItems();
 		for (TermTreeNode node : nodeSelection) {
 			result.add(node.getTerm());
 		}

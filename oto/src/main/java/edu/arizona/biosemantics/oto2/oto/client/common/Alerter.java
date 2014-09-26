@@ -16,12 +16,12 @@ public class Alerter {
 			if(!addResult.result) {
 				if(addResult.parent != null) {
 					AlertMessageBox alert = new AlertMessageBox("Term exists in label", 
-							"The term " + possibleMainTerm.getTerm() + " already exists in this label as synonym of " + 
-									addResult.parent.getTerm() + ". A term can only appear once inside a label.");
+							"The term <b>" + possibleMainTerm.getTerm() + "</b> already exists in this label as synonym of <b>" + 
+									addResult.parent.getTerm() + "</b>. A term can only appear once inside a label.");
 					alert.show();
 				} else {
 					AlertMessageBox alert = new AlertMessageBox("Term exists in label", 
-							"The term " + possibleMainTerm.getTerm() + " already exists in this label" + 
+							"The term <b>" + possibleMainTerm.getTerm() + "</b> already exists in this label" + 
 									". A term can only appear once inside a label.");
 					alert.show();
 				}
@@ -41,8 +41,9 @@ public class Alerter {
 		alert.show();
 	}
 
-	public static void alertTermWithNameExists() {
-		AlertMessageBox alert = new AlertMessageBox("Term with name exists", "Failed to rename term. Another term with the same spelling exists already.");
+	public static void alertTermWithNameExists(String newName) {
+		AlertMessageBox alert = new AlertMessageBox("Term with name exists", "Failed to rename term. " +
+				"Another term with the same spelling <b>" + newName + "</b> exists already.");
 		alert.show();
 	}
 

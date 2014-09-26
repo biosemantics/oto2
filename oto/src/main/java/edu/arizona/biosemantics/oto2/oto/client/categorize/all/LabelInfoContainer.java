@@ -1,7 +1,6 @@
 package edu.arizona.biosemantics.oto2.oto.client.categorize.all;
 
-
-import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.user.client.ui.HTML;
 import com.sencha.gxt.widget.core.client.container.MarginData;
 import com.sencha.gxt.widget.core.client.container.SimpleContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
@@ -19,11 +18,15 @@ public class LabelInfoContainer extends SimpleContainer {
 		public LabelInfoContainer(String initialName, String initialDescription) {
 			FieldSet fieldSet = new FieldSet();
 		    fieldSet.setHeadingText("Category Information");
-		    fieldSet.setCollapsible(true);
+		    fieldSet.setCollapsible(false);
 		    this.add(fieldSet, new MarginData(10));
 		 
 		    VerticalLayoutContainer p = new VerticalLayoutContainer();
 		    fieldSet.add(p);
+		    
+		    //remove whenever this is supposed to be generalized to be used itside of oto -> markup chain
+		    p.add(new FieldLabel(new HTML("Use a set of meaningful categories. The categories used have a direct impact on your " +
+		    		"markup result."), "Beware"));
 		    
 		    labelName = new TextField();
 		    labelName.setAllowBlank(false);

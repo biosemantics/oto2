@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.Comparator;
 
 import com.gargoylesoftware.htmlunit.javascript.host.Selection;
+import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.logical.shared.SelectionEvent;
@@ -16,6 +17,8 @@ import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.web.bindery.event.shared.HandlerRegistration;
 import com.sencha.gxt.core.client.dom.AutoScrollSupport;
@@ -63,6 +66,8 @@ import com.sencha.gxt.widget.core.client.tree.TreeSelectionModel;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.all.LabelPortlet;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.single.MainTermPortlet;
 import edu.arizona.biosemantics.oto2.oto.client.common.Alerter;
+import edu.arizona.biosemantics.oto2.oto.client.common.AllowSurpressSelectEventsListViewSelectionModel;
+import edu.arizona.biosemantics.oto2.oto.client.common.AllowSurpressSelectEventsTreeSelectionModel;
 import edu.arizona.biosemantics.oto2.oto.client.common.UncategorizeDialog;
 import edu.arizona.biosemantics.oto2.oto.client.common.dnd.MainTermSynonymsLabelDnd;
 import edu.arizona.biosemantics.oto2.oto.client.common.dnd.TermDnd;
@@ -98,13 +103,13 @@ public class TermsView extends TabPanel {
 			
 			List<Term> selected = new LinkedList<Term>();
 			if(TermsView.this.getActiveWidget().equals(TermsView.this.termTree)) {
-				List<TextTreeNode> nodes = termTree.getSelectionModel().getSelectedItems();	
+				List<TextTreeNode> nodes = termTreeSelectionModel.getSelectedItems();	
 				for(TextTreeNode node : nodes)
 					if(node instanceof TermTreeNode) {
 						selected.add(((TermTreeNode)node).getTerm());
 					}
 			} else if(TermsView.this.getActiveWidget().equals(TermsView.this.listView)) {
-				selected = listView.getSelectionModel().getSelectedItems();
+				selected = listViewSelectionModel.getSelectedItems();
 			}
 			if(selected == null || selected.isEmpty()) {
 				event.setCancelled(true);
@@ -153,6 +158,16 @@ public class TermsView extends TabPanel {
 					MenuItem categorize = new MenuItem("Categorize to");
 					categorize.setSubMenu(categorizeMenu);
 					this.add(categorize);
+					
+					/*MenuItem markUseless = new MenuItem("Mark as useless");
+					markUseless.addSelectionHandler(new SelectionHandler<Item>() {
+						@Override
+						public void onSelection(SelectionEvent<Item> event) {
+							//TODO: have to store uselss info in DB.. will wait and see if new label and warning
+							//are sufficient before I chagne my model...
+						}
+					});
+					this.add(markUseless);*/
 				}
 				
 				if(selected.size() == 1) {
@@ -247,17 +262,9 @@ public class TermsView extends TabPanel {
 		
 	}
 	
-	public class AllowSurpressSelectEventsTreeSelectionModel<M> extends TreeSelectionModel<M> {
-		public void setSelection(List<M> selection, boolean surpressEvents) {
-			doSelect(selection, false, surpressEvents);
-		}
-	}
+
 	
-	public class AllowSurpressSelectEventsListViewSelectionModel<M> extends ListViewSelectionModel<M> {
-		public void setSelection(List<M> selection, boolean surpressEvents) {
-			doSelect(selection, false, surpressEvents);
-		}
-	}
+
 	
 	private static final TermProperties termProperties = GWT.create(TermProperties.class);
 	private static final TextTreeNodeProperties textTreeNodeProperties = GWT.create(TextTreeNodeProperties.class);
@@ -296,9 +303,18 @@ public class TermsView extends TabPanel {
 		listView.getElement().setAttribute("source", "termsview");
 		listView.setContextMenu(new TermMenu());
 		termTree = new Tree<TextTreeNode, String>(treeStore, textTreeNodeProperties.text());
+		/*termTree.setCell(new AbstractCell<TextTreeNode>() {
+			@Override
+			public void render(com.google.gwt.cell.client.Cell.Context context,	TextTreeNode taxon, SafeHtmlBuilder sb) {
+					String colorHex = "";
+					if(model.hasColor(taxon))
+						colorHex = model.getColor(taxon).getHex();
+					sb.append(SafeHtmlUtils.fromTrustedString("<div style='background-color:#" + colorHex + "'>" + 
+							taxon.getFullName() + "</div>"));
+			}
+		});*/
 		
 		termTree.setSelectionModel(termTreeSelectionModel);
-		termTree.getSelectionModel();
 		termTree.getElement().setAttribute("source", "termsview");
 		termTree.setContextMenu(new TermMenu());
 		add(termTree, "tree");
@@ -313,14 +329,14 @@ public class TermsView extends TabPanel {
 			@Override
 			public void onSelect(TermSelectEvent event) {
 				Term term = event.getTerm();
-				if(!listView.getSelectionModel().isSelected(term)) {
+				if(!listViewSelectionModel.isSelected(term)) {
 					List<Term> selection = new LinkedList<Term>();
 					selection.add(term);
 					listViewSelectionModel.setSelection(selection, true);
 				}
 				
 				TermTreeNode termTreeNode = termTermTreeNodeMap.get(term);
-				if(termTreeNode != null && treeStore.findModel(termTreeNode) != null && !termTree.getSelectionModel().isSelected(termTreeNode)) {
+				if(termTreeNode != null && treeStore.findModel(termTreeNode) != null && !termTreeSelectionModel.isSelected(termTreeNode)) {
 					List<TextTreeNode> selectionTree = new LinkedList<TextTreeNode>();
 					selectionTree.add(termTreeNode);
 					termTreeSelectionModel.setSelection(selectionTree, true);
@@ -371,13 +387,13 @@ public class TermsView extends TabPanel {
 			}
 		});
 		
-		listView.getSelectionModel().addSelectionHandler(new SelectionHandler<Term>() {
+		listViewSelectionModel.addSelectionHandler(new SelectionHandler<Term>() {
 			@Override
 			public void onSelection(SelectionEvent<Term> event) {
 				eventBus.fireEvent(new TermSelectEvent(event.getSelectedItem()));
 			}
 		});
-		termTree.getSelectionModel().addSelectionHandler(new SelectionHandler<TextTreeNode>() {
+		termTreeSelectionModel.addSelectionHandler(new SelectionHandler<TextTreeNode>() {
 			@Override
 			public void onSelection(SelectionEvent<TextTreeNode> event) {
 				TextTreeNode node = event.getSelectedItem();
@@ -413,7 +429,7 @@ public class TermsView extends TabPanel {
 			@Override
 			 protected void onDragStart(DndDragStartEvent event) {
 				 super.onDragStart(event);
-				 List<Term> selection = listView.getSelectionModel().getSelectedItems();
+				 List<Term> selection = listViewSelectionModel.getSelectedItems();
 				 if(selection.isEmpty())
 					 event.setCancelled(true);
 				 event.setData(new TermDnd(TermsView.this, selection));
@@ -423,7 +439,7 @@ public class TermsView extends TabPanel {
 			 @Override
 			 protected void onDragStart(DndDragStartEvent event) {
 				 super.onDragStart(event);
-				 List<TextTreeNode> nodeSelection = termTree.getSelectionModel().getSelectedItems();
+				 List<TextTreeNode> nodeSelection = termTreeSelectionModel.getSelectedItems();
 				 List<Term> selection = new LinkedList<Term>();
 				 for(TextTreeNode node : nodeSelection) {
 					 if(node instanceof BucketTreeNode) {

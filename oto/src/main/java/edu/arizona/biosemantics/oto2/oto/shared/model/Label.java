@@ -197,6 +197,11 @@ public class Label implements Serializable {
 		this.setSynonymy(mainTerm, new LinkedList<Term>());
 	}
 
+	public void uncategorizeTerm(List<Term> terms) {
+		for(Term term : terms)
+			uncategorizeTerm(term);
+	}
+	
 	public void uncategorizeTerm(Term term) {
 		this.uncategorizeMainTerm(term);
 		this.uncategorizeSynonymTerm(term);
@@ -239,4 +244,6 @@ public class Label implements Serializable {
 	public boolean hasSynonyms(Term mainTerm) {
 		return !this.getSynonyms(mainTerm).isEmpty();
 	}
+
+
 }

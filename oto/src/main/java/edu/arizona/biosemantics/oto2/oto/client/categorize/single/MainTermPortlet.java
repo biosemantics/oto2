@@ -44,6 +44,7 @@ import com.sencha.gxt.widget.core.client.tree.Tree;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.all.LabelMenu;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.all.LabelPortlet;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.all.LabelPortlet.CopyMoveMenu;
+import edu.arizona.biosemantics.oto2.oto.client.common.AllowSurpressSelectEventsTreeSelectionModel;
 import edu.arizona.biosemantics.oto2.oto.client.common.dnd.TermDnd;
 import edu.arizona.biosemantics.oto2.oto.client.common.dnd.TermLabelDnd;
 import edu.arizona.biosemantics.oto2.oto.client.common.dnd.MainTermSynonymsLabelDnd;
@@ -70,6 +71,7 @@ public class MainTermPortlet extends Portlet {
 	private Term mainTerm;
 	private TreeStore<TermTreeNode> portletStore;
 	private Tree<TermTreeNode, String> tree;
+	private AllowSurpressSelectEventsTreeSelectionModel<TermTreeNode> treeSelectionModel;
 	private Label label;
 	private Collection collection;
 	private Map<Term, TermTreeNode> termTermTreeNodeMap = new HashMap<Term, TermTreeNode>();
@@ -102,6 +104,8 @@ public class MainTermPortlet extends Portlet {
 			}
 		}, SortDir.ASC));
 		tree = new Tree<TermTreeNode, String>(portletStore, textTreeNodeProperties.text());
+		treeSelectionModel = new AllowSurpressSelectEventsTreeSelectionModel<TermTreeNode>();
+		tree.setSelectionModel(treeSelectionModel);
 		tree.setContextMenu(new SynonymTermMenu(eventBus, collection, label, tree));
 		
 		FlowLayoutContainer flowLayoutContainer = new FlowLayoutContainer();
@@ -124,7 +128,7 @@ public class MainTermPortlet extends Portlet {
 			@Override
 			protected void onDragStart(DndDragStartEvent event) {
 				super.onDragStart(event);
-				List<TermTreeNode> nodeSelection = tree.getSelectionModel().getSelectedItems();
+				List<TermTreeNode> nodeSelection = treeSelectionModel.getSelectedItems();
 				List<Term> selection = new LinkedList<Term>();
 				for (TermTreeNode node : nodeSelection) {
 					selection.add(node.getTerm());
@@ -196,6 +200,21 @@ public class MainTermPortlet extends Portlet {
 	}
 
 	private void bindEvents() {
+		eventBus.addHandler(CategorizeMoveTermEvent.TYPE, new CategorizeMoveTermEvent.CategorizeMoveTermHandler() {
+			@Override
+			public void onCategorize(CategorizeMoveTermEvent event) {
+				if(event.getSourceCategory().equals(label)) {
+					for(Term term : event.getTerms()) {
+						removeSynonymTerm(term);
+					}
+				}
+				if(event.getTargetCategory().equals(label)) {
+					for(Term term : event.getTerms()) {
+						addSynonymTerm(term);
+					}
+				}
+			}
+		});
 		eventBus.addHandler(TermSelectEvent.TYPE, new TermSelectEvent.TermSelectHandler() {
 			@Override
 			public void onSelect(TermSelectEvent event) {
@@ -247,7 +266,7 @@ public class MainTermPortlet extends Portlet {
 				}
 			}
 		});
-		tree.getSelectionModel().addSelectionHandler(new SelectionHandler<TermTreeNode>() {
+		treeSelectionModel.addSelectionHandler(new SelectionHandler<TermTreeNode>() {
 			@Override
 			public void onSelection(SelectionEvent<TermTreeNode> event) {
 				TermTreeNode termTreeNode = event.getSelectedItem();
@@ -287,7 +306,8 @@ public class MainTermPortlet extends Portlet {
 
 	protected void removeSynonymTerm(Term synonym) {
 		TermTreeNode termTreeNode = termTermTreeNodeMap.remove(synonym);
-		portletStore.remove(termTreeNode);
+		if(termTreeNode != null)
+			portletStore.remove(termTreeNode);
 	}
 
 	private void addSynonymTerm(Term term) {

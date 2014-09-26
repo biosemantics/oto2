@@ -23,8 +23,8 @@ public class SynonymTermMenu extends TermMenu {
 	
 	@Override
 	public void builtMenu(List<Term> terms) {
-		//createMoveTo(terms);
-		//createCopy(terms);
+		createMoveTo(terms);
+		createCopy(terms);
 		createRename(terms);
 		createRemove(terms);
 		//createAddSynonom(terms);
