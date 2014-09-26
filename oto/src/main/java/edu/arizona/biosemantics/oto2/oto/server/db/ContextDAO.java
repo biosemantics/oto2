@@ -107,25 +107,39 @@ public class ContextDAO {
 			e.printStackTrace();
 		}
 	}
-
+	
+	//http://stackoverflow.com/questions/2839441/mysql-query-problem
+	//don't want to use LIKE %term% because it will be slow... so just approximate
 	public List<TypedContext> get(Collection collection, Term term)  {
 		List<Context> contexts = new LinkedList<Context>();
-		try(Query query = new Query("SELECT * FROM oto_context WHERE collection = ? AND MATCH (text) AGAINST (? IN NATURAL LANGUAGE MODE)")) {
-			query.setParameter(1, collection.getId());
-			query.setParameter(2, term.getTerm());	
-			ResultSet result = query.execute();
-			while(result.next()) {
-				Context context = createContext(result);
-				contexts.add(context);
-			}
-		} catch(Exception e) {
-			e.printStackTrace();
-		}
-		
-		if(term.hasChangedSpelling()) {
+		List<String> searches = new LinkedList<String>();
+		String searchTerm = term.getTerm().trim();
+		searches.add(searchTerm);
+		searches.add(searchTerm.replaceAll(" ", "-"));
+		searches.add(searchTerm.replaceAll(" ", "_"));
+		for(String search : searches) 
 			try(Query query = new Query("SELECT * FROM oto_context WHERE collection = ? AND MATCH (text) AGAINST (? IN NATURAL LANGUAGE MODE)")) {
 				query.setParameter(1, collection.getId());
-				query.setParameter(2, term.getOriginalTerm());
+				query.setParameter(2, search);	
+				ResultSet result = query.execute();
+				while(result.next()) {
+					Context context = createContext(result);
+					contexts.add(context);
+				}
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
+		
+		if(term.hasChangedSpelling()) {
+			searches = new LinkedList<String>();
+			searchTerm = term.getOriginalTerm().trim();
+			searches.add(searchTerm);
+			searches.add(searchTerm.replaceAll(" ", "-"));
+			searches.add(searchTerm.replaceAll(" ", "_"));
+			
+			try(Query query = new Query("SELECT * FROM oto_context WHERE collection = ? AND MATCH (text) AGAINST (? IN NATURAL LANGUAGE MODE)")) {
+				query.setParameter(1, collection.getId());
+				query.setParameter(2, searchTerm);
 				ResultSet result = query.execute();
 				while(result.next()) {
 					Context context = createContext(result);
