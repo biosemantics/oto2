@@ -176,28 +176,7 @@ public class TermsView extends TabPanel {
 					rename.addSelectionHandler(new SelectionHandler<Item>() {
 						@Override
 						public void onSelection(SelectionEvent<Item> event) {
-							final PromptMessageBox box = new PromptMessageBox(
-									"Correct Spelling", "Please input new spelling");
-							box.getButton(PredefinedButton.OK).addBeforeSelectHandler(new BeforeSelectHandler() {
-								@Override
-								public void onBeforeSelect(BeforeSelectEvent event) {
-									if(box.getTextField().getValue().trim().isEmpty()) {
-										event.setCancelled(true);
-										AlertMessageBox alert = new AlertMessageBox("Empty", "Empty not allowed");
-										alert.show();
-									}
-								}
-							});
-							box.getTextField().setValue(term.getTerm());
-							box.getTextField().setAllowBlank(false);
-							box.addHideHandler(new HideHandler() {
-								@Override
-								public void onHide(HideEvent event) {
-									String newName = box.getValue();
-									eventBus.fireEvent(new TermRenameEvent(term, newName, collection));
-								}
-							});
-							box.show();
+							Alerter.dialogRename(eventBus, term, collection);
 						}
 					});
 					this.add(rename);

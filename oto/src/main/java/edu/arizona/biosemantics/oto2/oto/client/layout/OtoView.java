@@ -14,9 +14,12 @@ import com.sencha.gxt.data.shared.SortDir;
 import com.sencha.gxt.data.shared.Store.StoreSortInfo;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.Dialog;
+import com.sencha.gxt.widget.core.client.box.ConfirmMessageBox;
 import com.sencha.gxt.widget.core.client.container.BorderLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
+import com.sencha.gxt.widget.core.client.event.DialogHideEvent;
+import com.sencha.gxt.widget.core.client.event.DialogHideEvent.DialogHideHandler;
 import com.sencha.gxt.widget.core.client.form.ComboBox;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuBar;
@@ -65,7 +68,15 @@ public class OtoView extends SimpleLayoutPanel {
 					collectionService.reset(collection, new RPCCallback<Collection>() {
 						@Override
 						public void onSuccess(Collection result) {
-							eventBus.fireEvent(new LoadEvent(collection));
+							ConfirmMessageBox box = new ConfirmMessageBox("Reset categorization", "" +
+									"This will uncategorize all terms irrevocably. Are you sure you want to do that?");
+					        box.addDialogHideHandler(new DialogHideHandler() {
+								@Override
+								public void onDialogHide(DialogHideEvent event) {
+									eventBus.fireEvent(new LoadEvent(collection));
+								}
+					        });
+					        box.show();
 						}
 					});
 				}

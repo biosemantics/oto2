@@ -3,8 +3,17 @@ package edu.arizona.biosemantics.oto2.oto.client.common;
 import java.util.List;
 import java.util.Map;
 
+import com.google.web.bindery.event.shared.EventBus;
+import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
+import com.sencha.gxt.widget.core.client.box.PromptMessageBox;
+import com.sencha.gxt.widget.core.client.event.BeforeSelectEvent;
+import com.sencha.gxt.widget.core.client.event.HideEvent;
+import com.sencha.gxt.widget.core.client.event.BeforeSelectEvent.BeforeSelectHandler;
+import com.sencha.gxt.widget.core.client.event.HideEvent.HideHandler;
 
+import edu.arizona.biosemantics.oto2.oto.client.event.TermRenameEvent;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label.AddResult;
 
@@ -46,5 +55,31 @@ public class Alerter {
 				"Another term with the same spelling <b>" + newName + "</b> exists already.");
 		alert.show();
 	}
+
+	public static void dialogRename(final EventBus eventBus, final Term term, final Collection collection) {
+		final PromptMessageBox box = new PromptMessageBox(
+				"Correct Spelling", "Please input new spelling");
+		box.getButton(PredefinedButton.OK).addBeforeSelectHandler(new BeforeSelectHandler() {
+			@Override
+			public void onBeforeSelect(BeforeSelectEvent event) {
+				if(box.getTextField().getValue().trim().isEmpty()) {
+					event.setCancelled(true);
+					AlertMessageBox alert = new AlertMessageBox("Empty", "Empty not allowed");
+					alert.show();
+				}
+			}
+		});
+		box.getTextField().setValue(term.getTerm());
+		box.getTextField().setAllowBlank(false);
+		box.addHideHandler(new HideHandler() {
+			@Override
+			public void onHide(HideEvent event) {
+				String newName = box.getValue();
+				eventBus.fireEvent(new TermRenameEvent(term, newName, collection));
+			}
+		});
+		box.show();
+	}
+
 
 }
