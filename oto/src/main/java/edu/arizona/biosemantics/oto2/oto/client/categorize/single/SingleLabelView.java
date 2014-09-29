@@ -453,9 +453,6 @@ public class SingleLabelView extends SimpleContainer {
 					portalLayoutContainer.remove(portlet, portalLayoutContainer.getPortletColumn(portlet));
 					portlet.removeFromParent();
 				}
-				
-				List<Term> oldSynonyms = portlet.getSynonymTerms();
-				this.addMainTerms(oldSynonyms, 0);
 			}
 		}
 		box.hide();
