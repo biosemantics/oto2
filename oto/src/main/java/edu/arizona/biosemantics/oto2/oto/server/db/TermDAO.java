@@ -47,7 +47,7 @@ public class TermDAO {
 	public Term insert(Term term, int bucketId)  {
 		if(!term.hasId()) {
 			try(Query insert = new Query("INSERT INTO `oto_term` " +
-					"(`bucket`, `term`, `original_term`, `uesless`) VALUES (?, ?, ?, ?)")) {
+					"(`bucket`, `term`, `original_term`, `useless`) VALUES (?, ?, ?, ?)")) {
 				insert.setParameter(1, bucketId);
 				insert.setParameter(2, term.getTerm());
 				insert.setParameter(3, term.getTerm());
