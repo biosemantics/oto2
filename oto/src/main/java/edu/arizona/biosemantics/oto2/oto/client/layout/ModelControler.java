@@ -21,10 +21,13 @@ import edu.arizona.biosemantics.oto2.oto.client.event.SaveEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.SynonymCreationEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.SynonymRemovalEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermCategorizeEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.TermMarkUselessEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermRenameEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermUncategorizeEvent;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
+import edu.arizona.biosemantics.oto2.oto.shared.model.MainTermSynonyms;
+import edu.arizona.biosemantics.oto2.oto.shared.model.SelectedTerms;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label.AddResult;
 
@@ -40,6 +43,12 @@ public class ModelControler {
 	}
 
 	private void bindEvents() {
+		eventBus.addHandler(TermMarkUselessEvent.TYPE, new TermMarkUselessEvent.MarkUselessTermHandler() {
+			@Override
+			public void onMark(TermMarkUselessEvent event) {
+				markUseless(event.getTerms(), event.isNewUseless());
+			}
+		});
 		eventBus.addHandler(LabelCreateEvent.TYPE, new LabelCreateEvent.CreateLabelHandler() {
 			@Override
 			public void onCreate(LabelCreateEvent event) {
@@ -49,7 +58,11 @@ public class ModelControler {
 		eventBus.addHandler(CategorizeCopyTermEvent.TYPE, new CategorizeCopyTermEvent.CategorizeCopyTermHandler() {
 			@Override
 			public void onCategorize(CategorizeCopyTermEvent event) {
-				categorizeTerms(event.getTerms(), event.getTargetCategories());
+				SelectedTerms selectedTerms = event.getSelectedTerms();
+				categorizeTerms(selectedTerms.getTerms(), event.getTargetCategories());
+				for(MainTermSynonyms mainTermSynonyms : selectedTerms.getMainTermSynonyms())
+					for(Label targetCategory : event.getTargetCategories()) 
+						createSynonym(targetCategory, mainTermSynonyms.getMainTerm(), mainTermSynonyms.getSynonyms());
 			}
 		});
 		eventBus.addHandler(CategorizeCopyRemoveTermEvent.TYPE, new CategorizeCopyRemoveTermEvent.CategorizeCopyRemoveTermHandler() {
@@ -63,7 +76,11 @@ public class ModelControler {
 		eventBus.addHandler(CategorizeMoveTermEvent.TYPE, new CategorizeMoveTermEvent.CategorizeMoveTermHandler() {
 			@Override
 			public void onCategorize(CategorizeMoveTermEvent event) {
-				moveTerms(event.getTerms(), event.getSourceCategory(), event.getTargetCategory());
+				SelectedTerms selectedTerms = event.getSelectedTerms();
+				moveTerms(selectedTerms.getTerms(), event.getSourceCategory(), event.getTargetCategory());
+				for(MainTermSynonyms mainTermSynonyms : selectedTerms.getMainTermSynonyms())
+					createSynonym(event.getTargetCategory(), mainTermSynonyms.getMainTerm(), mainTermSynonyms.getSynonyms());
+				
 			}
 		});
 		eventBus.addHandler(SynonymCreationEvent.TYPE, new SynonymCreationEvent.SynonymCreationHandler() {
@@ -116,6 +133,11 @@ public class ModelControler {
 		});
 	}
 
+	protected void markUseless(List<Term> terms, boolean newUseless) {
+		for(Term term : terms)
+			term.setUseless(newUseless);
+	}
+
 	protected void renameTerm(Term term, String newName) {
 		term.setTerm(newName);
 	}
@@ -125,7 +147,7 @@ public class ModelControler {
 	}
 
 	protected void createSynonym(Label label, Term mainTerm, List<Term> synonymTerms) {
-			label.addSynonymy(mainTerm, synonymTerms);
+		label.addSynonymy(mainTerm, synonymTerms);
 	}
 
 	protected void mergeLabels(List<Label> sources, Label destination) {

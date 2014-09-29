@@ -172,7 +172,7 @@ public class LocationsView extends Composite {
 		eventBus.addHandler(CategorizeCopyTermEvent.TYPE, new CategorizeCopyTermEvent.CategorizeCopyTermHandler() {
 			@Override
 			public void onCategorize(CategorizeCopyTermEvent event) {
-				if(event.getTerms().contains(currentTerm)) {
+				if(event.getSelectedTerms().getTerms().contains(currentTerm)) {
 					for(Label label: event.getTargetCategories()) {
 						Location toAdd = new Location(currentTerm.getTerm(), label);
 						if(store.findModel(toAdd) == null)
@@ -184,7 +184,7 @@ public class LocationsView extends Composite {
 		eventBus.addHandler(CategorizeMoveTermEvent.TYPE, new CategorizeMoveTermEvent.CategorizeMoveTermHandler() {
 			@Override
 			public void onCategorize(CategorizeMoveTermEvent event) {
-				if(event.getTerms().contains(currentTerm)) {
+				if(event.getSelectedTerms().getTerms().contains(currentTerm)) {
 					Location location = store.findModelWithKey(event.getSourceCategory().toString());
 					if(location != null) 
 						store.remove(location);

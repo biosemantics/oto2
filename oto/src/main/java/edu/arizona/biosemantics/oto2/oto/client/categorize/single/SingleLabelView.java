@@ -68,6 +68,8 @@ import edu.arizona.biosemantics.oto2.oto.client.event.TermUncategorizeEvent;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.LabelProperties;
+import edu.arizona.biosemantics.oto2.oto.shared.model.MainTermSynonyms;
+import edu.arizona.biosemantics.oto2.oto.shared.model.SelectedTerms;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 
 public class SingleLabelView extends SimpleContainer {
@@ -248,7 +250,7 @@ public class SingleLabelView extends SimpleContainer {
 			@Override
 			public void onCategorize(CategorizeCopyTermEvent event) {
 				if(event.getTargetCategories().contains(currentLabel)) {
-					addMainTerms(event.getTerms(), 0);
+					addMainTerms(event.getSelectedTerms(), 0);
 				}
 			}
 		});
@@ -256,10 +258,10 @@ public class SingleLabelView extends SimpleContainer {
 			@Override
 			public void onCategorize(CategorizeMoveTermEvent event) {
 				if(event.getTargetCategory().equals(currentLabel)) {
-					addMainTerms(event.getTerms(), 0);
+					addMainTerms(event.getSelectedTerms(), 0);
 				}
 				if(event.getSourceCategory().equals(currentLabel)) {
-					removeMainTerms(event.getTerms());
+					removeMainTerms(event.getSelectedTerms());
 				}
 			}
 		});
@@ -347,7 +349,20 @@ public class SingleLabelView extends SimpleContainer {
 		});
 	}
 
+	protected void removeMainTerms(SelectedTerms selectedTerms) {
+		for(MainTermSynonyms mainTermSynonyms : selectedTerms.getMainTermSynonyms())
+			removeMainTerm(mainTermSynonyms.getMainTerm());
+		removeMainTerms(selectedTerms.getAdditionalTerms());
+	}
 
+	protected void addMainTerms(SelectedTerms selectedTerms, int column) {
+		for(MainTermSynonyms mainTermSynonym : selectedTerms.getMainTermSynonyms()) {
+			addMainTerm(mainTermSynonym.getMainTerm(), column);
+			MainTermPortlet portlet = termPortletsMap.get(mainTermSynonym.getMainTerm());
+			portlet.addSynonymTerms(mainTermSynonym.getSynonyms());
+		}
+		addMainTerms(selectedTerms.getAdditionalTerms(), column);
+	}
 
 	protected void setCurrentLabel(Label label) {
 		needsRefresh = (needsRefresh || currentLabel == null || !currentLabel.equals(label));

@@ -60,6 +60,8 @@ import edu.arizona.biosemantics.oto2.oto.client.event.TermUncategorizeEvent;
 import edu.arizona.biosemantics.oto2.oto.client.uncategorize.TermsView;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
+import edu.arizona.biosemantics.oto2.oto.shared.model.MainTermSynonyms;
+import edu.arizona.biosemantics.oto2.oto.shared.model.SelectedTerms;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 import edu.arizona.biosemantics.oto2.oto.shared.model.TermTreeNode;
 import edu.arizona.biosemantics.oto2.oto.shared.model.TextTreeNodeProperties;
@@ -160,7 +162,8 @@ public class MainTermPortlet extends Portlet {
 							.update(Format.substitute(getStatusText(),
 									selection.size()));
 				}
-				event.setData(new MainTermSynonymsLabelDnd(MainTermPortlet.this, mainTerm, getSynonymTerms(), label));
+				event.setData(new MainTermSynonymsLabelDnd(MainTermPortlet.this, 
+						new SelectedTerms(new MainTermSynonyms(mainTerm, getSynonymTerms())), label));
 			}
 		};
 		DropTarget dropTarget = new DropTarget(this) {
@@ -204,13 +207,8 @@ public class MainTermPortlet extends Portlet {
 			@Override
 			public void onCategorize(CategorizeMoveTermEvent event) {
 				if(event.getSourceCategory().equals(label)) {
-					for(Term term : event.getTerms()) {
+					for(Term term : event.getSelectedTerms().getTerms()) {
 						removeSynonymTerm(term);
-					}
-				}
-				if(event.getTargetCategory().equals(label)) {
-					for(Term term : event.getTerms()) {
-						addSynonymTerm(term);
 					}
 				}
 			}
@@ -310,12 +308,17 @@ public class MainTermPortlet extends Portlet {
 			portletStore.remove(termTreeNode);
 	}
 
-	private void addSynonymTerm(Term term) {
+	protected void addSynonymTerm(Term term) {
 		TermTreeNode termTreeNode = new TermTreeNode(term);
 		if(!termTermTreeNodeMap.containsKey(term))  {
 			portletStore.add(termTreeNode);
 			this.termTermTreeNodeMap.put(term, termTreeNode);
 		}
+	}
+	
+	protected void addSynonymTerms(List<Term> synonyms) {
+		for(Term synonym : synonyms)
+			addSynonymTerm(synonym);
 	}
 	
 	public List<Term> getSynonymTerms() {
@@ -329,4 +332,5 @@ public class MainTermPortlet extends Portlet {
 	public Term getMainTerm() {
 		return mainTerm;
 	}
+
 }

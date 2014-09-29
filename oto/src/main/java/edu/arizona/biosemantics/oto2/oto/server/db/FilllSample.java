@@ -119,8 +119,8 @@ public class FilllSample {
 			labels.add(l);
 		}*/
 		
-		Label trashLabel = new TrashLabel("Useless", "This category can be uesd to label terms as uselss");
-		labels.add(trashLabel);
+		//Label trashLabel = new TrashLabel("Useless", "This category can be uesd to label terms as uselss");
+		//labels.add(trashLabel);
 		collection.setLabels(labels);
 		
 		collection.setSecret("my secret");

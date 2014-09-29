@@ -21,6 +21,7 @@ import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.web.bindery.event.shared.HandlerRegistration;
+import com.sencha.gxt.core.client.IdentityValueProvider;
 import com.sencha.gxt.core.client.dom.AutoScrollSupport;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
 import com.sencha.gxt.core.client.util.Format;
@@ -74,6 +75,7 @@ import edu.arizona.biosemantics.oto2.oto.client.common.dnd.TermDnd;
 import edu.arizona.biosemantics.oto2.oto.client.common.dnd.TermLabelDnd;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelRemoveEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermCategorizeEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.TermMarkUselessEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermRenameEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermSelectEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermSplitEvent;
@@ -159,15 +161,26 @@ public class TermsView extends TabPanel {
 					categorize.setSubMenu(categorizeMenu);
 					this.add(categorize);
 					
-					/*MenuItem markUseless = new MenuItem("Mark as useless");
-					markUseless.addSelectionHandler(new SelectionHandler<Item>() {
+					MenuItem markUseless = new MenuItem("Mark");
+					Menu subMenu = new Menu();
+					markUseless.setSubMenu(subMenu);
+					MenuItem useless = new MenuItem("Useless");
+					MenuItem useful = new MenuItem("Useful");
+					subMenu.add(useless);
+					subMenu.add(useful);
+					useless.addSelectionHandler(new SelectionHandler<Item>() {
 						@Override
 						public void onSelection(SelectionEvent<Item> event) {
-							//TODO: have to store uselss info in DB.. will wait and see if new label and warning
-							//are sufficient before I chagne my model...
+							eventBus.fireEvent(new TermMarkUselessEvent(terms, true));
 						}
 					});
-					this.add(markUseless);*/
+					useful.addSelectionHandler(new SelectionHandler<Item>() {
+						@Override
+						public void onSelection(SelectionEvent<Item> event) {
+							eventBus.fireEvent(new TermMarkUselessEvent(terms, false));
+						}
+					});
+					this.add(markUseless);
 				}
 				
 				if(selected.size() == 1) {
@@ -254,7 +267,7 @@ public class TermsView extends TabPanel {
 	private Map<Term, TermTreeNode> termTermTreeNodeMap;
 	private Map<Bucket, BucketTreeNode> bucketBucketTreeNodeMap;
 	private ListView<Term, String> listView;
-	private Tree<TextTreeNode, String> termTree;
+	private Tree<TextTreeNode, TextTreeNode> termTree;
 	private EventBus eventBus;
 	private Map<Term, Bucket> termBucketMap;
 	private Collection collection;
@@ -281,17 +294,25 @@ public class TermsView extends TabPanel {
 		listView.setSelectionModel(listViewSelectionModel);
 		listView.getElement().setAttribute("source", "termsview");
 		listView.setContextMenu(new TermMenu());
-		termTree = new Tree<TextTreeNode, String>(treeStore, textTreeNodeProperties.text());
-		/*termTree.setCell(new AbstractCell<TextTreeNode>() {
+		termTree = new Tree<TextTreeNode, TextTreeNode>(treeStore, new IdentityValueProvider<TextTreeNode>());
+		termTree.setCell(new AbstractCell<TextTreeNode>() {
 			@Override
-			public void render(com.google.gwt.cell.client.Cell.Context context,	TextTreeNode taxon, SafeHtmlBuilder sb) {
+			public void render(com.google.gwt.cell.client.Cell.Context context,	TextTreeNode textTreeNode, SafeHtmlBuilder sb) {
 					String colorHex = "";
-					if(model.hasColor(taxon))
-						colorHex = model.getColor(taxon).getHex();
-					sb.append(SafeHtmlUtils.fromTrustedString("<div style='background-color:#" + colorHex + "'>" + 
-							taxon.getFullName() + "</div>"));
+					if(textTreeNode instanceof TermTreeNode) {
+						TermTreeNode termTreeNode = (TermTreeNode)textTreeNode;
+						Term term = termTreeNode.getTerm();
+						if(term.isUseless()) {
+							sb.append(SafeHtmlUtils.fromTrustedString("<div style='background-color:red'>" + 
+									textTreeNode.getText() + "</div>"));
+						} else {
+							sb.append(SafeHtmlUtils.fromTrustedString(textTreeNode.getText()));
+						}
+					} else {
+						sb.append(SafeHtmlUtils.fromTrustedString(textTreeNode.getText()));
+					}
 			}
-		});*/
+		});
 		
 		termTree.setSelectionModel(termTreeSelectionModel);
 		termTree.getElement().setAttribute("source", "termsview");
@@ -362,6 +383,19 @@ public class TermsView extends TabPanel {
 				}
 				if(treeStore.getAll().contains(termTermTreeNodeMap.get(term))) {
 					treeStore.update(termTermTreeNodeMap.get(term));
+				}
+			}
+		});
+		eventBus.addHandler(TermMarkUselessEvent.TYPE, new TermMarkUselessEvent.MarkUselessTermHandler() {
+			@Override
+			public void onMark(TermMarkUselessEvent event) {
+				List<Term> listStoreContent = listStore.getAll();
+				List<TextTreeNode> treeStoreContent = treeStore.getAll();
+				for(Term term : event.getTerms()) {
+					if(listStoreContent.contains(term))
+						listStore.update(term);
+					if(termTermTreeNodeMap.get(term) != null && treeStoreContent.contains(termTermTreeNodeMap.get(term))) 
+						treeStore.update(termTermTreeNodeMap.get(term));
 				}
 			}
 		});
@@ -468,12 +502,10 @@ public class TermsView extends TabPanel {
 			@Override
 			public void onDrop(DndDropEvent event) {
 				event.getData();
-				if(event.getData() instanceof MainTermSynonymsLabelDnd && event.getSource().getClass().equals(MainTermPortlet.class)) {
+				if(event.getData() instanceof MainTermSynonymsLabelDnd) {
 					MainTermSynonymsLabelDnd mainTermSynonymsLabelDnd = (MainTermSynonymsLabelDnd)event.getData();
-					if(event.getSource().getClass().equals(MainTermPortlet.class)) {
-						uncategorize(mainTermSynonymsLabelDnd.getMainTerms(), mainTermSynonymsLabelDnd.getLabels());
-					}
-					if(event.getSource().getClass().equals(LabelPortlet.class)) {
+					if(mainTermSynonymsLabelDnd.getSource().getClass().equals(MainTermPortlet.class) || 
+							mainTermSynonymsLabelDnd.getSource().getClass().equals(LabelPortlet.class)) {
 						uncategorize(mainTermSynonymsLabelDnd.getTerms(), mainTermSynonymsLabelDnd.getLabels());
 					}
 				}

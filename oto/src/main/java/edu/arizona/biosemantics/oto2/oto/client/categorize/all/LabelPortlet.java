@@ -2,9 +2,11 @@ package edu.arizona.biosemantics.oto2.oto.client.categorize.all;
 
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -44,10 +46,10 @@ import edu.arizona.biosemantics.oto2.oto.client.categorize.TermMenu;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.single.MainTermPortlet;
 import edu.arizona.biosemantics.oto2.oto.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.oto.client.common.AllowSurpressSelectEventsTreeSelectionModel;
+import edu.arizona.biosemantics.oto2.oto.client.common.SelectedTermsExtractor;
 import edu.arizona.biosemantics.oto2.oto.client.common.dnd.MainTermSynonymsLabelDnd;
 import edu.arizona.biosemantics.oto2.oto.client.common.dnd.TermDnd;
 import edu.arizona.biosemantics.oto2.oto.client.common.dnd.TermLabelDnd;
-import edu.arizona.biosemantics.oto2.oto.client.common.dnd.MainTermSynonymsLabelDnd.MainTermSynonyms;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeCopyRemoveTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeCopyTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeMoveTermEvent;
@@ -64,6 +66,8 @@ import edu.arizona.biosemantics.oto2.oto.client.uncategorize.TermsView;
 import edu.arizona.biosemantics.oto2.oto.client.uncategorize.TermsView.BucketTreeNode;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
+import edu.arizona.biosemantics.oto2.oto.shared.model.MainTermSynonyms;
+import edu.arizona.biosemantics.oto2.oto.shared.model.SelectedTerms;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 import edu.arizona.biosemantics.oto2.oto.shared.model.TermTreeNode;
 import edu.arizona.biosemantics.oto2.oto.shared.model.TextTreeNode;
@@ -97,7 +101,8 @@ public class LabelPortlet extends Portlet {
 	private Collection collection;
 	private LabelPortletsView labelPortletsView;
 	private ToolButton toolButton;
-
+	private SelectedTermsExtractor selectedTermsExtractor = new SelectedTermsExtractor();
+	
 	public LabelPortlet(EventBus eventBus, Label label, Collection collection, LabelPortletsView labelPortletsView) {
 		this(GWT.<FramedPanelAppearance> create(FramedPanelAppearance.class), eventBus, label, collection, labelPortletsView);
 	}
@@ -134,12 +139,16 @@ public class LabelPortlet extends Portlet {
 		tree.setSelectionModel(treeSelectionModel);
 		tree.setContextMenu(new TermMenu(eventBus, collection, label) {
 			@Override
-			public List<Term> getTerms() {
-				final List<TermTreeNode> selected = treeSelectionModel.getSelectedItems();
-				final List<Term> terms = new LinkedList<Term>();
-				for(TermTreeNode node : selected) 
-					terms.add(node.getTerm());
-				return terms;
+			public SelectedTerms getSelectedTerms() {
+				return selectedTermsExtractor.getSelectedTerms(tree);
+			}
+
+			@Override
+			public List<Term> getExplicitlySelectedTerms() {
+				List<Term> result = new LinkedList<Term>();
+				for(TermTreeNode node : tree.getSelectionModel().getSelectedItems()) 
+					result.add(node.getTerm());
+				return result;
 			}
 		});
 		FlowLayoutContainer flowLayoutContainer = new FlowLayoutContainer();
@@ -161,12 +170,13 @@ public class LabelPortlet extends Portlet {
 	}
 	
 	public MainTermTreeNode addMainTerm(Term term) {
-		MainTermTreeNode mainTermTreeNode = new MainTermTreeNode(term);
 		if(!termTermTreeNodeMap.containsKey(term))  {
+			MainTermTreeNode mainTermTreeNode = new MainTermTreeNode(term);
 			portletStore.add(mainTermTreeNode);
 			this.termTermTreeNodeMap.put(term, mainTermTreeNode);
+			return mainTermTreeNode;
 		}
-		return mainTermTreeNode;
+		return null;
 	}
 	
 	protected SynonymTermTreeNode addSynonymTerm(Term mainTerm, Term synonymTerm) {
@@ -228,6 +238,7 @@ public class LabelPortlet extends Portlet {
 			public void onSynonymRemoval(SynonymRemovalEvent event) {
 				List<Term> synonyms = event.getSynonyms();
 				Term mainTerm = event.getMainTerm();
+				Label label = event.getLabel();
 				if(LabelPortlet.this.label.equals(label)) {
 					for(Term synonym : synonyms) {
 						LabelPortlet.this.removeSynonymTerm(mainTerm, synonym);
@@ -263,18 +274,11 @@ public class LabelPortlet extends Portlet {
 		eventBus.addHandler(CategorizeCopyTermEvent.TYPE, new CategorizeCopyTermEvent.CategorizeCopyTermHandler() {
 			@Override
 			public void onCategorize(CategorizeCopyTermEvent event) {
-				List<Term> terms = event.getTerms();
+				SelectedTerms selectedTerms = event.getSelectedTerms();
 				List<Label> targetCategories = event.getTargetCategories();
 				for(Label targetCategory : targetCategories) {
 					if(targetCategory.equals(label)) {
-						List<TermTreeNode> nodes = new LinkedList<TermTreeNode>();
-						for(Term term : terms) {
-							if(!termTermTreeNodeMap.containsKey(term)) {
-								MainTermTreeNode node = addMainTerm(term);
-								nodes.add(node);
-							} 
-						}
-						setTreeSelection(nodes);
+						createTerms(selectedTerms);
 					}
 				}
 			}
@@ -282,6 +286,7 @@ public class LabelPortlet extends Portlet {
 		eventBus.addHandler(LabelModifyEvent.TYPE, new LabelModifyEvent.ModifyLabelHandler()  {
 			@Override
 			public void onModify(LabelModifyEvent event) {
+				Label label = event.getLabel();
 				if(label.equals(LabelPortlet.this.label))
 					LabelPortlet.this.setHeadingText(label.getName());
 			}
@@ -291,19 +296,12 @@ public class LabelPortlet extends Portlet {
 			public void onCategorize(CategorizeMoveTermEvent event) {
 				Label targetLabel = event.getTargetCategory();
 				Label sourceLabel = event.getSourceCategory();
-				List<Term> terms = event.getTerms();
+				SelectedTerms selectedTerms = event.getSelectedTerms();
 				if(targetLabel.equals(label)) {
-					List<TermTreeNode> nodes = new LinkedList<TermTreeNode>();
-					for(Term term : terms) {
-						if(!termTermTreeNodeMap.containsKey(term)) {
-							MainTermTreeNode node = addMainTerm(term);
-							nodes.add(node);
-						}
-					}
-					setTreeSelection(nodes);
+					createTerms(selectedTerms);
 				}
 				if(sourceLabel.equals(label)) {
-					for(Term term : terms) {
+					for(Term term : selectedTerms.getTerms()) {
 						removeTerm(term);
 					}
 					LabelPortlet.this.expand();
@@ -320,7 +318,8 @@ public class LabelPortlet extends Portlet {
 					for(Term term : terms) {
 						if(!termTermTreeNodeMap.containsKey(term)) {
 							MainTermTreeNode node = addMainTerm(term);
-							nodes.add(node);
+							if(node != null)
+								nodes.add(node);
 						}
 					}
 					setTreeSelection(nodes);
@@ -383,6 +382,27 @@ public class LabelPortlet extends Portlet {
 		}, DoubleClickEvent.getType());
 	}
 	
+	protected void createTerms(SelectedTerms selectedTerms) {
+		List<TermTreeNode> nodes = new LinkedList<TermTreeNode>();
+		for(MainTermSynonyms mainTermSynonyms : selectedTerms.getMainTermSynonyms()) {
+			Term mainTerm = mainTermSynonyms.getMainTerm();
+			TermTreeNode node = addMainTerm(mainTerm);
+			if(node != null)
+				nodes.add(node);
+			for(Term synonymTerm : mainTermSynonyms.getSynonyms()) {
+				TermTreeNode synonymNode = addSynonymTerm(mainTerm, synonymTerm);
+				if(synonymNode != null)
+					nodes.add(synonymNode);
+			}
+		}
+		for(Term term : selectedTerms.getAdditionalTerms()) {
+			TermTreeNode node = addMainTerm(term);
+			if(node != null)
+				nodes.add(node);
+		}
+		setTreeSelection(nodes);
+	}
+
 	protected void setTreeSelection(TermTreeNode termTreeNode) {
 		List<TermTreeNode> selection = new LinkedList<TermTreeNode>();
 		selection.add(termTreeNode);
@@ -435,8 +455,10 @@ public class LabelPortlet extends Portlet {
 			@Override
 			protected void onDragStart(DndDragStartEvent event) {
 				super.onDragStart(event);
-				
-				List<Term> selection = getSelectedTerms();
+
+				MainTermSynonymsLabelDnd mainTermSynonymsLabelDnd = 
+						new MainTermSynonymsLabelDnd(LabelPortlet.this, selectedTermsExtractor.getSelectedTerms(tree), label);
+				List<Term> selection = mainTermSynonymsLabelDnd.getTerms();
 				if (selection.isEmpty())
 					event.setCancelled(true);
 				else {
@@ -445,13 +467,8 @@ public class LabelPortlet extends Portlet {
 							.update(Format.substitute(getStatusText(),
 									selection.size()));
 				}
-				
-				List<MainTermSynonyms> mainTermSynonyms = createSelectedMainTermSynonyms();
-				//could be that only synonyms without mainTerms are selected
-				if(!mainTermSynonyms.isEmpty()) 
-					event.setData(new MainTermSynonymsLabelDnd(LabelPortlet.this, mainTermSynonyms, label));
-				else
-					event.setData(new TermLabelDnd(LabelPortlet.this, selection, label));
+							
+				event.setData(mainTermSynonymsLabelDnd);
 			}
 		};
 
@@ -484,19 +501,21 @@ public class LabelPortlet extends Portlet {
 						eventBus.fireEvent(new TermCategorizeEvent(terms, label));
 						LabelPortlet.this.expand();
 					}
-					if(termDnd.getSource().getClass().equals(LabelPortlet.class) && termDnd instanceof TermLabelDnd) {
-						final TermLabelDnd termLabelDnd = (TermLabelDnd)termDnd;
-						final Label sourceLabel = termLabelDnd.getLabels().get(0);
+					if(termDnd.getSource().getClass().equals(LabelPortlet.class) && termDnd instanceof MainTermSynonymsLabelDnd) {
+						final MainTermSynonymsLabelDnd mainTermSynonymsLabelDnd = (MainTermSynonymsLabelDnd)termDnd;
+						final Label sourceLabel = mainTermSynonymsLabelDnd.getLabels().get(0);
 						if(!sourceLabel.equals(label)) {
 							Menu menu = new CopyMoveMenu(new SelectionHandler<Item>() {
 								@Override
 								public void onSelection(SelectionEvent<Item> event) {								
-									eventBus.fireEvent(new CategorizeCopyTermEvent(termLabelDnd.getTerms(), sourceLabel, label));
+									eventBus.fireEvent(new CategorizeCopyTermEvent(mainTermSynonymsLabelDnd.getSelectedTerms(), 
+											sourceLabel, label));								
 								}
 							}, new SelectionHandler<Item>() {
 								@Override
 								public void onSelection(SelectionEvent<Item> event) {
-									eventBus.fireEvent(new CategorizeMoveTermEvent(termLabelDnd.getTerms(), sourceLabel, label));
+									eventBus.fireEvent(new CategorizeMoveTermEvent(mainTermSynonymsLabelDnd.getSelectedTerms(), 
+											sourceLabel, label));
 								}
 							});
 							menu.show(LabelPortlet.this);
@@ -520,40 +539,41 @@ public class LabelPortlet extends Portlet {
 				Object data = event.getData();
 				if(data instanceof TermDnd) {
 					TermDnd termDnd = (TermDnd)data;
-					final List<Term> synonymTerms = new LinkedList<Term>();
-					synonymTerms.addAll(termDnd.getTerms());
 					
 					TermTreeNode target = treeDropTarget.getAndNullTarget();
 					if(target != null) {
 						final Term mainLabelTerm = target.getTerm();
 						
 						if(termDnd.getSource().getClass().equals(TermsView.class)) {
-							if(target != null) { 
-								eventBus.fireEvent(new TermCategorizeEvent(synonymTerms, label));
-								eventBus.fireEvent(new SynonymCreationEvent(label, mainLabelTerm, synonymTerms));
-							}
+							eventBus.fireEvent(new TermCategorizeEvent(termDnd.getTerms(), label));
+							eventBus.fireEvent(new SynonymCreationEvent(label, mainLabelTerm, termDnd.getTerms()));
 						}
-						if(termDnd.getSource().getClass().equals(LabelPortlet.class) && termDnd instanceof TermLabelDnd) {
-							final TermLabelDnd termLabelDnd = (TermLabelDnd)termDnd;
-							final Label sourceLabel = termLabelDnd.getLabels().get(0);
+						if(termDnd.getSource().getClass().equals(LabelPortlet.class) && termDnd instanceof MainTermSynonymsLabelDnd) {
+							final MainTermSynonymsLabelDnd mainTermSynonymsLabelDnd = (MainTermSynonymsLabelDnd)termDnd;
+							final Label sourceLabel = mainTermSynonymsLabelDnd.getLabels().get(0);
 							if(!sourceLabel.equals(label)) {
 								Menu menu = new CopyMoveMenu(new SelectionHandler<Item>() {
 									@Override
 									public void onSelection(SelectionEvent<Item> event) {								
-										eventBus.fireEvent(new CategorizeCopyTermEvent(synonymTerms, sourceLabel, label));
-										eventBus.fireEvent(new SynonymCreationEvent(label, mainLabelTerm, synonymTerms));
+										eventBus.fireEvent(new CategorizeCopyTermEvent(mainTermSynonymsLabelDnd.getSelectedTerms(), 
+												sourceLabel, label));
+										eventBus.fireEvent(new SynonymCreationEvent(label, mainLabelTerm, 
+												mainTermSynonymsLabelDnd.getTerms()));
 									}
 								}, new SelectionHandler<Item>() {
 									@Override
 									public void onSelection(SelectionEvent<Item> event) {
-										eventBus.fireEvent(new CategorizeMoveTermEvent(synonymTerms, sourceLabel, label));
-										eventBus.fireEvent(new SynonymCreationEvent(label, mainLabelTerm, synonymTerms));
+										eventBus.fireEvent(new CategorizeMoveTermEvent(mainTermSynonymsLabelDnd.getSelectedTerms(), 
+												sourceLabel, label));
+										eventBus.fireEvent(new SynonymCreationEvent(label, mainLabelTerm, 
+												mainTermSynonymsLabelDnd.getTerms()));
 									}
 								});
 								menu.show(LabelPortlet.this);
 								LabelPortlet.this.expand();
 							} else {
-								eventBus.fireEvent(new SynonymCreationEvent(label, mainLabelTerm, synonymTerms));
+								eventBus.fireEvent(new SynonymCreationEvent(label, mainLabelTerm, 
+										mainTermSynonymsLabelDnd.getTerms()));
 							}
 						}
 					}
@@ -562,24 +582,6 @@ public class LabelPortlet extends Portlet {
 		});
 	}
 	
-	protected List<MainTermSynonyms> createSelectedMainTermSynonyms() {
-		List<MainTermSynonyms> result = new LinkedList<MainTermSynonyms>();
-		List<TermTreeNode> nodeSelection = treeSelectionModel.getSelectedItems();
-		
-		for (TermTreeNode node : nodeSelection) {
-			if(portletStore.getParent(node) == null) {
-				Term mainTerm = node.getTerm();
-				List<TermTreeNode> synonymNodes = new LinkedList<TermTreeNode>(portletStore.getChildren(node));
-				synonymNodes.retainAll(nodeSelection);
-				List<Term> synonyms = new LinkedList<Term>();
-				for(TermTreeNode synonymNode : synonymNodes)
-					synonyms.add(synonymNode.getTerm());
-				result.add(new MainTermSynonyms(mainTerm, synonyms));
-			}
-		}
-		return result;
-	}
-
 	protected List<Term> getSelectedTerms() {
 		List<Term> result = new LinkedList<Term>();
 		List<TermTreeNode> nodeSelection = treeSelectionModel.getSelectedItems();

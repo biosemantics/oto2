@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS `oto_term` (
   `bucket` bigint(20) unsigned NOT NULL,
   `term` varchar(100) NOT NULL,
   `original_term` varchar(100) NOT NULL,
+  `useless` tinyint(1) unsigned NOT NULL DEFAULT 0,
   `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`)

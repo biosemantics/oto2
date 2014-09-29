@@ -15,6 +15,7 @@ public class Term implements Serializable {
 	private int id = -1;
 	private String term;
 	private String originalTerm;
+	private boolean useless;
 
 	public Term() { }
 	
@@ -23,11 +24,12 @@ public class Term implements Serializable {
 		this.originalTerm = term;
 	}
 	
-	public Term(int id, String term, String originalTerm) {
+	public Term(int id, String term, String originalTerm, boolean useless) {
 		super();
 		this.id = id;
 		this.term = term;
 		this.originalTerm = originalTerm;
+		this.useless = useless;
 	}
 
 	public String getTerm() {
@@ -56,6 +58,18 @@ public class Term implements Serializable {
 	
 	public void setId(int id) {
 		this.id = id;
+	}
+
+	public boolean isUseless() {
+		return useless;
+	}
+
+	public void setUseless(boolean useless) {
+		this.useless = useless;
+	}
+	
+	public boolean getUseless() {
+		return useless;
 	}
 
 	@Override

@@ -19,6 +19,52 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.TypedContext.Type;
 
 public class ContextDAO {
 
+	private static class Search {
+	
+		private String search;
+		private Type type;
+
+		public Search(String search, Type type) {
+			this.search = search;
+			this.type = type;
+		}
+
+		public String getSearch() {
+			return search;
+		}
+
+		public Type getType() {
+			return type;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result
+					+ ((search == null) ? 0 : search.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			Search other = (Search) obj;
+			if (search == null) {
+				if (other.search != null)
+					return false;
+			} else if (!search.equals(other.search))
+				return false;
+			return true;
+		}
+
+	}
+	
 	protected ContextDAO() {} 
 	
 	public Context get(int id)  {
@@ -112,34 +158,28 @@ public class ContextDAO {
 	//don't want to use LIKE %term% because it will be slow... so just approximate
 	public List<TypedContext> get(Collection collection, Term term)  {
 		List<Context> contexts = new LinkedList<Context>();
-		List<String> searches = new LinkedList<String>();
-		String searchTerm = term.getTerm().trim();
-		searches.add(searchTerm);
-		searches.add(searchTerm.replaceAll(" ", "-"));
-		searches.add(searchTerm.replaceAll(" ", "_"));
-		for(String search : searches) 
-			try(Query query = new Query("SELECT * FROM oto_context WHERE collection = ? AND MATCH (text) AGAINST (? IN NATURAL LANGUAGE MODE)")) {
-				query.setParameter(1, collection.getId());
-				query.setParameter(2, search);	
-				ResultSet result = query.execute();
-				while(result.next()) {
-					Context context = createContext(result);
-					contexts.add(context);
-				}
-			} catch(Exception e) {
-				e.printStackTrace();
-			}
-		
+		Set<Search> searches = new HashSet<Search>();
+
 		if(term.hasChangedSpelling()) {
-			searches = new LinkedList<String>();
-			searchTerm = term.getOriginalTerm().trim();
-			searches.add(searchTerm);
-			searches.add(searchTerm.replaceAll(" ", "-"));
-			searches.add(searchTerm.replaceAll(" ", "_"));
+			String searchTerm = term.getTerm().trim();
+			searches.add(new Search(searchTerm, Type.updated));
+			searches.add(new Search(searchTerm.replaceAll(" ", "-"), Type.updated));
+			searches.add(new Search(searchTerm.replaceAll(" ", "_"), Type.updated));
 			
+			searchTerm = term.getOriginalTerm().trim();
+			searches.add(new Search(searchTerm, Type.original));
+			searches.add(new Search(searchTerm.replaceAll(" ", "-"), Type.original));
+			searches.add(new Search(searchTerm.replaceAll(" ", "_"), Type.original));
+		} else {
+			String searchTerm = term.getTerm().trim();
+			searches.add(new Search(searchTerm, Type.original));
+			searches.add(new Search(searchTerm.replaceAll(" ", "-"), Type.original));
+			searches.add(new Search(searchTerm.replaceAll(" ", "_"), Type.original));
+		}
+		for(Search search : searches) 
 			try(Query query = new Query("SELECT * FROM oto_context WHERE collection = ? AND MATCH (text) AGAINST (? IN NATURAL LANGUAGE MODE)")) {
 				query.setParameter(1, collection.getId());
-				query.setParameter(2, searchTerm);
+				query.setParameter(2, search.getSearch());	
 				ResultSet result = query.execute();
 				while(result.next()) {
 					Context context = createContext(result);
@@ -148,13 +188,12 @@ public class ContextDAO {
 			} catch(Exception e) {
 				e.printStackTrace();
 			}
-		}
 		
-		List<TypedContext> typedContexts = createHighlightedAndShortenedTypedContexts(contexts, term);
+		List<TypedContext> typedContexts = createHighlightedAndShortenedTypedContexts(contexts, searches);
 		return typedContexts;
 	}
 
-	private List<TypedContext> createHighlightedAndShortenedTypedContexts(List<Context> contexts, Term term) {
+	private List<TypedContext> createHighlightedAndShortenedTypedContexts(List<Context> contexts, java.util.Collection<Search> searches) {
 		//shorten the context to be a number of characters before and after ... some text with WORD that appears in text ...
 		//could appear multiple times in text, have to split into multiple contexts
 		List<TypedContext> result = new LinkedList<TypedContext>();
@@ -163,11 +202,9 @@ public class ContextDAO {
 		contextsSet.addAll(contexts);
 		
 		for(Context context : contextsSet) {
-			Pattern originalPattern = Pattern.compile("\\b(?i)" + term.getOriginalTerm() + "\\b");
-			result.addAll(extract(originalPattern, term.getOriginalTerm(), context, Type.original));
-			if(term.hasChangedSpelling()) {
-				Pattern currentPattern = Pattern.compile("\\b(?i)" + term.getTerm() + "\\b");
-				result.addAll(extract(currentPattern, term.getTerm(), context, Type.updated));
+			for(Search search : searches) {
+				Pattern pattern = Pattern.compile("\\b(?i)" + search.getSearch() + "\\b");
+				result.addAll(extract(pattern, search.getSearch(), context, search.getType()));
 			}
 		}
 		return result;
@@ -178,21 +215,31 @@ public class ContextDAO {
 		Matcher matcher = pattern.matcher(context.getText());
 		
 		int id = 0;
-	    while (matcher.find()) {
-	    	int startText = matcher.start() - 100;
-	    	int endText = matcher.end() + 100;
-	    	if(startText < 0)
-	    		startText = 0;
-	    	if(endText > context.getText().length())
-	    		endText = context.getText().length();
-	    	String extractedText = "..." + context.getText().substring(startText, endText) + "...";
-	    	//extractedText = extractedText.replaceAll(pattern.toString(), "<b>" + replaceTerm + "</b>");
-	    	extractedText = extractedText.replaceAll("(?i)" + replaceTerm, "<b>" + replaceTerm + "</b>");
-	    	String fullText = context.getText().replaceAll("(?i)" + replaceTerm, "<b>" + replaceTerm + "</b>");
-	    	TypedContext typedContext = new TypedContext(String.valueOf(context.getId()) + "-" + type.toString() + "-" + id++, 
-	    			context.getCollectionId(), context.getSource(), extractedText, fullText, type);
+		if(matcher.find()) {
+			matcher.reset();
+		    while (matcher.find()) {
+		    	int startText = matcher.start() - 100;
+		    	int endText = matcher.end() + 100;
+		    	if(startText < 0)
+		    		startText = 0;
+		    	if(endText > context.getText().length())
+		    		endText = context.getText().length();
+		    	String extractedText = "..." + context.getText().substring(startText, endText) + "...";
+		    	//extractedText = extractedText.replaceAll(pattern.toString(), "<b>" + replaceTerm + "</b>");
+		    	extractedText = extractedText.replaceAll("(?i)" + replaceTerm, "<b>" + replaceTerm + "</b>");
+		    	String fullText = context.getText().replaceAll("(?i)" + replaceTerm, "<b>" + replaceTerm + "</b>").replaceAll("\n", "</br>");
+		    	
+		    	String idString = String.valueOf(context.getId()) + "-" + type.toString() + "-" + id++;
+		    	TypedContext typedContext = new TypedContext(idString, context.getCollectionId(), context.getSource(), extractedText, fullText, type);
+		    	result.add(typedContext);
+		    }
+		} else {
+			String fullText = context.getText().replaceAll("(?i)" + replaceTerm, "<b>" + replaceTerm + "</b>").replaceAll("\n", "</br>");
+			
+			String idString = String.valueOf(context.getId()) + "-" + type.toString() + "-" + id++;
+			TypedContext typedContext = new TypedContext(idString, context.getCollectionId(), context.getSource(), fullText, fullText, type);
 	    	result.add(typedContext);
-	    }
+		}
 	    return result;
 	}	
 	

@@ -11,6 +11,8 @@ import com.sencha.gxt.widget.core.client.event.BeforeSelectEvent;
 import com.sencha.gxt.widget.core.client.event.HideEvent;
 import com.sencha.gxt.widget.core.client.event.BeforeSelectEvent.BeforeSelectHandler;
 import com.sencha.gxt.widget.core.client.event.HideEvent.HideHandler;
+import com.sencha.gxt.widget.core.client.event.SelectEvent;
+import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 
 import edu.arizona.biosemantics.oto2.oto.client.event.TermRenameEvent;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
@@ -71,9 +73,9 @@ public class Alerter {
 		});
 		box.getTextField().setValue(term.getTerm());
 		box.getTextField().setAllowBlank(false);
-		box.addHideHandler(new HideHandler() {
+		box.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
 			@Override
-			public void onHide(HideEvent event) {
+			public void onSelect(SelectEvent event) {
 				String newName = box.getValue();
 				eventBus.fireEvent(new TermRenameEvent(term, newName, collection));
 			}

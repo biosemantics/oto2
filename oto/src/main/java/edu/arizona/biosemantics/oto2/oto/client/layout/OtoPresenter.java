@@ -22,6 +22,7 @@ import edu.arizona.biosemantics.oto2.oto.client.event.SaveEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.SynonymCreationEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.SynonymRemovalEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermCategorizeEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.TermMarkUselessEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermRenameEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermUncategorizeEvent;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Bucket;
@@ -57,6 +58,12 @@ public class OtoPresenter {
 
 	private void bindEvents() {
 		//save triggers
+		eventBus.addHandler(TermMarkUselessEvent.TYPE, new TermMarkUselessEvent.MarkUselessTermHandler() {
+			@Override
+			public void onMark(TermMarkUselessEvent event) {
+				saveCollection();
+			}
+		});
 		eventBus.addHandler(LabelCreateEvent.TYPE, new LabelCreateEvent.CreateLabelHandler() {
 			@Override
 			public void onCreate(LabelCreateEvent event) {

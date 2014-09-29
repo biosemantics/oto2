@@ -69,7 +69,7 @@ public class ContextView extends Composite {
 	    RowExpander<TypedContext> expander = new RowExpander<TypedContext>(new AbstractCell<TypedContext>() {
 	        @Override
 	        public void render(Context context, TypedContext value, SafeHtmlBuilder sb) {
-	          sb.appendHtmlConstant("<p style='margin: 5px 5px 10px'><b>Full Text:&nbsp;</b>" + value.getFullText() + "</p>");
+	          sb.appendHtmlConstant("<p style='margin: 5px 5px 10px'><b>Full Text:&nbsp;</b></br>" + value.getFullText() + "</p>");
 	          //sb.appendHtmlConstant("<p style='margin: 5px 5px 10px'><b>Summary:</b> " + desc);
 	        }
 	      });

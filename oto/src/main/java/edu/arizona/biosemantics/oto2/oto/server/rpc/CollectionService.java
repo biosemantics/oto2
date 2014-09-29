@@ -69,7 +69,7 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 			collection.setLabels(Configuration.getDefaultCategories());
 		if(collection.getSecret() == null || collection.getSecret().isEmpty())
 			createDefaultSecret(collection);
-		collection.getLabels().add(new TrashLabel("Useless", "This category can be uesd to label terms as uselss"));
+		//collection.getLabels().add(new TrashLabel("Useless", "This category can be uesd to label terms as uselss"));
 		collection = daoManager.getCollectionDAO().insert(collection);
 		return collection;
 	}

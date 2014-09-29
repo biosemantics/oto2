@@ -96,7 +96,7 @@ public class OntologyDAO {
 						//make sure the definition is not empty (bioportal service returns empty ones even though requiresDef is set to true)
 						//if(!definition.trim().isEmpty()) {
 						
-							definition = definition.replaceAll("(?i)" + search.getQuery(), "<b>" + search.getQuery() + "</b>");
+							definition = definition.replaceAll("(?i)" + search.getQuery(), "<b>" + search.getQuery() + "</b>").replaceAll("\n", "</br>");
 						
 							//id's in result are not unique
 							result.add(new OntologyEntry(searchResult.getId() + "-server-" + result.size(), 

@@ -9,6 +9,7 @@ import com.google.gwt.event.shared.GwtEvent;
 
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeMoveTermEvent.CategorizeMoveTermHandler;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
+import edu.arizona.biosemantics.oto2.oto.shared.model.SelectedTerms;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label.AddResult;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 
@@ -20,19 +21,12 @@ public class CategorizeMoveTermEvent extends GwtEvent<CategorizeMoveTermHandler>
 	
     public static Type<CategorizeMoveTermHandler> TYPE = new Type<CategorizeMoveTermHandler>();
     
-    private List<Term> terms;
 	private Label sourceCategory;
 	private Label targetCategory;
+	private SelectedTerms selectedTerms;
 	
-    public CategorizeMoveTermEvent(Term term, Label sourceCategory, Label targetCategory) {
-        this.terms = new LinkedList<Term>();
-        terms.add(term);
-        this.sourceCategory = sourceCategory;
-        this.targetCategory = targetCategory;
-    }
-    
-    public CategorizeMoveTermEvent(List<Term> terms, Label sourceCategory, Label targetCategory) {
-        this.terms = terms;
+    public CategorizeMoveTermEvent(SelectedTerms selectedTerms, Label sourceCategory, Label targetCategory) {
+        this.selectedTerms = selectedTerms;
         this.sourceCategory = sourceCategory;
         this.targetCategory = targetCategory;
     }
@@ -47,16 +41,16 @@ public class CategorizeMoveTermEvent extends GwtEvent<CategorizeMoveTermHandler>
 		handler.onCategorize(this);
 	}
 
-	public List<Term> getTerms() {
-		return terms;
-	}
-
 	public Label getSourceCategory() {
 		return sourceCategory;
 	}
 
 	public Label getTargetCategory() {
 		return targetCategory;
+	}
+
+	public SelectedTerms getSelectedTerms() {
+		return selectedTerms;
 	}	
 	
 }
