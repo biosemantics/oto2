@@ -10,23 +10,15 @@ import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
-import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.web.bindery.event.shared.EventBus;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
 import com.sencha.gxt.data.shared.ListStore;
-import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
-import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
-import com.sencha.gxt.widget.core.client.box.PromptMessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.FlowLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
-import com.sencha.gxt.widget.core.client.event.BeforeSelectEvent;
 import com.sencha.gxt.widget.core.client.event.BeforeShowEvent;
-import com.sencha.gxt.widget.core.client.event.HideEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
-import com.sencha.gxt.widget.core.client.event.BeforeSelectEvent.BeforeSelectHandler;
 import com.sencha.gxt.widget.core.client.event.BeforeShowEvent.BeforeShowHandler;
-import com.sencha.gxt.widget.core.client.event.HideEvent.HideHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.form.CheckBox;
 import com.sencha.gxt.widget.core.client.form.ComboBox;
@@ -34,22 +26,18 @@ import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
-import edu.arizona.biosemantics.oto2.oto.client.categorize.all.LabelPortlet.MainTermTreeNode;
 import edu.arizona.biosemantics.oto2.oto.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.oto.client.common.UncategorizeDialog;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeCopyTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeMoveTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.SynonymCreationEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.SynonymRemovalEvent;
-import edu.arizona.biosemantics.oto2.oto.client.event.TermRenameEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermUncategorizeEvent;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.LabelProperties;
 import edu.arizona.biosemantics.oto2.oto.shared.model.SelectedTerms;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
-import edu.arizona.biosemantics.oto2.oto.shared.model.TermTreeNode;
-import edu.arizona.biosemantics.oto2.oto.shared.model.Label.AddResult;
 
 public abstract class TermMenu extends Menu implements BeforeShowHandler {
 	

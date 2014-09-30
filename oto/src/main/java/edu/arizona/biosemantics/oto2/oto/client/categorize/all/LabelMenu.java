@@ -21,6 +21,7 @@ import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
+import edu.arizona.biosemantics.oto2.oto.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelRemoveEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelsMergeEvent;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
@@ -98,7 +99,7 @@ public class LabelMenu extends Menu implements BeforeShowHandler {
 				@Override
 				public void onSelect(SelectEvent event) {
 					LabelMenu.this.hide();
-					eventBus.fireEvent(new LabelsMergeEvent(label, mergeLabels));
+					Alerter.mergeWarning(eventBus, new LabelsMergeEvent(label, mergeLabels));
 				}
 			});
 			verticalLayoutContainer.add(mergeButton);

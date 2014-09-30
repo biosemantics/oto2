@@ -6,32 +6,41 @@ import java.util.Map;
 import com.google.web.bindery.event.shared.EventBus;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
+import com.sencha.gxt.widget.core.client.box.ConfirmMessageBox;
+import com.sencha.gxt.widget.core.client.box.MessageBox;
 import com.sencha.gxt.widget.core.client.box.PromptMessageBox;
 import com.sencha.gxt.widget.core.client.event.BeforeSelectEvent;
-import com.sencha.gxt.widget.core.client.event.HideEvent;
 import com.sencha.gxt.widget.core.client.event.BeforeSelectEvent.BeforeSelectHandler;
-import com.sencha.gxt.widget.core.client.event.HideEvent.HideHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 
+import edu.arizona.biosemantics.oto2.oto.client.event.LabelsMergeEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermRenameEvent;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label.AddResult;
 
 public class Alerter {
 
+	public static class InfoMessageBox extends MessageBox {
+		public InfoMessageBox(String title, String message) {
+			super(title, message);
+			setIcon(ICONS.info());
+		}
+	}
+	
 	public static void alertNotAddedTerms(List<Term> possibleMainTerms, Map<Term, AddResult> addResults) {
 		for(Term possibleMainTerm : possibleMainTerms) {
 			AddResult addResult = addResults.get(possibleMainTerm);
 			if(!addResult.result) {
 				if(addResult.parent != null) {
-					AlertMessageBox alert = new AlertMessageBox("Term exists in label", 
+					InfoMessageBox alert = new InfoMessageBox("Term exists in label", 
 							"The term <b>" + possibleMainTerm.getTerm() + "</b> already exists in this label as synonym of <b>" + 
 									addResult.parent.getTerm() + "</b>. A term can only appear once inside a label.");
 					alert.show();
 				} else {
-					AlertMessageBox alert = new AlertMessageBox("Term exists in label", 
+					InfoMessageBox alert = new InfoMessageBox("Term exists in label", 
 							"The term <b>" + possibleMainTerm.getTerm() + "</b> already exists in this label" + 
 									". A term can only appear once inside a label.");
 					alert.show();
@@ -41,20 +50,43 @@ public class Alerter {
 	}
 	
 	public static void alertNoOntoloygySelected() {
-		AlertMessageBox alert = new AlertMessageBox("Ontology Selection", "Before you can use this feature" +
+		InfoMessageBox alert = new InfoMessageBox("Ontology Selection", "Before you can use this feature" +
 				" you have to select a set " +
 				"of ontologies to search.");
 		alert.show();
 	}
 
 	public static void alertFailedToLoadCollection() {
-		AlertMessageBox alert = new AlertMessageBox("Load Collection Failed", "Failed to load the collection. Please come back later.");
+		InfoMessageBox alert = new InfoMessageBox("Load Collection Failed", "Failed to load the collection. Please come back later.");
 		alert.show();
 	}
 
 	public static void alertTermWithNameExists(String newName) {
-		AlertMessageBox alert = new AlertMessageBox("Term with name exists", "Failed to rename term. " +
+		InfoMessageBox alert = new InfoMessageBox("Term with name exists", "Failed to rename term. " +
 				"Another term with the same spelling <b>" + newName + "</b> exists already.");
+		alert.show();
+	}
+	
+	public static void mergeWarning(final EventBus eventBus, final LabelsMergeEvent labelsMergeEvent) {
+		String labelsString = "";
+		for(Label label : labelsMergeEvent.getSources()) {
+			labelsString += "<b>" + label.getName() + "</b>, ";
+		}
+		final ConfirmMessageBox alert = new ConfirmMessageBox("Merge categories", "The merge will remove the categories " +
+				labelsString.substring(0, labelsString.length() - 2) + " and move their terms into <b>" + labelsMergeEvent.getDestination().getName() + 
+				"</b>. Do you want to continue?");
+		alert.getButton(PredefinedButton.YES).addSelectHandler(new SelectHandler() {
+			@Override
+			public void onSelect(SelectEvent event) {
+				eventBus.fireEvent(labelsMergeEvent);
+			}
+		});
+		alert.getButton(PredefinedButton.NO).addSelectHandler(new SelectHandler() {
+			@Override
+			public void onSelect(SelectEvent event) {
+				alert.hide();
+			}
+		});
 		alert.show();
 	}
 

@@ -166,17 +166,31 @@ public class Label implements Serializable {
 		return new ArrayList<Term>(mainTermSynonymsMap.get(mainTerm));
 	}
 
-	public void addSynonym(Term mainTerm, Term synonymTerm) {
+	public AddResult addSynonym(Term mainTerm, Term synonymTerm) {
 		uncategorizeMainTerm(synonymTerm);
+		
+		for(Term aMainTerm : mainTerms) {
+			if(mainTermSynonymsMap.get(aMainTerm) != null && mainTermSynonymsMap.get(aMainTerm).contains(synonymTerm)) {				
+				return new AddResult(false, aMainTerm);
+			}
+		}
+		if(!mainTermSynonymsMap.containsKey(mainTerm))
+			return new AddResult(false, null);
+		if(mainTerms.contains(synonymTerm))
+			return new AddResult(false, null);
 		
 		if(!mainTermSynonymsMap.containsKey(mainTerm)) 
 			mainTermSynonymsMap.put(mainTerm, new LinkedList<Term>());
 		mainTermSynonymsMap.get(mainTerm).add(synonymTerm);
+		return new AddResult(true, null);
 	}
 	
-	public void addSynonymy(Term mainTerm, List<Term> synonymTerms) {
-		for(Term synonym : synonymTerms)
-			addSynonym(mainTerm, synonym);
+	public Map<Term, AddResult> addSynonymy(Term mainTerm, List<Term> synonymTerms) {
+		Map<Term, AddResult> result = new HashMap<Term, AddResult>();
+		for(Term synonym : synonymTerms) {
+			result.put(synonym, addSynonym(mainTerm, synonym));
+		}
+		return result;
 	}
 
 	public void setSynonymy(Term mainLabelTerm, List<Term> synonymTerms) {
@@ -243,6 +257,10 @@ public class Label implements Serializable {
 
 	public boolean hasSynonyms(Term mainTerm) {
 		return !this.getSynonyms(mainTerm).isEmpty();
+	}
+
+	public boolean isSynonym(Term term, Term synonym) {
+		return this.getSynonyms(term).contains(synonym);
 	}
 
 

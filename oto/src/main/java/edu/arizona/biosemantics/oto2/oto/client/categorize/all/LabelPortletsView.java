@@ -230,9 +230,9 @@ public class LabelPortletsView extends PortalLayoutContainer {
 						if(destination.isMainTerm(term) && !destinationPortlet.containsMainTerm(term))
 							destinationPortlet.addMainTerm(term);
 						for(Term synonym : source.getSynonyms(term))
-							if(destination.isMainTerm(synonym) && 
+							if(destination.isSynonym(term, synonym) && 
 									!destinationPortlet.containsMainTerm(synonym))
-								destinationPortlet.addMainTerm(synonym);
+								destinationPortlet.addSynonymTerm(term, synonym);
 					}
 				}
 			}

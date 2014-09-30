@@ -159,7 +159,7 @@ public class ModelControler {
 			Alerter.alertNotAddedTerms(mergeLabel.getMainTerms(), addResult);
 			addResults.putAll(addResult);
 			for(Term term : mergeLabel.getMainTerms()) {
-				addResult = destination.addMainTerms(mergeLabel.getSynonyms(term));
+				addResult = destination.addSynonymy(term, mergeLabel.getSynonyms(term));
 				Alerter.alertNotAddedTerms(mergeLabel.getSynonyms(term), addResult);
 				addResults.putAll(addResult);
 			}
