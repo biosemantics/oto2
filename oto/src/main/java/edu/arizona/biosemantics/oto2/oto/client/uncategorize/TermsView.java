@@ -317,7 +317,7 @@ public class TermsView extends TabPanel {
 		termTree.setSelectionModel(termTreeSelectionModel);
 		termTree.getElement().setAttribute("source", "termsview");
 		termTree.setContextMenu(new TermMenu());
-		add(termTree, "tree");
+		add(termTree, "Term Groups");
 		//add(listView, "list");
 		
 		bindEvents();

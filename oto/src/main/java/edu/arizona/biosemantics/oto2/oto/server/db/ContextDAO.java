@@ -176,10 +176,31 @@ public class ContextDAO {
 			searches.add(new Search(searchTerm.replaceAll(" ", "-"), Type.original));
 			searches.add(new Search(searchTerm.replaceAll(" ", "_"), Type.original));
 		}
-		for(Search search : searches) 
+		/* Method utilizing sql natural language search
+		 * Advantage: Faster than regular expression search for all context entries
+		 * Disadvantages:
+		 * Per default, the minimum word size that is indexed is 4. Because of this I noticed that for example "m" or "cm" are not found.
+		 * Also there is a default stopword list which stops indexing the words listed here
+		 * http://dev.mysql.com/doc/refman/5.5/en/fulltext-stopwords.html
+		 * Both can be customized, however it has to be customized for the mysql installation, and wouldn't be part of the application source
+		 */
+		 /* for(Search search : searches) 
 			try(Query query = new Query("SELECT * FROM oto_context WHERE collection = ? AND MATCH (text) AGAINST (? IN NATURAL LANGUAGE MODE)")) {
 				query.setParameter(1, collection.getId());
 				query.setParameter(2, search.getSearch());	
+				ResultSet result = query.execute();
+				while(result.next()) {
+					Context context = createContext(result);
+					contexts.add(context);
+				}
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
+		*/
+		for(Search search : searches) 
+			try(Query query = new Query("SELECT * FROM oto_context WHERE collection = ? AND text RLIKE ?")) {
+				query.setParameter(1, collection.getId());
+				query.setParameter(2, "^(.*[^a-zA-Z])?" + search.getSearch() + "([^a-zA-Z].*)?$");	
 				ResultSet result = query.execute();
 				while(result.next()) {
 					Context context = createContext(result);
@@ -202,11 +223,24 @@ public class ContextDAO {
 		contextsSet.addAll(contexts);
 		
 		for(Context context : contextsSet) {
+			List<TypedContext> contextResult = new LinkedList<TypedContext>();
 			for(Search search : searches) {
 				Pattern pattern = Pattern.compile("\\b(?i)" + search.getSearch() + "\\b");
 				result.addAll(extract(pattern, search.getSearch(), context, search.getType()));
 			}
+			
+			/*if(contextResult.isEmpty()) {
+				//String fullText = context.getText().replaceAll("(?i)" + search.getSearch(), "<b>" + search.getSearch() + "</b>").replaceAll("\n", "</br>");
+				String fullText = context.getText();
+				
+				String idString = String.valueOf(context.getId()) + "-" + type.toString() + "-" + id++;
+				TypedContext typedContext = new TypedContext(idString, context.getCollectionId(), context.getSource(), fullText, fullText, type);
+		    	result.add(typedContext);
+			}*/
+			result.addAll(contextResult);
 		}
+		
+		
 		return result;
 	}
 
@@ -233,12 +267,6 @@ public class ContextDAO {
 		    	TypedContext typedContext = new TypedContext(idString, context.getCollectionId(), context.getSource(), extractedText, fullText, type);
 		    	result.add(typedContext);
 		    }
-		} else {
-			String fullText = context.getText().replaceAll("(?i)" + replaceTerm, "<b>" + replaceTerm + "</b>").replaceAll("\n", "</br>");
-			
-			String idString = String.valueOf(context.getId()) + "-" + type.toString() + "-" + id++;
-			TypedContext typedContext = new TypedContext(idString, context.getCollectionId(), context.getSource(), fullText, fullText, type);
-	    	result.add(typedContext);
 		}
 	    return result;
 	}	

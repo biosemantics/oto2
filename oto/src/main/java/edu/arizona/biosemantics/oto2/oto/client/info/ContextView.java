@@ -44,6 +44,7 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.OntologyEntry;
 import edu.arizona.biosemantics.oto2.oto.shared.model.TypedContext;
 import edu.arizona.biosemantics.oto2.oto.shared.model.TypedContextProperties;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
+import edu.arizona.biosemantics.oto2.oto.shared.model.TypedContext.Type;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionService;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionServiceAsync;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.IContextService;
@@ -139,7 +140,13 @@ public class ContextView extends Composite {
 	
 	public void setContexts(List<TypedContext> contexts) {
 		store.clear();
-		store.addAll(contexts);
+		if(contexts.isEmpty())
+			store.add(new TypedContext("nothing-found", -1, "No match found", "", "", Type.original));
+		else
+			store.addAll(contexts);
+		
+		//bug: http://www.sencha.com/forum/showthread.php?285982-Grid-ColumnHeader-Menu-missing
+		grid.getView().refresh(true);
 	}
 
 	private void bindEvents() {
