@@ -109,6 +109,8 @@ public class TermsView extends TabPanel {
 				for(TextTreeNode node : nodes)
 					if(node instanceof TermTreeNode) {
 						selected.add(((TermTreeNode)node).getTerm());
+					} else if(node instanceof BucketTreeNode) {
+						selected.addAll(((BucketTreeNode)node).getBucket().getTerms());
 					}
 			} else if(TermsView.this.getActiveWidget().equals(TermsView.this.listView)) {
 				selected = listViewSelectionModel.getSelectedItems();
@@ -303,13 +305,16 @@ public class TermsView extends TabPanel {
 						TermTreeNode termTreeNode = (TermTreeNode)textTreeNode;
 						Term term = termTreeNode.getTerm();
 						if(term.isUseless()) {
-							sb.append(SafeHtmlUtils.fromTrustedString("<div style='background-color:red'>" + 
+							sb.append(SafeHtmlUtils.fromTrustedString("<div style='padding-left:5px; padding-right:5px; background-color:gray; " +
+									"color:white'>" + 
 									textTreeNode.getText() + "</div>"));
 						} else {
-							sb.append(SafeHtmlUtils.fromTrustedString(textTreeNode.getText()));
+							sb.append(SafeHtmlUtils.fromTrustedString("<div style='padding-left:5px; padding-right:5px'>" + textTreeNode.getText() +
+									"</div>"));
 						}
 					} else {
-						sb.append(SafeHtmlUtils.fromTrustedString(textTreeNode.getText()));
+						sb.append(SafeHtmlUtils.fromTrustedString("<div style=''>" + textTreeNode.getText() +
+								"</div>"));
 					}
 			}
 		});
