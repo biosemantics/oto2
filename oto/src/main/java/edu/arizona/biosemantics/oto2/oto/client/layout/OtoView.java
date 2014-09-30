@@ -157,7 +157,7 @@ public class OtoView extends SimpleLayoutPanel {
 
 	public static class CategorizeView extends BorderLayoutContainer {
 
-		private int portalColumnCount = 6;
+		private int portalColumnCount = 9;
 		private TermsView termsView;
 		private LabelsView labelsView;
 		private TermInfoView termInfoView;

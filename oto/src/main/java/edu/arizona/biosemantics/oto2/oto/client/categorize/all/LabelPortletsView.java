@@ -280,7 +280,8 @@ public class LabelPortletsView extends PortalLayoutContainer {
 		for(Label label : collection.getLabels()) {
 			LabelPortlet labelPortlet = createLabelPortlet(label);
 			labelPortlet.collapse();
-			add(labelPortlet, labelPortletsMap.size() % portalColumnCount);
+			//add(labelPortlet, labelPortletsMap.size() % portalColumnCount);
+			add(labelPortlet, getColumn(labelPortlet));
 			labelPortletsMap.put(label, labelPortlet);
 		}
 		
@@ -291,6 +292,77 @@ public class LabelPortletsView extends PortalLayoutContainer {
 				expandNonEmptyCollapseEmpty();
 			}
 		});
+	}
+
+	private int getColumn(LabelPortlet labelPortlet) {
+		//if default categories 
+		// else labelPortletsMap.size() % portalColumnCount
+		switch(labelPortlet.getLabel().getName()) {
+		case "structure":
+		case "structure_in_adjective_form":
+		case "structure_subtype":
+		case "taxon_name":
+			return 0;
+		case "architecture":
+		case "arrangement":
+		case "character":
+		case "course":
+		case "dehiscence":
+		case "growth_form":
+		case "growth_order":
+		case "orientation":
+		case "position":
+		case "position_relational":
+		case "prominence":
+		case "quantity":
+		case "shape":
+			return 1;
+		case "coating":
+		case "pubescence":
+		case "relief":
+		case "texture":
+		case "coloration":
+		case "reflectance":
+			return 2;
+		case "fixation":
+		case "fusion":
+			return 3;
+		case "depth":
+		case "height":
+		case "length":
+		case "width":
+		case "size":
+		case "density":
+			return 4;
+		case "distrubition":
+		case "habitat":
+		case "location":
+			return 5;
+		case "odor":
+		case "taste":
+		case "toxicity":
+		case "function":
+		case "substance":
+			return 6;
+		case "life_cycle":
+		case "development":
+		case "germination":
+		case "derivation":
+		case "maturation":
+		case "nutrition":
+		case "reproduction":
+		case "ploidy":
+			return 7;
+		case "season":
+		case "condition":
+		case "behavior":
+		case "duration":
+		case "fragility":
+		case "variability":
+			return 8;
+		default:
+			return 0;
+		}
 	}
 
 	protected void expandNonEmptyCollapseEmpty() {
