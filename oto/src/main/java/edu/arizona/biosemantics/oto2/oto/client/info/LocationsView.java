@@ -222,8 +222,9 @@ public class LocationsView extends Composite {
 						found = true;
 					}
 				}
-				if(found)
-					store.add(new Location(currentTerm.getTerm(), event.getDestination()));
+				Location newLocation = new Location(currentTerm.getTerm(), event.getDestination());
+				if(found && store.findModel(newLocation) == null) 
+					store.add(newLocation);
 			}
 		});
 		eventBus.addHandler(TermRenameEvent.TYPE, new TermRenameEvent.RenameTermHandler() {
