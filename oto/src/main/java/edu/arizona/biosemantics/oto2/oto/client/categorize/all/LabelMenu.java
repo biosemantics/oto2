@@ -30,15 +30,15 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 public class LabelMenu extends Menu implements BeforeShowHandler {
 
 	private EventBus eventBus;
-	private Label label;
+	private LabelPortlet labelPortlet;
 	private Collection collection;
 
-	public LabelMenu(EventBus eventBus, final Label label, final Collection collection) {
+	public LabelMenu(EventBus eventBus, final LabelPortlet labelPortlet, final Collection collection) {
 		this.eventBus = eventBus;
-		this.label = label;
+		this.labelPortlet = labelPortlet;
 		this.collection = collection;
 		this.addBeforeShowHandler(this);
-		this.setWidth(140);
+		this.setWidth(200);
 	}
 
 	@Override
@@ -49,7 +49,7 @@ public class LabelMenu extends Menu implements BeforeShowHandler {
 		modify.addSelectionHandler(new SelectionHandler<Item>() {
 			@Override
 			public void onSelection(SelectionEvent<Item> event) {
-				LabelModifyDialog modifyDialog = new LabelModifyDialog(eventBus, label);
+				LabelModifyDialog modifyDialog = new LabelModifyDialog(eventBus, labelPortlet.getLabel());
 				modifyDialog.show();
 			}
 		});
@@ -58,7 +58,7 @@ public class LabelMenu extends Menu implements BeforeShowHandler {
 		remove.addSelectionHandler(new SelectionHandler<Item>() {
 			@Override
 			public void onSelection(SelectionEvent<Item> event) {
-				eventBus.fireEvent(new LabelRemoveEvent(label));
+				eventBus.fireEvent(new LabelRemoveEvent(labelPortlet.getLabel()));
 			}
 		});
 		this.add(remove);
@@ -77,7 +77,7 @@ public class LabelMenu extends Menu implements BeforeShowHandler {
 			flowLayoutContainer.setScrollMode(ScrollMode.AUTOY);
 			flowLayoutContainer.getElement().getStyle().setProperty("maxHeight", "150px");
 			for(final Label collectionLabel : collection.getLabels()) {
-				if(!label.equals(collectionLabel)) {
+				if(!labelPortlet.getLabel().equals(collectionLabel)) {
 					CheckBox checkBox = new CheckBox();
 					checkBox.setBoxLabel(collectionLabel.getName());
 					checkBox.setValue(false);
@@ -99,13 +99,31 @@ public class LabelMenu extends Menu implements BeforeShowHandler {
 				@Override
 				public void onSelect(SelectEvent event) {
 					LabelMenu.this.hide();
-					Alerter.mergeWarning(eventBus, new LabelsMergeEvent(label, mergeLabels));
+					Alerter.mergeWarning(eventBus, new LabelsMergeEvent(labelPortlet.getLabel(), mergeLabels));
 				}
 			});
 			verticalLayoutContainer.add(mergeButton);
 			mergeMenu.add(verticalLayoutContainer);
 			merge.setSubMenu(mergeMenu);
 			this.add(merge);
+			
+			MenuItem expandSynonymGroups = new MenuItem("Expand Synonym Groups");
+			expandSynonymGroups.addSelectionHandler(new SelectionHandler<Item>() {
+				@Override
+				public void onSelection(SelectionEvent<Item> event) {
+					labelPortlet.expandSynonyms();
+				}
+			});
+			this.add(expandSynonymGroups);
+			
+			MenuItem collapseSynonymGroups = new MenuItem("Collapse Synonym Groups");
+			collapseSynonymGroups.addSelectionHandler(new SelectionHandler<Item>() {
+				@Override
+				public void onSelection(SelectionEvent<Item> event) {
+					labelPortlet.collapseSynonyms();
+				}
+			});
+			this.add(collapseSynonymGroups);
 		}
 		
 		if(this.getWidgetCount() == 0)

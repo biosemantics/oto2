@@ -122,7 +122,7 @@ public class LabelPortlet extends Portlet {
 		toolButton = new ToolButton(ToolButton.GEAR);
 		if(!(this.label instanceof TrashLabel)) {
 			this.getHeader().addTool(toolButton);
-			this.setContextMenu(new LabelMenu(eventBus, label, collection));
+			this.setContextMenu(new LabelMenu(eventBus, this, collection));
 		}
 		
 		portletStore = new TreeStore<TermTreeNode>(textTreeNodeProperties.key());
@@ -364,7 +364,7 @@ public class LabelPortlet extends Portlet {
 		toolButton.addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
-				LabelMenu menu = new LabelMenu(eventBus, LabelPortlet.this.label, collection);
+				LabelMenu menu = new LabelMenu(eventBus, LabelPortlet.this, collection);
 				menu.show(toolButton);
 				eventBus.fireEvent(new LabelSelectEvent(label));
 		}});
@@ -607,6 +607,14 @@ public class LabelPortlet extends Portlet {
 
 	public Tree<TermTreeNode, String> getTree() {
 		return tree;
+	}
+
+	public void collapseSynonyms() {
+		tree.collapseAll();
+	}
+
+	public void expandSynonyms() {
+		tree.expandAll();
 	}	
 
 }

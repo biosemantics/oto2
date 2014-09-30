@@ -51,7 +51,7 @@ public class LabelPortletsView extends PortalLayoutContainer {
 	public class LabelsMenu extends Menu implements BeforeShowHandler {
 
 		public LabelsMenu() {
-			this.setWidth(140);
+			this.setWidth(200);
 			this.addBeforeShowHandler(this);			
 		}
 
@@ -149,6 +149,24 @@ public class LabelPortletsView extends PortalLayoutContainer {
 				collapseExpand.setSubMenu(collapseExpandMenu);
 				this.add(collapseExpand);
 			}
+			
+			MenuItem expandSynonymGroups = new MenuItem("Expand Synonym Groups");
+			expandSynonymGroups.addSelectionHandler(new SelectionHandler<Item>() {
+				@Override
+				public void onSelection(SelectionEvent<Item> event) {
+					expandSynonymGroups();
+				}
+			});
+			this.add(expandSynonymGroups);
+			
+			MenuItem collapseSynonymGroups = new MenuItem("Collapse Synonym Groups");
+			collapseSynonymGroups.addSelectionHandler(new SelectionHandler<Item>() {
+				@Override
+				public void onSelection(SelectionEvent<Item> event) {
+					collapseSynonymGroups();
+				}
+			});
+			this.add(collapseSynonymGroups);
 		}
 	}
 	
@@ -407,6 +425,16 @@ public class LabelPortletsView extends PortalLayoutContainer {
 			if(portlet != null)
 				portlet.expand();
 		}
+	}
+	
+	protected void collapseSynonymGroups() {
+		for(Label label : labelPortletsMap.keySet())
+			labelPortletsMap.get(label).collapseSynonyms();
+	}
+
+	protected void expandSynonymGroups() {
+		for(Label label : labelPortletsMap.keySet())
+			labelPortletsMap.get(label).expandSynonyms();
 	}
 
 	public void forceLayout() {
