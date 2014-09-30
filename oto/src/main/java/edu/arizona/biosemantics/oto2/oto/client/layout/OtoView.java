@@ -168,7 +168,7 @@ public class OtoView extends SimpleLayoutPanel {
 			termInfoView = new TermInfoView(eventBus);
 
 			ContentPanel cp = new ContentPanel();
-			cp.setHeadingText("Uncategorized Terms");
+			cp.setHeadingText("Terms to be categorized");
 			cp.add(termsView);
 			BorderLayoutData d = new BorderLayoutData(.20);
 			// d.setMargins(new Margins(0, 1, 1, 1));
@@ -178,7 +178,7 @@ public class OtoView extends SimpleLayoutPanel {
 			setWestWidget(cp, d);
 
 			cp = new ContentPanel();
-			cp.setHeadingText("Categorization");
+			cp.setHeadingText("Categories and categorization results");
 			cp.add(labelsView);
 			d = new BorderLayoutData();
 			d.setMargins(new Margins(0, 0, 0, 0));
