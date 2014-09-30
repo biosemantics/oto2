@@ -147,7 +147,7 @@ public class ModelControler {
 	}
 
 	protected void createSynonym(Label label, Term mainTerm, List<Term> synonymTerms) {
-		label.addSynonymy(mainTerm, synonymTerms);
+		label.addSynonymy(mainTerm, synonymTerms, true);
 	}
 
 	protected void mergeLabels(List<Label> sources, Label destination) {
@@ -159,9 +159,18 @@ public class ModelControler {
 			Alerter.alertNotAddedTerms(mergeLabel.getMainTerms(), addResult);
 			addResults.putAll(addResult);
 			for(Term term : mergeLabel.getMainTerms()) {
-				addResult = destination.addSynonymy(term, mergeLabel.getSynonyms(term));
-				Alerter.alertNotAddedTerms(mergeLabel.getSynonyms(term), addResult);
-				addResults.putAll(addResult);
+				if(destination.isMainTerm(term)) {
+					addResult = destination.addSynonymy(term, mergeLabel.getSynonyms(term), false);
+					Alerter.alertNotAddedTerms(mergeLabel.getSynonyms(term), addResult);
+					addResults.putAll(addResult);
+				} else if(destination.isSynonym(term)) {
+					Term termsMainTerm = destination.getMainTermOfSynonym(term);
+					addResult = destination.addSynonymy(termsMainTerm, mergeLabel.getSynonyms(term), false);
+					Alerter.alertNotAddedTerms(mergeLabel.getSynonyms(term), addResult);
+					addResults.putAll(addResult);
+				} else {
+					//make sure it ends up in uncategorized// not necessary in model controler
+				}
 			}
 			// in case any of mergeLabel.gerMainTerms() is already a synonym in label, 
 			// mainTermParents will contain a reference to the synonym parent and will not have been added as main term in label, 

@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-public class Label implements Serializable {
+public class Label implements Serializable, Comparable<Label> {
 
 	public static class AddResult {
 		public boolean result;
@@ -166,8 +166,9 @@ public class Label implements Serializable {
 		return new ArrayList<Term>(mainTermSynonymsMap.get(mainTerm));
 	}
 
-	public AddResult addSynonym(Term mainTerm, Term synonymTerm) {
-		uncategorizeMainTerm(synonymTerm);
+	public AddResult addSynonym(Term mainTerm, Term synonymTerm, boolean uncategorizeSynonymFirst) {
+		if(uncategorizeSynonymFirst)
+			uncategorizeMainTerm(synonymTerm);
 		
 		for(Term aMainTerm : mainTerms) {
 			if(mainTermSynonymsMap.get(aMainTerm) != null && mainTermSynonymsMap.get(aMainTerm).contains(synonymTerm)) {				
@@ -185,10 +186,10 @@ public class Label implements Serializable {
 		return new AddResult(true, null);
 	}
 	
-	public Map<Term, AddResult> addSynonymy(Term mainTerm, List<Term> synonymTerms) {
+	public Map<Term, AddResult> addSynonymy(Term mainTerm, List<Term> synonymTerms, boolean uncategorizeSynonymFirst) {
 		Map<Term, AddResult> result = new HashMap<Term, AddResult>();
 		for(Term synonym : synonymTerms) {
-			result.put(synonym, addSynonym(mainTerm, synonym));
+			result.put(synonym, addSynonym(mainTerm, synonym, uncategorizeSynonymFirst));
 		}
 		return result;
 	}
@@ -207,8 +208,10 @@ public class Label implements Serializable {
 	}
 
 	public void removeSynonymy(Term mainTerm, List<Term> synonyms) {
+		List<Term> remainingSynonyms = this.getSynonyms(mainTerm);
+		remainingSynonyms.removeAll(synonyms);
+		this.setSynonymy(mainTerm, remainingSynonyms);
 		this.addMainTerms(synonyms);
-		this.setSynonymy(mainTerm, new LinkedList<Term>());
 	}
 
 	public void uncategorizeTerm(List<Term> terms) {
@@ -263,5 +266,26 @@ public class Label implements Serializable {
 		return this.getSynonyms(term).contains(synonym);
 	}
 
+	public boolean isSynonym(Term term) {
+		for(Term mainTerm : this.mainTerms) {
+			List<Term> syns = this.mainTermSynonymsMap.get(mainTerm);
+			if(syns != null && syns.contains(term))
+				return true;
+		}
+		return false;
+	}
+	
+	public Term getMainTermOfSynonym(Term synonym) {
+		for(Term mainTerm : this.mainTerms) {
+			List<Term> syns = this.mainTermSynonymsMap.get(mainTerm);
+			if(syns != null && syns.contains(synonym))
+				return mainTerm;
+		}
+		return null;
+	}
 
+	@Override
+	public int compareTo(Label o) {
+		return this.getName().compareTo(o.getName());
+	}
 }

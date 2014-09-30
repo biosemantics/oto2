@@ -213,24 +213,26 @@ public class LocationsView extends Composite {
 		eventBus.addHandler(LabelsMergeEvent.TYPE, new LabelsMergeEvent.MergeLabelsHandler() {
 			@Override
 			public void onMerge(LabelsMergeEvent event) {
-				boolean found = false;
-				for(Label source : event.getSources()) {
-					if(source.containsTerm(currentTerm)) {
-						Location location = store.findModelWithKey(source.toString());
-						if(location != null) 
-							store.remove(location);
-						found = true;
+				if(currentTerm != null) {
+					boolean found = false;
+					for(Label source : event.getSources()) {
+						if(source.containsTerm(currentTerm)) {
+							Location location = store.findModelWithKey(source.toString());
+							if(location != null) 
+								store.remove(location);
+							found = true;
+						}
 					}
+					Location newLocation = new Location(currentTerm.getTerm(), event.getDestination());
+					if(found && store.findModel(newLocation) == null) 
+						store.add(newLocation);
 				}
-				Location newLocation = new Location(currentTerm.getTerm(), event.getDestination());
-				if(found && store.findModel(newLocation) == null) 
-					store.add(newLocation);
 			}
 		});
 		eventBus.addHandler(TermRenameEvent.TYPE, new TermRenameEvent.RenameTermHandler() {
 			@Override
 			public void onRename(TermRenameEvent event) {
-				if(currentTerm.equals(event.getTerm()))
+				if(currentTerm != null && currentTerm.equals(event.getTerm()))
 					for(Location location : store.getAll()) {
 						location.setInstance(currentTerm.getTerm());
 						store.update(location);

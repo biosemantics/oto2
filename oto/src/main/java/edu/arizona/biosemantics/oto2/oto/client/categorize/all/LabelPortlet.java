@@ -520,6 +520,13 @@ public class LabelPortlet extends Portlet {
 							});
 							menu.show(LabelPortlet.this);
 							LabelPortlet.this.expand();
+						} else {
+							if(!mainTermSynonymsLabelDnd.getSelectedTerms().getAdditionalTerms().isEmpty()) {
+								for(Term term : mainTermSynonymsLabelDnd.getSelectedTerms().getAdditionalTerms()) {
+									if(label.isSynonym(term))
+										eventBus.fireEvent(new SynonymRemovalEvent(label, label.getMainTermOfSynonym(term), term));	
+								}
+							}
 						}
 					}
 				}

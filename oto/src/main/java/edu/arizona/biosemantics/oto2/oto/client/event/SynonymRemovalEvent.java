@@ -1,5 +1,6 @@
 package edu.arizona.biosemantics.oto2.oto.client.event;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import com.google.gwt.event.shared.EventHandler;
@@ -18,7 +19,7 @@ public class SynonymRemovalEvent extends GwtEvent<SynonymRemovalHandler> {
     public static Type<SynonymRemovalHandler> TYPE = new Type<SynonymRemovalHandler>();
 	private Label label;
 	private Term mainTerm;
-	private List<Term> synonyms;
+	private List<Term> synonyms = new LinkedList<Term>();
     
     
     public SynonymRemovalEvent(Label label, Term mainTerm, List<Term> synonyms) {
@@ -27,6 +28,12 @@ public class SynonymRemovalEvent extends GwtEvent<SynonymRemovalHandler> {
         this.synonyms = synonyms;
     }
 	
+	public SynonymRemovalEvent(Label label, Term mainTerm, Term synonym) {
+		this.label = label;
+        this.mainTerm = mainTerm;
+        this.synonyms.add(synonym);
+	}
+
 	@Override
 	public Type<SynonymRemovalHandler> getAssociatedType() {
 		return TYPE;

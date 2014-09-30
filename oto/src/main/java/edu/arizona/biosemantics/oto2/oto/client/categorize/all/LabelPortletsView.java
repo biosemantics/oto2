@@ -33,6 +33,7 @@ import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
+import edu.arizona.biosemantics.oto2.oto.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelCreateEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelRemoveEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelsMergeEvent;
@@ -245,11 +246,18 @@ public class LabelPortletsView extends PortalLayoutContainer {
 					//LabelsView.this.remove(sourcePortlet, LabelsView.this.getPortletColumn(sourcePortlet));
 					LabelPortlet destinationPortlet = labelPortletsMap.get(destination);
 					for(Term term : source.getMainTerms()) {
-						if(destination.isMainTerm(term) && !destinationPortlet.containsMainTerm(term))
+						if(destination.isSynonym(term)) {
+							Term destinationMainTerm = destination.getMainTermOfSynonym(term);
+							destinationPortlet.addSynonymTerm(destinationMainTerm, term);
+						} else if(destination.isMainTerm(term) && !destinationPortlet.containsMainTerm(term)) {
 							destinationPortlet.addMainTerm(term);
+						}
 						for(Term synonym : source.getSynonyms(term))
-							if(destination.isSynonym(term, synonym) && 
-									!destinationPortlet.containsMainTerm(synonym))
+							if(destination.isSynonym(term)) {
+								Term destinationMainTerm = destination.getMainTermOfSynonym(term);
+								if(!destinationMainTerm.equals(synonym))
+									destinationPortlet.addSynonymTerm(destinationMainTerm, synonym);
+							} else if(destination.isMainTerm(term) && destination.isSynonym(term, synonym) && !destinationPortlet.containsMainTerm(synonym))
 								destinationPortlet.addSynonymTerm(term, synonym);
 					}
 				}
