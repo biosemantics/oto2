@@ -53,6 +53,7 @@ import com.sencha.gxt.widget.core.client.toolbar.ToolBar;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.all.LabelPortlet;
 import edu.arizona.biosemantics.oto2.oto.client.common.UncategorizeDialog;
 import edu.arizona.biosemantics.oto2.oto.client.common.dnd.TermDnd;
+import edu.arizona.biosemantics.oto2.oto.client.common.dnd.TermLabelDnd;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeCopyRemoveTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeCopyTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeMoveTermEvent;
@@ -65,6 +66,7 @@ import edu.arizona.biosemantics.oto2.oto.client.event.SynonymCreationEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.SynonymRemovalEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermCategorizeEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermUncategorizeEvent;
+import edu.arizona.biosemantics.oto2.oto.client.uncategorize.TermsView;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.LabelProperties;
@@ -219,7 +221,13 @@ public class SingleLabelView extends SimpleContainer {
 				Object data = event.getData();
 				if(data instanceof TermDnd) {
 					TermDnd termDnd = (TermDnd)data;
-					eventBus.fireEvent(new TermCategorizeEvent(termDnd.getTerms(), currentLabel));
+					if(termDnd.getSource().getClass().equals(TermsView.class))
+						eventBus.fireEvent(new TermCategorizeEvent(termDnd.getTerms(), currentLabel));
+					if(termDnd.getSource().getClass().equals(MainTermPortlet.class) && termDnd instanceof TermLabelDnd) {
+						TermLabelDnd termLabelDnd = (TermLabelDnd)termDnd;
+						MainTermPortlet sourcePortlet = (MainTermPortlet) termDnd.getSource();
+						eventBus.fireEvent(new SynonymRemovalEvent(currentLabel, sourcePortlet.getMainTerm(), termDnd.getTerms()));
+					}
 				}
 			}
 		});
@@ -408,9 +416,11 @@ public class SingleLabelView extends SimpleContainer {
 		box.auto();
 		box.show();
 		for(Term mainTerm : mainTerms) {
-			MainTermPortlet mainTermPortlet = new MainTermPortlet(eventBus, collection, currentLabel, mainTerm, portalLayoutContainer);
-			portalLayoutContainer.add(mainTermPortlet, column);
-			termPortletsMap.put(mainTerm, mainTermPortlet);
+			if(!termPortletsMap.containsKey(mainTerm)) {
+				MainTermPortlet mainTermPortlet = new MainTermPortlet(eventBus, collection, currentLabel, mainTerm, portalLayoutContainer);
+				portalLayoutContainer.add(mainTermPortlet, column);
+				termPortletsMap.put(mainTerm, mainTermPortlet);
+			}
 		}
 		if(this.isVisible()) {
 			Scheduler.get().scheduleDeferred(new ScheduledCommand() {

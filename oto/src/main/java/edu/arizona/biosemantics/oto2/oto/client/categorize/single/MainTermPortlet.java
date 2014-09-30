@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.Element;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.logical.shared.SelectionEvent;
@@ -16,6 +17,7 @@ import com.google.web.bindery.event.shared.EventBus;
 import com.sencha.gxt.core.client.dom.AutoScrollSupport;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
 import com.sencha.gxt.core.client.util.Format;
+import com.sencha.gxt.core.client.util.Rectangle;
 import com.sencha.gxt.data.shared.SortDir;
 import com.sencha.gxt.data.shared.Store.StoreSortInfo;
 import com.sencha.gxt.data.shared.TreeStore;
@@ -150,20 +152,25 @@ public class MainTermPortlet extends Portlet {
 		DragSource dragSource = new DragSource(this) {
 			@Override
 			protected void onDragStart(DndDragStartEvent event) {
-				super.onDragStart(event);
-				List<Term> selection = new LinkedList<Term>();
-				selection.add(mainTerm);
-				selection.addAll(getSynonymTerms());
-				if (selection.isEmpty())
+				//it was a tree trag rather than a drag of entire label. Hence handler above will take care
+				if(tree.getElement().isOrHasChild(event.getDragStartEvent().getStartElement())) {
 					event.setCancelled(true);
-				else {
-					setStatusText(selection.size() + " term(s) selected");
-					event.getStatusProxy()
-							.update(Format.substitute(getStatusText(),
-									selection.size()));
+				} else {
+					super.onDragStart(event);
+					List<Term> selection = new LinkedList<Term>();
+					selection.add(mainTerm);
+					selection.addAll(getSynonymTerms());
+					if (selection.isEmpty())
+						event.setCancelled(true);
+					else {
+						setStatusText(selection.size() + " term(s) selected");
+						event.getStatusProxy()
+								.update(Format.substitute(getStatusText(),
+										selection.size()));
+					}
+					event.setData(new MainTermSynonymsLabelDnd(MainTermPortlet.this, 
+							new SelectedTerms(new MainTermSynonyms(mainTerm, getSynonymTerms())), label));
 				}
-				event.setData(new MainTermSynonymsLabelDnd(MainTermPortlet.this, 
-						new SelectedTerms(new MainTermSynonyms(mainTerm, getSynonymTerms())), label));
 			}
 		};
 		DropTarget dropTarget = new DropTarget(this) {
