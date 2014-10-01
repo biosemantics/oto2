@@ -152,26 +152,28 @@ public class ModelControler {
 
 	protected void mergeLabels(List<Label> sources, Label destination) {
 		collection.removeLabels(sources);
-		Map<Term, AddResult> addResults = new HashMap<Term, AddResult>();
 		for(Label mergeLabel : sources) {
+			Map<Term, AddResult> addResults = new HashMap<Term, AddResult>();
 			// it may just be sufficient to add everything as main term, because synonymy should always be coupled between <term, label> anyway
 			Map<Term, AddResult> addResult = destination.addMainTerms(mergeLabel.getMainTerms());
-			Alerter.alertNotAddedTerms(mergeLabel.getMainTerms(), addResult);
+			//Alerter.alertNotAddedTerms(mergeLabel.getMainTerms(), addResult);
 			addResults.putAll(addResult);
 			for(Term term : mergeLabel.getMainTerms()) {
 				if(destination.isMainTerm(term)) {
 					addResult = destination.addSynonymy(term, mergeLabel.getSynonyms(term), false);
-					Alerter.alertNotAddedTerms(mergeLabel.getSynonyms(term), addResult);
+					//Alerter.alertNotAddedTerms(mergeLabel.getSynonyms(term), addResult);
 					addResults.putAll(addResult);
 				} else if(destination.isSynonym(term)) {
 					Term termsMainTerm = destination.getMainTermOfSynonym(term);
 					addResult = destination.addSynonymy(termsMainTerm, mergeLabel.getSynonyms(term), false);
-					Alerter.alertNotAddedTerms(mergeLabel.getSynonyms(term), addResult);
+					//Alerter.alertNotAddedTerms(mergeLabel.getSynonyms(term), addResult);
 					addResults.putAll(addResult);
 				} else {
 					//make sure it ends up in uncategorized// not necessary in model controler
 				}
 			}
+			
+			Alerter.alertNotAddedTerms(addResults, destination);
 			// in case any of mergeLabel.gerMainTerms() is already a synonym in label, 
 			// mainTermParents will contain a reference to the synonym parent and will not have been added as main term in label, 
 			// otherwise null is contained and it will have been added as main term in label.
@@ -206,7 +208,7 @@ public class ModelControler {
 
 	protected void moveTerms(List<Term> terms, Label sourceLabel, Label targetLabel) {
 		Map<Term, AddResult> addResult = targetLabel.addMainTerms(terms);
-		Alerter.alertNotAddedTerms(terms, addResult);
+		Alerter.alertNotAddedTerms(addResult, targetLabel);
 		sourceLabel.uncategorizeTerm(terms);
 	}
 
@@ -214,7 +216,7 @@ public class ModelControler {
 		Map<Term, AddResult> addResults = new HashMap<Term, AddResult>();
 		for(Label target : targetLabels) {
 			Map<Term, AddResult> addResult = target.addMainTerms(terms);
-			Alerter.alertNotAddedTerms(terms, addResult);
+			Alerter.alertNotAddedTerms(addResult, target);
 			addResults.putAll(addResult);
 		}
 	}

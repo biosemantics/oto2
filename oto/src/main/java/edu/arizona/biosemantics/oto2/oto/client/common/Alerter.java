@@ -49,6 +49,29 @@ public class Alerter {
 		}
 	}
 	
+	public static void alertNotAddedTerms(Map<Term, AddResult> addResults, Label targetLabel) {
+		StringBuilder resultBuilder = new StringBuilder();
+		for(Term term : addResults.keySet()) {
+			AddResult addResult = addResults.get(term);
+			if(!addResult.result) {
+				if(addResult.parent != null) {
+					resultBuilder.append("- <b>" + term.getTerm() + "</b> already exists as synonym of " +
+							"<b>" + addResult.parent.getTerm() + "</b>.</br>");
+				} else {
+					resultBuilder.append("- <b>" + term.getTerm() + "</b> already exists.</br>");
+				}
+			}
+		}
+		
+		String text = resultBuilder.toString();
+		if(!text.isEmpty()) {
+			InfoMessageBox alert = new InfoMessageBox(targetLabel.getName() + ": Term(s) exist(s) in category", 
+					"A term can only appear <b>once</b> inside category " + targetLabel.getName() + ": </br>" + text);
+			alert.show();
+		}
+	}
+
+	
 	public static void alertNoOntoloygySelected() {
 		InfoMessageBox alert = new InfoMessageBox("Ontology Selection", "Before you can use this feature" +
 				" you have to select a set " +
@@ -114,6 +137,7 @@ public class Alerter {
 		});
 		box.show();
 	}
+
 
 
 }

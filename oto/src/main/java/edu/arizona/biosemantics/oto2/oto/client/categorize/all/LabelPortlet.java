@@ -16,6 +16,7 @@ import com.google.gwt.event.dom.client.DoubleClickHandler;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.core.client.dom.AutoScrollSupport;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
@@ -65,6 +66,7 @@ import edu.arizona.biosemantics.oto2.oto.client.event.TermUncategorizeEvent;
 import edu.arizona.biosemantics.oto2.oto.client.uncategorize.TermsView;
 import edu.arizona.biosemantics.oto2.oto.client.uncategorize.TermsView.BucketTreeNode;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.oto.shared.model.HighlightLabel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.MainTermSynonyms;
 import edu.arizona.biosemantics.oto2.oto.shared.model.SelectedTerms;
@@ -623,5 +625,17 @@ public class LabelPortlet extends Portlet {
 	public void expandSynonyms() {
 		tree.expandAll();
 	}	
+	
+	@Override
+	public void setHeadingText(String text) {
+		if(label instanceof HighlightLabel)
+			setHeadingHtml("<div style='color: black'>" + text + "</div>");
+		else if(label instanceof TrashLabel)
+			setHeadingHtml("<div style='color: gray'>" 
+					+ text + "</div>");
+		else 
+			setHeadingHtml("<div style='font-weight: normal'>" 
+					+ text + "</div>");
+	}
 
 }

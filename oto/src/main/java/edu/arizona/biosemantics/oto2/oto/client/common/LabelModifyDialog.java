@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto2.oto.client.categorize.all;
+package edu.arizona.biosemantics.oto2.oto.client.common;
 
 
 import com.google.gwt.event.shared.EventBus;
@@ -11,6 +11,7 @@ import com.sencha.gxt.widget.core.client.form.TextArea;
 import com.sencha.gxt.widget.core.client.form.TextField;
 
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelModifyEvent;
+import edu.arizona.biosemantics.oto2.oto.shared.LabelNameNormalizer;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 
 public class LabelModifyDialog extends Dialog {
@@ -33,7 +34,8 @@ public class LabelModifyDialog extends Dialog {
 						alert.show();
 						return;
 					}
-					eventBus.fireEvent(new LabelModifyEvent(label, labelName.getText(), labelDescription.getText()));
+					String normalizedLabelName = LabelNameNormalizer.normalize(labelName.getText());
+					eventBus.fireEvent(new LabelModifyEvent(label, normalizedLabelName, labelDescription.getText()));
 					LabelModifyDialog.this.hide();
 				}
 		    });

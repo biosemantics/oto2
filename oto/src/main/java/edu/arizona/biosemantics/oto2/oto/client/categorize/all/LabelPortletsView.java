@@ -34,6 +34,8 @@ import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
 import edu.arizona.biosemantics.oto2.oto.client.common.Alerter;
+import edu.arizona.biosemantics.oto2.oto.client.common.LabelAddDialog;
+import edu.arizona.biosemantics.oto2.oto.client.common.LabelInfoContainer;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelCreateEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelRemoveEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelsMergeEvent;
@@ -64,7 +66,7 @@ public class LabelPortletsView extends PortalLayoutContainer {
 			add.addSelectionHandler(new SelectionHandler<Item>() {
 				@Override
 				public void onSelection(SelectionEvent<Item> event) {
-					LabelAddDialog labelAddDialog = new LabelAddDialog();
+					LabelAddDialog labelAddDialog = new LabelAddDialog(eventBus, collection);
 					labelAddDialog.show();
 				}
 			});
@@ -171,48 +173,7 @@ public class LabelPortletsView extends PortalLayoutContainer {
 		}
 	}
 	
-	public class LabelAddDialog extends Dialog {
-		
-		public LabelAddDialog() {
-			this.setHeadingText("Add Category");
-			LabelInfoContainer labelInfoContainer = new LabelInfoContainer("", "");
-		    this.add(labelInfoContainer);
-		 
-		    final TextField labelName = labelInfoContainer.getLabelName();
-		    final TextArea labelDescription = labelInfoContainer.getLabelDescription();
-		    
-		    getButtonBar().clear();
-		    TextButton add = new TextButton("Add");
-		    add.addSelectHandler(new SelectHandler() {
-				@Override
-				public void onSelect(SelectEvent event) {
-					if(!labelName.validate()) {
-						AlertMessageBox alert = new AlertMessageBox("Category Name", "A category name is required");
-						alert.show();
-						return;
-					}
-					
-					final Label newLabel = new Label(labelName.getText(), labelDescription.getText());
-					collectionService.addLabel(newLabel, collection.getId(), new RPCCallback<Label>() {
-						@Override
-						public void onSuccess(Label result) {
-							eventBus.fireEvent(new LabelCreateEvent(result));
-							LabelAddDialog.this.hide();
-						}
-					});
-				}
-		    });
-		    TextButton cancel =  new TextButton("Cancel");
-		    cancel.addSelectHandler(new SelectHandler() {
-				@Override
-				public void onSelect(SelectEvent event) {
-					LabelAddDialog.this.hide();
-				}
-		    });
-		    addButton(add);
-		    addButton(cancel);
-		}
-	}
+
 
 	private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
 	private EventBus eventBus;
@@ -287,14 +248,7 @@ public class LabelPortletsView extends PortalLayoutContainer {
 		//labelPortlet = new LabelPortlet(GWT.<OtoFramedPanelAppearance> create(OtoFramedPanelAppearance.class), 
 		//		eventBus, label, collection);
 		LabelPortlet labelPortlet = new LabelPortlet(eventBus, label, collection, this);
-		if(label instanceof HighlightLabel)
-			labelPortlet.setHeadingHtml("<div style='color: black'>" + label.getName() + "</div>");
-		else if(label instanceof TrashLabel)
-			labelPortlet.setHeadingHtml("<div style='color: gray'>" 
-					+ label.getName() + "</div>");
-		else 
-			labelPortlet.setHeadingHtml("<div style='font-weight: normal'>" 
-					+ label.getName() + "</div>");
+		labelPortlet.setHeadingText(label.getName());
 		return labelPortlet;
 	}
 

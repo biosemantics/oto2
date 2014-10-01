@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import edu.arizona.biosemantics.oto2.oto.server.db.Query.QueryException;
+import edu.arizona.biosemantics.oto2.oto.shared.LabelNameNormalizer;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.HighlightLabel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
@@ -66,6 +67,7 @@ public class LabelDAO {
 	}
 
 	public Label insert(Label label, int collectionId)  {
+		label.setName(LabelNameNormalizer.normalize(label.getName()));
 		if(!label.hasId()) {
 			Label result = null;
 			try(Query insert = new Query("INSERT INTO `oto_label` " +
