@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.dom.client.Element;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.logical.shared.SelectionEvent;
@@ -17,42 +16,29 @@ import com.google.web.bindery.event.shared.EventBus;
 import com.sencha.gxt.core.client.dom.AutoScrollSupport;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
 import com.sencha.gxt.core.client.util.Format;
-import com.sencha.gxt.core.client.util.Rectangle;
 import com.sencha.gxt.data.shared.SortDir;
 import com.sencha.gxt.data.shared.Store.StoreSortInfo;
 import com.sencha.gxt.data.shared.TreeStore;
-import com.sencha.gxt.dnd.core.client.DndDragStartEvent;
 import com.sencha.gxt.dnd.core.client.DND.Operation;
-import com.sencha.gxt.dnd.core.client.DndDragStartEvent.DndDragStartHandler;
 import com.sencha.gxt.dnd.core.client.DndDragEnterEvent;
+import com.sencha.gxt.dnd.core.client.DndDragStartEvent;
 import com.sencha.gxt.dnd.core.client.DndDropEvent;
+import com.sencha.gxt.dnd.core.client.DndDropEvent.DndDropHandler;
 import com.sencha.gxt.dnd.core.client.DragSource;
 import com.sencha.gxt.dnd.core.client.DropTarget;
 import com.sencha.gxt.dnd.core.client.TreeDragSource;
-import com.sencha.gxt.dnd.core.client.DndDropEvent.DndDropHandler;
 import com.sencha.gxt.widget.core.client.Portlet;
 import com.sencha.gxt.widget.core.client.button.ToolButton;
 import com.sencha.gxt.widget.core.client.container.FlowLayoutContainer;
-import com.sencha.gxt.widget.core.client.event.CollapseEvent;
-import com.sencha.gxt.widget.core.client.event.ExpandEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
-import com.sencha.gxt.widget.core.client.event.CollapseEvent.CollapseHandler;
-import com.sencha.gxt.widget.core.client.event.ExpandEvent.ExpandHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
-import com.sencha.gxt.widget.core.client.menu.Item;
-import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.tree.Tree;
 
-import edu.arizona.biosemantics.oto2.oto.client.categorize.all.LabelMenu;
-import edu.arizona.biosemantics.oto2.oto.client.categorize.all.LabelPortlet;
-import edu.arizona.biosemantics.oto2.oto.client.categorize.all.LabelPortlet.CopyMoveMenu;
 import edu.arizona.biosemantics.oto2.oto.client.common.AllowSurpressSelectEventsTreeSelectionModel;
+import edu.arizona.biosemantics.oto2.oto.client.common.dnd.MainTermSynonymsLabelDnd;
 import edu.arizona.biosemantics.oto2.oto.client.common.dnd.TermDnd;
 import edu.arizona.biosemantics.oto2.oto.client.common.dnd.TermLabelDnd;
-import edu.arizona.biosemantics.oto2.oto.client.common.dnd.MainTermSynonymsLabelDnd;
-import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeCopyTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeMoveTermEvent;
-import edu.arizona.biosemantics.oto2.oto.client.event.LabelSelectEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.SynonymCreationEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.SynonymRemovalEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermCategorizeEvent;
@@ -191,22 +177,10 @@ public class MainTermPortlet extends Portlet {
 		};
 		dropTarget.setAllowSelfAsSource(false);
 		dropTarget.setOperation(Operation.COPY);
-		dropTarget.addDropHandler(new DndDropHandler() {
-			@Override
-			public void onDrop(DndDropEvent event) {
-				Object data = event.getData();
-				if(data instanceof TermDnd) {
-					TermDnd termDnd = (TermDnd)data;
-					if(termDnd.getSource().getClass().equals(TermsView.class)) {
-						eventBus.fireEvent(new TermCategorizeEvent(termDnd.getTerms(), label));
-						eventBus.fireEvent(new SynonymCreationEvent(label, mainTerm, termDnd.getTerms()));
-					}
-					if(termDnd.getSource().getClass().equals(MainTermPortlet.class)) {
-						eventBus.fireEvent(new SynonymCreationEvent(label, mainTerm, termDnd.getTerms()));
-					}
-				}
-			}
-		});
+		MainTermPortletDndHandler mainTermPortletDndHandler = new MainTermPortletDndHandler(eventBus, this);
+		dropTarget.addDropHandler(mainTermPortletDndHandler);
+		//dropTarget.addDragEnterHandler(mainTermPortletDndHandler);
+		//dropTarget.addDragLeaveHandler(mainTermPortletDndHandler);
 	}
 
 	private void bindEvents() {
@@ -338,6 +312,10 @@ public class MainTermPortlet extends Portlet {
 		
 	public Term getMainTerm() {
 		return mainTerm;
+	}
+
+	public Label getLabel() {
+		return label;
 	}
 
 }

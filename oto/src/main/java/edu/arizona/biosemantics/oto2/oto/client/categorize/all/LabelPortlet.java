@@ -27,6 +27,8 @@ import com.sencha.gxt.data.shared.TreeStore;
 import com.sencha.gxt.data.shared.TreeStore.TreeNode;
 import com.sencha.gxt.dnd.core.client.DND.Operation;
 import com.sencha.gxt.dnd.core.client.DndDragEnterEvent;
+import com.sencha.gxt.dnd.core.client.DndDragEnterEvent.DndDragEnterHandler;
+import com.sencha.gxt.dnd.core.client.DndDragLeaveEvent.DndDragLeaveHandler;
 import com.sencha.gxt.dnd.core.client.DndDragStartEvent;
 import com.sencha.gxt.dnd.core.client.DndDragStartEvent.DndDragStartHandler;
 import com.sencha.gxt.dnd.core.client.DndDropEvent;
@@ -47,6 +49,7 @@ import edu.arizona.biosemantics.oto2.oto.client.categorize.TermMenu;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.single.MainTermPortlet;
 import edu.arizona.biosemantics.oto2.oto.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.oto.client.common.AllowSurpressSelectEventsTreeSelectionModel;
+import edu.arizona.biosemantics.oto2.oto.client.common.CopyMoveMenu;
 import edu.arizona.biosemantics.oto2.oto.client.common.SelectedTermsExtractor;
 import edu.arizona.biosemantics.oto2.oto.client.common.dnd.MainTermSynonymsLabelDnd;
 import edu.arizona.biosemantics.oto2.oto.client.common.dnd.TermDnd;
@@ -119,7 +122,7 @@ public class LabelPortlet extends Portlet {
 		this.setExpanded(false);
 		this.setAnimationDuration(500);
 		this.setCollapsible(true);
-		this.setAnimCollapse(false);
+		this.setAnimCollapse(true);
 		refreshToolTip();
 		
 		toolButton = new ToolButton(ToolButton.GEAR);
@@ -280,7 +283,7 @@ public class LabelPortlet extends Portlet {
 					if(portletStore.getAll().contains(termTreeNode)) {
 						portletStore.update(termTreeNode);
 					}
-					setTreeSelection(termTreeNode);
+					//setTreeSelection(termTreeNode);
 				}				
 			}
 		});
@@ -319,7 +322,7 @@ public class LabelPortlet extends Portlet {
 					for(Term term : selectedTerms.getTerms()) {
 						removeTerm(term);
 					}
-					LabelPortlet.this.expand();
+					//LabelPortlet.this.expand();
 				}
 			}
 		});
@@ -337,7 +340,7 @@ public class LabelPortlet extends Portlet {
 								nodes.add(node);
 						}
 					}
-					setTreeSelection(nodes);
+					//setTreeSelection(nodes);
 				}
 			}
 		});
@@ -351,7 +354,7 @@ public class LabelPortlet extends Portlet {
 						for(Term term : terms)
 							LabelPortlet.this.removeTerm(term);
 					}
-					LabelPortlet.this.expand();
+					//LabelPortlet.this.expand();
 				}
 			}
 		});
@@ -362,7 +365,7 @@ public class LabelPortlet extends Portlet {
 				List<Term> terms = event.getTerms();
 				if(labels.contains(LabelPortlet.this.label)) {
 					LabelPortlet.this.removeTerms(terms);
-					LabelPortlet.this.expand();
+					//LabelPortlet.this.expand();
 				}
 			}
 		});
@@ -415,7 +418,7 @@ public class LabelPortlet extends Portlet {
 			if(node != null)
 				nodes.add(node);
 		}
-		setTreeSelection(nodes);
+		//setTreeSelection(nodes);
 	}
 
 	protected void setTreeSelection(TermTreeNode termTreeNode) {
@@ -450,19 +453,6 @@ public class LabelPortlet extends Portlet {
 				}
 			}, ClickEvent.getType());
 		}
-	}
-
-	public class CopyMoveMenu extends Menu {
-		
-		public CopyMoveMenu(SelectionHandler<Item> copyHandler, SelectionHandler<Item> moveHandler) {
-			MenuItem item = new MenuItem("Copy");
-			item.addSelectionHandler(copyHandler);
-			add(item);
-			item = new MenuItem("Move");
-			item.addSelectionHandler(moveHandler);
-			add(item);
-		}
-		
 	}
 	
 	private void setupDnD() {
@@ -505,48 +495,11 @@ public class LabelPortlet extends Portlet {
 		};
 		dropTarget.setAllowSelfAsSource(false);
 		dropTarget.setOperation(Operation.COPY);
-		dropTarget.addDropHandler(new DndDropHandler() {
-			@Override
-			public void onDrop(DndDropEvent event) {
-				Object data = event.getData();
-				if(data instanceof TermDnd) {
-					TermDnd termDnd = (TermDnd)data;
-					if(termDnd.getSource().getClass().equals(TermsView.class)) {
-						List<Term> terms = termDnd.getTerms();
-						eventBus.fireEvent(new TermCategorizeEvent(terms, label));
-						LabelPortlet.this.expand();
-					}
-					if(termDnd.getSource().getClass().equals(LabelPortlet.class) && termDnd instanceof MainTermSynonymsLabelDnd) {
-						final MainTermSynonymsLabelDnd mainTermSynonymsLabelDnd = (MainTermSynonymsLabelDnd)termDnd;
-						final Label sourceLabel = mainTermSynonymsLabelDnd.getLabels().get(0);
-						if(!sourceLabel.equals(label)) {
-							Menu menu = new CopyMoveMenu(new SelectionHandler<Item>() {
-								@Override
-								public void onSelection(SelectionEvent<Item> event) {								
-									eventBus.fireEvent(new CategorizeCopyTermEvent(mainTermSynonymsLabelDnd.getSelectedTerms(), 
-											sourceLabel, label));								
-								}
-							}, new SelectionHandler<Item>() {
-								@Override
-								public void onSelection(SelectionEvent<Item> event) {
-									eventBus.fireEvent(new CategorizeMoveTermEvent(mainTermSynonymsLabelDnd.getSelectedTerms(), 
-											sourceLabel, label));
-								}
-							});
-							menu.show(LabelPortlet.this);
-							LabelPortlet.this.expand();
-						} else {
-							if(!mainTermSynonymsLabelDnd.getSelectedTerms().getAdditionalTerms().isEmpty()) {
-								for(Term term : mainTermSynonymsLabelDnd.getSelectedTerms().getAdditionalTerms()) {
-									if(label.isSynonym(term))
-										eventBus.fireEvent(new SynonymRemovalEvent(label, label.getMainTermOfSynonym(term), term));	
-								}
-							}
-						}
-					}
-				}
-			}
-		});
+		
+		LabelPortletDndHandler dndHandler = new LabelPortletDndHandler(eventBus, this);
+		dropTarget.addDragEnterHandler(dndHandler);
+		dropTarget.addDragLeaveHandler(dndHandler);
+		dropTarget.addDropHandler(dndHandler);
 		
 		// let our events take care of tree/list store updates, hence own
 		// implementation to take care of move/copy		
@@ -555,53 +508,9 @@ public class LabelPortlet extends Portlet {
 		treeDropTarget.setAllowDropOnLeaf(true);
 		treeDropTarget.setAllowSelfAsSource(true);
 		treeDropTarget.setOperation(Operation.COPY);
-		treeDropTarget.addDropHandler(new DndDropHandler() {
-			@Override
-			public void onDrop(DndDropEvent event) {
-				Object data = event.getData();
-				if(data instanceof TermDnd) {
-					TermDnd termDnd = (TermDnd)data;
-					
-					TermTreeNode target = treeDropTarget.getAndNullTarget();
-					if(target != null) {
-						final Term mainLabelTerm = target.getTerm();
-						
-						if(termDnd.getSource().getClass().equals(TermsView.class)) {
-							eventBus.fireEvent(new TermCategorizeEvent(termDnd.getTerms(), label));
-							eventBus.fireEvent(new SynonymCreationEvent(label, mainLabelTerm, termDnd.getTerms()));
-						}
-						if(termDnd.getSource().getClass().equals(LabelPortlet.class) && termDnd instanceof MainTermSynonymsLabelDnd) {
-							final MainTermSynonymsLabelDnd mainTermSynonymsLabelDnd = (MainTermSynonymsLabelDnd)termDnd;
-							final Label sourceLabel = mainTermSynonymsLabelDnd.getLabels().get(0);
-							if(!sourceLabel.equals(label)) {
-								Menu menu = new CopyMoveMenu(new SelectionHandler<Item>() {
-									@Override
-									public void onSelection(SelectionEvent<Item> event) {								
-										eventBus.fireEvent(new CategorizeCopyTermEvent(mainTermSynonymsLabelDnd.getSelectedTerms(), 
-												sourceLabel, label));
-										eventBus.fireEvent(new SynonymCreationEvent(label, mainLabelTerm, 
-												mainTermSynonymsLabelDnd.getTerms()));
-									}
-								}, new SelectionHandler<Item>() {
-									@Override
-									public void onSelection(SelectionEvent<Item> event) {
-										eventBus.fireEvent(new CategorizeMoveTermEvent(mainTermSynonymsLabelDnd.getSelectedTerms(), 
-												sourceLabel, label));
-										eventBus.fireEvent(new SynonymCreationEvent(label, mainLabelTerm, 
-												mainTermSynonymsLabelDnd.getTerms()));
-									}
-								});
-								menu.show(LabelPortlet.this);
-								LabelPortlet.this.expand();
-							} else {
-								eventBus.fireEvent(new SynonymCreationEvent(label, mainLabelTerm, 
-										mainTermSynonymsLabelDnd.getTerms()));
-							}
-						}
-					}
-				}				
-			}
-		});
+		treeDropTarget.addDropHandler(dndHandler);
+		//treeDropTarget.addDragEnterHandler(dndHandler);
+		//treeDropTarget.addDragLeaveHandler(dndHandler);
 	}
 	
 	protected List<Term> getSelectedTerms() {

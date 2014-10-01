@@ -89,6 +89,7 @@ public class PortalLayoutContainer extends Composite implements HasPortalValidat
   protected int insertCol = -1;
   protected int insertRow = -1;
   protected Widget dropOnWidget;
+  protected boolean dropOnWidgetExpandedOnEnter = false;
   protected int startCol;
   protected int startRow;
   private List<Integer> startColumns;
@@ -610,10 +611,32 @@ protected void onPortletDragStart(DragStartEvent de) {
       //System.out.println("(m) " + m);
       if(y < t && y > b) {
     	  //System.out.println("drop on widget");
+    	  boolean onGoingDropOnWidget = false;
+    	  if(dropOnWidget != null && dropOnWidget.equals(c))
+    		  onGoingDropOnWidget = true;
+    	  //System.out.println("onGoingDropOnWidget: " + onGoingDropOnWidget);
     	  dropOnWidget = c;
+    	  //System.out.println("dropOnWidget: " + dropOnWidget);
+    	  
+    	  if(dropOnWidget != null && dropOnWidget instanceof MainTermPortlet) {
+    		  MainTermPortlet mainTermPortlet = (MainTermPortlet)dropOnWidget;
+    		  //System.out.println("mainTermPortlet: " + mainTermPortlet.getLabel().getName() + " " + mainTermPortlet.getMainTerm().getTerm());
+    		  if(!onGoingDropOnWidget)
+    			  dropOnWidgetExpandedOnEnter = mainTermPortlet.isExpanded();
+    		  mainTermPortlet.expand();
+    		  //System.out.println("dropOnWidgetExpandedOnEnter: " + dropOnWidgetExpandedOnEnter);
+    	  }
       } else {
     	  //System.out.println("not drop on widget");
+    	  if(dropOnWidget != null && dropOnWidget instanceof MainTermPortlet) {
+    		  MainTermPortlet mainTermPortlet = (MainTermPortlet)dropOnWidget;
+    		  //System.out.println("mainTermPortlet: " + mainTermPortlet.getLabel().getName() + " " + mainTermPortlet.getMainTerm().getTerm());
+    		  //System.out.println("dropOnWidgetExpandedOnEnter: " + dropOnWidgetExpandedOnEnter);
+    		  if(!dropOnWidgetExpandedOnEnter)
+    			  mainTermPortlet.collapse();
+    	  }
     	  dropOnWidget = null;
+    	  
       }
       
       if (y < t) {

@@ -509,6 +509,13 @@ public class SingleLabelView extends SimpleContainer {
 					active.setVisible(true);
 					active.removeFromParent();
 					
+					//fix bug in 3.1.0 implementation, where one would drag and drop a panel outside of this container. Due to the already removed "active" from the panel
+				    //the size is smaller than calculated by insertRow. Can simply be reproduced with a single cell in a column and dragging and dropping it out of this container.
+				    if(insertRow < 0 || insertRow > getWidget(insertCol).getWidgetCount()) {
+				    	insertRow = 0;
+				    }
+				    //end fix
+					
 					if(dropOnWidget != null && dropOnWidget instanceof MainTermPortlet && active instanceof MainTermPortlet) {
 						//System.out.println("synonym creation");
 						MainTermPortlet droppedPortlet = (MainTermPortlet)active;
