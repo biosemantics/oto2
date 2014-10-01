@@ -120,6 +120,7 @@ public class LabelPortlet extends Portlet {
 		this.setAnimationDuration(500);
 		this.setCollapsible(true);
 		this.setAnimCollapse(false);
+		refreshToolTip();
 		
 		toolButton = new ToolButton(ToolButton.GEAR);
 		if(!(this.label instanceof TrashLabel)) {
@@ -171,6 +172,16 @@ public class LabelPortlet extends Portlet {
 		bindEvents();
 	}
 	
+	private void refreshToolTip() {
+		if(!label.getDescription().trim().isEmpty()) {
+			this.setToolTip(label.getDescription());
+			this.setTitle(label.getDescription());
+		} else {
+			this.setToolTip(null);
+			this.setTitle(null);
+		}
+	}
+
 	public MainTermTreeNode addMainTerm(Term term) {
 		if(!termTermTreeNodeMap.containsKey(term))  {
 			MainTermTreeNode mainTermTreeNode = new MainTermTreeNode(term);
@@ -289,8 +300,10 @@ public class LabelPortlet extends Portlet {
 			@Override
 			public void onModify(LabelModifyEvent event) {
 				Label label = event.getLabel();
-				if(label.equals(LabelPortlet.this.label))
+				if(label.equals(LabelPortlet.this.label)) {
 					LabelPortlet.this.setHeadingText(label.getName());
+					refreshToolTip();
+				}
 			}
 		});
 		eventBus.addHandler(CategorizeMoveTermEvent.TYPE, new CategorizeMoveTermEvent.CategorizeMoveTermHandler() {

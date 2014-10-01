@@ -300,6 +300,8 @@ public class SingleLabelView extends SimpleContainer {
 			@Override
 			public void onModify(LabelModifyEvent event) {
 				labelStore.update(event.getLabel());
+				if(event.getLabel().equals(currentLabel))
+					refreshToolTip();
 			}
 		});
 		eventBus.addHandler(LabelRemoveEvent.TYPE, new LabelRemoveEvent.RemoveLabelHandler() {
@@ -340,7 +342,7 @@ public class SingleLabelView extends SimpleContainer {
 			public void onSelection(SelectionEvent<Label> event) {
 				if(event.getSelectedItem() != null && labelStore.findModel(event.getSelectedItem()) != null) {
 					needsRefresh = true;
-					currentLabel = event.getSelectedItem();
+					setCurrentLabel(event.getSelectedItem());
 					refresh();
 					eventBus.fireEvent(new LabelSelectEvent(currentLabel));
 				}
@@ -375,7 +377,18 @@ public class SingleLabelView extends SimpleContainer {
 	protected void setCurrentLabel(Label label) {
 		needsRefresh = (needsRefresh || currentLabel == null || !currentLabel.equals(label));
 		currentLabel = label;
+		refreshToolTip();
 		labelComboBox.setValue(label, true);
+	}
+
+	private void refreshToolTip() {
+		if(!currentLabel.getDescription().trim().isEmpty()) {
+			this.setToolTip(currentLabel.getDescription());
+			this.setTitle(currentLabel.getDescription());
+		} else {
+			this.setToolTip(null);
+			this.setTitle(null);
+		}
 	}
 
 	public void refresh() {		
