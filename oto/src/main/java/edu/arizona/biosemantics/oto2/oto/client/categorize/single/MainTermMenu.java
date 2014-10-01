@@ -19,7 +19,7 @@ public class MainTermMenu extends TermMenu {
 
 	private Term mainTerm;
 
-	public MainTermMenu(EventBus eventBus, Collection collection, Label label,  Term mainTerm) {
+	public MainTermMenu(EventBus eventBus, Collection collection, Label label, Term mainTerm) {
 		super(eventBus, collection, label);
 		this.mainTerm = mainTerm;
 	}

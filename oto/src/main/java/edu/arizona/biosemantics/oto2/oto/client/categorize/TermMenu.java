@@ -12,37 +12,53 @@ import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.web.bindery.event.shared.EventBus;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
+import com.sencha.gxt.core.client.util.Format;
+import com.sencha.gxt.core.client.util.Params;
 import com.sencha.gxt.data.shared.ListStore;
+import com.sencha.gxt.widget.core.client.box.MultiLinePromptMessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.FlowLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.event.BeforeShowEvent;
+import com.sencha.gxt.widget.core.client.event.HideEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.BeforeShowEvent.BeforeShowHandler;
+import com.sencha.gxt.widget.core.client.event.HideEvent.HideHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.form.CheckBox;
 import com.sencha.gxt.widget.core.client.form.ComboBox;
+import com.sencha.gxt.widget.core.client.info.Info;
 import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
+import edu.arizona.biosemantics.oto2.oto.client.Oto;
 import edu.arizona.biosemantics.oto2.oto.client.common.Alerter;
+import edu.arizona.biosemantics.oto2.oto.client.common.LabelAddDialog;
 import edu.arizona.biosemantics.oto2.oto.client.common.UncategorizeDialog;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeCopyTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeMoveTermEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.CommentEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.LabelCreateEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.SetUserEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.SynonymCreationEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.SynonymRemovalEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermUncategorizeEvent;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Comment;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.LabelProperties;
 import edu.arizona.biosemantics.oto2.oto.shared.model.SelectedTerms;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
+import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionService;
+import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionServiceAsync;
+import edu.arizona.biosemantics.oto2.oto.shared.rpc.RPCCallback;
 
 public abstract class TermMenu extends Menu implements BeforeShowHandler {
 	
 	private static final LabelProperties labelProperties = GWT.create(LabelProperties.class);
 	
+	private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
 	protected EventBus eventBus;
 	protected Collection collection;
 	protected Label label;
@@ -80,6 +96,47 @@ public abstract class TermMenu extends Menu implements BeforeShowHandler {
 		createAddSynonom(explicitSelection, selectedTerms);
 		createRemoveSynonym(explicitSelection, selectedTerms);
 		createRemoveAllSynonyms(explicitSelection, selectedTerms);
+		createComment(explicitSelection, selectedTerms);
+	}
+
+	protected void createComment(final List<Term> explicitSelection, SelectedTerms selectedTerms) {
+		if(explicitSelection.size() >= 1) {
+			MenuItem comment = new MenuItem("Comment");
+			final Term term = explicitSelection.get(0);
+			comment.addSelectionHandler(new SelectionHandler<Item>() {
+				@Override
+				public void onSelection(SelectionEvent<Item> event) {
+					final MultiLinePromptMessageBox box = new MultiLinePromptMessageBox("Comment", "");
+					box.getTextArea().setValue(getUsersComment(term));
+					box.addHideHandler(new HideHandler() {
+						@Override
+						public void onHide(HideEvent event) {
+							Comment newComment = new Comment(Oto.user, box.getValue());
+							for(final Term term : explicitSelection) {
+								collectionService.addComment(newComment, term.getId(), new RPCCallback<Comment>() {
+									@Override
+									public void onSuccess(Comment result) {
+										eventBus.fireEvent(new CommentEvent(term, result));
+										String comment = Format.ellipse(box.getValue(), 80);
+										String message = Format.substitute("'{0}' saved", new Params(comment));
+										Info.display("Comment", message);
+									}
+								});
+							}
+						}
+					});
+					box.show();
+				}
+			});
+			this.add(comment);
+		}
+	}
+
+	protected String getUsersComment(Term term) {
+		for(Comment comment : term.getComments())
+			if(comment.getUser().equals(Oto.user))
+				return comment.getComment();
+		return "";
 	}
 
 	protected void createRemoveAllSynonyms(final List<Term> explicitSelection, final SelectedTerms selectedTerms) {

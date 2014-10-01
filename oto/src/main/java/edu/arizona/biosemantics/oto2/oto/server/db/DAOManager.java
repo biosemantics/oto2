@@ -1,5 +1,7 @@
 package edu.arizona.biosemantics.oto2.oto.server.db;
 
+import edu.arizona.biosemantics.oto2.oto.shared.model.Comment;
+
 public class DAOManager {
 
 	private BucketDAO bucketDAO;
@@ -10,6 +12,7 @@ public class DAOManager {
 	private ContextDAO contextDAO;
 	private SynonymDAO synonymDAO;
 	private OntologyDAO ontologyDAO;
+	private CommentDAO commentDAO;
 	
 	public DAOManager() {
 		bucketDAO = new BucketDAO();
@@ -20,6 +23,7 @@ public class DAOManager {
 		contextDAO = new ContextDAO();
 		synonymDAO = new SynonymDAO();
 		ontologyDAO = new OntologyDAO();
+		commentDAO = new CommentDAO();
 		
 		bucketDAO.setLabelingDAO(labelingDAO);
 		bucketDAO.setTermDAO(termDAO);
@@ -29,6 +33,7 @@ public class DAOManager {
 		collectionDAO.setSynonymDAO(synonymDAO);
 		collectionDAO.setTermDAO(termDAO);
 		termDAO.setBucketDAO(bucketDAO);
+		termDAO.setCommentDAO(commentDAO);
 		labelDAO.setLabelingDAO(labelingDAO);
 		labelDAO.setSynonymDAO(synonymDAO);
 		labelingDAO.setLabelDAO(labelDAO);
@@ -66,6 +71,10 @@ public class DAOManager {
 
 	public OntologyDAO getOntologyDAO() {
 		return ontologyDAO;
+	}
+
+	public CommentDAO getCommentDAO() {
+		return commentDAO;
 	}
 
 }

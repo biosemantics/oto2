@@ -6,7 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-public class Bucket implements Serializable {
+public class Bucket implements Serializable, Comparable<Bucket> {
 
 	private int id = -1;
 	private int collectionId;
@@ -126,6 +126,11 @@ public class Bucket implements Serializable {
 		if (id != other.id)
 			return false;
 		return true;
+	}
+
+	@Override
+	public int compareTo(Bucket o) {
+		return this.getName().compareTo(o.getName());
 	}	
 	
 }

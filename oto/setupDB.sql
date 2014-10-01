@@ -19,6 +19,16 @@ CREATE TABLE IF NOT EXISTS `oto_term` (
   UNIQUE KEY `id` (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0 ;
 
+CREATE TABLE IF NOT EXISTS `oto_term_comment` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `term` bigint(20) unsigned NOT NULL,
+  `user` varchar(100) NOT NULL,
+  `comment` text NOT NULL,
+  `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0 ;
+
 CREATE TABLE IF NOT EXISTS `oto_bucket` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `collection` bigint(20) unsigned NOT NULL,

@@ -6,6 +6,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 
 import edu.arizona.biosemantics.bioportal.model.Ontology;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Comment;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Context;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Location;
@@ -28,7 +29,9 @@ public interface ICollectionServiceAsync {
 	
 	public void addTerm(Term term, int bucketId, AsyncCallback<Term> callback);
 	
-	public void addLabel(Label label, int collectionid, AsyncCallback<Label> callback);
+	public void addLabel(Label label, int collectionId, AsyncCallback<Label> callback);
+	
+	public void addComment(Comment comment, int termId, AsyncCallback<Comment> callback);
 	
 	public void getLocations(Term term, AsyncCallback<List<Location>> callback);
 

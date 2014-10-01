@@ -12,6 +12,7 @@ import edu.arizona.biosemantics.oto2.oto.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeCopyRemoveTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeCopyTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeMoveTermEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.CommentEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelCreateEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelModifyEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelRemoveEvent;
@@ -25,6 +26,7 @@ import edu.arizona.biosemantics.oto2.oto.client.event.TermMarkUselessEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermRenameEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermUncategorizeEvent;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Comment;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.MainTermSynonyms;
 import edu.arizona.biosemantics.oto2.oto.shared.model.SelectedTerms;
@@ -43,6 +45,12 @@ public class ModelControler {
 	}
 
 	private void bindEvents() {
+		eventBus.addHandler(CommentEvent.TYPE, new CommentEvent.CommentHandler() {
+			@Override
+			public void onComment(CommentEvent event) {
+				setComment(event.getTerms(), event.getComment());
+			}
+		});
 		eventBus.addHandler(TermMarkUselessEvent.TYPE, new TermMarkUselessEvent.MarkUselessTermHandler() {
 			@Override
 			public void onMark(TermMarkUselessEvent event) {
@@ -131,6 +139,11 @@ public class ModelControler {
 				renameTerm(event.getTerm(), event.getNewName());
 			}
 		});
+	}
+
+	protected void setComment(List<Term> terms, Comment comment) {
+		for(Term term : terms)
+			term.setComment(comment);
 	}
 
 	protected void markUseless(List<Term> terms, boolean newUseless) {

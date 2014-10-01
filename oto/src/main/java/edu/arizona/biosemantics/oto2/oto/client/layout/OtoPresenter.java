@@ -13,6 +13,7 @@ import edu.arizona.biosemantics.oto2.oto.client.common.SelectOntologiesDialog;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeCopyRemoveTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeCopyTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeMoveTermEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.CommentEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelCreateEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelModifyEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelRemoveEvent;
@@ -58,6 +59,12 @@ public class OtoPresenter {
 
 	private void bindEvents() {
 		//save triggers
+		eventBus.addHandler(CommentEvent.TYPE, new CommentEvent.CommentHandler() {
+			@Override
+			public void onComment(CommentEvent event) {
+				saveCollection();
+			}
+		});
 		eventBus.addHandler(TermMarkUselessEvent.TYPE, new TermMarkUselessEvent.MarkUselessTermHandler() {
 			@Override
 			public void onMark(TermMarkUselessEvent event) {

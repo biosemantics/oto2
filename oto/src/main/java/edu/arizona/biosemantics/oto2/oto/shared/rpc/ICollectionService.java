@@ -8,6 +8,7 @@ import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
 import edu.arizona.biosemantics.bioportal.model.Ontology;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Comment;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Context;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Location;
@@ -34,8 +35,11 @@ public interface ICollectionService extends RemoteService {
 	
 	public Label addLabel(Label label, int collectionId) throws Exception;
 	
+	public Comment addComment(Comment comment, int termId) throws Exception;
+	
 	public List<Location> getLocations(Term term) throws Exception;
 	
 	public Collection reset(Collection collection) throws Exception;
+
 	
 }

@@ -9,16 +9,22 @@ import java.util.List;
 import edu.arizona.biosemantics.oto2.oto.server.db.Query.QueryException;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Bucket;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Comment;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 
 public class TermDAO {
 	
 	private BucketDAO bucketDAO;
+	private CommentDAO commentDAO;
 	
 	protected TermDAO() { }
 		
 	public void setBucketDAO(BucketDAO bucketDAO) {
 		this.bucketDAO = bucketDAO;
+	}
+	
+	public void setCommentDAO(CommentDAO commentDAO) {
+		this.commentDAO = commentDAO;
 	}
 
 	public Term get(int id)  {
@@ -41,7 +47,11 @@ public class TermDAO {
 		String text = result.getString(3);
 		String originalTerm = result.getString(4);
 		boolean useless = result.getBoolean(5);
-		return new Term(id, text, originalTerm, useless);
+		
+		Term term = new Term(id, text, originalTerm, useless);
+		List<Comment> comments = commentDAO.getComments(term);
+		term.setComments(comments);
+		return term;
 	}
 
 	public Term insert(Term term, int bucketId)  {
@@ -72,6 +82,10 @@ public class TermDAO {
 			//never update original_term because it contains the *original* spelling of the term
 			query.setParameter(4, term.getId());	
 			query.execute();
+			
+			for(Comment comment : term.getComments()) {
+				commentDAO.ensure(comment, term.getId());
+			}
 		} catch(QueryException e) {
 			e.printStackTrace();
 		}	

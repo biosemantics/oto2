@@ -15,6 +15,7 @@ import edu.arizona.biosemantics.bioportal.model.Ontology;
 import edu.arizona.biosemantics.oto2.oto.server.Configuration;
 import edu.arizona.biosemantics.oto2.oto.server.db.DAOManager;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Comment;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Context;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Location;
@@ -61,6 +62,11 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	@Override
 	public Label addLabel(Label label, int collectionId) throws Exception {
 		return daoManager.getLabelDAO().insert(label, collectionId);
+	}
+	
+	@Override
+	public Comment addComment(Comment comment, int termId) throws Exception {
+		return daoManager.getCommentDAO().insert(comment, termId);
 	}
 	
 	@Override

@@ -21,5 +21,7 @@ public interface TermProperties extends PropertyAccess<Term> {
 	  ValueProvider<Term, List<Term>> synonyms();
 	  
 	  ValueProvider<Term, List<Context>> contexts();
+	  
+	  ValueProvider<Term, List<Comment>> comments();
 	
 }

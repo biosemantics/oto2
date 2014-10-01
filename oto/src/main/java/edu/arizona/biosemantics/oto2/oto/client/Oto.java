@@ -6,11 +6,14 @@ import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 
 import edu.arizona.biosemantics.oto2.oto.client.event.SaveEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.SaveEvent.SaveHandler;
+import edu.arizona.biosemantics.oto2.oto.client.event.SetUserEvent;
 import edu.arizona.biosemantics.oto2.oto.client.layout.OtoPresenter;
 import edu.arizona.biosemantics.oto2.oto.client.layout.OtoView;
 
 public class Oto {
-		
+	
+	public static String user = "";
+	
 	private SimpleEventBus eventBus;
 	private OtoView view;
 	private OtoPresenter presenter;
@@ -35,6 +38,11 @@ public class Oto {
 		if(saveHandlerRegistration != null)
 			saveHandlerRegistration.removeHandler();
 		saveHandlerRegistration = this.eventBus.addHandler(SaveEvent.TYPE, saveHandler);
+	}
+	
+	public void setUser(String user) {
+		Oto.user = user;
+		//eventBus.fireEvent(new SetUserEvent(user));
 	}
 
 }

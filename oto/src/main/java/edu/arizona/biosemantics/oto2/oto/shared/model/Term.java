@@ -2,8 +2,11 @@ package edu.arizona.biosemantics.oto2.oto.shared.model;
 
 import java.io.Serializable;
 import java.util.Comparator;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
-public class Term implements Serializable {
+public class Term implements Serializable, Comparable<Term> {
 
 	public static class TermComparator implements Comparator<Term> {
 		@Override
@@ -16,6 +19,7 @@ public class Term implements Serializable {
 	private String term;
 	private String originalTerm;
 	private boolean useless;
+	private List<Comment> comments = new LinkedList<Comment>();
 
 	public Term() { }
 	
@@ -30,6 +34,15 @@ public class Term implements Serializable {
 		this.term = term;
 		this.originalTerm = originalTerm;
 		this.useless = useless;
+	}
+	
+	public Term(int id, String term, String originalTerm, boolean useless, List<Comment> comments) {
+		super();
+		this.id = id;
+		this.term = term;
+		this.originalTerm = originalTerm;
+		this.useless = useless;
+		this.comments = comments;
 	}
 
 	public String getTerm() {
@@ -71,6 +84,26 @@ public class Term implements Serializable {
 	public boolean getUseless() {
 		return useless;
 	}
+	
+	public List<Comment> getComments() {
+		return comments;
+	}
+
+	public void setComments(List<Comment> comments) {
+		this.comments = comments;
+	}
+	
+	public void setComment(Comment comment) {
+		Iterator<Comment> iterator = comments.iterator();
+		while(iterator.hasNext()) {
+			Comment c = iterator.next();
+			if(c.getUser().equals(comment.getUser())) {
+				iterator.remove();
+			}
+		}
+		if(comment.getComment() != null)
+			comments.add(comment);
+	}
 
 	@Override
 	public int hashCode() {
@@ -96,6 +129,11 @@ public class Term implements Serializable {
 
 	public boolean hasChangedSpelling() {
 		return !this.term.equals(this.originalTerm);
+	}
+
+	@Override
+	public int compareTo(Term o) {
+		return this.getTerm().compareTo(o.getTerm());
 	}	
 	
 }

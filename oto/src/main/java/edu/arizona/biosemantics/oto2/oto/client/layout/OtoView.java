@@ -27,6 +27,7 @@ import com.sencha.gxt.widget.core.client.menu.MenuBarItem;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
 import edu.arizona.biosemantics.oto2.oto.client.categorize.LabelsView;
+import edu.arizona.biosemantics.oto2.oto.client.common.CommentsDialog;
 import edu.arizona.biosemantics.oto2.oto.client.common.HelpView;
 import edu.arizona.biosemantics.oto2.oto.client.common.SelectOntologiesDialog;
 import edu.arizona.biosemantics.oto2.oto.client.event.LoadEvent;
@@ -120,6 +121,19 @@ public class OtoView extends SimpleLayoutPanel {
 			sub.add(selectOntologies);
 			item = new MenuBarItem("Ontologies", sub);
 			add(item);
+			
+			sub = new Menu();
+			MenuItem overview = new MenuItem("View All");
+			overview.addSelectionHandler(new SelectionHandler<Item>() {
+				@Override
+				public void onSelection(SelectionEvent<Item> event) {
+					CommentsDialog commentsDialog = new CommentsDialog(eventBus, collection);
+					commentsDialog.show();
+				}
+			});
+			sub.add(overview);
+			item = new MenuBarItem("Comments", sub);
+			add(item);
 
 			sub = new Menu();
 			MenuBarItem questionsItem = new MenuBarItem("?", sub);
@@ -143,6 +157,7 @@ public class OtoView extends SimpleLayoutPanel {
 			});
 			sub.add(helpItem);
 			add(questionsItem);
+			
 			
 
 		}
