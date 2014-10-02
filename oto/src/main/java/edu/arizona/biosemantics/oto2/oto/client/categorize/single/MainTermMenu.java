@@ -4,6 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import com.google.web.bindery.event.shared.EventBus;
+import com.sencha.gxt.widget.core.client.menu.HeaderMenuItem;
 import com.sencha.gxt.widget.core.client.tree.Tree;
 
 import edu.arizona.biosemantics.oto2.oto.client.categorize.TermMenu;
@@ -26,13 +27,17 @@ public class MainTermMenu extends TermMenu {
 
 	@Override
 	public void buildMenu(List<Term> explicitSelection, SelectedTerms selectedTerms) {
+		this.add(new HeaderMenuItem("Categorization"));
 		createMoveTo(explicitSelection, selectedTerms);
 		createCopy(explicitSelection, selectedTerms);
-		createRename(explicitSelection, selectedTerms);
 		createRemove(explicitSelection, selectedTerms);
+		this.add(new HeaderMenuItem("Synonymization"));
 		createAddSynonom(explicitSelection, selectedTerms);
 		createRemoveSynonym(explicitSelection, selectedTerms);
 		createRemoveAllSynonyms(explicitSelection, selectedTerms);
+		this.add(new HeaderMenuItem("Term"));
+		createRename(explicitSelection, selectedTerms);
+		createComment(explicitSelection, selectedTerms);
 	}
 
 	@Override

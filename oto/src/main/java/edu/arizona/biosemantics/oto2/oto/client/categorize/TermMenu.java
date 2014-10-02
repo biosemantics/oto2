@@ -28,6 +28,7 @@ import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.form.CheckBox;
 import com.sencha.gxt.widget.core.client.form.ComboBox;
 import com.sencha.gxt.widget.core.client.info.Info;
+import com.sencha.gxt.widget.core.client.menu.HeaderMenuItem;
 import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
@@ -89,14 +90,18 @@ public abstract class TermMenu extends Menu implements BeforeShowHandler {
 	}
 
 	public void buildMenu(List<Term> explicitSelection, SelectedTerms selectedTerms) {
+		this.add(new HeaderMenuItem("Categorization"));
 		createMoveTo(explicitSelection, selectedTerms);
 		createCopy(explicitSelection, selectedTerms);
-		createRename(explicitSelection, selectedTerms);
 		createRemove(explicitSelection, selectedTerms);
+		this.add(new HeaderMenuItem("Synonymization"));
 		createAddSynonom(explicitSelection, selectedTerms);
 		createRemoveSynonym(explicitSelection, selectedTerms);
 		createRemoveAllSynonyms(explicitSelection, selectedTerms);
+		this.add(new HeaderMenuItem("Term"));
+		createRename(explicitSelection, selectedTerms);
 		createComment(explicitSelection, selectedTerms);
+
 	}
 
 	protected void createComment(final List<Term> explicitSelection, SelectedTerms selectedTerms) {

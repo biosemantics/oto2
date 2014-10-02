@@ -45,6 +45,7 @@ import com.sencha.gxt.widget.core.client.event.ShowEvent;
 import com.sencha.gxt.widget.core.client.event.ShowEvent.ShowHandler;
 import com.sencha.gxt.widget.core.client.form.CheckBox;
 import com.sencha.gxt.widget.core.client.form.ComboBox;
+import com.sencha.gxt.widget.core.client.menu.HeaderMenuItem;
 import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
@@ -87,13 +88,7 @@ public class SingleLabelView extends SimpleContainer {
 		public void onBeforeShow(BeforeShowEvent event) {
 			this.clear();
 						
-			MenuItem collapse = new MenuItem("Collapse All");
-			collapse.addSelectionHandler(new SelectionHandler<Item>() {
-				@Override
-				public void onSelection(SelectionEvent<Item> event) {
-					collapseAll();
-				}
-			});
+			this.add(new HeaderMenuItem("View"));
 			
 			MenuItem expand = new MenuItem("Expand All");
 			expand.addSelectionHandler(new SelectionHandler<Item>() {
@@ -104,6 +99,13 @@ public class SingleLabelView extends SimpleContainer {
 			});
 			
 			this.add(expand);
+			MenuItem collapse = new MenuItem("Collapse All");
+			collapse.addSelectionHandler(new SelectionHandler<Item>() {
+				@Override
+				public void onSelection(SelectionEvent<Item> event) {
+					collapseAll();
+				}
+			});
 			this.add(collapse);
 			
 			MenuItem expandCollapseEmpty = new MenuItem("Expand Non-empty");

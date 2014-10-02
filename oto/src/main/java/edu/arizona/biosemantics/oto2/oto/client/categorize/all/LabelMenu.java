@@ -17,6 +17,7 @@ import com.sencha.gxt.widget.core.client.event.BeforeShowEvent.BeforeShowHandler
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.form.CheckBox;
+import com.sencha.gxt.widget.core.client.menu.HeaderMenuItem;
 import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
@@ -46,6 +47,7 @@ public class LabelMenu extends Menu implements BeforeShowHandler {
 	public void onBeforeShow(BeforeShowEvent event) {
 		this.clear();
 		
+		this.add(new HeaderMenuItem("Category"));
 		MenuItem modify = new MenuItem("Modify");
 		modify.addSelectionHandler(new SelectionHandler<Item>() {
 			@Override
@@ -108,6 +110,7 @@ public class LabelMenu extends Menu implements BeforeShowHandler {
 			merge.setSubMenu(mergeMenu);
 			this.add(merge);
 			
+			this.add(new HeaderMenuItem("View"));
 			MenuItem expandSynonymGroups = new MenuItem("Expand Synonym Groups");
 			expandSynonymGroups.addSelectionHandler(new SelectionHandler<Item>() {
 				@Override

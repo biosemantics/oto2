@@ -41,6 +41,7 @@ import com.sencha.gxt.widget.core.client.event.BeforeShowEvent.BeforeShowHandler
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.form.CheckBox;
+import com.sencha.gxt.widget.core.client.menu.HeaderMenuItem;
 import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
@@ -141,8 +142,10 @@ public class TermsView extends TabPanel {
 					categorizeMenu.add(verticalLayoutContainer);
 					MenuItem categorize = new MenuItem("Categorize to");
 					categorize.setSubMenu(categorizeMenu);
+					this.add(new HeaderMenuItem("Categorize"));
 					this.add(categorize);
 					
+					this.add(new HeaderMenuItem("Term"));
 					MenuItem markUseless = new MenuItem("Mark");
 					Menu subMenu = new Menu();
 					markUseless.setSubMenu(subMenu);

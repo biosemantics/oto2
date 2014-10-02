@@ -29,6 +29,7 @@ import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.form.CheckBox;
 import com.sencha.gxt.widget.core.client.form.TextArea;
 import com.sencha.gxt.widget.core.client.form.TextField;
+import com.sencha.gxt.widget.core.client.menu.HeaderMenuItem;
 import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
@@ -62,7 +63,8 @@ public class LabelPortletsView extends PortalLayoutContainer {
 		public void onBeforeShow(BeforeShowEvent event) {
 			this.clear();
 			
-			MenuItem add = new MenuItem("Add Category");
+			this.add(new HeaderMenuItem("Category"));
+			MenuItem add = new MenuItem("Add");
 			add.addSelectionHandler(new SelectionHandler<Item>() {
 				@Override
 				public void onSelection(SelectionEvent<Item> event) {
@@ -71,15 +73,9 @@ public class LabelPortletsView extends PortalLayoutContainer {
 				}
 			});
 			
-			MenuItem collapse = new MenuItem("Collapse All");
-			collapse.addSelectionHandler(new SelectionHandler<Item>() {
-				@Override
-				public void onSelection(SelectionEvent<Item> event) {
-					collapseAll();
-				}
-			});
+			this.add(add);
 			
-			
+			this.add(new HeaderMenuItem("View"));			
 			MenuItem expand = new MenuItem("Expand All");
 			expand.addSelectionHandler(new SelectionHandler<Item>() {
 				@Override
@@ -87,9 +83,14 @@ public class LabelPortletsView extends PortalLayoutContainer {
 					expandAll();
 				}
 			});
-			
-			this.add(add);
 			this.add(expand);
+			MenuItem collapse = new MenuItem("Collapse All");
+			collapse.addSelectionHandler(new SelectionHandler<Item>() {
+				@Override
+				public void onSelection(SelectionEvent<Item> event) {
+					collapseAll();
+				}
+			});
 			this.add(collapse);
 			
 			MenuItem expandCollapseEmpty = new MenuItem("Expand Non-empty");
