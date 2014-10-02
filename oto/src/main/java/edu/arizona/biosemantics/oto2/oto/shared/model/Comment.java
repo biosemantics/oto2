@@ -5,8 +5,8 @@ import java.io.Serializable;
 public class Comment implements Serializable, Comparable<Comment> {
 
 	private int id = -1;
-	private String user;
-	private String comment;
+	private String user = "";
+	private String comment = "";
 	
 	public Comment() {}
 	

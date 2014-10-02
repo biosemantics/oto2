@@ -7,8 +7,8 @@ import java.util.List;
 public class Collection implements Serializable {
 
 	private int id = -1;
-	private String name;
-	private String secret;
+	private String name = "";
+	private String secret = "";
 	private List<Bucket> buckets = new LinkedList<Bucket>();
 	private List<Label> labels = new LinkedList<Label>();
 

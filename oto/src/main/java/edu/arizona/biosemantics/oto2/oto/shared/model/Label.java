@@ -20,7 +20,7 @@ public class Label implements Serializable, Comparable<Label> {
 	}
 	
 	private int id = - 1;
-	private String name;
+	private String name = "";
 	private int collectionId;
 	private String description = "";
 	private List<Term> mainTerms = new LinkedList<Term>();

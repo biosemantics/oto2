@@ -16,8 +16,8 @@ public class Term implements Serializable, Comparable<Term> {
 	}
 	
 	private int id = -1;
-	private String term;
-	private String originalTerm;
+	private String term = "";
+	private String originalTerm = "";
 	private boolean useless;
 	private List<Comment> comments = new LinkedList<Comment>();
 

@@ -6,8 +6,8 @@ public class Context implements Serializable {
 
 	private int id = -1;
 	private int collectionId;
-	private String source;
-	private String text;
+	private String source = "";
+	private String text = "";
 	
 	public Context() { }
 	

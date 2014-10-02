@@ -10,8 +10,8 @@ public class Bucket implements Serializable, Comparable<Bucket> {
 
 	private int id = -1;
 	private int collectionId;
-	private String name;
-	private String description;
+	private String name = "";
+	private String description = "";
 	private List<Term> terms = new LinkedList<Term>();
 	
 	public Bucket() { }
