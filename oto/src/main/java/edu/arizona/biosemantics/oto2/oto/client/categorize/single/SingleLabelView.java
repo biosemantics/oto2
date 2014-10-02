@@ -383,11 +383,11 @@ public class SingleLabelView extends SimpleContainer {
 
 	private void refreshToolTip() {
 		if(!currentLabel.getDescription().trim().isEmpty()) {
-			this.setToolTip(currentLabel.getDescription());
-			this.setTitle(currentLabel.getDescription());
+			this.setToolTip(currentLabel.getName() + ":</br>" + currentLabel.getDescription());
+			//this.setTitle(currentLabel.getName() + ":</br>" + currentLabel.getDescription());
 		} else {
 			this.setToolTip(null);
-			this.setTitle(null);
+			//this.setTitle(null);
 		}
 	}
 

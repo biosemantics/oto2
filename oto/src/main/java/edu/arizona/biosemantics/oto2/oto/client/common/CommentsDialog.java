@@ -54,13 +54,13 @@ import edu.arizona.biosemantics.oto2.oto.shared.rpc.RPCCallback;
 
 public class CommentsDialog extends Dialog {
 
-	private static class BucketLabelTermComment {
+	private static class CommentEntry {
 		private Bucket bucket;
 		private List<Label> labels;
 		private Term term;
 		private Comment comment;
 
-		public BucketLabelTermComment(Bucket bucket, List<Label> labels, Term term, Comment comment) {
+		public CommentEntry(Bucket bucket, List<Label> labels, Term term, Comment comment) {
 			this.bucket = bucket;
 			this.labels = new ArrayList<Label>(labels);
 			Collections.sort(this.labels);
@@ -81,12 +81,12 @@ public class CommentsDialog extends Dialog {
 		}
 	}
 	
-	private static class BucketLabelTermCommentProperties implements PropertyAccess<BucketLabelTermComment> {
+	private static class CommentEntryProperties implements PropertyAccess<CommentEntry> {
 		@Path("id")
-		ModelKeyProvider<BucketLabelTermComment> key() {
-			return new ModelKeyProvider<BucketLabelTermComment>() {
+		ModelKeyProvider<CommentEntry> key() {
+			return new ModelKeyProvider<CommentEntry>() {
 				@Override
-				public String getKey(BucketLabelTermComment item) {
+				public String getKey(CommentEntry item) {
 					return String.valueOf(item.getComment().getId() + "-" + item.getBucket().getId() + "-" + 
 							item.getTerm().getId());
 				}
@@ -94,14 +94,14 @@ public class CommentsDialog extends Dialog {
 		}
 
 		@Path("user")
-		ValueProvider<BucketLabelTermComment, String> user() {
-			return new ValueProvider<BucketLabelTermComment, String>() {
+		ValueProvider<CommentEntry, String> user() {
+			return new ValueProvider<CommentEntry, String>() {
 				@Override
-				public String getValue(BucketLabelTermComment object) {
+				public String getValue(CommentEntry object) {
 					return object.getComment().getUser();
 				}
 				@Override
-				public void setValue(BucketLabelTermComment object, String value) {	}
+				public void setValue(CommentEntry object, String value) {	}
 				@Override
 				public String getPath() {
 					return "user";
@@ -110,14 +110,14 @@ public class CommentsDialog extends Dialog {
 		}
 
 		@Path("comment")
-		ValueProvider<BucketLabelTermComment, String> text() {
-			return new ValueProvider<BucketLabelTermComment, String>() {
+		ValueProvider<CommentEntry, String> text() {
+			return new ValueProvider<CommentEntry, String>() {
 				@Override
-				public String getValue(BucketLabelTermComment object) {
+				public String getValue(CommentEntry object) {
 					return object.getComment().getComment();
 				}
 				@Override
-				public void setValue(BucketLabelTermComment object, String value) {	
+				public void setValue(CommentEntry object, String value) {	
 					object.getComment().setComment(value);
 				}
 				@Override
@@ -128,14 +128,14 @@ public class CommentsDialog extends Dialog {
 		}
 		
 		@Path("bucket")
-		ValueProvider<BucketLabelTermComment, String> bucket() {
-			return new ValueProvider<BucketLabelTermComment, String>() {
+		ValueProvider<CommentEntry, String> bucket() {
+			return new ValueProvider<CommentEntry, String>() {
 				@Override
-				public String getValue(BucketLabelTermComment object) {
+				public String getValue(CommentEntry object) {
 					return object.getBucket().getName();
 				}
 				@Override
-				public void setValue(BucketLabelTermComment object, String value) {	}
+				public void setValue(CommentEntry object, String value) {	}
 				@Override
 				public String getPath() {
 					return "bucket";
@@ -144,17 +144,17 @@ public class CommentsDialog extends Dialog {
 		}
 
 		@Path("label")
-		ValueProvider<BucketLabelTermComment, String> label() {
-			return new ValueProvider<BucketLabelTermComment, String>() {
+		ValueProvider<CommentEntry, String> label() {
+			return new ValueProvider<CommentEntry, String>() {
 				@Override
-				public String getValue(BucketLabelTermComment object) {
+				public String getValue(CommentEntry object) {
 					String labelString = "";
 					for(Label label : object.getLabels()) 
 						labelString += label.getName() + ", ";
 					return labelString.substring(0, labelString.length() - 2);
 				}
 				@Override
-				public void setValue(BucketLabelTermComment object, String value) { }
+				public void setValue(CommentEntry object, String value) { }
 				@Override
 				public String getPath() {
 					return "label";
@@ -162,14 +162,14 @@ public class CommentsDialog extends Dialog {
 			};
 		}
 		@Path("term")
-		ValueProvider<BucketLabelTermComment, String> term() {
-			return new ValueProvider<BucketLabelTermComment, String>() {
+		ValueProvider<CommentEntry, String> term() {
+			return new ValueProvider<CommentEntry, String>() {
 				@Override
-				public String getValue(BucketLabelTermComment object) {
+				public String getValue(CommentEntry object) {
 					return object.getTerm().getTerm();
 				}
 				@Override
-				public void setValue(BucketLabelTermComment object, String value) { }
+				public void setValue(CommentEntry object, String value) { }
 				@Override
 				public String getPath() {
 					return "term";
@@ -180,55 +180,54 @@ public class CommentsDialog extends Dialog {
 	
 	private EventBus eventBus;
 	private Collection collection;
-	private ListStore<BucketLabelTermComment> commentStore;
-	private BucketLabelTermCommentProperties bucketLabelTermCommentProperties = new BucketLabelTermCommentProperties();
-	private Grid<BucketLabelTermComment> grid;
+	private ListStore<CommentEntry> store;
+	private CommentEntryProperties commentEntryProperties = new CommentEntryProperties();
+	private Grid<CommentEntry> grid;
 	private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
 
-	//by category, by initial bucket
 	public CommentsDialog(final EventBus eventBus, Collection collection) {
 		this.eventBus = eventBus;
 		this.collection = collection;
 				
-		IdentityValueProvider<BucketLabelTermComment> identity = new IdentityValueProvider<BucketLabelTermComment>();
-		final CheckBoxSelectionModel<BucketLabelTermComment> checkBoxSelectionModel = new CheckBoxSelectionModel<BucketLabelTermComment>(
+		IdentityValueProvider<CommentEntry> identity = new IdentityValueProvider<CommentEntry>();
+		final CheckBoxSelectionModel<CommentEntry> checkBoxSelectionModel = new CheckBoxSelectionModel<CommentEntry>(
 				identity);
 
 		checkBoxSelectionModel.setSelectionMode(SelectionMode.MULTI);
 
-		ColumnConfig<BucketLabelTermComment, String> termCol = new ColumnConfig<BucketLabelTermComment, String>(
-				bucketLabelTermCommentProperties.term(), 100, "Term");
-		ColumnConfig<BucketLabelTermComment, String> labelCol = new ColumnConfig<BucketLabelTermComment, String>(
-				bucketLabelTermCommentProperties.label(), 100, "Categories");
-		ColumnConfig<BucketLabelTermComment, String> bucketCol = new ColumnConfig<BucketLabelTermComment, String>(
-				bucketLabelTermCommentProperties.bucket(), 100, "Bucket");
-		ColumnConfig<BucketLabelTermComment, String> userCol = new ColumnConfig<BucketLabelTermComment, String>(
-				bucketLabelTermCommentProperties.user(), 100, "User");
-		final ColumnConfig<BucketLabelTermComment, String> textCol = new ColumnConfig<BucketLabelTermComment, String>(
-				bucketLabelTermCommentProperties.text(), 400, "Comment");
+		ColumnConfig<CommentEntry, String> termCol = new ColumnConfig<CommentEntry, String>(
+				commentEntryProperties.term(), 100, "Term");
+		ColumnConfig<CommentEntry, String> labelCol = new ColumnConfig<CommentEntry, String>(
+				commentEntryProperties.label(), 100, "Categories");
+		ColumnConfig<CommentEntry, String> bucketCol = new ColumnConfig<CommentEntry, String>(
+				commentEntryProperties.bucket(), 100, "Bucket");
+		ColumnConfig<CommentEntry, String> userCol = new ColumnConfig<CommentEntry, String>(
+				commentEntryProperties.user(), 100, "User");
+		final ColumnConfig<CommentEntry, String> textCol = new ColumnConfig<CommentEntry, String>(
+				commentEntryProperties.text(), 400, "Comment");
 
-		List<ColumnConfig<BucketLabelTermComment, ?>> columns = new ArrayList<ColumnConfig<BucketLabelTermComment, ?>>();
+		List<ColumnConfig<CommentEntry, ?>> columns = new ArrayList<ColumnConfig<CommentEntry, ?>>();
 		columns.add(checkBoxSelectionModel.getColumn());
 		columns.add(userCol);
-		columns.add(bucketCol);
 		columns.add(termCol);
 		columns.add(labelCol);
+		columns.add(bucketCol);
 		columns.add(textCol);
-		ColumnModel<BucketLabelTermComment> cm = new ColumnModel<BucketLabelTermComment>(columns);
+		ColumnModel<CommentEntry> cm = new ColumnModel<CommentEntry>(columns);
 
-		commentStore = new ListStore<BucketLabelTermComment>(bucketLabelTermCommentProperties.key());
-		commentStore.setAutoCommit(true);
+		store = new ListStore<CommentEntry>(commentEntryProperties.key());
+		store.setAutoCommit(true);
 		
-		List<BucketLabelTermComment> comments = createComments();
-		for (BucketLabelTermComment comment : comments)
-			commentStore.add(comment);
+		List<CommentEntry> comments = createComments();
+		for (CommentEntry comment : comments)
+			store.add(comment);
 
-		final GroupingView<BucketLabelTermComment> groupingView = new GroupingView<BucketLabelTermComment>();
+		final GroupingView<CommentEntry> groupingView = new GroupingView<CommentEntry>();
 		groupingView.setShowGroupedColumn(false);
 		groupingView.setForceFit(true);
 		groupingView.groupBy(userCol);
 
-		grid = new Grid<BucketLabelTermComment>(commentStore, cm);
+		grid = new Grid<CommentEntry>(store, cm);
 		grid.setView(groupingView);
 		grid.setContextMenu(createContextMenu());
 		grid.setSelectionModel(checkBoxSelectionModel);
@@ -237,18 +236,18 @@ public class CommentsDialog extends Dialog {
 		grid.getView().setStripeRows(true);
 		grid.getView().setColumnLines(true);
 		
-		//StringFilter<BucketLabelTermComment> termFilter = new StringFilter<BucketLabelTermComment>(
-		//		bucketLabelTermCommentProperties.term());
-		//StringFilter<BucketLabelTermComment> labelFilter = new StringFilter<BucketLabelTermComment>(
-		//		bucketLabelTermCommentProperties.label());
-		//StringFilter<BucketLabelTermComment> bucketFilter = new StringFilter<BucketLabelTermComment>(
+		StringFilter<CommentEntry> termFilter = new StringFilter<CommentEntry>(
+				commentEntryProperties.term());
+		StringFilter<CommentEntry> labelFilter = new StringFilter<CommentEntry>(
+				commentEntryProperties.label());
+		//StringFilter<CommentEntry> bucketFilter = new StringFilter<CommentEntry>(
 		//		bucketLabelTermCommentProperties.bucket());
-		StringFilter<BucketLabelTermComment> userFilter = new StringFilter<BucketLabelTermComment>(
-				bucketLabelTermCommentProperties.user());
-		StringFilter<BucketLabelTermComment> commentFilter = new StringFilter<BucketLabelTermComment>(
-				bucketLabelTermCommentProperties.text());
+		StringFilter<CommentEntry> userFilter = new StringFilter<CommentEntry>(
+				commentEntryProperties.user());
+		StringFilter<CommentEntry> commentFilter = new StringFilter<CommentEntry>(
+				commentEntryProperties.text());
 
-		ListStore<String> termFilterStore = new ListStore<String>(
+		/*ListStore<String> termFilterStore = new ListStore<String>(
 				new ModelKeyProvider<String>() {
 					@Override
 					public String getKey(String item) {
@@ -257,7 +256,7 @@ public class CommentsDialog extends Dialog {
 				});
 		for(Label label : collection.getLabels())
 			termFilterStore.add(label.getName());
-		ListFilter<BucketLabelTermComment, String> termFilter = new ListFilter<BucketLabelTermComment, String>(
+		ListFilter<CommentEntry, String> termFilter = new ListFilter<CommentEntry, String>(
 				bucketLabelTermCommentProperties.term(), termFilterStore);
 		
 		ListStore<String> labelFilterStore = new ListStore<String>(
@@ -269,8 +268,8 @@ public class CommentsDialog extends Dialog {
 				});
 		for(Label label : collection.getLabels())
 			labelFilterStore.add(label.getName());
-		ListFilter<BucketLabelTermComment, String> labelFilter = new ListFilter<BucketLabelTermComment, String>(
-				bucketLabelTermCommentProperties.label(), labelFilterStore);
+		ListFilter<CommentEntry, String> labelFilter = new ListFilter<CommentEntry, String>(
+				bucketLabelTermCommentProperties.label(), labelFilterStore);*/
 		
 		ListStore<String> bucketFilterStore = new ListStore<String>(
 				new ModelKeyProvider<String>() {
@@ -281,10 +280,10 @@ public class CommentsDialog extends Dialog {
 				});
 		for(Bucket bucket : collection.getBuckets())
 			bucketFilterStore.add(bucket.getName());
-		ListFilter<BucketLabelTermComment, String> bucketFilter = new ListFilter<BucketLabelTermComment, String>(
-				bucketLabelTermCommentProperties.bucket(), bucketFilterStore);
+		ListFilter<CommentEntry, String> bucketFilter = new ListFilter<CommentEntry, String>(
+				commentEntryProperties.bucket(), bucketFilterStore);
 
-		GridFilters<BucketLabelTermComment> filters = new GridFilters<BucketLabelTermComment>();
+		GridFilters<CommentEntry> filters = new GridFilters<CommentEntry>();
 		filters.initPlugin(grid);
 		filters.setLocal(true);
 
@@ -294,10 +293,10 @@ public class CommentsDialog extends Dialog {
 		filters.addFilter(userFilter);
 		filters.addFilter(commentFilter);
 
-		GridInlineEditing<BucketLabelTermComment> editing = new GridInlineEditing<BucketLabelTermComment>(grid) {
+		GridInlineEditing<CommentEntry> editing = new GridInlineEditing<CommentEntry>(grid) {
 			@Override
 			public void startEditing(final GridCell cell) {
-				BucketLabelTermComment comment = commentStore.get(cell.getRow());
+				CommentEntry comment = store.get(cell.getRow());
 				if(comment.getComment().getUser().equals(Oto.user))
 					super.startEditing(cell);
 			}
@@ -305,12 +304,12 @@ public class CommentsDialog extends Dialog {
 		final TextField editor = new TextField();
 		editing.addEditor(textCol, editor);
 		//final SetValueValidator setValueValidator = new SetValueValidator(model);	
-		editing.addCompleteEditHandler(new CompleteEditHandler<BucketLabelTermComment>() {
+		editing.addCompleteEditHandler(new CompleteEditHandler<CommentEntry>() {
 			@Override
-			public void onCompleteEdit(CompleteEditEvent<BucketLabelTermComment> event) {			
+			public void onCompleteEdit(CompleteEditEvent<CommentEntry> event) {			
 				GridCell cell = event.getEditCell();
-				final BucketLabelTermComment comment = grid.getStore().get(cell.getRow());
-				ColumnConfig<BucketLabelTermComment, String> config = grid.getColumnModel().getColumn(cell.getCol());
+				final CommentEntry comment = grid.getStore().get(cell.getRow());
+				ColumnConfig<CommentEntry, String> config = grid.getColumnModel().getColumn(cell.getCol());
 				/*if(config.equals(textCol)) {
 					switch(comment.getType()) {
 						case taxonCharacterValueType:
@@ -372,9 +371,9 @@ public class CommentsDialog extends Dialog {
 		removeItem.addSelectionHandler(new SelectionHandler<Item>() {
 			@Override
 			public void onSelection(SelectionEvent<Item> event) {
-				for (BucketLabelTermComment comment : grid.getSelectionModel()
+				for (CommentEntry comment : grid.getSelectionModel()
 						.getSelectedItems()) {
-					commentStore.remove(comment);
+					store.remove(comment);
 					eventBus.fireEvent(new CommentEvent(comment.getTerm(), new Comment(Oto.user, null)));
 				}
 			}
@@ -382,12 +381,12 @@ public class CommentsDialog extends Dialog {
 		return menu;
 	}
 
-	private List<BucketLabelTermComment> createComments() {
-		List<BucketLabelTermComment> comments = new LinkedList<BucketLabelTermComment>();
+	private List<CommentEntry> createComments() {
+		List<CommentEntry> comments = new LinkedList<CommentEntry>();
 		for(Bucket bucket : collection.getBuckets()) {
 			for(Term term : bucket.getTerms()) {
 				for(Comment comment : term.getComments()) {
-					comments.add(new BucketLabelTermComment(bucket, collection.getLabels(term), term, comment));
+					comments.add(new CommentEntry(bucket, collection.getLabels(term), term, comment));
 				}
 			}
 		}

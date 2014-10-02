@@ -177,11 +177,11 @@ public class LabelPortlet extends Portlet {
 	
 	private void refreshToolTip() {
 		if(!label.getDescription().trim().isEmpty()) {
-			this.setToolTip(label.getDescription());
-			this.setTitle(label.getDescription());
+			this.setToolTip(label.getName() + ":</br>" + label.getDescription());
+			//this.setTitle(label.getName() + ":</br>" + label.getDescription());
 		} else {
 			this.setToolTip(null);
-			this.setTitle(null);
+			//this.setTitle(null);
 		}
 	}
 
