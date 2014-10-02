@@ -109,8 +109,8 @@ public class ContextDAO {
 			try(Query insert = new Query("INSERT INTO `oto_context` " +
 					"(`collection`, `source`, `text`) VALUES (?, ?, ?)")) {
 				insert.setParameter(1, context.getCollectionId());
-				insert.setParameter(2, context.getSource());
-				insert.setParameter(3, context.getText());
+				insert.setParameter(2, context.getSource().trim());
+				insert.setParameter(3, context.getText().trim());
 				insert.execute();
 				ResultSet generatedKeys = insert.getGeneratedKeys();
 				generatedKeys.next();

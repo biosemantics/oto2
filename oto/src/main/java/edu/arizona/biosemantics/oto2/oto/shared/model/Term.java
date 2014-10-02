@@ -73,10 +73,6 @@ public class Term implements Serializable, Comparable<Term> {
 		this.id = id;
 	}
 
-	public boolean isUseless() {
-		return useless;
-	}
-
 	public void setUseless(boolean useless) {
 		this.useless = useless;
 	}

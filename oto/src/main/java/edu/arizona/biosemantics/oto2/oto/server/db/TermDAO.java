@@ -59,9 +59,9 @@ public class TermDAO {
 			try(Query insert = new Query("INSERT INTO `oto_term` " +
 					"(`bucket`, `term`, `original_term`, `useless`) VALUES (?, ?, ?, ?)")) {
 				insert.setParameter(1, bucketId);
-				insert.setParameter(2, term.getTerm());
-				insert.setParameter(3, term.getTerm());
-				insert.setParameter(4, term.isUseless());
+				insert.setParameter(2, term.getTerm().trim());
+				insert.setParameter(3, term.getTerm().trim());
+				insert.setParameter(4, term.getUseless());
 				insert.execute();
 				ResultSet generatedKeys = insert.getGeneratedKeys();
 				generatedKeys.next();
@@ -78,7 +78,7 @@ public class TermDAO {
 		try(Query query = new Query("UPDATE oto_term SET bucket = ?, term = ?, useless = ? WHERE id = ?")) {
 			query.setParameter(1, bucketId);
 			query.setParameter(2, term.getTerm());
-			query.setParameter(3, term.isUseless());
+			query.setParameter(3, term.getUseless());
 			//never update original_term because it contains the *original* spelling of the term
 			query.setParameter(4, term.getId());	
 			query.execute();

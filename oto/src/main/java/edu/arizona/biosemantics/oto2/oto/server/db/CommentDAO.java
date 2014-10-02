@@ -41,8 +41,8 @@ public class CommentDAO {
 			try(Query insert = new Query("INSERT INTO `oto_term_comment` " +
 					"(`term`, `user`, `comment`) VALUES (?, ?, ?)")) {
 				insert.setParameter(1, termId);
-				insert.setParameter(2, comment.getUser());
-				insert.setParameter(3, comment.getComment());
+				insert.setParameter(2, comment.getUser().trim());
+				insert.setParameter(3, comment.getComment().trim());
 				insert.execute();
 				ResultSet generatedKeys = insert.getGeneratedKeys();
 				generatedKeys.next();

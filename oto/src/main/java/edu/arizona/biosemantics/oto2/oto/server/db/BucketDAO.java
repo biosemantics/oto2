@@ -56,8 +56,8 @@ public class BucketDAO {
 			try (Query insert = new Query("INSERT INTO `oto_bucket` " +
 					"(`collection`, `name`, `description`) VALUES (?, ?, ?)")) {
 				insert.setParameter(1, collectionId);
-				insert.setParameter(2, bucket.getName());
-				insert.setParameter(3, bucket.getDescription());
+				insert.setParameter(2, bucket.getName().trim());
+				insert.setParameter(3, bucket.getDescription().trim());
 				insert.execute();
 				ResultSet generatedKeys = insert.getGeneratedKeys();
 				generatedKeys.next();

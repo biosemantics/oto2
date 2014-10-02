@@ -74,8 +74,8 @@ public class LabelDAO {
 					"(`collection`, `type`, `name`, `description`) VALUES (?, ?, ?, ?)")) {
 				insert.setParameter(1, collectionId);
 				insert.setParameter(2, label.getClass().getSimpleName());
-				insert.setParameter(3, label.getName());
-				insert.setParameter(4, label.getDescription());
+				insert.setParameter(3, label.getName().trim());
+				insert.setParameter(4, label.getDescription().trim());
 				insert.execute();
 				ResultSet generatedKeys = insert.getGeneratedKeys();
 				generatedKeys.next();

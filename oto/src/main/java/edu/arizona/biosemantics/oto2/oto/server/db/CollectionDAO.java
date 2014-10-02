@@ -130,7 +130,7 @@ public class CollectionDAO {
 	public Collection insert(Collection collection)  {
 		if(!collection.hasId()) {
 			try(Query insert = new Query("INSERT INTO `oto_collection` (`name`, `secret`) VALUES(?, ?)")) {
-				insert.setParameter(1, collection.getName());
+				insert.setParameter(1, collection.getName().trim());
 				insert.setParameter(2, collection.getSecret());
 				insert.execute();
 				ResultSet generatedKeys = insert.getGeneratedKeys();

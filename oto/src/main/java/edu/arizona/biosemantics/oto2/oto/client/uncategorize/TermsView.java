@@ -287,7 +287,7 @@ public class TermsView extends TabPanel {
 					if(textTreeNode instanceof TermTreeNode) {
 						TermTreeNode termTreeNode = (TermTreeNode)textTreeNode;
 						Term term = termTreeNode.getTerm();
-						if(term.isUseless()) {
+						if(term.getUseless()) {
 							sb.append(SafeHtmlUtils.fromTrustedString("<div style='padding-left:5px; padding-right:5px; background-color:gray; " +
 									"color:white'>" + 
 									textTreeNode.getText() + "</div>"));

@@ -315,7 +315,7 @@ public class LabelPortletsView extends PortalLayoutContainer {
 		case "size":
 		case "density":
 			return 4;
-		case "distrubition":
+		case "distribution":
 		case "habitat":
 		case "location":
 			return 5;
