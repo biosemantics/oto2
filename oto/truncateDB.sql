@@ -5,3 +5,4 @@ TRUNCATE TABLE  `oto_labeling`;
 TRUNCATE TABLE  `oto_synonym`;
 TRUNCATE TABLE  `oto_context`;
 TRUNCATE TABLE  `oto_term`;
+TRUNCATE TABLE	`oto_term_comment`;

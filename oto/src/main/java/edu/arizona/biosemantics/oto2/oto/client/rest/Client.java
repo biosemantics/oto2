@@ -94,7 +94,7 @@ public class Client {
 		Client client = new Client("http://127.0.0.1:60137/");	
 		client.open();
 		
-		Collection collection = new Collection("name", "my secret");
+		Collection collection = new Collection("name", "type", "my secret");
 		Future<Collection> col = client.put(collection);
 		col.get();
 		

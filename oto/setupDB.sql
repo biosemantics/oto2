@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS `oto_collection` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(100) NOT NULL,
+  `type` varchar(100) NOT NULL,
   `secret` varchar(100) NOT NULL,
   `lastretrieved` TIMESTAMP NOT NULL DEFAULT 0,
   `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,

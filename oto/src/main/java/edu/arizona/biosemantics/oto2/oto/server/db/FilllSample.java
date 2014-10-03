@@ -94,6 +94,7 @@ public class FilllSample {
 		Collection collection = new Collection();
 		collection.setName("My test");
 		collection.setBuckets(buckets);
+		collection.setType("Plant");
 		
 		List<Label> labels = new LinkedList<Label>();
 		Label l0 = new HighlightLabel();

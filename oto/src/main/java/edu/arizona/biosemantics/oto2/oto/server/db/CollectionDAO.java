@@ -123,14 +123,16 @@ public class CollectionDAO {
 	private Collection createCollection(ResultSet result) throws SQLException {
 		int id = result.getInt(1);
 		String name = result.getString(2);
-		String secret = result.getString(3);
-		return new Collection(id, name, secret);
+		String type = result.getString(3);
+		String secret = result.getString(4);
+		return new Collection(id, name, type, secret);
 	}
 
 	public Collection insert(Collection collection)  {
 		if(!collection.hasId()) {
-			try(Query insert = new Query("INSERT INTO `oto_collection` (`name`, `secret`) VALUES(?, ?)")) {
+			try(Query insert = new Query("INSERT INTO `oto_collection` (`name`, `type`, `secret`) VALUES(?, ?, ?)")) {
 				insert.setParameter(1, collection.getName().trim());
+				insert.setParameter(2, collection.getType());
 				insert.setParameter(2, collection.getSecret());
 				insert.execute();
 				ResultSet generatedKeys = insert.getGeneratedKeys();
@@ -165,10 +167,11 @@ public class CollectionDAO {
 			e1.printStackTrace();
 		}*/
 		
-		try(Query query = new Query("UPDATE oto_collection SET name = ?, secret = ? WHERE id = ?")) {
+		try(Query query = new Query("UPDATE oto_collection SET name = ?, type = ? secret = ? WHERE id = ?")) {
 			query.setParameter(1, collection.getName());
-			query.setParameter(2, collection.getSecret());
-			query.setParameter(3, collection.getId());
+			query.setParameter(2, collection.getType());
+			query.setParameter(3, collection.getSecret());
+			query.setParameter(4, collection.getId());
 			query.execute();
 		} catch(QueryException e) {
 			e.printStackTrace();

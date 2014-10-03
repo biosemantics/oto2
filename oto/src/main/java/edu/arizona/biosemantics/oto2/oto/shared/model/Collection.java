@@ -8,13 +8,14 @@ public class Collection implements Serializable {
 
 	private int id = -1;
 	private String name = "";
+	private String type = "";
 	private String secret = "";
 	private List<Bucket> buckets = new LinkedList<Bucket>();
 	private List<Label> labels = new LinkedList<Label>();
 
 	public Collection() { }
 	
-	public Collection(String name, String secret) {
+	public Collection(String name, String type, String secret) {
 		this.name = name;
 		this.secret = secret;
 	}
@@ -22,10 +23,9 @@ public class Collection implements Serializable {
 	public Collection(int id, String secret) {
 		this.id = id;
 		this.secret = secret;
-		this.name = "";
 	}	
 	
-	public Collection(int id, String name, String secret) {
+	public Collection(int id, String name, String type, String secret) {
 		super();
 		this.id = id;
 		this.name = name;
@@ -148,6 +148,14 @@ public class Collection implements Serializable {
 			result.addAll(bucket.getTerms());
 		}
 		return result;
-	}	
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
 	
 }
