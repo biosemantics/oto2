@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -96,6 +97,32 @@ public class HistoricInitializer {
 	}
 
 	public void initializeLabeling(Collection collection) {
+		Set<Term> structureTerms = new HashSet<Term>();
+		for(Bucket bucket : collection.getBuckets())
+			if(bucket.getName().equalsIgnoreCase("structure")) {
+				structureTerms.addAll(bucket.getTerms());
+			}
+		Label structureLabel = null;
+		for(Label label : collection.getLabels()) {
+			if(label.getName().equalsIgnoreCase("structure")) {
+				structureLabel = label;
+			}
+		}
+		
+		if(structureLabel != null) {
+			initializeStructureTerms(collection, structureTerms, structureLabel);
+			initializeRemainingTerms(collection, structureTerms);
+		} else 
+			initializeRemainingTerms(collection, new HashSet<Term>());
+	}
+	
+	private void initializeStructureTerms(Collection collection, Set<Term> structureTerms, Label structureLabel) {
+		LabelingDAO labelingDAO = daoManager.getLabelingDAO();
+		for(Term structureTerm : structureTerms) 
+			labelingDAO.insert(structureTerm, structureLabel);
+	}
+
+	private void initializeRemainingTerms(Collection collection, Set<Term> structureTerms) {
 		TermDAO termDAO = daoManager.getTermDAO();
 		LabelingDAO labelingDAO = daoManager.getLabelingDAO();
 		labelingDAO.remove(collection);
@@ -106,49 +133,51 @@ public class HistoricInitializer {
 			
 			List<Term> terms = termDAO.getTerms(collection);
 			for(Term term : terms) {
-				try(Query query = new Query("SELECT l.name FROM oto_labeling x, oto_label l, " +
-						"oto_term t, oto_collection c, oto_synonym s " +
-						"WHERE (x.label = l.id AND l.collection = c.id AND c.id != ? AND c.type = ? AND " +
-						"x.term = t.id AND t.term = ?) OR " +
-						"(s.label = l.id AND l.collection = c.id AND c.id != ? AND c.type = ? AND " + 
-						"s.synonymterm = t.id AND t.term = ?)")) {
-					query.setParameter(1, collection.getId());
-					query.setParameter(2, collection.getType());
-					query.setParameter(3, term.getTerm());
-					query.setParameter(4, collection.getId());
-					query.setParameter(5, collection.getType());
-					query.setParameter(6, term.getTerm());
-					ResultSet result = query.execute();
-					Map<String, Integer> labelingMap = new HashMap<String, Integer>();
-					while(result.next()) {
-						String labelName = result.getString(1);
-						if(!labelingMap.containsKey(labelName))
-							labelingMap.put(labelName, 0);
-						labelingMap.put(labelName, labelingMap.get(labelName) + 1);
-					}
-					
-					class LabelCount implements Comparable<LabelCount> {
-						public String labelName;
-						public int count;
-						public LabelCount(String labelName, int count) {
-							this.labelName = labelName;
-							this.count = count;
+				if(structureTerms.contains(term)) {
+					try(Query query = new Query("SELECT l.name FROM oto_labeling x, oto_label l, " +
+							"oto_term t, oto_collection c, oto_synonym s " +
+							"WHERE (x.label = l.id AND l.collection = c.id AND c.id != ? AND c.type = ? AND " +
+							"x.term = t.id AND t.term = ?) OR " +
+							"(s.label = l.id AND l.collection = c.id AND c.id != ? AND c.type = ? AND " + 
+							"s.synonymterm = t.id AND t.term = ?)")) {
+						query.setParameter(1, collection.getId());
+						query.setParameter(2, collection.getType());
+						query.setParameter(3, term.getTerm());
+						query.setParameter(4, collection.getId());
+						query.setParameter(5, collection.getType());
+						query.setParameter(6, term.getTerm());
+						ResultSet result = query.execute();
+						Map<String, Integer> labelingMap = new HashMap<String, Integer>();
+						while(result.next()) {
+							String labelName = result.getString(1);
+							if(!labelingMap.containsKey(labelName))
+								labelingMap.put(labelName, 0);
+							labelingMap.put(labelName, labelingMap.get(labelName) + 1);
 						}
-						@Override
-						public int compareTo(LabelCount o) {
-							return o.count - this.count;
+						
+						class LabelCount implements Comparable<LabelCount> {
+							public String labelName;
+							public int count;
+							public LabelCount(String labelName, int count) {
+								this.labelName = labelName;
+								this.count = count;
+							}
+							@Override
+							public int compareTo(LabelCount o) {
+								return o.count - this.count;
+							}
 						}
-					}
-					List<LabelCount> labelCounts = new ArrayList<LabelCount>();
-					for(String labelName : labelingMap.keySet()) {
-						labelCounts.add(new LabelCount(labelName, labelingMap.get(labelName)));
-					}
-					Collections.sort(labelCounts);
-					
-					for(LabelCount labelCount : labelCounts) {
-						if(labelNameMap.containsKey(labelCount.labelName)) {
-							labelingDAO.insert(term, labelNameMap.get(labelCount.labelName));
-							break;
+						List<LabelCount> labelCounts = new ArrayList<LabelCount>();
+						for(String labelName : labelingMap.keySet()) {
+							labelCounts.add(new LabelCount(labelName, labelingMap.get(labelName)));
+						}
+						Collections.sort(labelCounts);
+						
+						for(LabelCount labelCount : labelCounts) {
+							if(labelNameMap.containsKey(labelCount.labelName)) {
+								labelingDAO.insert(term, labelNameMap.get(labelCount.labelName));
+								break;
+							}
 						}
 					}
 				}
@@ -157,7 +186,7 @@ public class HistoricInitializer {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public void initializeSynonym(Collection collection) {
 		SynonymDAO synonymDAO = daoManager.getSynonymDAO();
 		synonymDAO.remove(collection);
