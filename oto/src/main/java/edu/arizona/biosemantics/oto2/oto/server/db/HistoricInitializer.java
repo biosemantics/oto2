@@ -99,7 +99,7 @@ public class HistoricInitializer {
 	public void initializeLabeling(Collection collection) {
 		Set<Term> structureTerms = new HashSet<Term>();
 		for(Bucket bucket : collection.getBuckets())
-			if(bucket.getName().equalsIgnoreCase("structure")) {
+			if(bucket.getName().equalsIgnoreCase("structures")) {
 				structureTerms.addAll(bucket.getTerms());
 			}
 		Label structureLabel = null;
