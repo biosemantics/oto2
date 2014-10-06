@@ -133,7 +133,7 @@ public class CollectionDAO {
 			try(Query insert = new Query("INSERT INTO `oto_collection` (`name`, `type`, `secret`) VALUES(?, ?, ?)")) {
 				insert.setParameter(1, collection.getName().trim());
 				insert.setParameter(2, collection.getType());
-				insert.setParameter(2, collection.getSecret());
+				insert.setParameter(3, collection.getSecret());
 				insert.execute();
 				ResultSet generatedKeys = insert.getGeneratedKeys();
 				generatedKeys.next();
@@ -201,5 +201,20 @@ public class CollectionDAO {
 		synonymDAO.remove(collection);
 		termDAO.resetTerms(collection);
 		return this.get(collection.getId());
+	}
+
+	public List<Collection> getCollections(String type) throws Exception {
+		List<Collection> collections = new LinkedList<Collection>();
+		try(Query query = new Query("SELECT id FROM oto_collection WHERE type = ?")) {
+			query.setParameter(1, type);
+			ResultSet result = query.execute();
+			while(result.next()) {
+				int id = result.getInt(1);
+				Collection collection = get(id);
+				if(collection != null)
+					collections.add(collection);
+			}
+		}
+		return collections;
 	}	
 }

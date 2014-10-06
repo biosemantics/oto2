@@ -154,7 +154,8 @@ public class OtoPresenter {
 		eventBus.addHandler(LoadEvent.TYPE, new LoadEvent.LoadHandler() {
 			@Override
 			public void onLoad(LoadEvent event) {
-				loadCollection(event.getCollection().getId(), event.getCollection().getSecret());
+				loadCollection(event.getCollection().getId(), 
+						event.getCollection().getSecret(), event.isInitializeFromHistory());
 			}
 		});
 	}
@@ -166,7 +167,7 @@ public class OtoPresenter {
 		});
 	}
 
-	public void loadCollection(int collectionId, String secret) {		
+	public void loadCollection(int collectionId, String secret, boolean initializeFromHistory) {		
 		Collection collection = new Collection();
 		collection.setId(collectionId);
 		collection.setSecret(secret);
@@ -174,33 +175,43 @@ public class OtoPresenter {
         box.setProgressText("Loading...");
         box.auto();
         box.show();
-		collectionService.get(collection, new RPCCallback<Collection>() {
-			@Override
-			public void onSuccess(Collection result) {
-				modelControler.setCollection(result);
-				OtoPresenter.this.collection = result;
-				view.setCollection(result);
-				
-				//already store ontologies, otherwise delay when requested on button press
-				ontologyService.getOntologies(new RPCCallback<Set<Ontology>>() {
-					@Override
-					public void onSuccess(Set<Ontology> result) {
-						SelectOntologiesDialog.setOntologies(result);
-						box.hide();
-					}
-					@Override
-					public void onFailure(Throwable caught) {
-						caught.printStackTrace();
-						box.hide();
-					}
-				});
-			}
-			@Override
-			public void onFailure(Throwable caught) {
-				caught.printStackTrace();
-				box.hide();
-				Alerter.alertFailedToLoadCollection();
-			}
-		});
+        CollectionLoader loader = new CollectionLoader(box);
+        if(initializeFromHistory) 
+        	collectionService.initializeFromHistory(collection, loader);
+        else
+	        collectionService.get(collection, loader);
+	}
+	
+	private class CollectionLoader extends RPCCallback<Collection> {
+		private AutoProgressMessageBox box;
+		public CollectionLoader(AutoProgressMessageBox box) {
+			this.box = box;
+		}
+		@Override
+		public void onSuccess(Collection result) {
+			modelControler.setCollection(result);
+			OtoPresenter.this.collection = result;
+			view.setCollection(result);
+			
+			//already store ontologies, otherwise delay when requested on button press
+			ontologyService.getOntologies(new RPCCallback<Set<Ontology>>() {
+				@Override
+				public void onSuccess(Set<Ontology> result) {
+					SelectOntologiesDialog.setOntologies(result);
+					box.hide();
+				}
+				@Override
+				public void onFailure(Throwable caught) {
+					caught.printStackTrace();
+					box.hide();
+				}
+			});
+		}
+		@Override
+		public void onFailure(Throwable caught) {
+			caught.printStackTrace();
+			box.hide();
+			Alerter.alertFailedToLoadCollection();
+		}
 	}
 }

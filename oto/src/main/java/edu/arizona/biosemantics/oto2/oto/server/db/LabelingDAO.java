@@ -3,12 +3,17 @@ package edu.arizona.biosemantics.oto2.oto.server.db;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import edu.arizona.biosemantics.oto2.oto.server.db.Query.QueryException;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Bucket;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
@@ -67,6 +72,16 @@ public class LabelingDAO {
 				Term term = termDAO.get(termId);
 				if(term != null)
 					terms.add(term);
+			}
+			try(Query synonymQuery = new Query("SELECT * FROM oto_synonym WHERE label = ?")) {
+				synonymQuery.setParameter(1, label.getId());
+				result = query.execute();
+				while(result.next()) {
+					int termId = result.getInt(3);
+					Term term = termDAO.get(termId);
+					if(term != null)
+						terms.add(term);
+				}
 			}
 		} catch(Exception e) {
 			e.printStackTrace();
@@ -163,5 +178,6 @@ public class LabelingDAO {
 			e.printStackTrace();
 		}	
 	}
+
 
 }

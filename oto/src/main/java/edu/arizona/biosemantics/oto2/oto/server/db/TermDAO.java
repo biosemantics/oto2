@@ -3,8 +3,10 @@ package edu.arizona.biosemantics.oto2.oto.server.db;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import edu.arizona.biosemantics.oto2.oto.server.db.Query.QueryException;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Bucket;
@@ -14,6 +16,7 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 
 public class TermDAO {
 	
+	private CollectionDAO collectionDAO;
 	private BucketDAO bucketDAO;
 	private CommentDAO commentDAO;
 	
@@ -26,6 +29,11 @@ public class TermDAO {
 	public void setCommentDAO(CommentDAO commentDAO) {
 		this.commentDAO = commentDAO;
 	}
+	
+	public void setCollectionDAO(CollectionDAO collectionDAO) {
+		this.collectionDAO = collectionDAO;
+	}
+	
 
 	public Term get(int id)  {
 		Term term = null;
@@ -41,7 +49,7 @@ public class TermDAO {
 		return term;
 	}
 	
-	private Term createTerm(ResultSet result) throws SQLException  {
+	public Term createTerm(ResultSet result) throws SQLException  {
 		int id = result.getInt(1);
 		//int bucketId = result.getInt(2);
 		String text = result.getString(3);
@@ -125,12 +133,15 @@ public class TermDAO {
 	}
 
 	public void resetTerms(Collection collection)  {
-		try(Query query = new Query("UPDATE oto_term t, oto_bucket b SET t.term = t.original_term WHERE b.collection = ? AND t.bucket = b.id")) {
+		try(Query query = new Query("UPDATE oto_term t, oto_bucket b " +
+				"SET t.term = t.original_term, t.useless = false WHERE b.collection = ? AND t.bucket = b.id")) {
 			query.setParameter(1, collection.getId());
 			query.execute();
 		} catch(QueryException e) {
 			e.printStackTrace();
 		}	
 	}
+
+
 	
 }

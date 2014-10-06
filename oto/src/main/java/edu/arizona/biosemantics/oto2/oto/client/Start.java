@@ -24,7 +24,7 @@ public class Start implements EntryPoint {
 				System.out.println("save called");
 			}
 		});
-		oto.loadCollection(collectionId, secret);
+		oto.loadCollection(collectionId, secret, false);
 	}
 
 }

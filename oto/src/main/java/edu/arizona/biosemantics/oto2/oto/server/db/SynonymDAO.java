@@ -4,9 +4,11 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import edu.arizona.biosemantics.oto2.oto.server.db.Query.QueryException;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
@@ -15,6 +17,7 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 
 public class SynonymDAO {
 
+	private LabelingDAO labelingDAO;
 	private TermDAO termDAO;
 	
 	protected SynonymDAO() { }
@@ -23,6 +26,10 @@ public class SynonymDAO {
 		this.termDAO = termDAO;
 	}
 	
+	public void setLabelingDAO(LabelingDAO labelingDAO) {
+		this.labelingDAO = labelingDAO;
+	}
+
 	public Map<Term, List<Term>> get(Label label)  {
 		Map<Term, List<Term>> synonyms = new HashMap<Term, List<Term>>();
 		try(Query query = new Query("SELECT * FROM oto_synonym WHERE label = ?")) {
@@ -52,7 +59,7 @@ public class SynonymDAO {
 		}
 		notInMainTerms = notInMainTerms.isEmpty() ? "" : notInMainTerms.substring(0, notInMainTerms.length() - 1);
 		String deleteOldSynonymsQuery = notInMainTerms.isEmpty() ? "DELETE FROM `oto_synonym` WHERE label = ?" : 
-			 "DELETE FROM `oto_synonym` WHERE label = ? AND mainTerm NOT IN (" + notInMainTerms + ")";
+			 "DELETE FROM `oto_synonym` WHERE label = ? AND mainterm NOT IN (" + notInMainTerms + ")";
 		try(Query deleteOldSynonyms = new Query(deleteOldSynonymsQuery)) {
 			deleteOldSynonyms.setParameter(1, label.getId());
 			deleteOldSynonyms.execute();
@@ -69,8 +76,8 @@ public class SynonymDAO {
 			}
 			
 			notInSynonyms = notInSynonyms.isEmpty() ? "" : notInSynonyms.substring(0, notInSynonyms.length() - 1);
-			deleteOldSynonymsQuery = notInSynonyms.isEmpty() ? "DELETE FROM `oto_synonym` WHERE label = ? AND mainTerm = ?" : 
-				 "DELETE FROM `oto_synonym` WHERE label = ? AND mainTerm = ? AND synonymTerm NOT IN (" + notInSynonyms + ")";
+			deleteOldSynonymsQuery = notInSynonyms.isEmpty() ? "DELETE FROM `oto_synonym` WHERE label = ? AND mainterm = ?" : 
+				 "DELETE FROM `oto_synonym` WHERE label = ? AND mainterm = ? AND synonymterm NOT IN (" + notInSynonyms + ")";
 			try(Query deleteOldSynonyms = new Query(deleteOldSynonymsQuery)) {
 				deleteOldSynonyms.setParameter(1, label.getId());
 				deleteOldSynonyms.setParameter(2, mainTerm.getId());
@@ -81,7 +88,7 @@ public class SynonymDAO {
 			
 			for(Term synonymTerm : synonymTerms) {
 				try(Query insert = new Query("INSERT IGNORE INTO `oto_synonym` " +
-						"(`mainTerm`, `label`, `synonymTerm`) VALUES (?, ?, ?)")) {		
+						"(`mainterm`, `label`, `synonymterm`) VALUES (?, ?, ?)")) {		
 					insert.setParameter(1, mainTerm.getId());
 					insert.setParameter(2, label.getId());
 					insert.setParameter(3, synonymTerm.getId());
@@ -92,14 +99,27 @@ public class SynonymDAO {
 			}
 		}
 	}
+	
+
+	public void insert(Label label, Term mainTerm, Term synonymTerm) {
+		try(Query insert = new Query("INSERT IGNORE INTO `oto_synonym` " +
+				"(`mainterm`, `label`, `synonymterm`) VALUES (?, ?, ?)")) {		
+			insert.setParameter(1, mainTerm.getId());
+			insert.setParameter(2, label.getId());
+			insert.setParameter(3, synonymTerm.getId());
+			insert.execute();
+		} catch(QueryException e) {
+			e.printStackTrace();
+		}	
+	}
 
 	public void remove(Collection collection)  {
-		try(Query query = new Query("SELECT s.mainTerm FROM oto_synonym s, oto_term t, oto_bucket b WHERE b.collection = ? AND t.bucket = b.id AND s.mainTerm = t.id ")) {
+		try(Query query = new Query("SELECT s.mainterm FROM oto_synonym s, oto_term t, oto_bucket b WHERE b.collection = ? AND t.bucket = b.id AND s.mainterm = t.id ")) {
 			query.setParameter(1, collection.getId());
 			ResultSet resultSet = query.execute();
 			while(resultSet.next()) {
 				int toDeleteSynonym = resultSet.getInt(1);
-				try(Query deleteQuery = new Query("DELETE FROM oto_synonym WHERE mainTerm = ?")) {
+				try(Query deleteQuery = new Query("DELETE FROM oto_synonym WHERE mainterm = ?")) {
 					deleteQuery.setParameter(1, toDeleteSynonym);
 					deleteQuery.execute();
 				}
@@ -108,5 +128,5 @@ public class SynonymDAO {
 			e.printStackTrace();
 		}		
 	}
-	
+		
 }

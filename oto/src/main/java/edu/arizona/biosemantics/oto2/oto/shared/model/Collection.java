@@ -17,6 +17,7 @@ public class Collection implements Serializable {
 	
 	public Collection(String name, String type, String secret) {
 		this.name = name;
+		this.type = type;
 		this.secret = secret;
 	}
 	
@@ -29,10 +30,9 @@ public class Collection implements Serializable {
 		super();
 		this.id = id;
 		this.name = name;
+		this.type = type;
 		this.secret = secret;
 	}
-
-
 
 	public int getId() {
 		return id;

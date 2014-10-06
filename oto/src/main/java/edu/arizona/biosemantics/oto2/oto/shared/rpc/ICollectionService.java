@@ -40,6 +40,8 @@ public interface ICollectionService extends RemoteService {
 	public List<Location> getLocations(Term term) throws Exception;
 	
 	public Collection reset(Collection collection) throws Exception;
+	
+	public Collection initializeFromHistory(Collection collection) throws Exception;
 
 	
 }

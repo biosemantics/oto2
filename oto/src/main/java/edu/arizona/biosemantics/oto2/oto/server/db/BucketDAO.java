@@ -126,5 +126,20 @@ public class BucketDAO {
 			}
 		}
 	}
+
+	public Bucket get(Term term) {
+		Bucket bucket = null;
+		try(Query query = new Query("SELECT b.* FROM oto_bucket b, oto_term t " +
+				"WHERE t.id = ? AND t.bucket = b.id")) {
+			query.setParameter(1, term.getId());
+			ResultSet result = query.execute();
+			while(result.next()) {
+				bucket = createBucket(result);
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		return bucket;
+	}
 	
 }

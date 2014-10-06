@@ -30,8 +30,8 @@ public class Oto {
 		return view;
 	}
 	
-	public void loadCollection(int collectionId, String secret) {
-		presenter.loadCollection(collectionId, secret);
+	public void loadCollection(int collectionId, String secret, boolean initializeFromHistory) {
+		presenter.loadCollection(collectionId, secret, initializeFromHistory);
 	}
 	
 	public void setSaveHandler(SaveHandler saveHandler) {
@@ -44,5 +44,4 @@ public class Oto {
 		Oto.user = user;
 		//eventBus.fireEvent(new SetUserEvent(user));
 	}
-
 }

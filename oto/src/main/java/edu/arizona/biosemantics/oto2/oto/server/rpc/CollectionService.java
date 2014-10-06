@@ -14,6 +14,7 @@ import edu.arizona.biosemantics.bioportal.client.BioPortalClient;
 import edu.arizona.biosemantics.bioportal.model.Ontology;
 import edu.arizona.biosemantics.oto2.oto.server.Configuration;
 import edu.arizona.biosemantics.oto2.oto.server.db.DAOManager;
+import edu.arizona.biosemantics.oto2.oto.server.db.HistoricInitializer;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Comment;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Context;
@@ -28,6 +29,7 @@ import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionService;
 public class CollectionService extends RemoteServiceServlet implements ICollectionService {
 	
 	private DAOManager daoManager = new DAOManager();
+	private HistoricInitializer historicInitializer = new HistoricInitializer(daoManager);
 	
 	@Override
 	public Collection get(Collection collection) throws Exception {
@@ -101,6 +103,13 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	@Override
 	public Collection reset(Collection collection) throws Exception {
 		return daoManager.getCollectionDAO().reset(collection);
+	}
+	
+	@Override
+	public Collection initializeFromHistory(Collection collection) throws Exception {
+		collection = daoManager.getCollectionDAO().get(collection.getId());
+		historicInitializer.initialize(collection);
+		return daoManager.getCollectionDAO().get(collection.getId());
 	}
 
 }

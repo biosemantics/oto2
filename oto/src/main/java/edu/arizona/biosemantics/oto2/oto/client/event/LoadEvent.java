@@ -14,9 +14,11 @@ public class LoadEvent extends GwtEvent<LoadHandler> {
 	
     public static Type<LoadHandler> TYPE = new Type<LoadHandler>();
 	private Collection collection;
+	private boolean initializeFromHistory;
 
-    public LoadEvent(Collection collection) {
+    public LoadEvent(Collection collection, boolean initializeFromHistory) {
     	this.collection = collection;
+    	this.initializeFromHistory = initializeFromHistory;
     }
     
 	@Override
@@ -31,6 +33,10 @@ public class LoadEvent extends GwtEvent<LoadHandler> {
 
 	public Collection getCollection() {
 		return collection;
+	}
+
+	public boolean isInitializeFromHistory() {
+		return initializeFromHistory;
 	}
 	
 }

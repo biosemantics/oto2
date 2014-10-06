@@ -40,7 +40,7 @@ public class Configuration {
 		try {
 			ClassLoader loader = Thread.currentThread().getContextClassLoader();
 			Properties properties = new Properties(); 
-			properties.load(loader.getResourceAsStream("config.properties"));
+			properties.load(loader.getResourceAsStream("edu/arizona/biosemantics/oto2/oto/config.properties"));
 			
 			databaseName = properties.getProperty("databaseName");
 			databaseUser = properties.getProperty("databaseUser");
@@ -51,7 +51,8 @@ public class Configuration {
 			bioportalUrl = properties.getProperty("bioportalUrl");
 			bioportalApiKey = properties.getProperty("bioportalApiKey");
 			
-			try(CSVReader reader = new CSVReader(new InputStreamReader(loader.getResourceAsStream("defaultCategories.csv")))) {
+			try(CSVReader reader = new CSVReader(new InputStreamReader(loader.getResourceAsStream("" +
+					"edu/arizona/biosemantics/oto2/oto/defaultCategories.csv")))) {
 				List<String[]> lines = reader.readAll();
 				for(String[] line : lines) {
 					if(line[2].equals("y"))

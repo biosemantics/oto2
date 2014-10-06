@@ -63,7 +63,13 @@ public class OtoView extends SimpleLayoutPanel {
 			Menu sub = new Menu();
 			MenuBarItem item = new MenuBarItem("File", sub);
 			MenuItem resetItem = new MenuItem("Reset");
-			resetItem.addSelectionHandler(new SelectionHandler<Item>() {
+			Menu resetSub = new Menu();
+			resetItem.setSubMenu(resetSub);
+			MenuItem fullResetItem = new MenuItem("Full");
+			MenuItem historyResetItem = new MenuItem("Previous Users' categorizations");
+			resetSub.add(fullResetItem);
+			resetSub.add(historyResetItem);
+			fullResetItem.addSelectionHandler(new SelectionHandler<Item>() {
 				@Override
 				public void onSelection(SelectionEvent<Item> event) {
 					collectionService.reset(collection, new RPCCallback<Collection>() {
@@ -74,7 +80,26 @@ public class OtoView extends SimpleLayoutPanel {
 					        box.addDialogHideHandler(new DialogHideHandler() {
 								@Override
 								public void onDialogHide(DialogHideEvent event) {
-									eventBus.fireEvent(new LoadEvent(collection));
+									eventBus.fireEvent(new LoadEvent(collection, false));
+								}
+					        });
+					        box.show();
+						}
+					});
+				}
+			});
+			historyResetItem.addSelectionHandler(new SelectionHandler<Item>() {
+				@Override
+				public void onSelection(SelectionEvent<Item> event) {
+					collectionService.reset(collection, new RPCCallback<Collection>() {
+						@Override
+						public void onSuccess(Collection result) {
+							ConfirmMessageBox box = new ConfirmMessageBox("Reset categorization", "" +
+									"This will uncategorize all terms irrevocably. Are you sure you want to do that?");
+					        box.addDialogHideHandler(new DialogHideHandler() {
+								@Override
+								public void onDialogHide(DialogHideEvent event) {
+									eventBus.fireEvent(new LoadEvent(collection, true));
 								}
 					        });
 					        box.show();
