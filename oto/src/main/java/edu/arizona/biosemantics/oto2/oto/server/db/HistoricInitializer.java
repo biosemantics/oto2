@@ -97,6 +97,9 @@ public class HistoricInitializer {
 	}
 
 	public void initializeLabeling(Collection collection) {
+		LabelingDAO labelingDAO = daoManager.getLabelingDAO();
+		labelingDAO.remove(collection);
+		
 		Set<Term> structureTerms = new HashSet<Term>();
 		for(Bucket bucket : collection.getBuckets())
 			if(bucket.getName().equalsIgnoreCase("structures")) {
@@ -125,7 +128,6 @@ public class HistoricInitializer {
 	private void initializeRemainingTerms(Collection collection, Set<Term> structureTerms) {
 		TermDAO termDAO = daoManager.getTermDAO();
 		LabelingDAO labelingDAO = daoManager.getLabelingDAO();
-		labelingDAO.remove(collection);
 		try {
 			Map<String, Label> labelNameMap = new HashMap<String, Label>();
 			for(Label label : collection.getLabels())
