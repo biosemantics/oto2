@@ -167,7 +167,7 @@ public class CollectionDAO {
 			e1.printStackTrace();
 		}*/
 		
-		try(Query query = new Query("UPDATE oto_collection SET name = ?, type = ? secret = ? WHERE id = ?")) {
+		try(Query query = new Query("UPDATE oto_collection SET name = ?, type = ?, secret = ? WHERE id = ?")) {
 			query.setParameter(1, collection.getName());
 			query.setParameter(2, collection.getType());
 			query.setParameter(3, collection.getSecret());
