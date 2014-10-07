@@ -133,7 +133,7 @@ public class HistoricInitializer {
 			
 			List<Term> terms = termDAO.getTerms(collection);
 			for(Term term : terms) {
-				if(structureTerms.contains(term)) {
+				if(!structureTerms.contains(term)) {
 					try(Query query = new Query("SELECT l.name FROM oto_labeling x, oto_label l, " +
 							"oto_term t, oto_collection c, oto_synonym s " +
 							"WHERE (x.label = l.id AND l.collection = c.id AND c.id != ? AND c.type = ? AND " +
