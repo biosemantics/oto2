@@ -51,11 +51,11 @@ public class CollectionDAO {
 	}
 
 	public boolean isValidSecret(int id, String secret)  {
-		try(Query query = new Query("SELECT * FROM oto_collection WHERE id = ?")) {
+		try(Query query = new Query("SELECT secret FROM oto_collection WHERE id = ?")) {
 			query.setParameter(1, id);
 			ResultSet result = query.execute();
 			while(result.next()) {
-				String validSecret = result.getString(3);
+				String validSecret = result.getString(1);
 				return validSecret.equals(secret);
 			}
 		} catch(Exception e) {

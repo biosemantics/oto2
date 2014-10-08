@@ -44,7 +44,6 @@ public class ContextResource {
 	@Consumes({ MediaType.APPLICATION_JSON })
 	public List<Context> put(@PathParam("collectionId") int collectionId, @QueryParam("secret") String secret, List<Context> contexts) {
 		try {
-			contextService.insert(collectionId, secret, contexts);
 			return contextService.insert(collectionId, secret, contexts);
 		} catch (Exception e) {
 			logger.error("Exception " + e.toString());
