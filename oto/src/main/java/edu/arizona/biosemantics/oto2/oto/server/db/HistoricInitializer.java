@@ -136,12 +136,11 @@ public class HistoricInitializer {
 			List<Term> terms = termDAO.getTerms(collection);
 			for(Term term : terms) {
 				if(!structureTerms.contains(term)) {
-					try(Query query = new Query("SELECT l.name FROM oto_labeling x, oto_label l, " +
-							"oto_term t, oto_collection c, oto_synonym s " +
-							"WHERE (x.label = l.id AND l.collection = c.id AND c.id != ? AND c.type = ? AND " +
-							"x.term = t.id AND t.term = ?) OR " +
-							"(s.label = l.id AND l.collection = c.id AND c.id != ? AND c.type = ? AND " + 
-							"s.synonymterm = t.id AND t.term = ?)")) {
+					try(Query query = new Query("SELECT l.name FROM oto_labeling x, oto_label l, oto_collection c, oto_term t "
+							+ "WHERE x.label = l.id AND l.collection = c.id AND c.id != ? AND c.type= ? AND x.term = t.id AND t.term = ? "
+							+ "UNION "
+							+ "SELECT l.name FROM oto_label l, oto_collection c, oto_term t, oto_synonym s "
+							+ "WHERE s.label = l.id AND l.collection = c.id AND c.id != ? AND c.type = ? AND s.synonymterm = t.id AND t.term = ?")) {
 						query.setParameter(1, collection.getId());
 						query.setParameter(2, collection.getType());
 						query.setParameter(3, term.getTerm());
