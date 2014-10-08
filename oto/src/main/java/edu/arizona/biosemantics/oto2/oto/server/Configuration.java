@@ -15,6 +15,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.ObjectWriter;
+
+import edu.arizona.biosemantics.oto2.oto.server.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.HighlightLabel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import au.com.bytecode.opencsv.CSVReader;
@@ -35,11 +39,12 @@ public class Configuration {
 	
 	/** Default Categories **/
 	private static List<Label> defaultCategories = new LinkedList<Label>();
+	private static Properties properties;
 	
 	static {
 		try {
 			ClassLoader loader = Thread.currentThread().getContextClassLoader();
-			Properties properties = new Properties(); 
+			properties = new Properties(); 
 			properties.load(loader.getResourceAsStream("edu/arizona/biosemantics/oto2/oto/config.properties"));
 			
 			databaseName = properties.getProperty("databaseName");
@@ -93,5 +98,16 @@ public class Configuration {
 				writer.writeAll(newLines);
 			}
 		}*/
+	}
+	
+	public static String asString() {
+		try {
+			ObjectMapper mapper  = new ObjectMapper();
+			ObjectWriter writer = mapper.writerWithDefaultPrettyPrinter();
+			return writer.writeValueAsString(properties);
+		} catch (Exception e) {
+			//log(LogLevel.ERROR, "Problem writing object as String", e);
+			return null;
+		}
 	}
 }

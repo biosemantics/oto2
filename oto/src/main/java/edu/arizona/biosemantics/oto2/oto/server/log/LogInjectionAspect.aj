@@ -12,7 +12,6 @@ public aspect LogInjectionAspect {
 	 * @param message
 	 */
 	public void ILoggable.log(LogLevel logLevel, String message) {
-		System.out.println("aspect log");
 		Logger logger = Logger.getLogger(this.getClass());
 		switch(logLevel) {
 		case TRACE:
