@@ -2,6 +2,7 @@ package edu.arizona.biosemantics.oto2.oto.client.common;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.sencha.gxt.widget.core.client.Dialog;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
@@ -11,11 +12,11 @@ import com.sencha.gxt.widget.core.client.form.TextArea;
 import com.sencha.gxt.widget.core.client.form.TextField;
 
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelCreateEvent;
+import edu.arizona.biosemantics.oto2.oto.server.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionService;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionServiceAsync;
-import edu.arizona.biosemantics.oto2.oto.shared.rpc.RPCCallback;
 
 public class LabelAddDialog extends Dialog {
 	
@@ -41,11 +42,16 @@ public class LabelAddDialog extends Dialog {
 				}
 				
 				final Label newLabel = new Label(labelName.getText(), labelDescription.getText());
-				collectionService.addLabel(newLabel, collection.getId(), new RPCCallback<Label>() {
+				collectionService.addLabel(newLabel, collection.getId(), new AsyncCallback<Label>() {
 					@Override
 					public void onSuccess(Label result) {
 						eventBus.fireEvent(new LabelCreateEvent(result));
 						LabelAddDialog.this.hide();
+					}
+					@Override
+					public void onFailure(Throwable caught) {
+						Alerter.addLabelFailed();
+						log(LogLevel.ERROR, "Add Label failed", caught);
 					}
 				});
 			}

@@ -10,6 +10,7 @@ import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.web.bindery.event.shared.EventBus;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
 import com.sencha.gxt.core.client.util.Format;
@@ -45,6 +46,7 @@ import edu.arizona.biosemantics.oto2.oto.client.event.SetUserEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.SynonymCreationEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.SynonymRemovalEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermUncategorizeEvent;
+import edu.arizona.biosemantics.oto2.oto.server.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Comment;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
@@ -53,7 +55,6 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.SelectedTerms;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionService;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionServiceAsync;
-import edu.arizona.biosemantics.oto2.oto.shared.rpc.RPCCallback;
 
 public abstract class TermMenu extends Menu implements BeforeShowHandler {
 	
@@ -118,13 +119,18 @@ public abstract class TermMenu extends Menu implements BeforeShowHandler {
 						public void onHide(HideEvent event) {
 							Comment newComment = new Comment(Oto.user, box.getValue());
 							for(final Term term : explicitSelection) {
-								collectionService.addComment(newComment, term.getId(), new RPCCallback<Comment>() {
+								collectionService.addComment(newComment, term.getId(), new AsyncCallback<Comment>() {
 									@Override
 									public void onSuccess(Comment result) {
 										eventBus.fireEvent(new CommentEvent(term, result));
 										String comment = Format.ellipse(box.getValue(), 80);
 										String message = Format.substitute("'{0}' saved", new Params(comment));
 										Info.display("Comment", message);
+									}
+									@Override
+									public void onFailure(Throwable caught) {
+										Alerter.addCommentFailed();
+										log(LogLevel.ERROR, "Add comment failed", caught);
 									}
 								});
 							}

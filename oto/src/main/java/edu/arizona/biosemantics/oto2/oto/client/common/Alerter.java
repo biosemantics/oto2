@@ -138,6 +138,44 @@ public class Alerter {
 		box.show();
 	}
 
+	public static void addCommentFailed() {
+		 AlertMessageBox box = new AlertMessageBox("Add Comment", "Adding of comment failed.");
+		 box.show();
+	}
 
+	public static void addLabelFailed() {
+		AlertMessageBox box = new AlertMessageBox("Add Label", "Adding of label failed.");
+		box.show();
+	}
+
+	public static void getContextsFailed() {
+		AlertMessageBox box = new AlertMessageBox("Get Context", "Getting of contexts failed.");
+		box.show();
+	}
+
+	public static void getOntologiesFailed() {
+		AlertMessageBox box = new AlertMessageBox("Get Ontologies", "Getting of ontologies failed.");
+		box.show();
+	}
+
+	public static void getLocationsFailed() {
+		AlertMessageBox box = new AlertMessageBox("Get Locations", "Getting of locations failed.");
+		box.show();
+	}
+
+	public static void getOntologyEntriesFailed() {
+		AlertMessageBox box = new AlertMessageBox("Get Ontology Entries", "Getting of ontology entries failed.");
+		box.show();
+	}
+
+	public static void saveCollectionFailed() {
+		AlertMessageBox box = new AlertMessageBox("Save Collection", "Save collection failed.");
+		box.show();
+	}
+
+	public static void resetFailed() {
+		AlertMessageBox box = new AlertMessageBox("Reset", "Reset failed.");
+		box.show();
+	}
 
 }

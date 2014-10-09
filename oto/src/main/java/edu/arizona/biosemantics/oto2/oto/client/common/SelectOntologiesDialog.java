@@ -12,6 +12,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.editor.client.Editor;
 import com.google.gwt.editor.client.EditorError;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.SortDir;
 import com.sencha.gxt.data.shared.Store.StoreSortInfo;
@@ -22,12 +23,13 @@ import com.sencha.gxt.widget.core.client.form.DualListField;
 import com.sencha.gxt.widget.core.client.form.DualListField.Mode;
 import com.sencha.gxt.widget.core.client.form.error.DefaultEditorError;
 import com.sencha.gxt.widget.core.client.form.Validator;
+
 import edu.arizona.biosemantics.oto2.oto.client.event.OntologiesSelectEvent;
+import edu.arizona.biosemantics.oto2.oto.server.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.oto.shared.model.OntologyProperties;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.IOntologyService;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.IOntologyServiceAsync;
-import edu.arizona.biosemantics.oto2.oto.shared.rpc.RPCCallback;
 
 public class SelectOntologiesDialog extends Dialog {
 
@@ -105,12 +107,17 @@ public class SelectOntologiesDialog extends Dialog {
 	
 	private void refreshOntologies() {
 		//already store ontologies, otherwise delay when requested on button press
-		ontologyService.getOntologies(new RPCCallback<Set<Ontology>>() {
+		ontologyService.getOntologies(new AsyncCallback<Set<Ontology>>() {
 			@Override
 			public void onSuccess(Set<Ontology> result) {
 				ontologies = result;
 				unselectedListStore.clear();
 				unselectedListStore.addAll(result);
+			}
+			@Override
+			public void onFailure(Throwable caught) {
+				Alerter.getOntologiesFailed();
+				log(LogLevel.ERROR, "Get Ontologies failed", caught);
 			}
 		});
 	}

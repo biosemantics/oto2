@@ -10,6 +10,7 @@ import com.google.gwt.editor.client.Editor.Path;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.sencha.gxt.core.client.IdentityValueProvider;
 import com.sencha.gxt.core.client.Style.SelectionMode;
 import com.sencha.gxt.core.client.util.Format;
@@ -42,6 +43,7 @@ import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
 import edu.arizona.biosemantics.oto2.oto.client.Oto;
 import edu.arizona.biosemantics.oto2.oto.client.event.CommentEvent;
+import edu.arizona.biosemantics.oto2.oto.server.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Bucket;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Comment;
@@ -50,7 +52,6 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionService;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionServiceAsync;
-import edu.arizona.biosemantics.oto2.oto.shared.rpc.RPCCallback;
 
 public class CommentsDialog extends Dialog {
 
@@ -338,13 +339,18 @@ public class CommentsDialog extends Dialog {
 				}*/
 				if(config.equals(textCol)) {
 					Comment newComment = new Comment(Oto.user, editor.getValue());
-					collectionService.addComment(newComment, comment.getTerm().getId(), new RPCCallback<Comment>() {
+					collectionService.addComment(newComment, comment.getTerm().getId(), new AsyncCallback<Comment>() {
 						@Override
 						public void onSuccess(Comment result) {
 							eventBus.fireEvent(new CommentEvent(comment.getTerm(), result));
 							String comment = Format.ellipse(editor.getValue(), 80);
 							String message = Format.substitute("'{0}' saved", new Params(comment));
 							Info.display("Comment", message);
+						}
+						@Override
+						public void onFailure(Throwable caught) {
+							Alerter.addCommentFailed();
+							log(LogLevel.ERROR, "Add Comment failed", caught);
 						}
 					});
 				}

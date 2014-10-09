@@ -48,7 +48,6 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.Label.AddResult;
 import edu.arizona.biosemantics.oto2.oto.shared.model.TrashLabel;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionService;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionServiceAsync;
-import edu.arizona.biosemantics.oto2.oto.shared.rpc.RPCCallback;
 
 public class LabelPortletsView extends PortalLayoutContainer {
 	

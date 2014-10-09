@@ -65,6 +65,36 @@ public aspect LogInjectionAspect {
 	}
 	
 	/**
+	 * log method is defined for ILoggables
+	 * @param logLevel
+	 * @param message
+	 */
+	public void ILoggable.log(LogLevel logLevel, Throwable throwable) {
+		Logger logger = Logger.getLogger(this.getClass());
+		String message = "";
+		switch(logLevel) {
+		case TRACE:
+			logger.trace(message, throwable);
+			break;
+		case DEBUG:
+			logger.debug(message, throwable);
+			break;
+		case INFO:
+			logger.info(message, throwable);
+			break;
+		case ERROR:
+			logger.error(message, throwable);
+			break;
+		case FATAL:
+			logger.fatal(message, throwable);
+			break;
+		case WARN:
+			logger.warn(message, throwable);
+			break;
+		}
+	}
+	
+	/**
 	 * ILoggable classes are specified below
 	 */
 	declare parents : edu.arizona.biosemantics.oto2.oto..* implements ILoggable;

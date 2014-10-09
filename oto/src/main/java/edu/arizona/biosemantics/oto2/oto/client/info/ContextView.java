@@ -13,6 +13,7 @@ import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.client.Timer;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.sencha.gxt.core.client.Style.Anchor;
 import com.sencha.gxt.core.client.Style.AnchorAlignment;
 import com.sencha.gxt.core.client.Style.HideMode;
@@ -36,8 +37,10 @@ import com.sencha.gxt.widget.core.client.grid.filters.ListFilter;
 import com.sencha.gxt.widget.core.client.grid.filters.StringFilter;
 import com.sencha.gxt.widget.core.client.tips.QuickTip;
 
+import edu.arizona.biosemantics.oto2.oto.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermRenameEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermSelectEvent;
+import edu.arizona.biosemantics.oto2.oto.server.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Location;
 import edu.arizona.biosemantics.oto2.oto.shared.model.OntologyEntry;
@@ -49,7 +52,6 @@ import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionService;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionServiceAsync;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.IContextService;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.IContextServiceAsync;
-import edu.arizona.biosemantics.oto2.oto.shared.rpc.RPCCallback;
 
 public class ContextView extends Composite {
 
@@ -189,7 +191,7 @@ public class ContextView extends Composite {
 		 if(this.isVisible()) {
         	showSearchingBox();
         }
-		contextService.getContexts(collection, term, new RPCCallback<List<TypedContext>>() {
+		contextService.getContexts(collection, term, new AsyncCallback<List<TypedContext>>() {
 			@Override
 			public void onSuccess(List<TypedContext> contexts) {
 				setContexts(contexts);
@@ -197,7 +199,8 @@ public class ContextView extends Composite {
 			}
 			@Override
 			public void onFailure(Throwable caught) {
-				caught.printStackTrace();
+				Alerter.getContextsFailed();
+				log(LogLevel.ERROR, "Get Context failed", caught);
 				destroySearchingBox();
 			}
 		});

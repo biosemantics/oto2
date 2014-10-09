@@ -10,6 +10,7 @@ import com.google.gwt.event.logical.shared.ResizeHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.sencha.gxt.core.client.Style.Anchor;
 import com.sencha.gxt.core.client.Style.AnchorAlignment;
 import com.sencha.gxt.core.client.Style.HideMode;
@@ -29,6 +30,7 @@ import com.sencha.gxt.widget.core.client.grid.filters.GridFilters;
 import com.sencha.gxt.widget.core.client.grid.filters.StringFilter;
 import com.sencha.gxt.widget.core.client.tips.QuickTip;
 
+import edu.arizona.biosemantics.oto2.oto.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeCopyRemoveTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeCopyTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeMoveTermEvent;
@@ -39,6 +41,7 @@ import edu.arizona.biosemantics.oto2.oto.client.event.TermCategorizeEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermRenameEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermSelectEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermUncategorizeEvent;
+import edu.arizona.biosemantics.oto2.oto.server.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Location;
 import edu.arizona.biosemantics.oto2.oto.shared.model.LocationProperties;
@@ -47,7 +50,6 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 import edu.arizona.biosemantics.oto2.oto.shared.model.TypedContext;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionService;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionServiceAsync;
-import edu.arizona.biosemantics.oto2.oto.shared.rpc.RPCCallback;
 
 public class LocationsView extends Composite {
 
@@ -260,7 +262,7 @@ public class LocationsView extends Composite {
 		 if(this.isVisible()) {
         	showSearchingBox();
         }
-		collectionService.getLocations(currentTerm, new RPCCallback<List<Location>>() {
+		collectionService.getLocations(currentTerm, new AsyncCallback<List<Location>>() {
 			@Override
 			public void onSuccess(List<Location> locations) {
 				setLocations(locations);
@@ -268,7 +270,8 @@ public class LocationsView extends Composite {
 			}
 			@Override
 			public void onFailure(Throwable caught) {
-				caught.printStackTrace();
+				Alerter.getLocationsFailed();
+				log(LogLevel.ERROR, "Get Locations failed", caught);
 				destroySearchingBox();
 			}
 		});

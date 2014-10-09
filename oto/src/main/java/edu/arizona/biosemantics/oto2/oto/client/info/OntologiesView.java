@@ -17,6 +17,7 @@ import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.client.Timer;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.sencha.gxt.core.client.Style.Anchor;
 import com.sencha.gxt.core.client.Style.AnchorAlignment;
 import com.sencha.gxt.core.client.Style.SelectionMode;
@@ -36,16 +37,17 @@ import com.sencha.gxt.widget.core.client.grid.filters.ListFilter;
 import com.sencha.gxt.widget.core.client.grid.filters.StringFilter;
 import com.sencha.gxt.widget.core.client.tips.QuickTip;
 
+import edu.arizona.biosemantics.oto2.oto.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.oto.client.event.OntologiesSelectEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermRenameEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermSelectEvent;
+import edu.arizona.biosemantics.oto2.oto.server.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.oto.shared.model.OntologyEntry;
 import edu.arizona.biosemantics.oto2.oto.shared.model.OntologyEntryProperties;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.IOntologyService;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.IOntologyServiceAsync;
-import edu.arizona.biosemantics.oto2.oto.shared.rpc.RPCCallback;
 
 public class OntologiesView extends Composite {
 
@@ -225,11 +227,11 @@ public class OntologiesView extends Composite {
 		        	showSearchingBox();
 		        }
 				ontologyService.getOntologyEntries(currentTerm, new LinkedList<Ontology>(selectedOntologies), 
-						new RPCCallback<List<OntologyEntry>>() {
+						new AsyncCallback<List<OntologyEntry>>() {
 					@Override
 					public void onSuccess(final List<OntologyEntry> ontologyEntries) {
 						ontologyService.getOntologyEntries(currentTerm, new LinkedList<Ontology>(selectedOntologies),
-								new RPCCallback<List<OntologyEntry>>() {
+								new AsyncCallback<List<OntologyEntry>>() {
 									@Override
 									public void onSuccess(List<OntologyEntry> ontologyEntries2) {
 										Set<OntologyEntry> entrySet = new LinkedHashSet<OntologyEntry>();
@@ -240,14 +242,15 @@ public class OntologiesView extends Composite {
 									}
 									@Override
 									public void onFailure(Throwable caught) {
-										caught.printStackTrace();
+										Alerter.getOntologyEntriesFailed();
+										log(LogLevel.ERROR, "Get Ontology Entries failed", caught);
 										destroySearchingBox();
 									}
 						});
 					}
 					@Override
 					public void onFailure(Throwable caught) {
-						caught.printStackTrace();
+						log(LogLevel.ERROR, "Add Comment failed", caught);
 						destroySearchingBox();
 					}
 				});

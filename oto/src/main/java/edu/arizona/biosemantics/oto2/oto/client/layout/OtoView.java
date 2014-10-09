@@ -5,6 +5,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.SimpleLayoutPanel;
 import com.sencha.gxt.cell.core.client.form.ComboBoxCell.TriggerAction;
 import com.sencha.gxt.core.client.resources.ThemeStyles;
@@ -27,6 +28,7 @@ import com.sencha.gxt.widget.core.client.menu.MenuBarItem;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
 import edu.arizona.biosemantics.oto2.oto.client.categorize.LabelsView;
+import edu.arizona.biosemantics.oto2.oto.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.oto.client.common.CommentsDialog;
 import edu.arizona.biosemantics.oto2.oto.client.common.HelpView;
 import edu.arizona.biosemantics.oto2.oto.client.common.SelectOntologiesDialog;
@@ -36,6 +38,7 @@ import edu.arizona.biosemantics.oto2.oto.client.event.SaveEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermSelectEvent;
 import edu.arizona.biosemantics.oto2.oto.client.info.TermInfoView;
 import edu.arizona.biosemantics.oto2.oto.client.uncategorize.TermsView;
+import edu.arizona.biosemantics.oto2.oto.server.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.oto.shared.model.OntologyProperties;
@@ -45,7 +48,6 @@ import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionService;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionServiceAsync;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.IOntologyService;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.IOntologyServiceAsync;
-import edu.arizona.biosemantics.oto2.oto.shared.rpc.RPCCallback;
 
 public class OtoView extends SimpleLayoutPanel {
 
@@ -72,7 +74,7 @@ public class OtoView extends SimpleLayoutPanel {
 			fullResetItem.addSelectionHandler(new SelectionHandler<Item>() {
 				@Override
 				public void onSelection(SelectionEvent<Item> event) {
-					collectionService.reset(collection, new RPCCallback<Collection>() {
+					collectionService.reset(collection, new AsyncCallback<Collection>() {
 						@Override
 						public void onSuccess(Collection result) {
 							ConfirmMessageBox box = new ConfirmMessageBox("Reset categorization", "" +
@@ -85,13 +87,19 @@ public class OtoView extends SimpleLayoutPanel {
 					        });
 					        box.show();
 						}
+
+						@Override
+						public void onFailure(Throwable caught) {
+							Alerter.resetFailed();
+							log(LogLevel.ERROR, "Full reset failed", caught);
+						}
 					});
 				}
 			});
 			historyResetItem.addSelectionHandler(new SelectionHandler<Item>() {
 				@Override
 				public void onSelection(SelectionEvent<Item> event) {
-					collectionService.reset(collection, new RPCCallback<Collection>() {
+					collectionService.reset(collection, new AsyncCallback<Collection>() {
 						@Override
 						public void onSuccess(Collection result) {
 							ConfirmMessageBox box = new ConfirmMessageBox("Reset categorization", "" +
@@ -103,6 +111,12 @@ public class OtoView extends SimpleLayoutPanel {
 								}
 					        });
 					        box.show();
+						}
+
+						@Override
+						public void onFailure(Throwable caught) {
+							Alerter.resetFailed();
+							log(LogLevel.ERROR, "History-based reset failed", caught);
 						}
 					});
 				}

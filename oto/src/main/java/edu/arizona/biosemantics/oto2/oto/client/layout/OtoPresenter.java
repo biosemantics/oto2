@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.web.bindery.event.shared.EventBus;
 import com.sencha.gxt.widget.core.client.box.AutoProgressMessageBox;
 
@@ -26,6 +27,7 @@ import edu.arizona.biosemantics.oto2.oto.client.event.TermCategorizeEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermMarkUselessEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermRenameEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermUncategorizeEvent;
+import edu.arizona.biosemantics.oto2.oto.server.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Bucket;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
@@ -36,7 +38,6 @@ import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionService;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionServiceAsync;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.IOntologyService;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.IOntologyServiceAsync;
-import edu.arizona.biosemantics.oto2.oto.shared.rpc.RPCCallback;
 
 public class OtoPresenter {
 	
@@ -161,9 +162,14 @@ public class OtoPresenter {
 	}
 
 	private void saveCollection() {
-		collectionService.update(collection, new RPCCallback<Void>() {
+		collectionService.update(collection, new AsyncCallback<Void>() {
 			@Override
 			public void onSuccess(Void result) {	}
+			@Override
+			public void onFailure(Throwable caught) {
+				Alerter.saveCollectionFailed();
+				log(LogLevel.ERROR, "Updating collection failed", caught);
+			}
 		});
 	}
 
@@ -182,7 +188,7 @@ public class OtoPresenter {
 	        collectionService.get(collection, loader);
 	}
 	
-	private class CollectionLoader extends RPCCallback<Collection> {
+	private class CollectionLoader implements AsyncCallback<Collection> {
 		private AutoProgressMessageBox box;
 		public CollectionLoader(AutoProgressMessageBox box) {
 			this.box = box;
@@ -194,7 +200,7 @@ public class OtoPresenter {
 			view.setCollection(result);
 			
 			//already store ontologies, otherwise delay when requested on button press
-			ontologyService.getOntologies(new RPCCallback<Set<Ontology>>() {
+			ontologyService.getOntologies(new AsyncCallback<Set<Ontology>>() {
 				@Override
 				public void onSuccess(Set<Ontology> result) {
 					SelectOntologiesDialog.setOntologies(result);
