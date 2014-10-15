@@ -12,6 +12,7 @@ import com.jolbox.bonecp.BoneCPConfig;
 import com.mysql.jdbc.AbandonedConnectionCleanupThread;
 
 import edu.arizona.biosemantics.oto2.oto.server.Configuration;
+import edu.arizona.biosemantics.oto2.oto.shared.log.LogLevel;
 
 public class ConnectionPool {
 
@@ -47,12 +48,12 @@ public class ConnectionPool {
 		try {
 			DriverManager.deregisterDriver(mySqlDriver);
 		} catch (SQLException e) {
-			e.printStackTrace();
+			log(LogLevel.ERROR, "Query Exception", e);
 		}
 		try {
 		    AbandonedConnectionCleanupThread.shutdown();
 		} catch (InterruptedException e) {
-		    e.printStackTrace();
+			log(LogLevel.ERROR, "Query Exception", e);
 		}
 		Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
 		Thread[] threadArray = threadSet.toArray(new Thread[threadSet.size()]);

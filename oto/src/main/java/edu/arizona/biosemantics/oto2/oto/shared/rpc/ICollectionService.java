@@ -23,25 +23,25 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.TypedContext;
 @RemoteServiceRelativePath("collection")
 public interface ICollectionService extends RemoteService {
 	
-	public Collection get(Collection collection) throws Exception;
+	public Collection get(Collection collection);
 	
-	public Collection get(int id, String secret) throws Exception;
+	public Collection get(int id, String secret);
 	
-	public void update(Collection collection) throws Exception; 
+	public void update(Collection collection); 
 	
-	public Collection insert(Collection collection) throws Exception;
+	public Collection insert(Collection collection);
 	
-	public Term addTerm(Term term, int bucketId) throws Exception;
+	public Term addTerm(Term term, int bucketId);
 	
-	public Label addLabel(Label label, int collectionId) throws Exception;
+	public Label addLabel(Label label, int collectionId);
 	
-	public Comment addComment(Comment comment, int termId) throws Exception;
+	public Comment addComment(Comment comment, int termId);
 	
-	public List<Location> getLocations(Term term) throws Exception;
+	public List<Location> getLocations(Term term);
 	
-	public Collection reset(Collection collection) throws Exception;
+	public Collection reset(Collection collection);
 	
-	public Collection initializeFromHistory(Collection collection) throws Exception;
+	public Collection initializeFromHistory(Collection collection);
 
 	
 }

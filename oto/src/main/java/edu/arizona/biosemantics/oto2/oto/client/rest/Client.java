@@ -25,7 +25,7 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.Context;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 
-public class Client {
+public class Client implements AutoCloseable {
 
 	private String url;
 	private javax.ws.rs.client.Client client;

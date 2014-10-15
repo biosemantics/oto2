@@ -1,10 +1,12 @@
-package edu.arizona.biosemantics.oto2.oto.server.log;
+package edu.arizona.biosemantics.oto2.oto.shared.log;
+
+import edu.arizona.biosemantics.oto2.oto.server.log.Logger;
 
 /**
  * LogInjectionAspect specifies ILoggables and adds them a log method
  * @author rodenhausen
  */
-public aspect LogInjectionAspect {
+public aspect LogInjection {
 	
 	/**
 	 * log method is defined for ILoggables
@@ -97,5 +99,7 @@ public aspect LogInjectionAspect {
 	/**
 	 * ILoggable classes are specified below
 	 */
-	declare parents : edu.arizona.biosemantics.oto2.oto..* implements ILoggable;
+	//declare parents : edu.arizona.biosemantics.oto2.oto..* implements ILoggable;
+	declare parents : edu.arizona.biosemantics.oto2.oto.server..* implements ILoggable;
+	declare parents : edu.arizona.biosemantics.oto2.oto.shared..* implements ILoggable;
 }

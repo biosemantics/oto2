@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import edu.arizona.biosemantics.oto2.oto.server.db.Query.QueryException;
+import edu.arizona.biosemantics.oto2.oto.shared.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Bucket;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Comment;
@@ -44,7 +45,7 @@ public class TermDAO {
 				term = createTerm(result);
 			}
 		} catch(Exception e) {
-			e.printStackTrace();
+			log(LogLevel.ERROR, "Query Exception", e);
 		}	
 		return term;
 	}
@@ -76,7 +77,7 @@ public class TermDAO {
 				int id = generatedKeys.getInt(1);
 				term.setId(id);
 			} catch(Exception e) {
-				e.printStackTrace();
+				log(LogLevel.ERROR, "Query Exception", e);
 			}	
 		}
 		return term;
@@ -95,7 +96,7 @@ public class TermDAO {
 				commentDAO.ensure(comment, term.getId());
 			}
 		} catch(QueryException e) {
-			e.printStackTrace();
+			log(LogLevel.ERROR, "Query Exception", e);
 		}	
 	}
 
@@ -104,7 +105,7 @@ public class TermDAO {
 			query.setParameter(1, term.getId());
 			query.execute();
 		} catch(QueryException e) {
-			e.printStackTrace();
+			log(LogLevel.ERROR, "Query Exception", e);
 		}	
 	}
 	
@@ -118,7 +119,7 @@ public class TermDAO {
 				terms.add(get(id));
 			}
 		} catch(Exception e) {
-			e.printStackTrace();
+			log(LogLevel.ERROR, "Query Exception", e);
 		}	
 		return terms;
 	}
@@ -138,10 +139,8 @@ public class TermDAO {
 			query.setParameter(1, collection.getId());
 			query.execute();
 		} catch(QueryException e) {
-			e.printStackTrace();
+			log(LogLevel.ERROR, "Query Exception", e);
 		}	
 	}
-
-
 	
 }

@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import edu.arizona.biosemantics.oto2.oto.server.rpc.ContextService;
+import edu.arizona.biosemantics.oto2.oto.shared.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Context;
 
 /**
@@ -31,12 +32,7 @@ public class ContextResource {
 	@javax.ws.rs.core.Context
 	Request request;		
 	
-	private Logger logger;
 	private ContextService contextService = new ContextService();
-	
-	public ContextResource() {
-		logger =  LoggerFactory.getLogger(this.getClass());
-	}	
 	
 	@Path("{collectionId}")
 	@PUT
@@ -46,8 +42,7 @@ public class ContextResource {
 		try {
 			return contextService.insert(collectionId, secret, contexts);
 		} catch (Exception e) {
-			logger.error("Exception " + e.toString());
-			e.printStackTrace();
+			log(LogLevel.ERROR, "Exception", e);
 			return null;
 		}
 	}

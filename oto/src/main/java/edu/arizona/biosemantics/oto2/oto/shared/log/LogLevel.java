@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto2.oto.server.log;
+package edu.arizona.biosemantics.oto2.oto.shared.log;
 
 /**
  * LogLevel lists all the available logging levels

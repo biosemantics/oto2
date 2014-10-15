@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import edu.arizona.biosemantics.oto2.oto.shared.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Bucket;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
@@ -92,7 +93,7 @@ public class HistoricInitializer {
 				termDAO.update(term, bucket.getId());
 			}	
 		} catch(Exception e) {
-			e.printStackTrace();
+			log(LogLevel.ERROR, "Query Exception", e);
 		}
 	}
 
@@ -184,7 +185,7 @@ public class HistoricInitializer {
 				}
 			}
 		} catch(Exception e) {
-			e.printStackTrace();
+			log(LogLevel.ERROR, "Query Exception", e);
 		}
 	}
 
@@ -393,7 +394,7 @@ public class HistoricInitializer {
 				}	
 			}
 		} catch(Exception e) {
-			e.printStackTrace();
+			log(LogLevel.ERROR, "Query Exception", e);
 		}
 		
 		HistoricSynonymResult result = new HistoricSynonymResult();

@@ -17,12 +17,12 @@ public class ContextService extends RemoteServiceServlet implements IContextServ
 	private DAOManager daoManager = new DAOManager();
 	
 	@Override
-	public List<TypedContext> getContexts(Collection collection, Term term) throws Exception {
+	public List<TypedContext> getContexts(Collection collection, Term term) {
 		return daoManager.getContextDAO().get(collection, term);
 	}
 	
 	@Override
-	public List<Context> insert(int collectionId, String secret, List<Context> contexts) throws Exception {
+	public List<Context> insert(int collectionId, String secret, List<Context> contexts) {
 		if(daoManager.getCollectionDAO().isValidSecret(collectionId, secret)) {
 			List<Context> result = new ArrayList<Context>(contexts.size());
 			for(Context context : contexts) {

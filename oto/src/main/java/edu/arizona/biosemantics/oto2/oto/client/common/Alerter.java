@@ -138,44 +138,51 @@ public class Alerter {
 		box.show();
 	}
 
-	public static void addCommentFailed() {
+	public static void addCommentFailed(Throwable caught) {
 		 AlertMessageBox box = new AlertMessageBox("Add Comment", "Adding of comment failed.");
 		 box.show();
+		 caught.printStackTrace();
 	}
 
-	public static void addLabelFailed() {
+	public static void addLabelFailed(Throwable caught) {
 		AlertMessageBox box = new AlertMessageBox("Add Label", "Adding of label failed.");
 		box.show();
 	}
 
-	public static void getContextsFailed() {
+	public static void getContextsFailed(Throwable caught) {
 		AlertMessageBox box = new AlertMessageBox("Get Context", "Getting of contexts failed.");
 		box.show();
+		caught.printStackTrace();
 	}
 
-	public static void getOntologiesFailed() {
+	public static void getOntologiesFailed(Throwable caught) {
 		AlertMessageBox box = new AlertMessageBox("Get Ontologies", "Getting of ontologies failed.");
 		box.show();
+		caught.printStackTrace();
 	}
 
-	public static void getLocationsFailed() {
+	public static void getLocationsFailed(Throwable caught) {
 		AlertMessageBox box = new AlertMessageBox("Get Locations", "Getting of locations failed.");
 		box.show();
+		caught.printStackTrace();
 	}
 
-	public static void getOntologyEntriesFailed() {
+	public static void getOntologyEntriesFailed(Throwable caught) {
 		AlertMessageBox box = new AlertMessageBox("Get Ontology Entries", "Getting of ontology entries failed.");
 		box.show();
+		caught.printStackTrace();
 	}
 
-	public static void saveCollectionFailed() {
+	public static void saveCollectionFailed(Throwable caught) {
 		AlertMessageBox box = new AlertMessageBox("Save Collection", "Save collection failed.");
 		box.show();
+		caught.printStackTrace();
 	}
 
-	public static void resetFailed() {
+	public static void resetFailed(Throwable caught) {
 		AlertMessageBox box = new AlertMessageBox("Reset", "Reset failed.");
 		box.show();
+		caught.printStackTrace();
 	}
 
 }

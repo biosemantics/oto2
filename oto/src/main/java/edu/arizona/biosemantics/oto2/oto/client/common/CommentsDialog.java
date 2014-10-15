@@ -43,7 +43,7 @@ import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
 import edu.arizona.biosemantics.oto2.oto.client.Oto;
 import edu.arizona.biosemantics.oto2.oto.client.event.CommentEvent;
-import edu.arizona.biosemantics.oto2.oto.server.log.LogLevel;
+import edu.arizona.biosemantics.oto2.oto.shared.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Bucket;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Comment;
@@ -349,8 +349,7 @@ public class CommentsDialog extends Dialog {
 						}
 						@Override
 						public void onFailure(Throwable caught) {
-							Alerter.addCommentFailed();
-							log(LogLevel.ERROR, "Add Comment failed", caught);
+							Alerter.addCommentFailed(caught);
 						}
 					});
 				}

@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import edu.arizona.biosemantics.oto2.oto.server.db.Query.QueryException;
+import edu.arizona.biosemantics.oto2.oto.shared.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Comment;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 
@@ -22,7 +23,7 @@ public class CommentDAO {
 				term = createComment(result);
 			}
 		} catch(Exception e) {
-			e.printStackTrace();
+			log(LogLevel.ERROR, "Query Exception", e);
 		}	
 		return term;
 	}
@@ -49,7 +50,7 @@ public class CommentDAO {
 				int id = generatedKeys.getInt(1);
 				comment.setId(id);
 			} catch(Exception e) {
-				e.printStackTrace();
+				log(LogLevel.ERROR, "Query Exception", e);
 			}	
 			
 		}
@@ -61,7 +62,7 @@ public class CommentDAO {
 			query.setParameter(1, user);
 			query.execute();
 		} catch(QueryException e) {
-			e.printStackTrace();
+			log(LogLevel.ERROR, "Query Exception", e);
 		}	
 	}
 
@@ -73,7 +74,7 @@ public class CommentDAO {
 			query.setParameter(4, comment.getId());	
 			query.execute();
 		} catch(QueryException e) {
-			e.printStackTrace();
+			log(LogLevel.ERROR, "Query Exception", e);
 		}	
 	}
 
@@ -82,7 +83,7 @@ public class CommentDAO {
 			query.setParameter(1, comment.getId());
 			query.execute();
 		} catch(QueryException e) {
-			e.printStackTrace();
+			log(LogLevel.ERROR, "Query Exception", e);
 		}	
 	}
 	
@@ -96,7 +97,7 @@ public class CommentDAO {
 				comments.add(get(id));
 			}
 		} catch(Exception e) {
-			e.printStackTrace();
+			log(LogLevel.ERROR, "Query Exception", e);
 		}	
 		return comments;
 	}

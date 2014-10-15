@@ -14,6 +14,7 @@ import edu.arizona.biosemantics.bioportal.model.Search;
 import edu.arizona.biosemantics.bioportal.model.SearchResultPage;
 import edu.arizona.biosemantics.bioportal.model.SearchResultPage.SearchResult;
 import edu.arizona.biosemantics.oto2.oto.server.Configuration;
+import edu.arizona.biosemantics.oto2.oto.shared.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.oto.shared.model.OntologyEntry;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
@@ -49,8 +50,8 @@ public class OntologyDAO {
 				searchResultPage = bioportalClient.getSearchResultPage(searchResultPage.getNextPage()).get();
 				addOntologyEntries(search, result, searchResultPage);
 			}
-		} catch(Exception e) {
-			e.printStackTrace();
+		} catch(ExecutionException | InterruptedException e) {
+			log(LogLevel.ERROR, "Exception", e);
 		}
 		
 		highlightDefinitions(search.getQuery(), result);
@@ -141,8 +142,8 @@ public class OntologyDAO {
 		List<edu.arizona.biosemantics.bioportal.model.Ontology> ontologies = new LinkedList<edu.arizona.biosemantics.bioportal.model.Ontology>();
 		try {
 			ontologies = bioportalClient.getOntologies().get();
-		} catch(Exception e) {
-			e.printStackTrace();
+		} catch(ExecutionException | InterruptedException e) {
+			log(LogLevel.ERROR, "Exception", e);
 		}
 		return createOntologies(ontologies);
 	}

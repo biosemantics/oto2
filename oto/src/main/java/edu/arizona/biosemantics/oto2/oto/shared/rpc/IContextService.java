@@ -22,8 +22,8 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.TypedContext;
 @RemoteServiceRelativePath("context")
 public interface IContextService extends RemoteService {
 		
-	public List<TypedContext> getContexts(Collection collection, Term term) throws Exception;
+	public List<TypedContext> getContexts(Collection collection, Term term);
 	
-	public List<Context> insert(int collectionId, String secret, List<Context> contexts) throws Exception;
+	public List<Context> insert(int collectionId, String secret, List<Context> contexts);
 	
 }

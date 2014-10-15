@@ -17,17 +17,17 @@ public class OntologyService extends RemoteServiceServlet implements IOntologySe
 	private DAOManager daoManager = new DAOManager();
 	
 	@Override
-	public List<OntologyEntry> getOntologyEntries(Term term) throws InterruptedException, ExecutionException {
+	public List<OntologyEntry> getOntologyEntries(Term term) {
 		return daoManager.getOntologyDAO().get(term);
 	}
 	
 	@Override
-	public List<OntologyEntry> getOntologyEntries(Term term, List<Ontology> ontologies) throws InterruptedException, ExecutionException {
+	public List<OntologyEntry> getOntologyEntries(Term term, List<Ontology> ontologies) {
 		return daoManager.getOntologyDAO().get(term, ontologies);
 	}
 	
 	@Override
-	public Set<Ontology> getOntologies() throws InterruptedException, ExecutionException {
+	public Set<Ontology> getOntologies() {
 		return daoManager.getOntologyDAO().getOntologies();
 	}
 

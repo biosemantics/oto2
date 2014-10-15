@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 import edu.arizona.biosemantics.oto2.oto.server.db.Query.QueryException;
+import edu.arizona.biosemantics.oto2.oto.shared.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
@@ -47,7 +48,7 @@ public class SynonymDAO {
 				}
 			}
 		} catch(Exception e) {
-			e.printStackTrace();
+			log(LogLevel.ERROR, "Query Exception", e);
 		}	
 		return synonyms;
 	}
@@ -64,7 +65,7 @@ public class SynonymDAO {
 			deleteOldSynonyms.setParameter(1, label.getId());
 			deleteOldSynonyms.execute();
 		} catch(QueryException e) {
-			e.printStackTrace();
+			log(LogLevel.ERROR, "Query Exception", e);
 		}	
 		
 		for(Term mainTerm : mainTerms) {
@@ -83,7 +84,7 @@ public class SynonymDAO {
 				deleteOldSynonyms.setParameter(2, mainTerm.getId());
 				deleteOldSynonyms.execute();
 			} catch(QueryException e) {
-				e.printStackTrace();
+				log(LogLevel.ERROR, "Query Exception", e);
 			}	
 			
 			for(Term synonymTerm : synonymTerms) {
@@ -94,7 +95,7 @@ public class SynonymDAO {
 					insert.setParameter(3, synonymTerm.getId());
 					insert.execute();
 				} catch(QueryException e) {
-					e.printStackTrace();
+					log(LogLevel.ERROR, "Query Exception", e);
 				}	
 			}
 		}
@@ -109,7 +110,7 @@ public class SynonymDAO {
 			insert.setParameter(3, synonymTerm.getId());
 			insert.execute();
 		} catch(QueryException e) {
-			e.printStackTrace();
+			log(LogLevel.ERROR, "Query Exception", e);
 		}	
 	}
 
@@ -125,7 +126,7 @@ public class SynonymDAO {
 				}
 			}
 		} catch(Exception e) {
-			e.printStackTrace();
+			log(LogLevel.ERROR, "Query Exception", e);
 		}		
 	}
 		

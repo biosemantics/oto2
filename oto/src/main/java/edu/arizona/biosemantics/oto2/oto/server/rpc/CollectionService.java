@@ -15,6 +15,7 @@ import edu.arizona.biosemantics.bioportal.model.Ontology;
 import edu.arizona.biosemantics.oto2.oto.server.Configuration;
 import edu.arizona.biosemantics.oto2.oto.server.db.DAOManager;
 import edu.arizona.biosemantics.oto2.oto.server.db.HistoricInitializer;
+import edu.arizona.biosemantics.oto2.oto.shared.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Comment;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Context;
@@ -32,42 +33,38 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	private HistoricInitializer historicInitializer = new HistoricInitializer(daoManager);
 	
 	@Override
-	public Collection get(Collection collection) throws Exception {
-		try {
-			return daoManager.getCollectionDAO().get(collection.getId());
-		}catch(Exception e) {
-			e.printStackTrace();
-			return null;
-		}
+	public Collection get(Collection collection) {
+		return daoManager.getCollectionDAO().get(collection.getId());
 	}
 	
 	@Override
-	public Collection get(int id, String secret) throws Exception {
+	public Collection get(int id, String secret) {
 		Collection collection = new Collection(id, secret);
 		return get(collection);
 	}
 
 	@Override
-	public void update(Collection collection) throws Exception {
+	public void update(Collection collection) {
+		log(LogLevel.INFO, "Update collection " + collection.getId());
 		try {
 			daoManager.getCollectionDAO().update(collection);
-		}catch(Exception e) {
-			e.printStackTrace();
+		} catch(Exception e) {
+			log(LogLevel.ERROR, "Exception", e);
 		}
 	}	
 	
 	@Override
-	public Term addTerm(Term term, int bucketId) throws Exception {
+	public Term addTerm(Term term, int bucketId) {
 		return daoManager.getTermDAO().insert(term, bucketId);
 	}
 
 	@Override
-	public Label addLabel(Label label, int collectionId) throws Exception {
+	public Label addLabel(Label label, int collectionId) {
 		return daoManager.getLabelDAO().insert(label, collectionId);
 	}
 	
 	@Override
-	public Comment addComment(Comment comment, int termId) throws Exception {
+	public Comment addComment(Comment comment, int termId) {
 		return daoManager.getCommentDAO().insert(comment, termId);
 	}
 	
@@ -79,6 +76,7 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 			createDefaultSecret(collection);
 		//collection.getLabels().add(new TrashLabel("Useless", "This category can be uesd to label terms as uselss"));
 		collection = daoManager.getCollectionDAO().insert(collection);
+		log(LogLevel.INFO, "Inserted collection " + collection.getId());
 		return collection;
 	}
 	
@@ -89,7 +87,7 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	}
 	
 	@Override
-	public List<Location> getLocations(Term term) throws Exception {
+	public List<Location> getLocations(Term term) {
 		List<Location> result = new LinkedList<Location>();
 		Set<Label> labels = daoManager.getLabelingDAO().getLabels(term);
 		if(labels.isEmpty())
@@ -101,12 +99,14 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	}
 
 	@Override
-	public Collection reset(Collection collection) throws Exception {
+	public Collection reset(Collection collection) {
+		log(LogLevel.INFO, "Reset collection " + collection.getId());
 		return daoManager.getCollectionDAO().reset(collection);
 	}
 	
 	@Override
-	public Collection initializeFromHistory(Collection collection) throws Exception {
+	public Collection initializeFromHistory(Collection collection) {
+		log(LogLevel.INFO, "Initialize from history collection " + collection.getId());
 		collection = daoManager.getCollectionDAO().get(collection.getId());
 		historicInitializer.initialize(collection);
 		return daoManager.getCollectionDAO().get(collection.getId());

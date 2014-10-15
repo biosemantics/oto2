@@ -11,6 +11,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import edu.arizona.biosemantics.oto2.oto.server.db.Query.QueryException;
+import edu.arizona.biosemantics.oto2.oto.shared.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Context;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
@@ -76,7 +77,7 @@ public class ContextDAO {
 				context = createContext(result);
 			}
 		} catch(Exception e) {
-			e.printStackTrace();
+			log(LogLevel.ERROR, "Query Exception", e);
 		}
 		return context;
 	}
@@ -91,7 +92,7 @@ public class ContextDAO {
 				contexts.add(context);
 			}
 		} catch(Exception e) {
-			e.printStackTrace();
+			log(LogLevel.ERROR, "Query Exception", e);
 		}
 		return contexts;
 	}
@@ -117,7 +118,7 @@ public class ContextDAO {
 				int id = generatedKeys.getInt(1);
 				context.setId(id);
 			} catch(Exception e) {
-				e.printStackTrace();
+				log(LogLevel.ERROR, "Query Exception", e);
 			}
 		}
 		return context;
@@ -132,7 +133,7 @@ public class ContextDAO {
 			query.setParameter(4, context.getId());
 			query.execute();
 		} catch(QueryException e) {
-			e.printStackTrace();
+			log(LogLevel.ERROR, "Query Exception", e);
 		}
 	}
 	
@@ -141,7 +142,7 @@ public class ContextDAO {
 			query.setParameter(1, context.getId());
 			query.execute();
 		} catch(QueryException e) {
-			e.printStackTrace();
+			log(LogLevel.ERROR, "Query Exception", e);
 		}
 	}	
 	
@@ -150,7 +151,7 @@ public class ContextDAO {
 			query.setParameter(1, collectionId);
 			query.execute();
 		} catch(QueryException e) {
-			e.printStackTrace();
+			log(LogLevel.ERROR, "Query Exception", e);
 		}
 	}
 	
@@ -194,7 +195,7 @@ public class ContextDAO {
 					contexts.add(context);
 				}
 			} catch(Exception e) {
-				e.printStackTrace();
+				log(LogLevel.ERROR, "Query Exception", e);
 			}
 		*/
 		for(Search search : searches) 
@@ -207,7 +208,7 @@ public class ContextDAO {
 					contexts.add(context);
 				}
 			} catch(Exception e) {
-				e.printStackTrace();
+				log(LogLevel.ERROR, "Query Exception", e);
 			}
 		
 		List<TypedContext> typedContexts = createHighlightedAndShortenedTypedContexts(contexts, searches);

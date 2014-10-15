@@ -8,6 +8,7 @@ import java.util.List;
 
 import edu.arizona.biosemantics.oto2.oto.server.db.Query.QueryException;
 import edu.arizona.biosemantics.oto2.oto.shared.LabelNameNormalizer;
+import edu.arizona.biosemantics.oto2.oto.shared.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.HighlightLabel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
@@ -38,7 +39,7 @@ public class LabelDAO {
 				label = createLabel(result);
 			}
 		} catch(Exception e) {
-			e.printStackTrace();
+			log(LogLevel.ERROR, "Query Exception", e);
 		}
 		return label;
 	}
@@ -83,7 +84,7 @@ public class LabelDAO {
 				
 				label.setId(id);
 			} catch(Exception e) {
-				e.printStackTrace();
+				log(LogLevel.ERROR, "Query Exception", e);
 			}
 		}
 		return label;
@@ -96,7 +97,7 @@ public class LabelDAO {
 			query.setParameter(3, label.getId());
 			query.execute();
 		} catch(QueryException e) {
-			e.printStackTrace();
+			log(LogLevel.ERROR, "Query Exception", e);
 		}
 	}
 
@@ -105,7 +106,7 @@ public class LabelDAO {
 			query.setParameter(1, label.getId());
 			query.execute();
 		}catch(QueryException e) {
-			e.printStackTrace();
+			log(LogLevel.ERROR, "Query Exception", e);
 		}
 	}
 
@@ -119,7 +120,7 @@ public class LabelDAO {
 				labels.add(get(id));
 			}
 		} catch(Exception e) {
-			e.printStackTrace();
+			log(LogLevel.ERROR, "Query Exception", e);
 		}
 		return labels;		
 	}
@@ -163,7 +164,7 @@ public class LabelDAO {
 				}
 			}
 		} catch(Exception e) {
-			e.printStackTrace();
+			log(LogLevel.ERROR, "Query Exception", e);
 		}
 			
 		for(Label label : collection.getLabels()) {

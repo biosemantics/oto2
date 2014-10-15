@@ -18,7 +18,8 @@ import java.util.Properties;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectWriter;
 
-import edu.arizona.biosemantics.oto2.oto.server.log.LogLevel;
+import edu.arizona.biosemantics.oto2.oto.server.log.Logger;
+import edu.arizona.biosemantics.oto2.oto.shared.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.HighlightLabel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import au.com.bytecode.opencsv.CSVReader;
@@ -26,6 +27,8 @@ import au.com.bytecode.opencsv.CSVWriter;
 
 public class Configuration {
 
+	private final static Logger logger = Logger.getLogger(Configuration.class);
+	
 	/** Database **/
 	public static String databaseName;
 	public static String databaseUser;
@@ -67,7 +70,7 @@ public class Configuration {
 				}
 			}
 		} catch(Exception e) {
-			e.printStackTrace();
+			logger.error("Couldn't read configuration", e);
 		}
 	}
 	

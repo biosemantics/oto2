@@ -1,14 +1,16 @@
-package edu.arizona.biosemantics.oto2.oto.server.log;
+package edu.arizona.biosemantics.oto2.oto.shared.log;
 
 import javax.xml.bind.annotation.XmlTransient;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 
+import edu.arizona.biosemantics.oto2.oto.server.log.ObjectStringifier;
+
 /**
  * StringifyInjectionAspect specifies IPrintables and adds them a toString method
  * @author rodenhausen
  */
-public aspect StringifyInjectionAspect {
+public aspect StringifyInjection {
 	
 	@XmlTransient
 	@JsonIgnore

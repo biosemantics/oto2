@@ -15,6 +15,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectWriter;
 
 import edu.arizona.biosemantics.oto2.oto.server.db.Query.QueryException;
+import edu.arizona.biosemantics.oto2.oto.shared.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Bucket;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
@@ -59,7 +60,7 @@ public class CollectionDAO {
 				return validSecret.equals(secret);
 			}
 		} catch(Exception e) {
-			e.printStackTrace();
+			log(LogLevel.ERROR, "Query Exception", e);
 		}
 		return false;
 	}
@@ -105,7 +106,7 @@ public class CollectionDAO {
 			//
 			collection.setLabels(labels);
 		} catch(Exception e) {
-			e.printStackTrace();
+			log(LogLevel.ERROR, "Query Exception", e);
 		}
 		
 		try(Query query = new Query("UPDATE oto_collection SET lastretrieved = ? WHERE id = ?")) {
@@ -114,7 +115,7 @@ public class CollectionDAO {
 			query.setParameter(1, new Timestamp(date.getTime()));
 			query.execute();
 		} catch(QueryException e) {
-			e.printStackTrace();
+			log(LogLevel.ERROR, "Query Exception", e);
 		}
 		
 		return collection;
@@ -151,7 +152,7 @@ public class CollectionDAO {
 					label.setCollection(id);
 				}
 			} catch(Exception e) {
-				e.printStackTrace();
+				log(LogLevel.ERROR, "Query Exception", e);
 			}
 		}
 		return collection;
@@ -174,7 +175,7 @@ public class CollectionDAO {
 			query.setParameter(4, collection.getId());
 			query.execute();
 		} catch(QueryException e) {
-			e.printStackTrace();
+			log(LogLevel.ERROR, "Query Exception", e);
 		}
 		
 		bucketDAO.ensure(collection);
@@ -186,7 +187,7 @@ public class CollectionDAO {
 			query.setParameter(1, collection.getId());
 			query.execute();
 		} catch(QueryException e) {
-			e.printStackTrace();
+			log(LogLevel.ERROR, "Query Exception", e);
 		}
 		
 		for(Bucket bucket : collection.getBuckets())

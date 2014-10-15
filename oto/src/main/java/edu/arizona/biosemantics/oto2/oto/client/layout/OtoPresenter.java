@@ -27,7 +27,7 @@ import edu.arizona.biosemantics.oto2.oto.client.event.TermCategorizeEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermMarkUselessEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermRenameEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermUncategorizeEvent;
-import edu.arizona.biosemantics.oto2.oto.server.log.LogLevel;
+import edu.arizona.biosemantics.oto2.oto.shared.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Bucket;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
@@ -167,8 +167,7 @@ public class OtoPresenter {
 			public void onSuccess(Void result) {	}
 			@Override
 			public void onFailure(Throwable caught) {
-				Alerter.saveCollectionFailed();
-				log(LogLevel.ERROR, "Updating collection failed", caught);
+				Alerter.saveCollectionFailed(caught);
 			}
 		});
 	}

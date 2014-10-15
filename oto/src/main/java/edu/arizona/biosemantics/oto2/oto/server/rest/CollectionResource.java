@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import edu.arizona.biosemantics.oto2.oto.server.db.DAOManager;
 import edu.arizona.biosemantics.oto2.oto.server.rpc.CollectionService;
+import edu.arizona.biosemantics.oto2.oto.shared.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.TrashLabel;
@@ -35,22 +36,16 @@ public class CollectionResource {
 	@Context
 	Request request;		
 	
-	private Logger logger;
 	private CollectionService collectionService = new CollectionService();
-	
-	public CollectionResource() {
-		logger =  LoggerFactory.getLogger(this.getClass());
-	}	
 	
 	@PUT
 	@Produces({ MediaType.APPLICATION_JSON })
 	@Consumes({ MediaType.APPLICATION_JSON })
-	public Collection put(Collection collection) {
+	public Collection put(Collection collection) throws Exception {
 		try {
 			return collectionService.insert(collection);
 		} catch (Exception e) {
-			logger.error("Exception " + e.toString());
-			e.printStackTrace();
+			log(LogLevel.ERROR, "Exception", e);
 			return null;
 		}
 	}
@@ -67,8 +62,7 @@ public class CollectionResource {
 			removeTrashLabel(result);
 			return result;
 		} catch (Exception e) {
-			logger.error("Exception " + e.toString());
-			e.printStackTrace();
+			log(LogLevel.ERROR, "Exception", e);
 			return null;
 		}
 	}

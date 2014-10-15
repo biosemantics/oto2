@@ -17,10 +17,10 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 @RemoteServiceRelativePath("ontology")
 public interface IOntologyService extends RemoteService {
 	
-	public List<OntologyEntry> getOntologyEntries(Term term) throws Exception;
+	public List<OntologyEntry> getOntologyEntries(Term term);
 	
-	public List<OntologyEntry> getOntologyEntries(Term term, List<Ontology> ontologies) throws Exception;
+	public List<OntologyEntry> getOntologyEntries(Term term, List<Ontology> ontologies);
 	
-	public Set<Ontology> getOntologies() throws Exception;
+	public Set<Ontology> getOntologies();
 	
 }

@@ -8,6 +8,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 
+import edu.arizona.biosemantics.oto2.oto.shared.log.LogLevel;
+
 public class Query implements AutoCloseable {
 	public static class QueryException extends Exception {
 		public QueryException(String message) {
@@ -16,15 +18,14 @@ public class Query implements AutoCloseable {
 
 		public QueryException(String message, Throwable cause) {
 			super(message, cause);
-			System.out.println(message);
 			if(cause != null)
-				cause.printStackTrace();
+				log(LogLevel.ERROR, message, cause);
 		}
 
 		public QueryException(Throwable cause) {
 			super(cause);
 			if(cause != null)
-				cause.printStackTrace();
+				log(LogLevel.ERROR, "", cause);
 		}
 	}
 
@@ -41,7 +42,6 @@ public class Query implements AutoCloseable {
 			preparedStatement = connection.prepareStatement(sql,
 					Statement.RETURN_GENERATED_KEYS);
 		} catch (Exception e) {
-			e.printStackTrace();
 			throw new QueryException(e.getMessage(), e.getCause());
 		}
 	}

@@ -41,7 +41,7 @@ import edu.arizona.biosemantics.oto2.oto.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.oto.client.event.OntologiesSelectEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermRenameEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermSelectEvent;
-import edu.arizona.biosemantics.oto2.oto.server.log.LogLevel;
+import edu.arizona.biosemantics.oto2.oto.shared.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.oto.shared.model.OntologyEntry;
 import edu.arizona.biosemantics.oto2.oto.shared.model.OntologyEntryProperties;
@@ -242,15 +242,14 @@ public class OntologiesView extends Composite {
 									}
 									@Override
 									public void onFailure(Throwable caught) {
-										Alerter.getOntologyEntriesFailed();
-										log(LogLevel.ERROR, "Get Ontology Entries failed", caught);
+										Alerter.getOntologyEntriesFailed(caught);
 										destroySearchingBox();
 									}
 						});
 					}
 					@Override
 					public void onFailure(Throwable caught) {
-						log(LogLevel.ERROR, "Add Comment failed", caught);
+						Alerter.getOntologyEntriesFailed(caught);
 						destroySearchingBox();
 					}
 				});

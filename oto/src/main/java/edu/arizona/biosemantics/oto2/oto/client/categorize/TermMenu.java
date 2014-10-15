@@ -46,7 +46,7 @@ import edu.arizona.biosemantics.oto2.oto.client.event.SetUserEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.SynonymCreationEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.SynonymRemovalEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermUncategorizeEvent;
-import edu.arizona.biosemantics.oto2.oto.server.log.LogLevel;
+import edu.arizona.biosemantics.oto2.oto.shared.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Comment;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
@@ -129,8 +129,7 @@ public abstract class TermMenu extends Menu implements BeforeShowHandler {
 									}
 									@Override
 									public void onFailure(Throwable caught) {
-										Alerter.addCommentFailed();
-										log(LogLevel.ERROR, "Add comment failed", caught);
+										Alerter.addCommentFailed(caught);
 									}
 								});
 							}

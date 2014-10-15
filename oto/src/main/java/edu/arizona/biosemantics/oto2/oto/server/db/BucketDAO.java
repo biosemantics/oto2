@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import edu.arizona.biosemantics.oto2.oto.server.db.Query.QueryException;
+import edu.arizona.biosemantics.oto2.oto.shared.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Bucket;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
@@ -34,8 +35,8 @@ public class BucketDAO {
 			while(result.next()) {
 				bucket = createBucket(result);
 			}
-		} catch(Exception e) {
-			e.printStackTrace();
+		} catch (Exception e) {
+			log(LogLevel.ERROR, "Query Exception", e);
 		}
 		return bucket;
 	}
@@ -68,7 +69,7 @@ public class BucketDAO {
 				for(Term term : bucket.getTerms())
 					termDAO.insert(term, bucket.getId());
 			} catch(Exception e) {
-				e.printStackTrace();
+				log(LogLevel.ERROR, "Query Exception", e);
 			}
 		}
 		return bucket;
@@ -89,7 +90,7 @@ public class BucketDAO {
 			}
 			query.execute();
 		} catch (QueryException e) {
-			e.printStackTrace();
+			log(LogLevel.ERROR, "Query Exception", e);
 		}
 	}
 
@@ -98,7 +99,7 @@ public class BucketDAO {
 			query.setParameter(1, bucket.getId());
 			query.execute();
 		} catch (QueryException e) {
-			e.printStackTrace();
+			log(LogLevel.ERROR, "Query Exception", e);
 		}
 		
 		for(Term term :  bucket.getTerms())
@@ -114,7 +115,7 @@ public class BucketDAO {
 				buckets.add(createBucket(result));
 			}
 		} catch(Exception e) {
-			e.printStackTrace();
+			log(LogLevel.ERROR, "Query Exception", e);
 		}
 		return buckets;		
 	}
@@ -137,7 +138,7 @@ public class BucketDAO {
 				bucket = createBucket(result);
 			}
 		} catch(Exception e) {
-			e.printStackTrace();
+			log(LogLevel.ERROR, "Query Exception", e);
 		}
 		return bucket;
 	}
