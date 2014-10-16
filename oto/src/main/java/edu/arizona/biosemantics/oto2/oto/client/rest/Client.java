@@ -24,6 +24,7 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Context;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
+import edu.arizona.biosemantics.oto2.oto.shared.model.community.CommunityCollection;
 
 public class Client implements AutoCloseable {
 
@@ -70,6 +71,18 @@ public class Client implements AutoCloseable {
 	
 	public void put(int collectionId, String secret, List<Context> contexts, InvocationCallback<List<Context>> callback) {
 		this.getPutContextsInvoker(collectionId, secret).put(Entity.entity(contexts, MediaType.APPLICATION_JSON), callback);
+	}
+	
+	public Future<CommunityCollection> getCommunityCollection(String type) {
+		return this.getGetCommunityCollectionInvoker(type).get(CommunityCollection.class);
+	}
+	
+	public void getCommunityCollection(String type, InvocationCallback<CommunityCollection> callback) {
+		this.getGetCommunityCollectionInvoker(type).get(callback);
+	}
+
+	private AsyncInvoker getGetCommunityCollectionInvoker(String type) {
+		return target.path("rest").path("community").path(type).request(MediaType.APPLICATION_JSON).async();
 	}
 
 	private AsyncInvoker getPutInvoker() {

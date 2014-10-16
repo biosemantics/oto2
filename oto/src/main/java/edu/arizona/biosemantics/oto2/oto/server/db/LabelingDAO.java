@@ -48,7 +48,7 @@ public class LabelingDAO {
 		} catch(Exception e) {
 			log(LogLevel.ERROR, "Query Exception", e);
 		}
-		try(Query query = new Query("SELECT * FROM oto_synonym WHERE synonymTerm = ?")) {
+		try(Query query = new Query("SELECT * FROM oto_synonym WHERE synonymterm = ?")) {
 			query.setParameter(1, term.getId());
 			ResultSet result = query.execute();
 			while(result.next()) {
@@ -92,7 +92,7 @@ public class LabelingDAO {
 	
 	public List<Term> getMainTerms(Label label)  {
 		List<Term> terms = new LinkedList<Term>();
-		try(Query query = new Query("SELECT * FROM oto_labeling WHERE label = ? AND term NOT IN (SELECT synonymTerm FROM oto_synonym WHERE label = ?)")) {
+		try(Query query = new Query("SELECT * FROM oto_labeling WHERE label = ? AND term NOT IN (SELECT synonymterm FROM oto_synonym WHERE label = ?)")) {
 			query.setParameter(1, label.getId());
 			query.setParameter(2, label.getId());
 			ResultSet result = query.execute();

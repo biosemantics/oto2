@@ -204,7 +204,7 @@ public class CollectionDAO {
 		return this.get(collection.getId());
 	}
 
-	public List<Collection> getCollections(String type) throws Exception {
+	public List<Collection> getCollections(String type) {
 		List<Collection> collections = new LinkedList<Collection>();
 		try(Query query = new Query("SELECT id FROM oto_collection WHERE type = ?")) {
 			query.setParameter(1, type);
@@ -215,6 +215,8 @@ public class CollectionDAO {
 				if(collection != null)
 					collections.add(collection);
 			}
+		} catch(Exception e) {
+			log(LogLevel.ERROR, "Query Exception", e);
 		}
 		return collections;
 	}	
