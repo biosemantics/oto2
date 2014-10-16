@@ -4,6 +4,7 @@ import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.oto.shared.model.community.CommunityCollection;
 
 
 /**
@@ -12,6 +13,6 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 @RemoteServiceRelativePath("community")
 public interface ICommunityService extends RemoteService {
 	
-	public Collection get();
+	public CommunityCollection get(String type);
 	
 }
