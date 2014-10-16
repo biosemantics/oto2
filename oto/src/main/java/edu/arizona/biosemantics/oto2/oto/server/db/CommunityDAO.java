@@ -289,14 +289,14 @@ public class CommunityDAO {
 			if(labelCount.count >= 0.5 * (overallCount - labelCount.count))
 				result.add(labelCount.labelName);
 		
-		if(result.isEmpty())
+		if(result.isEmpty() && !labelCounts.isEmpty())
 			result.add(labelCounts.get(0).labelName);
 		return result;
 	}
 
 	private List<LabelCount> getLabelCounts(String type, Term term) {
 		try(Query query = new Query("SELECT l.name FROM oto_labeling x, oto_label l, oto_collection c, oto_term t "
-				+ "WHERE x.label = l.id AND l.collection = c.id AND AND c.type= ? AND x.term = t.id AND t.term = ? "
+				+ "WHERE x.label = l.id AND l.collection = c.id AND c.type= ? AND x.term = t.id AND t.term = ? "
 				+ "UNION "
 				+ "SELECT l.name FROM oto_label l, oto_collection c, oto_term t, oto_synonym s "
 				+ "WHERE s.label = l.id AND l.collection = c.id AND c.type = ? AND s.synonymterm = t.id AND t.term = ?")) {

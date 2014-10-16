@@ -38,7 +38,7 @@ public class CommunityResource {
 	Request request;		
 	
 	private CommunityService communityService = new CommunityService();
-	
+		
 	@Path("{type}")
 	@GET
 	@Produces({ MediaType.APPLICATION_JSON })
