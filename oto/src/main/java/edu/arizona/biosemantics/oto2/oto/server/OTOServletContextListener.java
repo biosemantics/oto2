@@ -3,6 +3,8 @@ package edu.arizona.biosemantics.oto2.oto.server;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
+import org.slf4j.bridge.SLF4JBridgeHandler;
+
 import edu.arizona.biosemantics.bioportal.client.BioPortalClient;
 import edu.arizona.biosemantics.oto2.oto.server.db.ConnectionPool;
 import edu.arizona.biosemantics.oto2.oto.server.db.OntologyDAO;
@@ -29,6 +31,10 @@ public class OTOServletContextListener implements ServletContextListener {
 	public void contextInitialized(ServletContextEvent event) {
 		log(LogLevel.INFO, "Initializing oto context at context path: " + event.getServletContext().getContextPath());
 		log(LogLevel.INFO, "Configuration used " + Configuration.asString());
+		
+		log(LogLevel.INFO, "Install Java logging to SLF4J");
+		SLF4JBridgeHandler.removeHandlersForRootLogger();
+		SLF4JBridgeHandler.install();
 		
 		try {
 			// init connection pool
