@@ -177,6 +177,11 @@
 			<artifactId>jackson-mapper-asl</artifactId>
 			<version>1.9.13</version>
 		</dependency>
+		<dependency>
+		  <groupId>edu.arizona.biosemantics.oto</groupId>
+		  <artifactId>oto-client</artifactId>
+		  <version>0.0.31-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 
 	<build>

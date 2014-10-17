@@ -241,6 +241,8 @@ public class CommunityDAO {
 								if(termGroup != null && otherTermGroup != null && 
 										!termGroup.equals(otherTermGroup)) {
 									termGroup.putAll(otherTermGroup);
+									if(historicSynonymResult.mainTerm == term)
+										termGroup.put(term, termGroup.get(term) + 1);
 									if(historicSynonymResult.mainTerm == otherTerm)
 										termGroup.put(otherTerm, termGroup.get(otherTerm) + 1);
 									for(String otherTermGroupTerms : otherTermGroup.keySet())
@@ -578,6 +580,8 @@ public class CommunityDAO {
 								if(termGroup != null && otherTermGroup != null && 
 										!termGroup.equals(otherTermGroup)) {
 									termGroup.putAll(otherTermGroup);
+									if(historicSynonymResult.mainTerm == term)
+										termGroup.put(term, termGroup.get(term) + 1);
 									if(historicSynonymResult.mainTerm == otherTerm)
 										termGroup.put(otherTerm, termGroup.get(otherTerm) + 1);
 									for(Term otherTermGroupTerms : otherTermGroup.keySet())
