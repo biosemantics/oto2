@@ -18,8 +18,7 @@ import java.util.Properties;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectWriter;
 
-import edu.arizona.biosemantics.oto2.oto.server.log.Logger;
-import edu.arizona.biosemantics.oto2.oto.shared.log.LogLevel;
+import edu.arizona.biosemantics.common.log.Logger;
 import edu.arizona.biosemantics.oto2.oto.shared.model.HighlightLabel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import au.com.bytecode.opencsv.CSVReader;

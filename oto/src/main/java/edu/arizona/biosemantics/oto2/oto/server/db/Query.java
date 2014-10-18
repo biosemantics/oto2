@@ -8,7 +8,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 
-import edu.arizona.biosemantics.oto2.oto.shared.log.LogLevel;
+import edu.arizona.biosemantics.common.log.LogLevel;
 
 public class Query implements AutoCloseable {
 	public static class QueryException extends Exception {

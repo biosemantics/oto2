@@ -25,7 +25,7 @@ import com.sencha.gxt.widget.core.client.form.error.DefaultEditorError;
 import com.sencha.gxt.widget.core.client.form.Validator;
 
 import edu.arizona.biosemantics.oto2.oto.client.event.OntologiesSelectEvent;
-import edu.arizona.biosemantics.oto2.oto.shared.log.LogLevel;
+import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.oto.shared.model.OntologyProperties;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.IOntologyService;

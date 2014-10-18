@@ -15,7 +15,7 @@ import edu.arizona.biosemantics.oto.common.model.TermCategory;
 import edu.arizona.biosemantics.oto.common.model.TermSynonym;
 import edu.arizona.biosemantics.oto2.oto.server.Configuration;
 import edu.arizona.biosemantics.oto2.oto.server.db.CommunityDAO.LabelCount;
-import edu.arizona.biosemantics.oto2.oto.shared.log.LogLevel;
+import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Bucket;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;

@@ -14,7 +14,7 @@ import edu.arizona.biosemantics.bioportal.model.Search;
 import edu.arizona.biosemantics.bioportal.model.SearchResultPage;
 import edu.arizona.biosemantics.bioportal.model.SearchResultPage.SearchResult;
 import edu.arizona.biosemantics.oto2.oto.server.Configuration;
-import edu.arizona.biosemantics.oto2.oto.shared.log.LogLevel;
+import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.oto.shared.model.OntologyEntry;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;

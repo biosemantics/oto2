@@ -12,7 +12,7 @@ import com.jolbox.bonecp.BoneCPConfig;
 import com.mysql.jdbc.AbandonedConnectionCleanupThread;
 
 import edu.arizona.biosemantics.oto2.oto.server.Configuration;
-import edu.arizona.biosemantics.oto2.oto.shared.log.LogLevel;
+import edu.arizona.biosemantics.common.log.LogLevel;
 
 public class ConnectionPool {
 

@@ -7,7 +7,7 @@
 	<groupId>edu.arizona.biosemantics.oto2</groupId>
 	<artifactId>oto</artifactId>
 	<packaging>war</packaging>
-	<version>0.0.60-SNAPSHOT</version>
+	<version>0.0.61-SNAPSHOT</version>
 
 	<properties>
 		<gwtVersion>2.6.1</gwtVersion>
@@ -160,7 +160,7 @@
 		<dependency>
 			<groupId>edu.arizona.biosemantics</groupId>
 			<artifactId>bioportal-client</artifactId>
-			<version>0.0.12-SNAPSHOT</version>
+			<version>0.0.13-SNAPSHOT</version>
 		</dependency>   
 		<dependency>
 			<groupId>net.sf.opencsv</groupId>
@@ -180,7 +180,12 @@
 		<dependency>
 		  <groupId>edu.arizona.biosemantics.oto</groupId>
 		  <artifactId>oto-client</artifactId>
-		  <version>0.0.31-SNAPSHOT</version>
+		  <version>0.0.32-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+		  <groupId>edu.arizona.biosemantics.common</groupId>
+		  <artifactId>log</artifactId>
+		  <version>0.0.1-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 

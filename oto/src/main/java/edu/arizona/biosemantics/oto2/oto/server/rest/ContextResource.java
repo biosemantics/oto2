@@ -13,11 +13,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.UriInfo;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.server.rpc.ContextService;
-import edu.arizona.biosemantics.oto2.oto.shared.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Context;
 
 /**

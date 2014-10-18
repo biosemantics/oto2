@@ -14,15 +14,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.UriInfo;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import edu.arizona.biosemantics.oto2.oto.server.db.DAOManager;
 import edu.arizona.biosemantics.oto2.oto.server.rpc.CollectionService;
-import edu.arizona.biosemantics.oto2.oto.shared.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.TrashLabel;
+import edu.arizona.biosemantics.common.log.LogLevel;
 
 /**
  * Just a REST-like wrapper around the RPC service

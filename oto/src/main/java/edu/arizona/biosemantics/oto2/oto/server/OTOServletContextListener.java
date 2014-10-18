@@ -6,10 +6,10 @@ import javax.servlet.ServletContextListener;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import edu.arizona.biosemantics.bioportal.client.BioPortalClient;
+import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.server.db.ConnectionPool;
 import edu.arizona.biosemantics.oto2.oto.server.db.OntologyDAO;
 import edu.arizona.biosemantics.oto2.oto.server.db.Query;
-import edu.arizona.biosemantics.oto2.oto.shared.log.LogLevel;
 
 public class OTOServletContextListener implements ServletContextListener {
 	private ConnectionPool connectionPool;
