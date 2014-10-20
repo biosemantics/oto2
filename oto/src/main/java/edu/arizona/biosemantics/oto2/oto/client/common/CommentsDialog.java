@@ -43,11 +43,9 @@ import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
 import edu.arizona.biosemantics.oto2.oto.client.Oto;
 import edu.arizona.biosemantics.oto2.oto.client.event.CommentEvent;
-import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Bucket;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Comment;
-import edu.arizona.biosemantics.oto2.oto.shared.model.CommentProperties;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionService;
@@ -152,6 +150,8 @@ public class CommentsDialog extends Dialog {
 					String labelString = "";
 					for(Label label : object.getLabels()) 
 						labelString += label.getName() + ", ";
+					if(labelString.length() < 2)
+						return labelString;
 					return labelString.substring(0, labelString.length() - 2);
 				}
 				@Override

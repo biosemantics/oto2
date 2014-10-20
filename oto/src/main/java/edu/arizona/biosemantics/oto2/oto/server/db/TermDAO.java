@@ -92,9 +92,7 @@ public class TermDAO {
 			query.setParameter(4, term.getId());	
 			query.execute();
 			
-			for(Comment comment : term.getComments()) {
-				commentDAO.ensure(comment, term.getId());
-			}
+			commentDAO.ensure(term.getComments(), term.getId());
 		} catch(QueryException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
 		}	

@@ -37,7 +37,7 @@ public class CommentDAO {
 	}
 
 	public Comment insert(Comment comment, int termId)  {
-		removeUserComments(comment.getUser());
+		removeUserComments(comment.getUser(), termId);
 		if(!comment.hasId()) {
 			try(Query insert = new Query("INSERT INTO `oto_term_comment` " +
 					"(`term`, `user`, `comment`) VALUES (?, ?, ?)")) {
@@ -57,9 +57,10 @@ public class CommentDAO {
 		return comment;
 	}
 
-	public void removeUserComments(String user) {
-		try(Query query = new Query("DELETE FROM oto_term_comment WHERE user = ?")) {
+	public void removeUserComments(String user, int termId) {
+		try(Query query = new Query("DELETE FROM oto_term_comment WHERE user = ? and term = ?")) {
 			query.setParameter(1, user);
+			query.setParameter(2, termId);
 			query.execute();
 		} catch(QueryException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
@@ -102,11 +103,25 @@ public class CommentDAO {
 		return comments;
 	}
 
-	public void ensure(Comment comment, int termId) {
-		if(!comment.hasId())
-			insert(comment, termId);
-		else
-			update(comment, termId);
+	public void ensure(List<Comment> comments, int termId) {
+		String notInComments = "";
+		for(Comment comment : comments) 
+			notInComments += comment.getId() + ",";
+		notInComments = notInComments.isEmpty() ? "" : notInComments.substring(0, notInComments.length() - 1);
+		String deleteOldCommentsQuery = notInComments.isEmpty() ? "DELETE FROM `oto_term_comment` WHERE term = ?" : 
+			 "DELETE FROM `oto_term_comment` WHERE term = ? AND id NOT IN (" + notInComments + ")";
+		try(Query deleteOldComments = new Query(deleteOldCommentsQuery)) {
+			deleteOldComments.setParameter(1, termId);
+			deleteOldComments.execute();
+		} catch(QueryException e) {
+			log(LogLevel.ERROR, "Query Exception", e);
+		}
+		
+		for(Comment comment : comments)
+			if(!comment.hasId())
+				insert(comment, termId);
+			else
+				update(comment, termId);
 	}
 	
 }

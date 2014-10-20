@@ -15,10 +15,12 @@ import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.sencha.gxt.core.client.IdentityValueProvider;
 import com.sencha.gxt.core.client.dom.AutoScrollSupport;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
 import com.sencha.gxt.core.client.util.Format;
+import com.sencha.gxt.core.client.util.Params;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.SortDir;
 import com.sencha.gxt.data.shared.Store.StoreSortInfo;
@@ -33,20 +35,25 @@ import com.sencha.gxt.dnd.core.client.ListViewDragSource;
 import com.sencha.gxt.dnd.core.client.TreeDragSource;
 import com.sencha.gxt.widget.core.client.ListView;
 import com.sencha.gxt.widget.core.client.TabPanel;
+import com.sencha.gxt.widget.core.client.box.MultiLinePromptMessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.FlowLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.event.BeforeShowEvent;
+import com.sencha.gxt.widget.core.client.event.HideEvent;
 import com.sencha.gxt.widget.core.client.event.BeforeShowEvent.BeforeShowHandler;
+import com.sencha.gxt.widget.core.client.event.HideEvent.HideHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.form.CheckBox;
+import com.sencha.gxt.widget.core.client.info.Info;
 import com.sencha.gxt.widget.core.client.menu.HeaderMenuItem;
 import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 import com.sencha.gxt.widget.core.client.tree.Tree;
 
+import edu.arizona.biosemantics.oto2.oto.client.Oto;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.all.LabelPortlet;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.single.MainTermPortlet;
 import edu.arizona.biosemantics.oto2.oto.client.common.Alerter;
@@ -56,20 +63,25 @@ import edu.arizona.biosemantics.oto2.oto.client.common.UncategorizeDialog;
 import edu.arizona.biosemantics.oto2.oto.client.common.dnd.MainTermSynonymsLabelDnd;
 import edu.arizona.biosemantics.oto2.oto.client.common.dnd.TermDnd;
 import edu.arizona.biosemantics.oto2.oto.client.common.dnd.TermLabelDnd;
+import edu.arizona.biosemantics.oto2.oto.client.event.CommentEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelRemoveEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermCategorizeEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermMarkUselessEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermRenameEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermSelectEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermUncategorizeEvent;
+import edu.arizona.biosemantics.oto2.oto.server.rpc.CollectionService;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Bucket;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.oto.shared.model.Comment;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 import edu.arizona.biosemantics.oto2.oto.shared.model.TermProperties;
 import edu.arizona.biosemantics.oto2.oto.shared.model.TermTreeNode;
 import edu.arizona.biosemantics.oto2.oto.shared.model.TextTreeNode;
 import edu.arizona.biosemantics.oto2.oto.shared.model.TextTreeNodeProperties;
+import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionService;
+import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionServiceAsync;
 
 public class TermsView extends TabPanel {
 	
@@ -84,18 +96,21 @@ public class TermsView extends TabPanel {
 		public void onBeforeShow(BeforeShowEvent event) {
 			this.clear();
 			
-			List<Term> selected = new LinkedList<Term>();
+			List<Term> viewSelected = new LinkedList<Term>();
 			if(TermsView.this.getActiveWidget().equals(TermsView.this.termTree)) {
 				List<TextTreeNode> nodes = termTreeSelectionModel.getSelectedItems();	
 				for(TextTreeNode node : nodes)
 					if(node instanceof TermTreeNode) {
-						selected.add(((TermTreeNode)node).getTerm());
+						viewSelected.add(((TermTreeNode)node).getTerm());
 					} else if(node instanceof BucketTreeNode) {
-						selected.addAll(((BucketTreeNode)node).getBucket().getTerms());
+						viewSelected.addAll(((BucketTreeNode)node).getBucket().getTerms());
 					}
 			} else if(TermsView.this.getActiveWidget().equals(TermsView.this.listView)) {
-				selected = listViewSelectionModel.getSelectedItems();
+				viewSelected = listViewSelectionModel.getSelectedItems();
 			}
+			
+			final List<Term> selected = viewSelected;
+			
 			if(selected == null || selected.isEmpty()) {
 				event.setCancelled(true);
 				this.hide();
@@ -208,11 +223,51 @@ public class TermsView extends TabPanel {
 					});
 					this.add(split);*/
 				}
+								
+				MenuItem comment = new MenuItem("Comment");
+				final Term term = selected.get(0);
+				comment.addSelectionHandler(new SelectionHandler<Item>() {
+					@Override
+					public void onSelection(SelectionEvent<Item> event) {
+						final MultiLinePromptMessageBox box = new MultiLinePromptMessageBox("Comment", "");
+						box.getTextArea().setValue(getUsersComment(term));
+						box.addHideHandler(new HideHandler() {
+							@Override
+							public void onHide(HideEvent event) {
+								Comment newComment = new Comment(Oto.user, box.getValue());
+								for(final Term term : selected) {
+									collectionService.addComment(newComment, term.getId(), new AsyncCallback<Comment>() {
+										@Override
+										public void onSuccess(Comment result) {
+											eventBus.fireEvent(new CommentEvent(term, result));
+											String comment = Format.ellipse(box.getValue(), 80);
+											String message = Format.substitute("'{0}' saved", new Params(comment));
+											Info.display("Comment", message);
+										}
+										@Override
+										public void onFailure(Throwable caught) {
+											Alerter.addCommentFailed(caught);
+										}
+									});
+								}
+							}
+						});
+						box.show();
+					}
+				});
+				this.add(comment);
 			}
 			
 			if(this.getWidgetCount() == 0)
 				event.setCancelled(true);
 		}
+	}
+	
+	protected String getUsersComment(Term term) {
+		for(Comment comment : term.getComments())
+			if(comment.getUser().equals(Oto.user))
+				return comment.getComment();
+		return "";
 	}
 	
 	public static class BucketTreeNode extends TextTreeNode {
@@ -238,17 +293,14 @@ public class TermsView extends TabPanel {
 		}
 		
 	}
-	
-
-	
-
-	
+		
 	private static final TermProperties termProperties = GWT.create(TermProperties.class);
 	private static final TextTreeNodeProperties textTreeNodeProperties = GWT.create(TextTreeNodeProperties.class);
+	private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
 	
 	private TreeStore<TextTreeNode> treeStore;
 	private ListStore<Term> listStore;
-
+	
 	private Map<Term, TermTreeNode> termTermTreeNodeMap;
 	private Map<Bucket, BucketTreeNode> bucketBucketTreeNodeMap;
 	private ListView<Term, String> listView;
