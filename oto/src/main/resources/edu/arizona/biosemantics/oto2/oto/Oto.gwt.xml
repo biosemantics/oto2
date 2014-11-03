@@ -23,7 +23,7 @@
  <inherits name='edu.arizona.biosemantics.common.log.Log'/>
 
   <!-- Specify the app entry point class.                         -->
-  <!-- <entry-point class='edu.arizona.biosemantics.oto2.oto.client.Start'/> -->
+  <entry-point class='edu.arizona.biosemantics.oto2.oto.client.StandAlone'/>
 
   <!-- Specify the paths for translatable code                    -->
   <source path='client'/>

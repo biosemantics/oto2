@@ -185,4 +185,11 @@ public class Alerter {
 		caught.printStackTrace();
 	}
 
+	public static void alertCouldNotBeLoaded(Throwable caught, int collectionId, String secret) {
+		AlertMessageBox box = new AlertMessageBox("Load failed", "Could not load collection with id " + 
+				collectionId + " and secret " + secret);
+		box.show();
+		caught.printStackTrace();
+	}
+
 }
