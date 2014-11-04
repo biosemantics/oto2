@@ -36,6 +36,10 @@ public class CommunityResource {
 	
 	private CommunityService communityService = new CommunityService();
 		
+	public CommunityResource() {
+		log(LogLevel.DEBUG, "CommunityResource initialized");
+	}
+	
 	@Path("{type}")
 	@GET
 	@Produces({ MediaType.APPLICATION_JSON })

@@ -31,6 +31,10 @@ public class ContextResource {
 	
 	private ContextService contextService = new ContextService();
 	
+	public ContextResource() {
+		log(LogLevel.DEBUG, "ContextResource initialized");
+	}
+	
 	@Path("{collectionId}")
 	@PUT
 	@Produces({ MediaType.APPLICATION_JSON })

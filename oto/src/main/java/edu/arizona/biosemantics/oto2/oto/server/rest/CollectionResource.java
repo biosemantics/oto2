@@ -32,6 +32,10 @@ public class CollectionResource {
 	@Context
 	Request request;		
 	
+	public CollectionResource() {
+		log(LogLevel.DEBUG, "CollectionResource initialized");
+	}
+	
 	private CollectionService collectionService = new CollectionService();
 	
 	@PUT
