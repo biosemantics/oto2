@@ -166,16 +166,19 @@ public class ContextDAO {
 			searches.add(new Search(searchTerm, Type.updated));
 			searches.add(new Search(searchTerm.replaceAll(" ", "-"), Type.updated));
 			searches.add(new Search(searchTerm.replaceAll(" ", "_"), Type.updated));
+			searches.add(new Search(searchTerm.replaceAll("_", "-"), Type.updated));
 			
 			searchTerm = term.getOriginalTerm().trim();
 			searches.add(new Search(searchTerm, Type.original));
 			searches.add(new Search(searchTerm.replaceAll(" ", "-"), Type.original));
 			searches.add(new Search(searchTerm.replaceAll(" ", "_"), Type.original));
+			searches.add(new Search(searchTerm.replaceAll("_", "-"), Type.original));
 		} else {
 			String searchTerm = term.getTerm().trim();
 			searches.add(new Search(searchTerm, Type.original));
 			searches.add(new Search(searchTerm.replaceAll(" ", "-"), Type.original));
 			searches.add(new Search(searchTerm.replaceAll(" ", "_"), Type.original));
+			searches.add(new Search(searchTerm.replaceAll("_", "-"), Type.original));
 		}
 		/* Method utilizing sql natural language search
 		 * Advantage: Faster than regular expression search for all context entries
