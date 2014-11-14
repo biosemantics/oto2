@@ -18,7 +18,7 @@ public class Start implements EntryPoint {
 		v.add(oto.getView().asWidget());
 		RootPanel.get().add(v);
 		oto.setUser("UserB");
-		oto.setSaveHandler(new SaveHandler() {
+		oto.getEventBus().addHandler(SaveEvent.TYPE, new SaveEvent.SaveHandler() {
 			@Override
 			public void onSave(SaveEvent event) {
 				System.out.println("save called");

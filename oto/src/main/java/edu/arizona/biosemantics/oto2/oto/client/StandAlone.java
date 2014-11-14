@@ -23,10 +23,10 @@ public class StandAlone implements EntryPoint {
 			v.add(oto.getView().asWidget());
 			RootPanel.get().add(v);
 			oto.setUser("Standalone user");
-			oto.setSaveHandler(new SaveHandler() {
+			oto.getEventBus().addHandler(SaveEvent.TYPE, new SaveEvent.SaveHandler() {
 				@Override
 				public void onSave(SaveEvent event) {
-					//System.out.println("save called");
+					System.out.println("save called");
 				}
 			});
 			oto.loadCollection(collectionId, secret, false);
