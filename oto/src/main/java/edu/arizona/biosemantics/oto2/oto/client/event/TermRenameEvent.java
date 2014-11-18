@@ -17,11 +17,13 @@ public class TermRenameEvent extends GwtEvent<RenameTermHandler> {
     public static Type<RenameTermHandler> TYPE = new Type<RenameTermHandler>();
     
     private Term term;
+    private String oldName;
     private String newName;
     private boolean validRename = true;
     
-    public TermRenameEvent(Term term, String newName, Collection collection) {
+    public TermRenameEvent(Term term, String oldName, String newName, Collection collection) {
         this.term = term;
+        this.oldName = oldName;
         this.newName = newName;
         
 		for(Term collectionTerm : collection.getTerms()) {
@@ -51,4 +53,8 @@ public class TermRenameEvent extends GwtEvent<RenameTermHandler> {
 		return newName;
 	}
 
+	public String getOldName() {
+		return oldName;
+	}
+	
 }

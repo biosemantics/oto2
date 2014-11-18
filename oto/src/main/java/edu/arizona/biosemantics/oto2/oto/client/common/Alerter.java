@@ -132,7 +132,7 @@ public class Alerter {
 			@Override
 			public void onSelect(SelectEvent event) {
 				String newName = box.getValue();
-				eventBus.fireEvent(new TermRenameEvent(term, newName, collection));
+				eventBus.fireEvent(new TermRenameEvent(term, term.getTerm(), newName, collection));
 			}
 		});
 		box.show();
