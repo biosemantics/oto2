@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto2.oto.client.rest;
+package edu.arizona.biosemantics.oto2.oto.server.rest.client;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -19,6 +19,7 @@ import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.filter.LoggingFilter;
 import org.glassfish.jersey.jackson.JacksonFeature;
 
+import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Bucket;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Context;
@@ -36,7 +37,8 @@ public class Client implements AutoCloseable {
 		this.url = url;
 	}
 	
-	public void open() {		
+	public void open() {
+		log(LogLevel.DEBUG, "Connect to " + url);
 		client = ClientBuilder.newBuilder().withConfig(new ClientConfig()).register(JacksonFeature.class).build();
 		client.register(new LoggingFilter(Logger.getAnonymousLogger(), true));
 		
@@ -46,6 +48,7 @@ public class Client implements AutoCloseable {
 	}
 	
 	public void close() {
+		log(LogLevel.DEBUG, "Disconnect from " + url);
 		client.close();
 	}
 	
