@@ -1,5 +1,7 @@
 package edu.arizona.biosemantics.oto2.oto.server;
 
+import java.io.File;
+
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
@@ -50,7 +52,16 @@ public class OTOServletContextListener implements ServletContextListener {
 			log(LogLevel.ERROR, "Exception initializing oto context", e);
 		}
 		
-		CommunityDecisionsJob initialJob = new CommunityDecisionsJob();
-		initialJob.saveCommunityDecisions();
+		initializeFiles();
+	}
+
+	private void initializeFiles() {
+		File files = new File(Configuration.files);
+		if(!files.exists())
+			files.mkdirs();
+		if(files.listFiles().length == 0) {
+			CommunityDecisionsJob initialJob = new CommunityDecisionsJob();
+			initialJob.saveCommunityDecisions();
+		}
 	}
 }
