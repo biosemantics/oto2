@@ -10,6 +10,7 @@ import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.server.db.ConnectionPool;
 import edu.arizona.biosemantics.oto2.oto.server.db.OntologyDAO;
 import edu.arizona.biosemantics.oto2.oto.server.db.Query;
+import edu.arizona.biosemantics.oto2.oto.server.quartz.CommunityDecisionsJob;
 
 public class OTOServletContextListener implements ServletContextListener {
 	private ConnectionPool connectionPool;
@@ -48,5 +49,8 @@ public class OTOServletContextListener implements ServletContextListener {
 		} catch (Exception e) {
 			log(LogLevel.ERROR, "Exception initializing oto context", e);
 		}
+		
+		CommunityDecisionsJob initialJob = new CommunityDecisionsJob();
+		initialJob.saveCommunityDecisions();
 	}
 }

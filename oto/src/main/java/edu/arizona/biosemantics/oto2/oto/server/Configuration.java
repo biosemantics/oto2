@@ -35,6 +35,9 @@ public class Configuration {
 	public static String databaseHost;
 	public static String databasePort;
 	
+	/** Temporary Storage **/
+	public static String files;
+	
 	/** Bioportal **/
 	public static String bioportalUrl;
 	public static String bioportalApiKey;
@@ -58,6 +61,8 @@ public class Configuration {
 			databasePassword = properties.getProperty("databasePassword");
 			databaseHost = properties.getProperty("databaseHost");
 			databasePort = properties.getProperty("databasePort");
+			
+			files = properties.getProperty("files");
 			
 			bioportalUrl = properties.getProperty("bioportalUrl");
 			bioportalApiKey = properties.getProperty("bioportalApiKey");

@@ -13,6 +13,6 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.community.CommunityCollect
 @RemoteServiceRelativePath("community")
 public interface ICommunityService extends RemoteService {
 	
-	public CommunityCollection get(String type);
+	public CommunityCollection get(String type) throws Exception;
 	
 }

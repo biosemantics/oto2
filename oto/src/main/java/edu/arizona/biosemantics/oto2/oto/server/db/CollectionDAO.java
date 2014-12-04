@@ -5,9 +5,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -219,5 +221,19 @@ public class CollectionDAO {
 			log(LogLevel.ERROR, "Query Exception", e);
 		}
 		return collections;
+	}
+
+	public Set<String> getTypes() {
+		Set<String> types = new HashSet<String>();
+		try(Query query = new Query("SELECT DISTINCT type FROM oto_collection")) {
+			ResultSet result = query.execute();
+			while(result.next()) {
+				String type = result.getString(1);
+				types.add(type);
+			}
+		} catch(Exception e) {
+			log(LogLevel.ERROR, "Query Exception", e);
+		}
+		return types;
 	}	
 }
