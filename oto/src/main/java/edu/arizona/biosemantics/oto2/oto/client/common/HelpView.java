@@ -19,8 +19,8 @@ public class HelpView implements IsWidget {
 		Instructions instructions = new Instructions();
 		LearnTermCategorization learnTermCategorization = new LearnTermCategorization();
 
-		panel.add(instructions, new TabItemConfig("Instructions"));
-		panel.add(learnTermCategorization, new TabItemConfig("Learn Term Categorization"));
+		panel.add(instructions, new TabItemConfig("Instructions:Text"));
+		panel.add(learnTermCategorization, new TabItemConfig("Instructions:Videos"));
 		return panel;
 	}
 

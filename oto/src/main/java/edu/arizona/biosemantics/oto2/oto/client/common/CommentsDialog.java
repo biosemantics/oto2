@@ -201,7 +201,7 @@ public class CommentsDialog extends Dialog {
 		ColumnConfig<CommentEntry, String> labelCol = new ColumnConfig<CommentEntry, String>(
 				commentEntryProperties.label(), 100, "Categories");
 		ColumnConfig<CommentEntry, String> bucketCol = new ColumnConfig<CommentEntry, String>(
-				commentEntryProperties.bucket(), 100, "Bucket");
+				commentEntryProperties.bucket(), 100, "Pre-Categorization Bucket");
 		ColumnConfig<CommentEntry, String> userCol = new ColumnConfig<CommentEntry, String>(
 				commentEntryProperties.user(), 100, "User");
 		final ColumnConfig<CommentEntry, String> textCol = new ColumnConfig<CommentEntry, String>(

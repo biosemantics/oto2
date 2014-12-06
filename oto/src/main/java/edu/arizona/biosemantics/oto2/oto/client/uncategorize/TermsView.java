@@ -164,7 +164,7 @@ public class TermsView extends TabPanel {
 					MenuItem markUseless = new MenuItem("Mark");
 					Menu subMenu = new Menu();
 					markUseless.setSubMenu(subMenu);
-					MenuItem useless = new MenuItem("Useless");
+					MenuItem useless = new MenuItem("Not Usefull");
 					MenuItem useful = new MenuItem("Useful");
 					subMenu.add(useless);
 					subMenu.add(useful);

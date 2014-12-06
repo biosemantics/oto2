@@ -27,7 +27,7 @@ public class SynonymTermMenu extends TermMenu {
 	
 	@Override
 	public void buildMenu(List<Term> explicitSelection, SelectedTerms selectedTerms) {	
-		this.add(new HeaderMenuItem("Categorization"));
+		this.add(new HeaderMenuItem("Categorize"));
 		createMoveTo(explicitSelection, selectedTerms);
 		createCopy(explicitSelection, selectedTerms);
 		createRemove(explicitSelection, selectedTerms);

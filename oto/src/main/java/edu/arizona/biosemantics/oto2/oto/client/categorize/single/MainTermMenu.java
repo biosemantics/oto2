@@ -27,11 +27,11 @@ public class MainTermMenu extends TermMenu {
 
 	@Override
 	public void buildMenu(List<Term> explicitSelection, SelectedTerms selectedTerms) {
-		this.add(new HeaderMenuItem("Categorization"));
+		this.add(new HeaderMenuItem("Categorize"));
 		createMoveTo(explicitSelection, selectedTerms);
 		createCopy(explicitSelection, selectedTerms);
 		createRemove(explicitSelection, selectedTerms);
-		this.add(new HeaderMenuItem("Synonymization"));
+		this.add(new HeaderMenuItem("Synonymize"));
 		createAddSynonom(explicitSelection, selectedTerms);
 		createRemoveSynonym(explicitSelection, selectedTerms);
 		createRemoveAllSynonyms(explicitSelection, selectedTerms);

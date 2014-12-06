@@ -27,8 +27,8 @@ public class LabelsView extends TabPanel {
 		labelPortletsView = new LabelPortletsView(eventBus, portalColumnCount);
 		singleLabelView = new SingleLabelView(eventBus, portalColumnCount);
 		
-		this.add(labelPortletsView, "All Categories");
-		this.add(singleLabelView, "Single Category");
+		this.add(labelPortletsView, "All Categories View");
+		this.add(singleLabelView, "Single Category View");
 		
 		bindEvents();
 	}
