@@ -64,11 +64,11 @@ public class OtoView extends SimpleLayoutPanel {
 
 			Menu sub = new Menu();
 			MenuBarItem item = new MenuBarItem("File", sub);
-			MenuItem resetItem = new MenuItem("Reset");
+			MenuItem resetItem = new MenuItem("Remove Categorizations");
 			Menu resetSub = new Menu();
 			resetItem.setSubMenu(resetSub);
-			MenuItem fullResetItem = new MenuItem("Full");
-			MenuItem historyResetItem = new MenuItem("Previous Users' categorizations");
+			MenuItem fullResetItem = new MenuItem("All");
+			MenuItem historyResetItem = new MenuItem("Users' Categorizations");
 			resetSub.add(fullResetItem);
 			resetSub.add(historyResetItem);
 			fullResetItem.addSelectionHandler(new SelectionHandler<Item>() {
@@ -77,8 +77,8 @@ public class OtoView extends SimpleLayoutPanel {
 					collectionService.reset(collection, new AsyncCallback<Collection>() {
 						@Override
 						public void onSuccess(Collection result) {
-							ConfirmMessageBox box = new ConfirmMessageBox("Reset categorization", "" +
-									"This will uncategorize all terms irrevocably. Are you sure you want to do that?");
+							ConfirmMessageBox box = new ConfirmMessageBox("Remove categorizations", "" +
+									"This will uncategorize all terms irreversibly. Are you sure you want to continue?");
 					        box.addDialogHideHandler(new DialogHideHandler() {
 								@Override
 								public void onDialogHide(DialogHideEvent event) {
@@ -101,8 +101,8 @@ public class OtoView extends SimpleLayoutPanel {
 					collectionService.reset(collection, new AsyncCallback<Collection>() {
 						@Override
 						public void onSuccess(Collection result) {
-							ConfirmMessageBox box = new ConfirmMessageBox("Reset categorization", "" +
-									"This will uncategorize all terms irrevocably. Are you sure you want to do that?");
+							ConfirmMessageBox box = new ConfirmMessageBox("Remove users' categorizations", "" +
+									"This will remove all user provided categorizations on all terms in this set. Are you sure you want to continue?");
 					        box.addDialogHideHandler(new DialogHideHandler() {
 								@Override
 								public void onDialogHide(DialogHideEvent event) {
@@ -119,7 +119,7 @@ public class OtoView extends SimpleLayoutPanel {
 					});
 				}
 			});
-			MenuItem saveItem = new MenuItem("Save");
+			MenuItem saveItem = new MenuItem("Download Categorization Results");
 			saveItem.addSelectionHandler(new SelectionHandler<Item>() {
 				@Override
 				public void onSelection(SelectionEvent<Item> event) {
@@ -147,7 +147,7 @@ public class OtoView extends SimpleLayoutPanel {
 			add(item);
 			
 			sub = new Menu();
-			MenuItem selectOntologies = new MenuItem("Select");
+			MenuItem selectOntologies = new MenuItem("Select Ontologies for Term Information ");
 			selectOntologies.addSelectionHandler(new SelectionHandler<Item>() {
 				@Override
 				public void onSelection(SelectionEvent<Item> event) {
@@ -160,7 +160,7 @@ public class OtoView extends SimpleLayoutPanel {
 			add(item);
 			
 			sub = new Menu();
-			MenuItem overview = new MenuItem("View All");
+			MenuItem overview = new MenuItem("View All User Comments");
 			overview.addSelectionHandler(new SelectionHandler<Item>() {
 				@Override
 				public void onSelection(SelectionEvent<Item> event) {
@@ -173,7 +173,7 @@ public class OtoView extends SimpleLayoutPanel {
 			add(item);
 
 			sub = new Menu();
-			MenuBarItem questionsItem = new MenuBarItem("?", sub);
+			MenuBarItem questionsItem = new MenuBarItem("Instructions", sub);
 			MenuItem helpItem = new MenuItem("Help");
 			helpItem.addSelectionHandler(new SelectionHandler<Item>() {
 				@Override
@@ -220,7 +220,7 @@ public class OtoView extends SimpleLayoutPanel {
 			termInfoView = new TermInfoView(eventBus);
 
 			ContentPanel cp = new ContentPanel();
-			cp.setHeadingText("Terms to be categorized");
+			cp.setHeadingText("Terms to be Categorized");
 			cp.add(termsView);
 			BorderLayoutData d = new BorderLayoutData(.20);
 			// d.setMargins(new Margins(0, 1, 1, 1));
@@ -230,7 +230,7 @@ public class OtoView extends SimpleLayoutPanel {
 			setWestWidget(cp, d);
 
 			cp = new ContentPanel();
-			cp.setHeadingText("Categories and categorization results");
+			cp.setHeadingText("Categories and Categorization Results");
 			cp.add(labelsView);
 			d = new BorderLayoutData();
 			d.setMargins(new Margins(0, 0, 0, 0));

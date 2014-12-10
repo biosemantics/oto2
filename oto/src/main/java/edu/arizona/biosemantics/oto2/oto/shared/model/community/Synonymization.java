@@ -25,4 +25,4 @@ public class Synonymization implements Serializable {
 		public Set<String> getSynonyms() {
 			return synonyms;
 		}
-	}
+}

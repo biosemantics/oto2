@@ -91,11 +91,11 @@ public abstract class TermMenu extends Menu implements BeforeShowHandler {
 	}
 
 	public void buildMenu(List<Term> explicitSelection, SelectedTerms selectedTerms) {
-		this.add(new HeaderMenuItem("Categorization"));
+		this.add(new HeaderMenuItem("Categorize"));
 		createMoveTo(explicitSelection, selectedTerms);
 		createCopy(explicitSelection, selectedTerms);
 		createRemove(explicitSelection, selectedTerms);
-		this.add(new HeaderMenuItem("Synonymization"));
+		this.add(new HeaderMenuItem("Synonymize"));
 		createAddSynonom(explicitSelection, selectedTerms);
 		createRemoveSynonym(explicitSelection, selectedTerms);
 		createRemoveAllSynonyms(explicitSelection, selectedTerms);
@@ -216,7 +216,7 @@ public abstract class TermMenu extends Menu implements BeforeShowHandler {
 					});
 					verticalLayoutContainer.add(synonymRemoveButton);
 					synonymMenu.add(verticalLayoutContainer);
-					MenuItem removeSynonym = new MenuItem("Remove Synonym");
+					MenuItem removeSynonym = new MenuItem("Remove Synonyms");
 					removeSynonym.setSubMenu(synonymMenu);
 					this.add(removeSynonym);
 				}	
