@@ -8,6 +8,9 @@ public class Synonymization implements Serializable {
 		private String label;
 		private String mainTerm;
 		private Set<String> synonyms = new HashSet<String>();
+		
+		public Synonymization() { }
+		
 		public Synonymization(String label, String mainTerm, Set<String> synonyms) {
 			this.label = label;
 			this.mainTerm = mainTerm;
