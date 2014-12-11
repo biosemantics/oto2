@@ -101,9 +101,9 @@ public class Query implements AutoCloseable {
 				resultSet.close();
 			if (preparedStatement != null)
 				preparedStatement.close();
-			//Don't close connection, connection pool reuses connections
-			//if(connection != null)
-			//	connection.close();
+			//Close connection with BoneCP, connection is not closed physically, hence can be reused
+			if(connection != null)
+				connection.close();
 		} catch (Exception e) {
 			throw new QueryException(e.getMessage(), e.getCause());
 		}
