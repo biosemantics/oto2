@@ -1,30 +1,20 @@
 package edu.arizona.biosemantics.oto2.oto.server.rpc;
 
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
-import edu.arizona.biosemantics.bioportal.client.BioPortalClient;
-import edu.arizona.biosemantics.bioportal.model.Ontology;
 import edu.arizona.biosemantics.oto2.oto.server.Configuration;
 import edu.arizona.biosemantics.oto2.oto.server.db.DAOManager;
 import edu.arizona.biosemantics.oto2.oto.server.db.HistoricInitializer;
 import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Comment;
-import edu.arizona.biosemantics.oto2.oto.shared.model.Context;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Location;
-import edu.arizona.biosemantics.oto2.oto.shared.model.OntologyEntry;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
-import edu.arizona.biosemantics.oto2.oto.shared.model.TrashLabel;
-import edu.arizona.biosemantics.oto2.oto.shared.model.TypedContext;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionService;
 
 public class CollectionService extends RemoteServiceServlet implements ICollectionService {

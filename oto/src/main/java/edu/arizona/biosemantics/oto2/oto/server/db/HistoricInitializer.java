@@ -84,12 +84,28 @@ public class HistoricInitializer {
 				structureLabel = label;
 			}
 		}
+		Set<Term> taxonNameTerms = new HashSet<Term>();
+		for(Bucket bucket : collection.getBuckets()) 
+			if(bucket.getName().equalsIgnoreCase("taxon names")) {
+				taxonNameTerms.addAll(bucket.getTerms());
+			}
+		Label taxonNameLabel = null;
+		for(Label label : collection.getLabels()) {
+			if(label.getName().equalsIgnoreCase("taxon_name")) {
+				taxonNameLabel = label;
+			}
+		}
 		
+		Set<Term> categorizedTerms = new HashSet<Term>();	
+		if(taxonNameLabel != null) {
+			initializeLabelingFromTerms(collection, taxonNameTerms, taxonNameLabel);
+			categorizedTerms.addAll(taxonNameTerms);
+		}
 		if(structureLabel != null) {
-			initializeLabelingFromStructureTerms(collection, structureTerms, structureLabel);
-			initializeLabelingRemainingFromCommunity(collection, initializedFromGlossary, structureTerms);
-		} else 
-			initializeLabelingRemainingFromCommunity(collection, initializedFromGlossary, new HashSet<Term>());
+			initializeLabelingFromTerms(collection, structureTerms, structureLabel);
+			categorizedTerms.addAll(structureTerms);
+		}
+		initializeLabelingRemainingFromCommunity(collection, initializedFromGlossary, categorizedTerms);
 	}
 	
 	private Set<Term> initializeLabelingFromGlossary(Collection collection, List<TermCategory> termCategories) {
@@ -128,13 +144,13 @@ public class HistoricInitializer {
 	}
 
 
-	private void initializeLabelingFromStructureTerms(Collection collection, Set<Term> structureTerms, Label structureLabel) {
+	private void initializeLabelingFromTerms(Collection collection, Set<Term> terms, Label label) {
 		LabelingDAO labelingDAO = daoManager.getLabelingDAO();
-		for(Term structureTerm : structureTerms) 
-			labelingDAO.insert(structureTerm, structureLabel);
+		for(Term term : terms) 
+			labelingDAO.insert(term, label);
 	}
 
-	private void initializeLabelingRemainingFromCommunity(Collection collection, Set<Term> initializedFromGlossary, Set<Term> structureTerms) {
+	private void initializeLabelingRemainingFromCommunity(Collection collection, Set<Term> initializedFromGlossary, Set<Term> categorizedTerms) {
 		TermDAO termDAO = daoManager.getTermDAO();
 		LabelingDAO labelingDAO = daoManager.getLabelingDAO();
 		try {
@@ -144,7 +160,7 @@ public class HistoricInitializer {
 			
 			List<Term> terms = termDAO.getTerms(collection);
 			for(Term term : terms) {
-				if(!initializedFromGlossary.contains(term) && !structureTerms.contains(term)) {
+				if(!initializedFromGlossary.contains(term) && !categorizedTerms.contains(term)) {
 					List<LabelCount> labelCounts = daoManager.getCommunityDAO().getLabelCounts(collection, term);
 					Set<String> labels = daoManager.getCommunityDAO().determineLabels(labelCounts);
 					for(String label : labels) {
