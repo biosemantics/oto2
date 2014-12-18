@@ -32,6 +32,7 @@ import edu.arizona.biosemantics.oto2.oto.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.oto.client.common.CommentsDialog;
 import edu.arizona.biosemantics.oto2.oto.client.common.HelpView;
 import edu.arizona.biosemantics.oto2.oto.client.common.SelectOntologiesDialog;
+import edu.arizona.biosemantics.oto2.oto.client.event.ImportEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.LoadEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.OntologiesSelectEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.SaveEvent;
@@ -126,7 +127,15 @@ public class OtoView extends SimpleLayoutPanel {
 					eventBus.fireEvent(new SaveEvent(collection));
 				}
 			});
+			MenuItem importItem = new MenuItem("Import Categorizations");
+			importItem.addSelectionHandler(new SelectionHandler<Item>() {
+				@Override
+				public void onSelection(SelectionEvent<Item> event) {
+					eventBus.fireEvent(new ImportEvent(collection));
+				}
+			});
 			sub.add(resetItem);
+			sub.add(importItem);
 			sub.add(saveItem);
 			add(item);
 
