@@ -75,49 +75,50 @@ public class OtoView extends SimpleLayoutPanel {
 			fullResetItem.addSelectionHandler(new SelectionHandler<Item>() {
 				@Override
 				public void onSelection(SelectionEvent<Item> event) {
-					collectionService.reset(collection, new AsyncCallback<Collection>() {
+					ConfirmMessageBox box = new ConfirmMessageBox("Remove categorizations", "" +
+							"This will uncategorize all terms irreversibly. Are you sure you want to continue?");
+					box.addDialogHideHandler(new DialogHideHandler() {
 						@Override
-						public void onSuccess(Collection result) {
-							ConfirmMessageBox box = new ConfirmMessageBox("Remove categorizations", "" +
-									"This will uncategorize all terms irreversibly. Are you sure you want to continue?");
-					        box.addDialogHideHandler(new DialogHideHandler() {
+						public void onDialogHide(DialogHideEvent event) {
+							collectionService.reset(collection, new AsyncCallback<Collection>() {
 								@Override
-								public void onDialogHide(DialogHideEvent event) {
+								public void onSuccess(Collection result) {
 									eventBus.fireEvent(new LoadEvent(collection, false));
 								}
-					        });
-					        box.show();
+								@Override
+								public void onFailure(Throwable caught) {
+									Alerter.resetFailed(caught);
+								}
+							});
 						}
-
-						@Override
-						public void onFailure(Throwable caught) {
-							Alerter.resetFailed(caught);
-						}
-					});
+			        });
+			        box.show();
+			        
+					
 				}
 			});
 			historyResetItem.addSelectionHandler(new SelectionHandler<Item>() {
 				@Override
 				public void onSelection(SelectionEvent<Item> event) {
-					collectionService.reset(collection, new AsyncCallback<Collection>() {
+					ConfirmMessageBox box = new ConfirmMessageBox("Remove users' categorizations", "" +
+							"This will remove all user provided categorizations on all terms in this set. Are you sure you want to continue?");
+					box.addDialogHideHandler(new DialogHideHandler() {
 						@Override
-						public void onSuccess(Collection result) {
-							ConfirmMessageBox box = new ConfirmMessageBox("Remove users' categorizations", "" +
-									"This will remove all user provided categorizations on all terms in this set. Are you sure you want to continue?");
-					        box.addDialogHideHandler(new DialogHideHandler() {
+						public void onDialogHide(DialogHideEvent event) {
+							collectionService.reset(collection, new AsyncCallback<Collection>() {
 								@Override
-								public void onDialogHide(DialogHideEvent event) {
-									eventBus.fireEvent(new LoadEvent(collection, true));
+								public void onSuccess(Collection result) {
+									eventBus.fireEvent(new LoadEvent(result, true));
 								}
-					        });
-					        box.show();
-						}
 
-						@Override
-						public void onFailure(Throwable caught) {
-							Alerter.resetFailed(caught);
+								@Override
+								public void onFailure(Throwable caught) {
+									Alerter.resetFailed(caught);
+								}
+							});
 						}
-					});
+			        });
+					box.show();
 				}
 			});
 			MenuItem saveItem = new MenuItem("Download Categorization Results");
