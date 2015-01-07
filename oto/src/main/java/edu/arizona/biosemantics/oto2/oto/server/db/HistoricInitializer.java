@@ -98,11 +98,11 @@ public class HistoricInitializer {
 		
 		Set<Term> categorizedTerms = new HashSet<Term>();	
 		if(taxonNameLabel != null) {
-			initializeLabelingFromTerms(collection, taxonNameTerms, taxonNameLabel);
+			initializeLabelingForTerms(collection, initializedFromGlossary, categorizedTerms, taxonNameTerms, taxonNameLabel);
 			categorizedTerms.addAll(taxonNameTerms);
 		}
 		if(structureLabel != null) {
-			initializeLabelingFromTerms(collection, structureTerms, structureLabel);
+			initializeLabelingForTerms(collection, initializedFromGlossary, categorizedTerms, structureTerms, structureLabel);
 			categorizedTerms.addAll(structureTerms);
 		}
 		initializeLabelingRemainingFromCommunity(collection, initializedFromGlossary, categorizedTerms);
@@ -144,10 +144,12 @@ public class HistoricInitializer {
 	}
 
 
-	private void initializeLabelingFromTerms(Collection collection, Set<Term> terms, Label label) {
+	private void initializeLabelingForTerms(Collection collection, Set<Term> initializedFromGlossary, 
+			Set<Term> categorizedTerms, Set<Term> terms, Label label) {
 		LabelingDAO labelingDAO = daoManager.getLabelingDAO();
 		for(Term term : terms) 
-			labelingDAO.insert(term, label);
+			if(!initializedFromGlossary.contains(term) && !categorizedTerms.contains(term))
+				labelingDAO.insert(term, label);
 	}
 
 	private void initializeLabelingRemainingFromCommunity(Collection collection, Set<Term> initializedFromGlossary, Set<Term> categorizedTerms) {
