@@ -163,7 +163,7 @@ public class CommunityDAO {
 	public Set<Categorization> getCategorizations(String type)  {
 		Set<Categorization> result = new HashSet<Categorization>();
 		
-		Set<String> visitedTerms = new HashSet<String>();
+		/*Set<String> visitedTerms = new HashSet<String>();
 		for(Collection collection : collectionDAO.getCollections(type)) {
 			for(Term term : collection.getTerms()) {
 				if(!visitedTerms.contains(term.getTerm())) {
@@ -173,7 +173,7 @@ public class CommunityDAO {
 					result.add(new Categorization(term.getTerm(), labels));
 				}
 			}
-		}
+		}*/
 		
 		return result;
 	}
@@ -181,7 +181,7 @@ public class CommunityDAO {
 	public Set<Synonymization> getSynoymizations(String type) {
 		Set<Synonymization> result = new HashSet<Synonymization>();
 		
-		Set<Categorization> categorizations = getCategorizations(type);
+		/*Set<Categorization> categorizations = getCategorizations(type);
 		Map<String, Map<String, Map<String, Integer>>> synonymGroups = createSynonymGroupsFromHistory(categorizations);
 		
 		Set<String> visitedTerms = new HashSet<String>();
@@ -197,15 +197,15 @@ public class CommunityDAO {
 					result.add(new Synonymization(label, mainTerm, synonyms));
 				}
 			}
-		}
+		}*/
 		return result;
 	}
 	
-	public Map<String, Map<String, Map<String, Integer>>> createSynonymGroupsFromHistory(Set<Categorization> categorizations) {
+	private Map<String, Map<String, Map<String, Integer>>> createSynonymGroupsFromHistory(Set<Categorization> categorizations) {
 		Map<String, Map<String, Map<String, Integer>>> synonymGroups = 
 				new HashMap<String, Map<String, Map<String, Integer>>>();
 		
-		Set<RawHistoricSynonymCalculation> calculations = new HashSet<RawHistoricSynonymCalculation>();
+		/*Set<RawHistoricSynonymCalculation> calculations = new HashSet<RawHistoricSynonymCalculation>();
 		for(Categorization categorization : categorizations) {
 			String term = categorization.getTerm();
 			for(String label : categorization.getCategories()) {
@@ -253,13 +253,13 @@ public class CommunityDAO {
 					}
 				}
 			}
-		}
+		}*/
 		return synonymGroups;
 	}
 	
 	private List<String> getAllTermsOfLabel(String label) {
 		List<String> terms = new LinkedList<String>();
-		try(Query query = new Query("SELECT t.term FROM oto_labeling x, oto_label l, oto_term t "
+		/*try(Query query = new Query("SELECT t.term FROM oto_labeling x, oto_label l, oto_term t "
 				+ "WHERE x.label = l.id AND l.name = ? AND t.id = x.term")) {
 			query.setParameter(1, label);
 			ResultSet result = query.execute();
@@ -275,14 +275,14 @@ public class CommunityDAO {
 			}
 		} catch(Exception e) {
 			log(LogLevel.ERROR, "Query Exception", e);
-		}
+		}*/
 		return terms;
 	}
 
 	public Set<String> determineLabels(List<LabelCount> labelCounts) {
 		Collections.sort(labelCounts);
 		Set<String> result = new HashSet<String>();
-		int overallCount = 0;
+		/*int overallCount = 0;
 		for(LabelCount labelCount : labelCounts)
 			overallCount += labelCount.count;
 		
@@ -293,10 +293,11 @@ public class CommunityDAO {
 		
 		if(result.isEmpty() && !labelCounts.isEmpty())
 			result.add(labelCounts.get(0).labelName);
+		*/
 		return result;
 	}
 
-	private List<LabelCount> getLabelCounts(String type, Term term) {
+	/*private List<LabelCount> getLabelCounts(String type, Term term) {
 		try(Query query = new Query("SELECT l.name FROM oto_labeling x, oto_label l, oto_collection c, oto_term t "
 				+ "WHERE x.label = l.id AND l.collection = c.id AND c.type= ? AND x.term = t.id AND t.term = ? "
 				+ "UNION "
@@ -324,12 +325,13 @@ public class CommunityDAO {
 		} catch(Exception e) {
 			log(LogLevel.ERROR, "Query Exception", e);
 			return new LinkedList<LabelCount>();
-		}
-	}
+		
+	}}*/
 
 
 	public String getSpelling(Collection collection, Term term) {
-		try(Query query = new Query("SELECT t.* FROM oto_term t, oto_bucket b, " +
+		String useSpelling = term.getOriginalTerm();
+		/*try(Query query = new Query("SELECT t.* FROM oto_term t, oto_bucket b, " +
 				"oto_collection c WHERE t.bucket = b.id AND b.collection = c.id AND c.id != ? AND" +
 				" c.type = ? AND t.original_term = ?")) {
 			query.setParameter(1, collection.getId());
@@ -345,7 +347,7 @@ public class CommunityDAO {
 				spellingMap.put(spelling, spellingMap.get(spelling) + 1);
 			}
 			int maxVotes = 0;
-			String useSpelling = term.getOriginalTerm();
+			
 			for(String spelling : spellingMap.keySet()) {
 				int votes = spellingMap.get(spelling);
 				if(votes > maxVotes) {
@@ -357,10 +359,13 @@ public class CommunityDAO {
 		} catch(Exception e) {
 			log(LogLevel.ERROR, "Query Exception", e);
 			return term.getTerm();
-		}
+		}*/
+		return useSpelling;
 	}
 
 	public boolean getUseless(Collection collection, Term term) {
+		Boolean useless = term.getUseless();
+		/*
 		try(Query query = new Query("SELECT t.* FROM oto_term t, oto_bucket b, " +
 				"oto_collection c WHERE t.bucket = b.id AND b.collection = c.id AND c.id != ? AND" +
 				" c.type = ? AND t.term = ?")) {
@@ -377,7 +382,7 @@ public class CommunityDAO {
 				uselessMap.put(useless, uselessMap.get(useless) + 1);
 			}
 			int maxVotes = 0;
-			Boolean useless = term.getUseless();
+			
 			for(Boolean value : uselessMap.keySet()) {
 				int votes = uselessMap.get(value);
 				if(votes > maxVotes) {
@@ -389,11 +394,13 @@ public class CommunityDAO {
 		} catch(Exception e) {
 			log(LogLevel.ERROR, "Query Exception", e);
 			return term.getUseless();
-		}
+		}*/
+		return useless;
 	}
 
 	public List<LabelCount> getLabelCounts(Collection collection, Term term) {
-		try(Query query = new Query("SELECT l.name FROM oto_labeling x, oto_label l, oto_collection c, oto_term t "
+		List<LabelCount> labelCounts = new ArrayList<LabelCount>();
+		/*try(Query query = new Query("SELECT l.name FROM oto_labeling x, oto_label l, oto_collection c, oto_term t "
 				+ "WHERE x.label = l.id AND l.collection = c.id AND c.id != ? AND c.type= ? AND x.term = t.id AND t.term = ? "
 				+ "UNION "
 				+ "SELECT l.name FROM oto_label l, oto_collection c, oto_term t, oto_synonym s "
@@ -413,7 +420,7 @@ public class CommunityDAO {
 				labelingMap.put(labelName, labelingMap.get(labelName) + 1);
 			}
 			
-			List<LabelCount> labelCounts = new ArrayList<LabelCount>();
+			
 			for(String labelName : labelingMap.keySet()) {
 				labelCounts.add(new LabelCount(labelName, labelingMap.get(labelName)));
 			}
@@ -422,10 +429,11 @@ public class CommunityDAO {
 		} catch(Exception e) {
 			log(LogLevel.ERROR, "Query Exception", e);
 			return new LinkedList<LabelCount>();
-		}
+		}*/
+		return labelCounts;
 	}
 	
-	private RawHistoricSynonymResult isHistoricSynonymRaw(RawHistoricSynonymCalculation calculation) {
+	/*private RawHistoricSynonymResult isHistoricSynonymRaw(RawHistoricSynonymCalculation calculation) {
 		HistoricSynonymCounts counts = isHistoricSynonym(null, calculation);		
 		RawHistoricSynonymResult result = new RawHistoricSynonymResult();
 		result.result = counts.synonymsCount > counts.bothMainTermsCount;
@@ -433,7 +441,7 @@ public class CommunityDAO {
 		return result;
 	}
 	
-	public HistoricSynonymResult isHistoricSynonymForCollection(Collection collection, HistoricSynonymCalculation calculation) {
+	private HistoricSynonymResult isHistoricSynonymForCollection(Collection collection, HistoricSynonymCalculation calculation) {
 		RawHistoricSynonymCalculation rawHistoricSynonymCalculation = new RawHistoricSynonymCalculation(calculation.label.getName(), 
 				calculation.term.getTerm(), calculation.otherTerm.getTerm());
 		
@@ -459,7 +467,7 @@ public class CommunityDAO {
 		}
 	}
 	
-	public HistoricSynonymCounts isHistoricSynonym(Integer notCollectionId, RawHistoricSynonymCalculation calculation) {		
+	private HistoricSynonymCounts isHistoricSynonym(Integer notCollectionId, RawHistoricSynonymCalculation calculation) {		
 		int bothMainTermsCount = 0;
 		int synonymsCount = 0;
 		int termMainTermCount = 0;
@@ -538,12 +546,13 @@ public class CommunityDAO {
 		
 		HistoricSynonymCounts result = new HistoricSynonymCounts(synonymsCount, bothMainTermsCount, termMainTermCount, otherTermMainTermCount);
 		return result;
-	}
+	} */
 	
 	public Map<Label, Map<Term, Map<Term, Integer>>> createSynonymGroupsFromHistory(Collection collection) {
 		Map<Label, Map<Term, Map<Term, Integer>>> synonymGroups = 
 				new HashMap<Label, Map<Term, Map<Term, Integer>>>();
 		
+		/*
 		Set<HistoricSynonymCalculation> calculations = new HashSet<HistoricSynonymCalculation>();
 		for(Term term : collection.getTerms()) {
 			Set<Label> labels = labelingDAO.getLabels(term);
@@ -592,10 +601,11 @@ public class CommunityDAO {
 					}
 				}
 			}
-		}
+		}*/
 		return synonymGroups;
 	}
 
+	
 	public <T> T getHistoricMainTerm(Map<T, Integer> group) {
 		T mainTerm = null;
 		int maxVotes = -1;
