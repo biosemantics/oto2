@@ -31,6 +31,7 @@ public class Configuration {
 	public static String oboOntologyBaseIRI;
 	public static String permanentOntologyDirectory;
 	public static String collectionOntologyDirectory;
+	public static String fileBase;
 	
 	/** Database **/
 	public static String databaseName;
@@ -51,6 +52,7 @@ public class Configuration {
 	
 	private static Properties properties;
 
+
 	static {
 		try {
 			ClassLoader loader = Thread.currentThread().getContextClassLoader();
@@ -61,6 +63,7 @@ public class Configuration {
 			oboOntologyBaseIRI = properties.getProperty("oboOntologyBaseIRI");
 			permanentOntologyDirectory = properties.getProperty("permanentOntologyDirectory");
 			collectionOntologyDirectory = properties.getProperty("collectionOntologyDirectory");
+			fileBase = properties.getProperty("fileBase");
 			
 			databaseName = properties.getProperty("databaseName");
 			databaseUser = properties.getProperty("databaseUser");

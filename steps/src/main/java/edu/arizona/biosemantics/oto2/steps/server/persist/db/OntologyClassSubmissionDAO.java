@@ -41,6 +41,7 @@ public class OntologyClassSubmissionDAO {
 		int termId = result.getInt("term");
 		String submission_term = result.getString("submission_term");
 		int ontologyId = result.getInt("ontology");
+		String classIRI = result.getString("class_iri");
 		String superClassIRI = result.getString("superclass_iri");
 		String definition = result.getString("definition");
 		String synonyms = result.getString("synonyms");
@@ -53,19 +54,20 @@ public class OntologyClassSubmissionDAO {
 		Term term = termDAO.get(termId);
 		Ontology ontology = ontologyDAO.get(ontologyId);
 		List<OntologyClassSubmissionStatus> ontologyClassSubmissionStatuses = ontologyClassSubmissionStatusDAO.getStatusOfOntologyClassSubmission(id);
-		return new OntologyClassSubmission(id, term, submission_term, ontology, superClassIRI, definition, synonyms, source, sampleSentence,
+		return new OntologyClassSubmission(id, term, submission_term, ontology, classIRI, superClassIRI, definition, synonyms, source, sampleSentence,
 				partOfIRI, entity, quality, ontologyClassSubmissionStatuses);
 	}
 
 	public OntologyClassSubmission insert(OntologyClassSubmission ontologyClassSubmission)  {
 		if(!ontologyClassSubmission.hasId()) {
 			try(Query insert = new Query("INSERT INTO `otosteps_ontologyclasssubmission` "
-					+ "(`term`, `submission_term`, `ontology`, `superclass_iri`, `definition`, `synonyms`, `source`, `sample_sentence`, "
+					+ "(`term`, `submission_term`, `ontology`, `class_iri`, `superclass_iri`, `definition`, `synonyms`, `source`, `sample_sentence`, "
 					+ "`part_of_iri`, `entity`, `quality`)"
 					+ " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
 				insert.setParameter(1, ontologyClassSubmission.getTerm().getId());
 				insert.setParameter(2, ontologyClassSubmission.getSubmissionTerm());
 				insert.setParameter(3, ontologyClassSubmission.getOntology().getId());
+				insert.setParameter(4, ontologyClassSubmission.getClassIRI());
 				insert.setParameter(4, ontologyClassSubmission.getSuperclassIRI());
 				insert.setParameter(5, ontologyClassSubmission.getDefinition());
 				insert.setParameter(6, ontologyClassSubmission.getSynonyms());
@@ -89,11 +91,12 @@ public class OntologyClassSubmissionDAO {
 	
 	public void update(OntologyClassSubmission ontologyClassSubmission)  {		
 		try(Query query = new Query("UPDATE otosteps_ontologyclasssubmission SET term = ?, submission_term = ?,"
-				+ " ontology = ?, superclass_iri = ?, definition = ?, synonyms = ?, source = ?, sample_sentence = ?, part_of_iri = ?, "
+				+ " ontology = ?, class_iri = ?, superclass_iri = ?, definition = ?, synonyms = ?, source = ?, sample_sentence = ?, part_of_iri = ?, "
 				+ "entity = ?, quality = ? WHERE id = ?")) {
 			query.setParameter(1, ontologyClassSubmission.getTerm().getId());
 			query.setParameter(2, ontologyClassSubmission.getSubmissionTerm());
 			query.setParameter(3, ontologyClassSubmission.getOntology().getId());
+			query.setParameter(4, ontologyClassSubmission.getClassIRI());
 			query.setParameter(4, ontologyClassSubmission.getSuperclassIRI());
 			query.setParameter(5, ontologyClassSubmission.getDefinition());
 			query.setParameter(6, ontologyClassSubmission.getSynonyms());

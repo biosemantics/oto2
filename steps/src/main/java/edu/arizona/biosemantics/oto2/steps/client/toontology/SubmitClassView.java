@@ -67,6 +67,7 @@ public class SubmitClassView implements IsWidget {
 	private TextField categoryField = new TextField();
 	private TextButton browseOntologiesButton = new TextButton("Browse");
 	private ComboBox<Ontology> ontologyComboBox;
+	private TextField classIRIField = new TextField();
 	private TextField superclassIRIField = new TextField();
 	private TextArea definitionArea = new TextArea();
 	private TextField synonymsField = new TextField();
@@ -100,6 +101,7 @@ public class SubmitClassView implements IsWidget {
 	    ontologyVlc.add(ontologyComboBox, new VerticalLayoutData(1, -1));
 	    ontologyVlc.add(browseOntologiesButton, new VerticalLayoutData(1, -1));
 	    formContainer.add(new FieldLabel(ontologyVlc, "Ontology"), new VerticalLayoutData(1, -1));
+	    formContainer.add(new FieldLabel(classIRIField, "Class IRI"), new VerticalLayoutData(1, -1));
 	    formContainer.add(new FieldLabel(superclassIRIField, "Superclass IRI"), new VerticalLayoutData(1, -1));
 	    formContainer.add(new FieldLabel(definitionArea, "Definition"), new VerticalLayoutData(1, -1));
 	    formContainer.add(new FieldLabel(synonymsField, "Synonyms"), new VerticalLayoutData(1, -1));
@@ -212,6 +214,7 @@ public class SubmitClassView implements IsWidget {
 		this.termComboBox.setValue(ontologyClassSubmission.getTerm());
 		this.submissionTermField.setValue(ontologyClassSubmission.getSubmissionTerm()); 
 		this.ontologyComboBox.setValue(ontologyClassSubmission.getOntology());
+		this.classIRIField.setValue(ontologyClassSubmission.getClassIRI());
 		this.superclassIRIField.setValue(ontologyClassSubmission.getSuperclassIRI());
 		this.definitionArea.setValue(ontologyClassSubmission.getDefinition());
 		this.synonymsField.setValue(ontologyClassSubmission.getSynonyms());
@@ -224,7 +227,7 @@ public class SubmitClassView implements IsWidget {
 	
 	protected OntologyClassSubmission getClassSubmission() {
 		return new OntologyClassSubmission(termComboBox.getValue(), submissionTermField.getValue(), 
-				ontologyComboBox.getValue(), superclassIRIField.getValue(),
+				ontologyComboBox.getValue(), classIRIField.getValue(), superclassIRIField.getValue(),
 				definitionArea.getValue(), synonymsField.getValue(), sourceField.getValue(), sampleArea.getValue(), partOfField.getValue(), 
 				isEntityCheckBox.getValue(), isQualityCheckBox.getValue());
 	}

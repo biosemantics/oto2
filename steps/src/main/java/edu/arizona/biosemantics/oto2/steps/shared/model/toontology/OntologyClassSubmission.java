@@ -7,31 +7,33 @@ import java.util.List;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Term;
 
-public class OntologyClassSubmission implements Serializable {
+public class OntologyClassSubmission implements Serializable, EntityQualityClass, HasOntology {
 	
 	private int id = -1;
 	private Term term;
-	private String submissionTerm;
+	private String submissionTerm = "";
 	private Ontology ontology;
-	private String superclassIRI;
-	private String definition;
-	private String synonyms;
-	private String source;
-	private String sampleSentence;
-	private String partOfIRI;
+	private String classIRI = "";
+	private String superclassIRI = "";
+	private String definition = "";
+	private String synonyms = "";
+	private String source = "";
+	private String sampleSentence = "";
+	private String partOfIRI = "";
 	private boolean entity;
 	private boolean quality;
 	private List<OntologyClassSubmissionStatus> submissionStatuses = new LinkedList<OntologyClassSubmissionStatus>();
 	
 	public OntologyClassSubmission() { }
 	
-	public OntologyClassSubmission(int id, Term term, String submissionTerm, Ontology ontology, 
+	public OntologyClassSubmission(int id, Term term, String submissionTerm, Ontology ontology, String classIRI,
 			String superclassIRI, String definition, String synonyms, String source, String sampleSentence, 
 			String partOfIRI, boolean entity, boolean quality, List<OntologyClassSubmissionStatus> submissionStatuses) { 
 		this.id = id;
 		this.term = term;
 		this.submissionTerm = submissionTerm;
 		this.ontology = ontology;
+		this.classIRI = classIRI;
 		this.superclassIRI = superclassIRI;
 		this.definition = definition;
 		this.synonyms = synonyms;
@@ -43,12 +45,13 @@ public class OntologyClassSubmission implements Serializable {
 		this.submissionStatuses = submissionStatuses;
 	}
 	
-	public OntologyClassSubmission(Term term, String submissionTerm, Ontology ontology, 
+	public OntologyClassSubmission(Term term, String submissionTerm, Ontology ontology, String classIRI,
 			String superclassIRI, String definition, String synonyms, String source, String sampleSentence, 
 			String partOfIRI, boolean entity, boolean quality) { 
 		this.term = term;
 		this.submissionTerm = submissionTerm;
 		this.ontology = ontology;
+		this.classIRI = classIRI;
 		this.superclassIRI = superclassIRI;
 		this.definition = definition;
 		this.synonyms = synonyms;
@@ -166,5 +169,38 @@ public class OntologyClassSubmission implements Serializable {
 	public void setSubmissionStatuses(
 			List<OntologyClassSubmissionStatus> submissionStatuses) {
 		this.submissionStatuses = submissionStatuses;
+	}
+
+	public String getClassIRI() {
+		return classIRI;
+	}
+	
+	public boolean hasClassIRI() {
+		return classIRI != null && !classIRI.trim().isEmpty();
+	}
+
+	public void setClassIRI(String classIRI) {
+		this.classIRI = classIRI;
+	}
+
+	public boolean hasSampleSentence() {
+		return this.sampleSentence != null && !sampleSentence.trim().isEmpty();
+	}
+
+	public boolean hasSource() {
+		return this.source != null && !source.trim().isEmpty();
+	}
+
+	public boolean hasSynonyms() {
+		return this.synonyms != null && !this.synonyms.trim().isEmpty();
+	}
+
+	public boolean hasPartOfIRI() {
+		return this.partOfIRI != null && !this.partOfIRI.trim().isEmpty();
+	}
+
+	public boolean hasSuperclassIRI() {
+		return this.superclassIRI != null && !this.superclassIRI.trim().isEmpty();
 	}	
+
 }

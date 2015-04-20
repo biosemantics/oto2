@@ -61,7 +61,7 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	@Override
 	public void createOntology(Collection collection, Ontology ontology) throws OntologyFileException {
 		daoManager.getOntologyDBDAO().insert(ontology);
-		daoManager.getOntologyFileDAO().insert(collection, ontology);
+		daoManager.getOntologyFileDAO().insertOntology(collection, ontology);
 	}
 
 }

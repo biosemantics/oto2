@@ -22,6 +22,7 @@ import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
+import com.sencha.gxt.widget.core.client.form.CheckBox;
 import com.sencha.gxt.widget.core.client.form.ComboBox;
 import com.sencha.gxt.widget.core.client.form.FieldLabel;
 import com.sencha.gxt.widget.core.client.form.TextArea;
@@ -61,6 +62,8 @@ public class SubmitSynonymView implements IsWidget {
 	private TextField synonymsField = new TextField();
 	private TextField sourceField = new TextField();
 	private TextArea sampleArea = new TextArea();
+	private CheckBox isEntityCheckBox = new CheckBox();
+	private CheckBox isQualityCheckBox = new CheckBox();
 	private ComboBox<Term> termComboBox;
 	private VerticalLayoutContainer vlc;
 	private TextButton createOntologyButton = new TextButton("Create");
@@ -91,6 +94,8 @@ public class SubmitSynonymView implements IsWidget {
 	    formContainer.add(new FieldLabel(synonymsField, "Synonyms"), new VerticalLayoutData(1, -1));
 	    formContainer.add(new FieldLabel(sourceField, "Source"), new VerticalLayoutData(1, -1));
 	    formContainer.add(new FieldLabel(sampleArea, "Sample Sentence"), new VerticalLayoutData(1, -1));
+	    formContainer.add(new FieldLabel(isEntityCheckBox, "Entity"), new VerticalLayoutData(1, -1));
+	    formContainer.add(new FieldLabel(isQualityCheckBox, "Quality"), new VerticalLayoutData(1, -1));
 	    formContainer.add(submitButton, new VerticalLayoutData(1, -1));
 	    formContainer.setScrollMode(ScrollMode.AUTO);
 	    formContainer.setAdjustForScroll(true);
@@ -204,12 +209,15 @@ public class SubmitSynonymView implements IsWidget {
 		this.synonymsField.setValue(ontologySynonymSubmission.getSynonyms());
 		this.sourceField.setValue(ontologySynonymSubmission.getSource());
 		this.sampleArea.setValue(ontologySynonymSubmission.getSampleSentence());
+		this.isEntityCheckBox.setValue(ontologySynonymSubmission.isEntity());
+		this.isQualityCheckBox.setValue(ontologySynonymSubmission.isQuality());
 	}
 
 	protected OntologySynonymSubmission getSynonymSubmission() {
 		return new OntologySynonymSubmission(termComboBox.getValue(), submissionTermField.getValue(), 
 				ontologyComboBox.getValue(), classIRIField.getValue(),
-				synonymsField.getValue(), sourceField.getValue(), sampleArea.getValue());
+				synonymsField.getValue(), sourceField.getValue(), sampleArea.getValue(), 
+				isEntityCheckBox.getValue(), isQualityCheckBox.getValue());
 	}
 
 	protected void initCollection() {
