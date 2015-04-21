@@ -7,7 +7,7 @@ import java.util.List;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Term;
 
-public class OntologyClassSubmission implements Serializable, EntityQualityClass, HasOntology, Comparable<OntologyClassSubmission> {
+public class OntologyClassSubmission implements Serializable, EntityQualityClass, OntologySubmission, Comparable<OntologyClassSubmission> {
 	
 	private int id = -1;
 	private Term term;
@@ -31,15 +31,15 @@ public class OntologyClassSubmission implements Serializable, EntityQualityClass
 			String partOfIRI, boolean entity, boolean quality, List<OntologyClassSubmissionStatus> submissionStatuses) { 
 		this.id = id;
 		this.term = term;
-		this.submissionTerm = submissionTerm;
+		this.submissionTerm = submissionTerm == null ? "" : submissionTerm;
 		this.ontology = ontology;
-		this.classIRI = classIRI;
-		this.superclassIRI = superclassIRI;
-		this.definition = definition;
-		this.synonyms = synonyms;
-		this.source = source;
-		this.sampleSentence = sampleSentence;
-		this.partOfIRI = partOfIRI;
+		this.classIRI = classIRI == null ? "" : classIRI;
+		this.superclassIRI = superclassIRI == null ? "" : superclassIRI;
+		this.definition = definition == null ? "" : definition;
+		this.synonyms = synonyms == null ? "" : synonyms;
+		this.source = source == null ? "" : source;
+		this.sampleSentence = sampleSentence == null ? "" : sampleSentence;
+		this.partOfIRI = partOfIRI == null ? "" : partOfIRI;
 		this.entity = entity;
 		this.quality = quality;
 		this.submissionStatuses = submissionStatuses;
@@ -49,15 +49,15 @@ public class OntologyClassSubmission implements Serializable, EntityQualityClass
 			String superclassIRI, String definition, String synonyms, String source, String sampleSentence, 
 			String partOfIRI, boolean entity, boolean quality) { 
 		this.term = term;
-		this.submissionTerm = submissionTerm;
+		this.submissionTerm = submissionTerm == null ? "" : submissionTerm;
 		this.ontology = ontology;
-		this.classIRI = classIRI;
-		this.superclassIRI = superclassIRI;
-		this.definition = definition;
-		this.synonyms = synonyms;
-		this.source = source;
-		this.sampleSentence = sampleSentence;
-		this.partOfIRI = partOfIRI;
+		this.classIRI = classIRI == null ? "" : classIRI;
+		this.superclassIRI = superclassIRI == null ? "" : superclassIRI;
+		this.definition = definition == null ? "" : definition;
+		this.synonyms = synonyms == null ? "" : synonyms;
+		this.source = source == null ? "" : source;
+		this.sampleSentence = sampleSentence == null ? "" : sampleSentence;
+		this.partOfIRI = partOfIRI == null ? "" : partOfIRI;
 		this.entity = entity;
 		this.quality = quality;
 	}

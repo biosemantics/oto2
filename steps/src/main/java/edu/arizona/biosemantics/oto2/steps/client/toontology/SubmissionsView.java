@@ -27,6 +27,7 @@ import com.sencha.gxt.widget.core.client.TabPanel;
 import com.sencha.gxt.widget.core.client.TabPanel.TabPanelAppearance;
 import com.sencha.gxt.widget.core.client.TabPanel.TabPanelBottomAppearance;
 import com.sencha.gxt.widget.core.client.box.AutoProgressMessageBox;
+import com.sencha.gxt.widget.core.client.box.MessageBox;
 import com.sencha.gxt.widget.core.client.event.CompleteEditEvent;
 import com.sencha.gxt.widget.core.client.event.StartEditEvent;
 import com.sencha.gxt.widget.core.client.event.CompleteEditEvent.CompleteEditHandler;
@@ -148,29 +149,35 @@ public class SubmissionsView implements IsWidget {
 	}
 
 	protected void refreshClassSubmissions() {
+		final MessageBox loadingBox = Alerter.startLoading();
 		toOntologyService.getClassSubmissions(collection, new AsyncCallback<List<OntologyClassSubmission>>() {
 			@Override
 			public void onFailure(Throwable caught) {
+				Alerter.stopLoading(loadingBox);
 				Alerter.failedToRefreshSubmissions();
 			}
 			@Override
 			public void onSuccess(List<OntologyClassSubmission> result) {
 				classSubmissionStore.clear();
 				classSubmissionStore.addAll(result);
+				Alerter.stopLoading(loadingBox);
 			}
 		});
 	}
 
 	protected void refreshSynonymSubmissions() {
+		final MessageBox loadingBox = Alerter.startLoading();
 		toOntologyService.getSynonymSubmissions(collection, new AsyncCallback<List<OntologySynonymSubmission>>() {
 			@Override
 			public void onFailure(Throwable caught) {
+				Alerter.stopLoading(loadingBox);
 				Alerter.failedToRefreshSubmissions();
 			}
 			@Override
 			public void onSuccess(List<OntologySynonymSubmission> result) {
 				synonymSubmissionStore.clear();
 				synonymSubmissionStore.addAll(result);
+				Alerter.stopLoading(loadingBox);
 			}
 		});
 	}

@@ -2,7 +2,7 @@ package edu.arizona.biosemantics.oto2.steps.shared.model.toontology;
 
 import edu.arizona.biosemantics.oto2.steps.shared.model.Ontology;
 
-public interface HasOntology {
+public interface OntologySubmission {
 
 	public Ontology getOntology();
 

@@ -49,6 +49,7 @@ import edu.arizona.biosemantics.oto2.steps.shared.model.Term;
 import edu.arizona.biosemantics.oto2.steps.shared.model.TermProperties;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynonymSubmission;
+import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.ClassExistsException;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.IToOntologyService;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.IToOntologyServiceAsync;
 
@@ -156,7 +157,7 @@ public class SubmitClassView implements IsWidget {
 					public void onSelect(SelectEvent event) {
 						Ontology ontology = new Ontology();
 						ontology.setName(dialog.getName());
-						ontology.setPrefix(dialog.getPrefix());
+						ontology.setAcronym(dialog.getAcronym());
 						ontology.setTaxonGroups(dialog.getTaxonGroups());
 						ontology.setCollectionId(collection.getId());
 						
@@ -198,7 +199,10 @@ public class SubmitClassView implements IsWidget {
 				toOntologyService.submitClass(submission, new AsyncCallback<Void>() {
 					@Override
 					public void onFailure(Throwable caught) {
-						Alerter.failedToSubmitClass(caught);
+						if(caught instanceof ClassExistsException) {
+							Alerter.failedToSubmitClassExists(caught);
+						} else
+							Alerter.failedToSubmitClass(caught);
 					}
 					@Override
 					public void onSuccess(Void result) {

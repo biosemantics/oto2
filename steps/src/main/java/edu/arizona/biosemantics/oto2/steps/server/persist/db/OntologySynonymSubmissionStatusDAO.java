@@ -34,17 +34,17 @@ public class OntologySynonymSubmissionStatusDAO {
 		int id = result.getInt("id");
 		int ontologysynonymsubmissionId = result.getInt("ontologysynonymsubmission");
 		Status status = statusDAO.get(result.getInt("status"));
-		String externalId= result.getString("external_id");
+		String externalId= result.getString("iri");
 		return new OntologySynonymSubmissionStatus(id, ontologysynonymsubmissionId, status, externalId);
 	}
 
 	public OntologySynonymSubmissionStatus insert(OntologySynonymSubmissionStatus ontologySynonymSubmissionStatus)  {
 		if(!ontologySynonymSubmissionStatus.hasId()) {
 			try(Query insert = new Query("INSERT INTO `otosteps_ontologysynonymsubmission_status` "
-					+ "(`ontologysynonymsubmission`, `status`, `external_id`) VALUES(?, ?, ?)")) {
+					+ "(`ontologysynonymsubmission`, `status`, `iri`) VALUES(?, ?, ?)")) {
 				insert.setParameter(1, ontologySynonymSubmissionStatus.getOntologySynonymSubmissionId());
 				insert.setParameter(2, ontologySynonymSubmissionStatus.getStatus().getId());
-				insert.setParameter(3, ontologySynonymSubmissionStatus.getExternalId());
+				insert.setParameter(3, ontologySynonymSubmissionStatus.getIri());
 				insert.execute();
 				ResultSet generatedKeys = insert.getGeneratedKeys();
 				generatedKeys.next();
@@ -60,10 +60,10 @@ public class OntologySynonymSubmissionStatusDAO {
 	
 	public void update(OntologySynonymSubmissionStatus ontologySynonymSubmissionStatus)  {		
 		try(Query query = new Query("UPDATE otosteps_ontologysynonymsubmission_status SET ontologysynonymsubmission = ?, "
-				+ "status = ?, external_id = ? WHERE id = ?")) {
+				+ "status = ?, iri = ? WHERE id = ?")) {
 			query.setParameter(1, ontologySynonymSubmissionStatus.getOntologySynonymSubmissionId());
 			query.setParameter(2, ontologySynonymSubmissionStatus.getStatus().getId());
-			query.setParameter(3, ontologySynonymSubmissionStatus.getExternalId());
+			query.setParameter(3, ontologySynonymSubmissionStatus.getIri());
 			query.setParameter(4, ontologySynonymSubmissionStatus.getId());
 			query.execute();
 		} catch(QueryException e) {

@@ -34,15 +34,17 @@ CREATE TABLE IF NOT EXISTS `otosteps_context` (
 
 CREATE TABLE IF NOT EXISTS `otosteps_ontology` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `external_id` varchar(100) NULL DEFAULT NULL,
+  `iri` varchar(100) NOT NULL,
   `name` varchar(100) NOT NULL,
-  `prefix` varchar(100) NOT NULL,
+  `acronym` varchar(100) NOT NULL,
   `browse_url` varchar(100) NULL DEFAULT NULL,
-  `collection` bigint(20) unsigned NULL DEFAULT NULL,
+  `collection` bigint(20) DEFAULT -1,
   `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
-  UNIQUE KEY `collection_prefix` (`collection`, `prefix`)
+  UNIQUE KEY `collection_name` (`collection`, `name`),
+  UNIQUE KEY `collection_acronym` (`collection`, `acronym`),
+  UNIQUE KEY `collection_iri` (`collection`, `iri`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0 ;
 
 CREATE TABLE IF NOT EXISTS `otosteps_ontology_taxongroup` (
@@ -58,7 +60,8 @@ CREATE TABLE IF NOT EXISTS `otosteps_status` (
   `name` varchar(100) NOT NULL,
   `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `id` (`id`)
+  UNIQUE KEY `id` (`id`),
+  UNIQUE KEY `name` (`name`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0 ;
 
 CREATE TABLE IF NOT EXISTS `otosteps_ontologyclasssubmission` (
@@ -66,8 +69,8 @@ CREATE TABLE IF NOT EXISTS `otosteps_ontologyclasssubmission` (
 	`term` BIGINT(20) UNSIGNED NOT NULL,
 	`submission_term` VARCHAR(100) NOT NULL,
 	`ontology` BIGINT(20) UNSIGNED NOT NULL,
-	`class_iri` VARCHAR(100) NOT NULL,
-	`superclass_iri` VARCHAR(100) NOT NULL,
+	`class_iri` VARCHAR(100) DEFAULT NULL,
+	`superclass_iri` VARCHAR(100) DEFAULT NULL,
 	`definition` text NULL DEFAULT NULL,
 	`synonyms` text NULL DEFAULT NULL,
   	`source` TEXT NULL DEFAULT NULL,
@@ -102,7 +105,7 @@ CREATE TABLE IF NOT EXISTS `otosteps_ontologyclasssubmission_status` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `ontologyclasssubmission` bigint(20) unsigned NOT NULL,
   `status` bigint(20) unsigned NOT NULL,
-  `external_id` varchar(100) NOT NULL,
+  `iri` varchar(100) NOT NULL,
   `lastupdated` TIMESTAMP NOT NULL DEFAULT 0,
   `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -113,19 +116,19 @@ CREATE TABLE IF NOT EXISTS `otosteps_ontologysynonymsubmission_status` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `ontologysynonymsubmission` bigint(20) unsigned NOT NULL,
   `status` bigint(20) unsigned NOT NULL,
-  `external_id` varchar(100) NOT NULL,
+  `iri` varchar(100) NOT NULL,
   `lastupdated` TIMESTAMP NOT NULL DEFAULT 0,
   `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0 ;
 
-INSERT INTO `otosteps_ontology` (`id`, `external_id`, `name`, `prefix`, `browse_url`, `collection`, `created`) VALUES (2, 'http://purl.bioontology.org/ontology/OBOREL', 'The OBO Relations Ontology', 'RO', 'http://www.ontobee.org/browser/index.php?o=RO', NULL, '2015-04-09 16:31:00');
-INSERT INTO `otosteps_ontology` (`id`, `external_id`, `name`, `prefix`, `browse_url`, `collection`, `created`) VALUES (6, 'http://purl.bioontology.org/ontology/PORO', 'Porifera Ontology', 'PORO', 'http://www.ontobee.org/browser/index.php?o=PORO', NULL, '2015-04-09 16:33:49');
-INSERT INTO `otosteps_ontology` (`id`, `external_id`, `name`, `prefix`, `browse_url`, `collection`, `created`) VALUES (5, 'http://purl.bioontology.org/ontology/PO', 'Plant Ontology', 'PO', 'http://www.ontobee.org/browser/index.php?o=PO', NULL, '2015-04-09 16:33:10');
-INSERT INTO `otosteps_ontology` (`id`, `external_id`, `name`, `prefix`, `browse_url`, `collection`, `created`) VALUES (1, 'http://purl.bioontology.org/ontology/PATO', 'Phenotypic Quality Ontology', 'PATO', 'http://www.ontobee.org/browser/index.php?o=PATO', NULL, '2015-04-09 16:29:38');
-INSERT INTO `otosteps_ontology` (`id`, `external_id`, `name`, `prefix`, `browse_url`, `collection`, `created`) VALUES (4, 'http://purl.bioontology.org/ontology/HAO', 'Hymenoptera Anatomy Ontology', 'HAO', 'http://www.ontobee.org/browser/index.php?o=HAO', NULL, '2015-04-09 16:32:03');
-INSERT INTO `otosteps_ontology` (`id`, `external_id`, `name`, `prefix`, `browse_url`, `collection`, `created`) VALUES (3, 'http://purl.bioontology.org/ontology/BSPO', 'Biological Spatial Ontology', 'BSPO', 'http://www.ontobee.org/browser/index.php?o=BSPO', NULL, '2015-04-09 16:31:29');
+INSERT INTO `otosteps_ontology` (`id`, `iri`, `name`, `acronym`, `browse_url`, `collection`, `created`) VALUES (2, 'http://purl.bioontology.org/obo/OBOREL', 'The OBO Relations Ontology', 'RO', 'http://www.ontobee.org/browser/index.php?o=RO', -1, '2015-04-09 16:31:00');
+INSERT INTO `otosteps_ontology` (`id`, `iri`, `name`, `acronym`, `browse_url`, `collection`, `created`) VALUES (6, 'http://purl.bioontology.org/obo/PORO', 'Porifera Ontology', 'PORO', 'http://www.ontobee.org/browser/index.php?o=PORO', -1, '2015-04-09 16:33:49');
+INSERT INTO `otosteps_ontology` (`id`, `iri`, `name`, `acronym`, `browse_url`, `collection`, `created`) VALUES (5, 'http://purl.bioontology.org/obo/PO', 'Plant Ontology', 'PO', 'http://www.ontobee.org/browser/index.php?o=PO', -1, '2015-04-09 16:33:10');
+INSERT INTO `otosteps_ontology` (`id`, `iri`, `name`, `acronym`, `browse_url`, `collection`, `created`) VALUES (1, 'http://purl.bioontology.org/obo/PATO', 'Phenotypic Quality Ontology', 'PATO', 'http://www.ontobee.org/browser/index.php?o=PATO', -1, '2015-04-09 16:29:38');
+INSERT INTO `otosteps_ontology` (`id`, `iri`, `name`, `acronym`, `browse_url`, `collection`, `created`) VALUES (4, 'http://purl.bioontology.org/obo/HAO', 'Hymenoptera Anatomy Ontology', 'HAO', 'http://www.ontobee.org/browser/index.php?o=HAO', -1, '2015-04-09 16:32:03');
+INSERT INTO `otosteps_ontology` (`id`, `iri`, `name`, `acronym`, `browse_url`, `collection`, `created`) VALUES (3, 'http://purl.bioontology.org/obo/BSPO', 'Biological Spatial Ontology', 'BSPO', 'http://www.ontobee.org/browser/index.php?o=BSPO', -1, '2015-04-09 16:31:29');
 
 INSERT INTO `otosteps2`.`otosteps_ontology_taxongroup` (`ontology`, `taxongroup`) VALUES (1, 'ALGAE');
 INSERT INTO `otosteps2`.`otosteps_ontology_taxongroup` (`ontology`, `taxongroup`) VALUES (1, 'CNIDARIA');
@@ -151,3 +154,7 @@ INSERT INTO `otosteps2`.`otosteps_ontology_taxongroup` (`ontology`, `taxongroup`
 INSERT INTO `otosteps2`.`otosteps_ontology_taxongroup` (`ontology`, `taxongroup`) VALUES (4, 'HYMENOPTERA');
 INSERT INTO `otosteps2`.`otosteps_ontology_taxongroup` (`ontology`, `taxongroup`) VALUES (5, 'PLANT');
 INSERT INTO `otosteps2`.`otosteps_ontology_taxongroup` (`ontology`, `taxongroup`) VALUES (6, 'PORIFERA');
+
+INSERT INTO `otosteps_status` (`id`, `name`, `created`) VALUES (1, 'accepted', '2015-04-21 10:57:55');
+INSERT INTO `otosteps_status` (`id`, `name`, `created`) VALUES (2, 'pending', '2015-04-21 10:58:05');
+INSERT INTO `otosteps_status` (`id`, `name`, `created`) VALUES (3, 'rejected', '2015-04-21 10:58:13');

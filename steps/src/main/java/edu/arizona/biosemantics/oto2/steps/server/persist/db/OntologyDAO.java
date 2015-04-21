@@ -44,9 +44,9 @@ public class OntologyDAO {
 	
 	private Ontology createOntology(ResultSet result) throws SQLException {
 		int id = result.getInt("id");
-		String externalId = result.getString("external_id");
+		String externalId = result.getString("iri");
 		String name = result.getString("name");
-		String prefix = result.getString("prefix");
+		String prefix = result.getString("acronym");
 		String browseURL = result.getString("browse_url");
 		int collectionId = result.getInt("collection");
 
@@ -74,11 +74,11 @@ public class OntologyDAO {
 
 	public Ontology insert(Ontology ontology)  {
 		if(!ontology.hasId()) {
-			try(Query insert = new Query("INSERT INTO `otosteps_ontology` (`external_id`, `name`, `prefix`, "
+			try(Query insert = new Query("INSERT INTO `otosteps_ontology` (`iri`, `name`, `acronym`, "
 					+ "`browse_url`, `collection`) VALUES(?, ?, ?, ?, ?)")) {
-				insert.setParameter(1, ontology.getExternalId());
+				insert.setParameter(1, ontology.getIri());
 				insert.setParameter(2, ontology.getName());
-				insert.setParameter(3, ontology.getPrefix());
+				insert.setParameter(3, ontology.getAcronym());
 				insert.setParameter(4, ontology.getBrowseURL());
 				insert.setParameter(5, ontology.getCollectionId());
 				insert.execute();
@@ -110,11 +110,11 @@ public class OntologyDAO {
 	}
 
 	public void update(Ontology ontology)  {		
-		try(Query query = new Query("UPDATE otosteps_ontology SET external_id = ?, name = ?, prefix = ?, "
+		try(Query query = new Query("UPDATE otosteps_ontology SET iri = ?, name = ?, acronym = ?, "
 				+ "browse_url = ?, collection = ? WHERE id = ?")) {
-			query.setParameter(1, ontology.getExternalId());
+			query.setParameter(1, ontology.getIri());
 			query.setParameter(2, ontology.getName());
-			query.setParameter(3, ontology.getPrefix());
+			query.setParameter(3, ontology.getAcronym());
 			query.setParameter(4, ontology.getBrowseURL());
 			query.setParameter(5, ontology.getCollectionId());
 			query.setParameter(6, ontology.getId());
@@ -176,7 +176,7 @@ public class OntologyDAO {
 
 	public List<Ontology> getOntologiesForCollection(Collection collection) {
 		List<Ontology> ontologies = new LinkedList<Ontology>();
-		try(Query query = new Query("SELECT id FROM otosteps_ontology WHERE collection = ? OR collection IS NULL")) {
+		try(Query query = new Query("SELECT id FROM otosteps_ontology WHERE collection = ? OR collection = -1")) {
 			query.setParameter(1, collection.getId());
 			ResultSet result = query.execute();
 			while(result.next()) {
@@ -198,6 +198,22 @@ public class OntologyDAO {
 			if(collectionOntology.getTaxonGroups().contains(collection.getTaxonGroup()))
 				relevantOntologies.add(collectionOntology);
 		return relevantOntologies;
+	}
+	
+	public List<Ontology> getPermanentOntologies() {
+		List<Ontology> ontologies = new LinkedList<Ontology>();
+		try(Query query = new Query("SELECT id FROM otosteps_ontology WHERE collection = -1")) {
+			ResultSet result = query.execute();
+			while(result.next()) {
+				int id = result.getInt(1);
+				Ontology ontology = get(id);
+				if(ontology != null)
+					ontologies.add(ontology);
+			}
+		} catch(Exception e) {
+			log(LogLevel.ERROR, "Query Exception", e);
+		}
+		return ontologies;
 	}
 	
 }

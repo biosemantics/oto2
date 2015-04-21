@@ -19,7 +19,7 @@ import edu.arizona.biosemantics.common.biology.TaxonGroup;
 public class CreateOntologyDialog extends Dialog {
 	
 	final TextField ontologyNameField = new TextField();
-    final TextField ontologyPrefixField = new TextField();
+    final TextField ontologyAcronymField = new TextField();
 	private ListView<TaxonGroup, String> taxonGroupList;
 	
 	public CreateOntologyDialog() {
@@ -49,7 +49,7 @@ public class CreateOntologyDialog extends Dialog {
 		
 	    VerticalLayoutContainer formContainer = new VerticalLayoutContainer();
 	    formContainer.add(new FieldLabel(ontologyNameField, "Name"), new VerticalLayoutData(1, -1));
-	    formContainer.add(new FieldLabel(ontologyPrefixField, "Prefix"), new VerticalLayoutData(1, -1));
+	    formContainer.add(new FieldLabel(ontologyAcronymField, "Prefix"), new VerticalLayoutData(1, -1));
 	    formContainer.add(new FieldLabel(taxonGroupList, "Taxon Groups"), new VerticalLayoutData(1, -1));
 	    
 		this.add(formContainer);
@@ -61,11 +61,13 @@ public class CreateOntologyDialog extends Dialog {
 		return ontologyNameField.getValue();
 	}
 
-	public String getPrefix() {
-		return ontologyPrefixField.getValue();
+	public String getAcronym() {
+		return ontologyAcronymField.getValue();
 	}
 	
 	public Set<TaxonGroup> getTaxonGroups() {
 		return new HashSet<TaxonGroup>(taxonGroupList.getSelectionModel().getSelectedItems());
 	}
+
+
 }

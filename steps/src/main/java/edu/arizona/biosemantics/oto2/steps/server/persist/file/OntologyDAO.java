@@ -54,7 +54,7 @@ import edu.arizona.biosemantics.oto2.steps.server.persist.db.OntologyClassSubmis
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.EntityQualityClass;
-import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.HasOntology;
+import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySubmission;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynonymSubmission;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.ClassExistsException;
@@ -64,11 +64,14 @@ import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.UnsatisfiableCl
 
 public class OntologyDAO {
 	
+	private static edu.arizona.biosemantics.oto2.steps.server.persist.db.OntologyDAO staticOntologyDAO = 
+			new  edu.arizona.biosemantics.oto2.steps.server.persist.db.OntologyDAO();
+	
 	private edu.arizona.biosemantics.oto2.steps.server.persist.db.OntologyDAO ontologyDAO;
 	private CollectionDAO collectionDAO;
 	private OntologyClassSubmissionStatusDAO ontologyClassSubmissionStatusDAO; 
 	
-	private static Map<String, OWLOntology> referencedOntologies = new HashMap<String, OWLOntology>();
+	private static Map<Ontology, OWLOntology> referencedOntologies = new HashMap<Ontology, OWLOntology>();
 	
 	//one manager manages all the ontologies files, check if an ontology is already being managed before load it, 
 	//create ontologyIRI and documentIRI mapping for each loaded ontology.
@@ -106,12 +109,12 @@ public class OntologyDAO {
 		broadSynonymProperty = owlDataFactory.getOWLAnnotationProperty(IRI.create("http://www.geneontology.org/formats/oboInOwl#hasBroadSynonym"));
 		
 		// loading ontologies takes time, preload them
-		for (File file : new File(Configuration.permanentOntologyDirectory).listFiles()) {
+		for(Ontology ontology : staticOntologyDAO.getPermanentOntologies()) {
+			File file = getPermanentOntologyFile(ontology);
 			try {
-				OWLOntology ontology = owlOntologyManager.loadOntologyFromOntologyDocument(file);
-				referencedOntologies.put(FilenameUtils.removeExtension(file.getName()), ontology);
-				SimpleIRIMapper mapper = new SimpleIRIMapper(IRI.create(Configuration.oboOntologyBaseIRI + file.getName()), IRI.create(file));
-				owlOntologyManager.addIRIMapper(mapper);
+				OWLOntology owlOntology = owlOntologyManager.loadOntologyFromOntologyDocument(file);
+				referencedOntologies.put(ontology, owlOntology);
+				owlOntologyManager.addIRIMapper(createMapper(ontology));
 			} catch (OWLOntologyCreationException e) {
 				Logger.getLogger(OntologyDAO.class).error("Could not load ontology", e);
 			}
@@ -138,27 +141,27 @@ public class OntologyDAO {
 			throw new OntologyFileException(e);
 		}
 		
-		if (!referencedOntologies.containsKey(ontology.getPrefix())) {
-			try {
+		if (!referencedOntologies.containsKey(ontology.getIri().toLowerCase())) {
+			/*try {
 				owlOntology = owlOntologyManager.loadOntologyFromOntologyDocument(getCollectionOntologyFile(ontology));
 			} catch (OWLOntologyCreationException e) {
 				throw new OntologyFileException(e);
-			}
-			referencedOntologies.put(ontology.getPrefix(), owlOntology);
+			}*/
+			referencedOntologies.put(ontology, owlOntology);
 		}
 	}
 
-	public String insertClassSubmission(Collection collection, OntologyClassSubmission ontologyClassSubmission) throws OntologyFileException {	
+	public String insertClassSubmission(Collection collection, OntologyClassSubmission ontologyClassSubmission) throws OntologyFileException, ClassExistsException {	
 		OWLOntology owlOntology = getOwlOntology(collection, ontologyClassSubmission);
 		OWLReasoner owlReasoner = owlReasonerFactory.createReasoner(owlOntology, owlReasonerConfig);
 		PrefixManager prefixManager = createPrefixManager(ontologyClassSubmission);
 		
-		OWLClass newOwlClass = createNewOwlClass(owlOntology, ontologyClassSubmission, prefixManager, owlReasoner);
+		OWLClass newOwlClass = createNewOwlClass(collection, owlOntology, ontologyClassSubmission, prefixManager, owlReasoner);
 		
 		addSuperClassModuleAxioms(owlOntology, ontologyClassSubmission, newOwlClass);
 		addSynonymAxioms(owlOntology, ontologyClassSubmission, newOwlClass);
-		addSuperclassAxioms(owlOntology, ontologyClassSubmission, newOwlClass, owlReasoner, prefixManager);
-		addPartOfAxioms(owlOntology, ontologyClassSubmission, newOwlClass, owlReasoner, prefixManager);
+		addSuperclassAxioms(collection, owlOntology, ontologyClassSubmission, newOwlClass, owlReasoner, prefixManager);
+		addPartOfAxioms(collection, owlOntology, ontologyClassSubmission, newOwlClass, owlReasoner, prefixManager);
 				
 		try {
 			checkConsistency(owlReasoner);
@@ -187,7 +190,7 @@ public class OntologyDAO {
 				try {
 					OWLClass owlClass = owlDataFactory.getOWLClass(IRI.create(classIRI));
 					boolean isContained = containsOwlClass(owlOntology, owlClass);
-					String label = this.getProperty(owlClass, labelProperty);
+					String label = this.getProperty(collection, owlClass, labelProperty);
 					if(isContained && label != null && !label.equals(ontologySynonymSubmission.getSubmissionTerm())) {
 						//class exists in current/imported ontology => add syn
 						affectedClasses.add(owlClass);
@@ -195,7 +198,7 @@ public class OntologyDAO {
 						this.addSynonymAxioms(owlOntology, ontologySynonymSubmission.getSubmissionTerm(), owlClass);
 					} else if(!isContained){
 						//an external class does not exist => add class, then add syn	
-						owlClass = addModuleOfClass(owlOntology, owlReasoner, ontologySynonymSubmission);  
+						owlClass = addModuleOfClass(collection, ontologySynonymSubmission, owlOntology, owlReasoner, ontologySynonymSubmission);  
 						this.addSynonymAxioms(owlOntology, ontologySynonymSubmission.getSubmissionTerm(), owlClass);
 					}
 				} catch(OntologyNotFoundException | OWLOntologyCreationException | OWLOntologyStorageException e) {
@@ -221,12 +224,12 @@ public class OntologyDAO {
 		StringBuilder superString = new StringBuilder();
 		for(OWLClass affectedClass : affectedClasses) {
 			try {
-				OWLOntology affectedOwlOntology = this.getOWLOntology(affectedClass);
+				//OWLOntology affectedOwlOntology = this.getOWLOntology(affectedClass);
 				
-				termString.append(getProperty(affectedClass, labelProperty) + ";");
-				defString.append(getProperty(affectedClass, definitionProperty) + ";");
+				termString.append(getProperty(collection, affectedClass, labelProperty) + ";");
+				defString.append(getProperty(collection, affectedClass, definitionProperty) + ";");
 				idString.append(affectedClass.getIRI().toString() + ";");
-				superString.append(getSuperClassesString(affectedClass) + ";");
+				superString.append(getSuperClassesString(collection, affectedClass) + ";");
 			} catch(OntologyNotFoundException e) {
 				throw new OntologyFileException(e);
 			}
@@ -241,22 +244,22 @@ public class OntologyDAO {
 	}
 	
 
-	private Object getSuperClassesString(OWLClass owlClass) throws OntologyNotFoundException {
-		Set<OWLClassExpression> supers = owlClass.getSuperClasses(this.getOWLOntology(owlClass));
+	private String getSuperClassesString(Collection collection, OWLClass owlClass) throws OntologyNotFoundException {
+		Set<OWLClassExpression> supers = owlClass.getSuperClasses(this.getOWLOntology(collection, owlClass));
 		Iterator<OWLClassExpression> it = supers.iterator();
 		String superClassesString ="";
 		while(it.hasNext()){
 			OWLClassExpression owlClassExpression = it.next();
 			if(owlClassExpression instanceof OWLClass){ 
-				superClassesString += this.getProperty((OWLClass)owlClassExpression, labelProperty) + ",";
+				superClassesString += this.getProperty(collection, (OWLClass)owlClassExpression, labelProperty) + ",";
 			}
 		}
 		return superClassesString;
 	}
 
-	private OWLClass addModuleOfClass(OWLOntology owlOntology, OWLReasoner owlReasoner, EntityQualityClass isEntityQuality) throws OWLOntologyCreationException, OWLOntologyStorageException, OntologyNotFoundException {
+	private OWLClass addModuleOfClass(Collection collection, OntologySubmission ontologySubmission, OWLOntology owlOntology, OWLReasoner owlReasoner, EntityQualityClass isEntityQuality) throws OWLOntologyCreationException, OWLOntologyStorageException, OntologyNotFoundException {
 		OWLClass newOwlClass = owlDataFactory.getOWLClass(IRI.create(isEntityQuality.getClassIRI()));
-		OWLOntology moduleOntology = extractModule(owlOntology, owlReasoner, newOwlClass);
+		OWLOntology moduleOntology = extractModule(collection, ontologySubmission, owlOntology, owlReasoner, newOwlClass);
 		//make all added class subclass of quality/entity
 		if (isEntityQuality.isEntity()) {
 			if (isSubclass(owlOntology, newOwlClass, entityClass)) {
@@ -283,13 +286,14 @@ public class OntologyDAO {
 		return newOwlClass;
 	}
 		
-	private OWLOntology extractModule(OWLOntology owlOntology, OWLReasoner owlReasoner, OWLClass owlClass) throws OntologyNotFoundException, OWLOntologyCreationException, OWLOntologyStorageException {
-		OWLOntology ontology = getOWLOntology(owlClass);
+	private OWLOntology extractModule(Collection collection, OntologySubmission ontologySubmission, OWLOntology owlOntology, OWLReasoner owlReasoner, OWLClass owlClass) throws OntologyNotFoundException, OWLOntologyCreationException, OWLOntologyStorageException {
+		OWLOntology ontology = getOWLOntology(collection, owlClass);
 		//create and save inference-entailment module as an ontology file
 		
 		Set<OWLEntity> seeds = new HashSet<OWLEntity>();
 		seeds.add(owlClass);
-		File moduleFile = new File(Configuration.collectionOntologyDirectory, "module." + getProperty(owlClass, labelProperty) + ".owl");
+		
+		File moduleFile = new File(getCollectionOntologyDirectory(ontologySubmission.getOntology()), "module." + getProperty(collection, owlClass, labelProperty) + ".owl");
 		IRI moduleIRI = IRI.create(moduleFile);
 		if (moduleFile.exists()) {
 			// remove the existing module -- in effect replace the old module with the new one.
@@ -311,12 +315,12 @@ public class OntologyDAO {
 		return owlOntology.getClassesInSignature(true).contains(owlClass);
 	}
 
-	private OWLClass createNewOwlClass(OWLOntology owlOntology, OntologyClassSubmission ontologyClassSubmission, PrefixManager prefixManager, 
-			OWLReasoner owlReasoner) throws OntologyFileException {
+	private OWLClass createNewOwlClass(Collection collection, OWLOntology owlOntology, OntologyClassSubmission ontologyClassSubmission, PrefixManager prefixManager, 
+			OWLReasoner owlReasoner) throws OntologyFileException, ClassExistsException {
 		OWLClass newOwlClass = null;		
 		if(ontologyClassSubmission.hasClassIRI()) {
 			try {
-				newOwlClass = addModuleOfClass(owlOntology, owlReasoner, ontologyClassSubmission);
+				newOwlClass = addModuleOfClass(collection, ontologyClassSubmission, owlOntology, owlReasoner, ontologyClassSubmission);
 			} catch (OWLOntologyCreationException | OWLOntologyStorageException
 					| OntologyNotFoundException e) {
 				throw new OntologyFileException(e);
@@ -327,34 +331,32 @@ public class OntologyDAO {
 		
 		if(containsOwlClass(owlOntology, newOwlClass)) {
 			try {
-				String definition = this.getProperty(newOwlClass, definitionProperty);
-				throw new OntologyFileException(new ClassExistsException("class '"+ ontologyClassSubmission.getSubmissionTerm() + 
-						"' exists and defined as:" + definition));
+				String definition = this.getProperty(collection, newOwlClass, definitionProperty);
+				throw new ClassExistsException("class '"+ ontologyClassSubmission.getSubmissionTerm() + 
+						"' exists and defined as:" + definition);
 			} catch (OntologyNotFoundException e) {
-				throw new OntologyFileException(new ClassExistsException("class '"+ ontologyClassSubmission.getSubmissionTerm() + 
-						"' exists and defined as: *could not read definition"));
+				throw new ClassExistsException("class '"+ ontologyClassSubmission.getSubmissionTerm() + 
+						"' exists.");
 			}
 		}
 		
 		return newOwlClass;
 	}
 
-	private OWLOntology getOwlOntology(Collection collection, HasOntology hasOntology) throws OntologyFileException {
-		String ontologyPrefix = hasOntology.getOntology().getPrefix();
+	private OWLOntology getOwlOntology(Collection collection, OntologySubmission hasOntology) throws OntologyFileException {
 		File ontologyFile = getCollectionOntologyFile(hasOntology.getOntology());
 		OWLOntology owlOntology = null;
-		if (!referencedOntologies.containsKey(ontologyPrefix)) {
+		if (!referencedOntologies.containsKey(hasOntology.getOntology())) {
 			
-			IRI documentIRI = IRI.create(ontologyFile); // "file:/"+Configuration.fileBase+File.separator+filename+".owl");
 			owlOntologyManager.addIRIMapper(createMapper(hasOntology.getOntology()));
 			try {
 				owlOntology = owlOntologyManager.loadOntologyFromOntologyDocument(ontologyFile);
 			} catch (OWLOntologyCreationException e) {
 				throw new OntologyFileException(e);
 			}
-			referencedOntologies.put(ontologyPrefix, owlOntology);
+			referencedOntologies.put(hasOntology.getOntology(), owlOntology);
 		} else {
-			owlOntology = referencedOntologies.get(ontologyPrefix);
+			owlOntology = referencedOntologies.get(hasOntology.getOntology());
 		}
 		return owlOntology;
 	}
@@ -377,12 +379,62 @@ public class OntologyDAO {
 		}
 	}
 	
-	private OWLOntology getOWLOntology(OWLClass owlClass) throws OntologyNotFoundException {
-		String key = owlClass.getIRI().getNamespace().toLowerCase();	
-		OWLOntology ontology = referencedOntologies.get(key);
-		if(ontology == null)
-			throw new OntologyNotFoundException("Could not find ontology for class " + owlClass.getIRI().toString());
-		return ontology;
+	/**
+	 * A OWLClass can be contained in a set of ontologies. It is however defined in a single ontology.
+	 * The single ontology gives the class it's record and also it's IRI, e.g. is has a prefix of the OWLOntology IRI
+	 * 
+	 * Given a owlClass getting the OWLOntology is thus not a simple call. The OWLOntology it stems from may not be loaded at all.
+	 * Hence, maintain referencedOntologies that maps ontology IRIs to OWLOntologies that we have in memory.
+	 * Map OWLClass IRI to ontology IRI to retrieve OWLOntology from referenced ontologies.
+	 */
+	//this is still very hacky, have to think about a better/more robust way of doing this
+	//IRIs come in different formats, is there a standard?
+	//http://purl.bioontology.org/obo/hao_01234
+	//http://purl.obolibrary.org/obo/hao
+	//http://www.etc-project.org/owl/ontologies/1/my_ontology#term
+	private OWLOntology getOWLOntology(Collection collection, OWLClass owlClass) throws OntologyNotFoundException {
+		List<Ontology> relevantOntologies = ontologyDAO.getOntologiesForCollection(collection);
+		
+		String owlClassIRI = owlClass.getIRI().toString().toLowerCase();
+		String hackyOwlClassIdentifier = owlClassIRI;
+		if(owlClassIRI.contains("/")) {
+			hackyOwlClassIdentifier = owlClassIRI.substring(owlClassIRI.lastIndexOf("/") + 1);
+			if(hackyOwlClassIdentifier.contains("_"))
+				hackyOwlClassIdentifier = hackyOwlClassIdentifier.substring(0, hackyOwlClassIdentifier.indexOf("_"));
+			else if(hackyOwlClassIdentifier.contains("#"))
+				hackyOwlClassIdentifier = hackyOwlClassIdentifier.substring(0, hackyOwlClassIdentifier.indexOf("#"));
+		}
+		
+		for(Ontology ontology : relevantOntologies) {
+			String ontologyIRI = ontology.getIri().toLowerCase();
+			String hackyOntologyIdentifier = ontologyIRI;
+			if(ontologyIRI.contains("/")) {
+				hackyOntologyIdentifier = ontologyIRI.substring(ontologyIRI.lastIndexOf("/") + 1);
+				if(hackyOntologyIdentifier.contains("_"))
+					hackyOntologyIdentifier = hackyOntologyIdentifier.substring(0, hackyOntologyIdentifier.indexOf("_"));
+				else if(hackyOntologyIdentifier.contains("#"))
+					hackyOntologyIdentifier = hackyOntologyIdentifier.substring(0, hackyOntologyIdentifier.indexOf("#"));
+			}
+			if(hackyOntologyIdentifier.equals(hackyOwlClassIdentifier))
+				return referencedOntologies.get(ontology);
+		}
+		
+		/*for(OWLOntology ontology : owlOntologyManager.getOntologies()) {
+			if(owlClass.isDefined(ontology))
+				return ontology;
+		}*/
+		/*String iri = owlClass.getIRI().toString();
+		if(iri.startsWith(Configuration.oboOntologyBaseIRI)) {
+			String ontologyIRI = iri.substring(0, iri.lastIndexOf("_")).toLowerCase();
+			OWLOntology ontology = referencedOntologies.get(ontologyIRI);
+			return ontology;
+		}
+		if(iri.startsWith(Configuration.etcOntologyBaseIRI)) {
+			String ontologyIRI = iri.substring(0, iri.lastIndexOf("#")).toLowerCase();
+			OWLOntology ontology = referencedOntologies.get(ontologyIRI);
+			return ontology;
+		}*/
+		throw new OntologyNotFoundException("Could not find ontology for class " + owlClass.getIRI().toString());
 	}
 	
 	private boolean isSubclass(OWLOntology owlOntology, OWLClass subclass, OWLClass superclass) {
@@ -391,8 +443,8 @@ public class OntologyDAO {
 	    return reasoner.getSuperClasses(subclass, false).containsEntity(superclass); //false: retrieval all ancestors.
 	}
 
-	private String getProperty(OWLClass owlClass, OWLAnnotationProperty annotationProperty) throws OntologyNotFoundException {
-		OWLOntology owlOntology = getOWLOntology(owlClass);
+	private String getProperty(Collection collection, OWLClass owlClass, OWLAnnotationProperty annotationProperty) throws OntologyNotFoundException {
+		OWLOntology owlOntology = getOWLOntology(collection, owlClass);
 		for (OWLAnnotation annotation : owlClass.getAnnotations(owlOntology, annotationProperty)) {
 			if (annotation.getValue() instanceof OWLLiteral) {
 				OWLLiteral val = (OWLLiteral) annotation.getValue();
@@ -404,7 +456,7 @@ public class OntologyDAO {
 		return null;
 	}	
 	
-	private void addPartOfAxioms(OWLOntology owlOntology, OntologyClassSubmission ontologyClassSubmission, 
+	private void addPartOfAxioms(Collection collection, OWLOntology owlOntology, OntologyClassSubmission ontologyClassSubmission, 
 			OWLClass newOwlClass, OWLReasoner owlReasoner, PrefixManager prefixManager) throws OntologyFileException {
 		//add part_of restrictions
 		if(ontologyClassSubmission.hasPartOfIRI()) {
@@ -430,7 +482,7 @@ public class OntologyDAO {
 						wholeOwlClass = owlDataFactory.getOWLClass(partOfIRI); //extract module
 						OWLOntology moduleOntology;
 						try {
-							moduleOntology = extractModule(owlOntology, owlReasoner,  wholeOwlClass);
+							moduleOntology = extractModule(collection, ontologyClassSubmission, owlOntology, owlReasoner,  wholeOwlClass);
 						} catch (OWLOntologyCreationException
 								| OWLOntologyStorageException
 								| OntologyNotFoundException e) {
@@ -462,7 +514,7 @@ public class OntologyDAO {
 		}
 	}
 
-	private void addSuperclassAxioms(OWLOntology owlOntology, OntologyClassSubmission ontologyClassSubmission,
+	private void addSuperclassAxioms(Collection collection, OWLOntology owlOntology, OntologyClassSubmission ontologyClassSubmission,
 			OWLClass newOwlClass, OWLReasoner owlReasoner, PrefixManager prefixManager) throws OntologyFileException {
 		boolean extractedSuperclassModule = ontologyClassSubmission.hasClassIRI();
 		
@@ -486,7 +538,7 @@ public class OntologyDAO {
 					superOwlClass = owlDataFactory.getOWLClass(superclassIRI); 
 					OWLOntology moduleOntology;
 					try {
-						moduleOntology = extractModule(owlOntology, owlReasoner, superOwlClass);
+						moduleOntology = extractModule(collection, ontologyClassSubmission, owlOntology, owlReasoner, superOwlClass);
 					} catch (OWLOntologyCreationException
 							| OWLOntologyStorageException
 							| OntologyNotFoundException e) {
@@ -742,32 +794,38 @@ public class OntologyDAO {
 		owlOntologyManager.addAxiom(owlOntology, disjointClassesAxiom);
 	}
 	
-	private File getCollectionOntologyFile(Ontology ontology) {
-		File collectionFile = new File(Configuration.collectionOntologyDirectory, String.valueOf(ontology.getCollectionId()));
-		collectionFile.mkdirs();
-		return new File(collectionFile, ontology.getPrefix().toLowerCase() + ".owl");
+	private static File getCollectionOntologyDirectory(Ontology ontology) {
+		File dir = new File(Configuration.collectionOntologyDirectory + File.separator + ontology.getCollectionId() + File.separator + ontology.getAcronym());
+		dir.mkdirs();
+		return dir;
 	}
 	
-	private File getPermanentOntologyFile(Ontology ontology) {
-		return new File(Configuration.permanentOntologyDirectory, ontology.getPrefix().toLowerCase() + ".owl");
+	private static File getCollectionOntologyFile(Ontology ontology) {
+		return new File(getCollectionOntologyDirectory(ontology), ontology.getAcronym().toLowerCase() + ".owl");
 	}
 	
-	private IRI getGlobalEtcIRI(Ontology ontology) {
-		return IRI.create(Configuration.etcOntologyBaseIRI + ontology.getPrefix().toLowerCase());
+	private static File getPermanentOntologyFile(Ontology ontology) {
+		return new File(Configuration.permanentOntologyDirectory, ontology.getAcronym().toLowerCase() + ".owl");
 	}
 	
-	private IRI getGlobalOboIRI(Ontology ontology) {
-		return IRI.create(Configuration.oboOntologyBaseIRI + ontology.getPrefix().toLowerCase());
+	private static IRI getGlobalEtcIRI(Ontology ontology) {
+		return IRI.create(ontology.getIri());
+		//return IRI.create(Configuration.etcOntologyBaseIRI + ontology.getCollectionId() + "/" + ontology.getAcronym().toLowerCase());
+	}
+	
+	private static IRI getGlobalOboIRI(Ontology ontology) {
+		return IRI.create(ontology.getIri());
+		//return IRI.create(Configuration.oboOntologyBaseIRI + ontology.getAcronym().toLowerCase());
 	}
 
-	private IRI getLocalOntologyIRI(Ontology ontology) {
+	private static IRI getLocalOntologyIRI(Ontology ontology) {
 		if(ontology.hasCollectionId()) {
 			return IRI.create(getCollectionOntologyFile(ontology));
 		} else 
 			return IRI.create(getPermanentOntologyFile(ontology));
 	}
 
-	private OWLOntologyIRIMapper createMapper(Ontology ontology) {
+	private static OWLOntologyIRIMapper createMapper(Ontology ontology) {
 		if(ontology.hasCollectionId())
 			return new SimpleIRIMapper(getGlobalEtcIRI(ontology), getLocalOntologyIRI(ontology));
 		else
@@ -775,7 +833,8 @@ public class OntologyDAO {
 	}
 	
 	private PrefixManager createPrefixManager(OntologyClassSubmission ontologyClassSubmission) {
-		return new DefaultPrefixManager(Configuration.etcOntologyBaseIRI + ontologyClassSubmission.getOntology().getPrefix() + "#");
+		return new DefaultPrefixManager(Configuration.etcOntologyBaseIRI + ontologyClassSubmission.getOntology().getCollectionId() + "/" + 
+				ontologyClassSubmission.getOntology().getAcronym() + "#");
 	}
 	
 	public void setOntologyDAO(edu.arizona.biosemantics.oto2.steps.server.persist.db.OntologyDAO ontologyDAO) {

@@ -9,25 +9,25 @@ public class OntologyClassSubmissionStatus implements Serializable, Comparable<O
 	private int id = -1;
 	private int ontologyClassSubmissionId;
 	private Status status;
-	private String externalId;
+	private String iri;
 	
 	public OntologyClassSubmissionStatus() { }
 	
 	public OntologyClassSubmissionStatus(int ontologyClassSubmissionId,
-			Status status, String externalId) {
+			Status status, String iri) {
 		super();
 		this.ontologyClassSubmissionId = ontologyClassSubmissionId;
 		this.status = status;
-		this.externalId = externalId;
+		this.iri = iri;
 	}
 	
 	public OntologyClassSubmissionStatus(int id, int ontologyClassSubmissionId,
-			Status status, String externalId) {
+			Status status, String iri) {
 		super();
 		this.id = id;
 		this.ontologyClassSubmissionId = ontologyClassSubmissionId;
 		this.status = status;
-		this.externalId = externalId;
+		this.iri = iri;
 	}
 	
 	public int getId() {
@@ -45,16 +45,17 @@ public class OntologyClassSubmissionStatus implements Serializable, Comparable<O
 	public Status getStatus() {
 		return status;
 	}
-	public void setStatusId(Status status) {
+	public void setStatus(Status status) {
 		this.status = status;
 	}
-	public String getExternalId() {
-		return externalId;
+	public String getIri() {
+		return iri;
 	}
-	public void setExternalId(String externalId) {
-		this.externalId = externalId;
+
+	public void setIri(String iri) {
+		this.iri = iri;
 	}
-	
+
 	public boolean hasId() {
 		return id != -1;
 	}

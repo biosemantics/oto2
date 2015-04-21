@@ -14,12 +14,14 @@ public interface OntologyProperties  extends PropertyAccess<Ontology> {
 	  @Path("name")
 	  LabelProvider<Ontology> nameLabel();
 	  
-	  @Path("prefix")
+	  @Path("acronym")
 	  LabelProvider<Ontology> prefixLabel();
-	 
+
+	  ValueProvider<Ontology, String> iri();
+	  
 	  ValueProvider<Ontology, String> name();
 	  
-	  ValueProvider<Ontology, String> prefix();
+	  ValueProvider<Ontology, String> acronym();
 	  
 	  ValueProvider<Ontology, String> type();
 

@@ -34,17 +34,17 @@ public class OntologyClassSubmissionStatusDAO {
 		int id = result.getInt("id");
 		int ontologyclasssubmissionId = result.getInt("ontologyclasssubmission");
 		Status status = statusDAO.get(result.getInt("status"));
-		String externalId= result.getString("external_id");
-		return new OntologyClassSubmissionStatus(id, ontologyclasssubmissionId, status, externalId);
+		String iri = result.getString("iri");
+		return new OntologyClassSubmissionStatus(id, ontologyclasssubmissionId, status, iri);
 	}
 
 	public OntologyClassSubmissionStatus insert(OntologyClassSubmissionStatus ontologyClassSubmissionStatus)  {
 		if(!ontologyClassSubmissionStatus.hasId()) {
 			try(Query insert = new Query("INSERT INTO `otosteps_ontologyclasssubmission_status` "
-					+ "(`ontologysubmission`, `status`, `external_id`) VALUES(?, ?, ?)")) {
+					+ "(`ontologyclasssubmission`, `status`, `iri`) VALUES(?, ?, ?)")) {
 				insert.setParameter(1, ontologyClassSubmissionStatus.getOntologyClassSubmissionId());
 				insert.setParameter(2, ontologyClassSubmissionStatus.getStatus().getId());
-				insert.setParameter(3, ontologyClassSubmissionStatus.getExternalId());
+				insert.setParameter(3, ontologyClassSubmissionStatus.getIri());
 				insert.execute();
 				ResultSet generatedKeys = insert.getGeneratedKeys();
 				generatedKeys.next();
@@ -60,10 +60,10 @@ public class OntologyClassSubmissionStatusDAO {
 	
 	public void update(OntologyClassSubmissionStatus ontologyClassSubmissionStatus)  {		
 		try(Query query = new Query("UPDATE otosteps_ontologyclasssubmission_status SET ontologyclasssubmission = ?, "
-				+ "status = ?, external_id = ? WHERE id = ?")) {
+				+ "status = ?, iri = ? WHERE id = ?")) {
 			query.setParameter(1, ontologyClassSubmissionStatus.getOntologyClassSubmissionId());
 			query.setParameter(2, ontologyClassSubmissionStatus.getStatus().getId());
-			query.setParameter(3, ontologyClassSubmissionStatus.getExternalId());
+			query.setParameter(3, ontologyClassSubmissionStatus.getIri());
 			query.setParameter(4, ontologyClassSubmissionStatus.getId());
 			query.execute();
 		} catch(QueryException e) {

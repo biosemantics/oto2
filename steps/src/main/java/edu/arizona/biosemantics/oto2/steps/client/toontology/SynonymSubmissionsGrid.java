@@ -102,10 +102,10 @@ public class SynonymSubmissionsGrid extends Grid<OntologySynonymSubmission> {
 		final ColumnConfig<OntologySynonymSubmission, String> categoryCol = new ColumnConfig<OntologySynonymSubmission, String>(
 				categoryValueProvider, 200, "Category");
 		//relationCol.setCell(colorableCell);
-		ValueProvider<OntologySynonymSubmission, String> ontlogyPrefixValueProvider = new ValueProvider<OntologySynonymSubmission, String>() {
+		ValueProvider<OntologySynonymSubmission, String> ontlogyAcronymValueProvider = new ValueProvider<OntologySynonymSubmission, String>() {
 			@Override
 			public String getValue(OntologySynonymSubmission object) {
-				return object.getOntology().getPrefix();
+				return object.getOntology().getAcronym();
 			}
 			@Override
 			public void setValue(OntologySynonymSubmission object, String value) {	}
@@ -115,7 +115,7 @@ public class SynonymSubmissionsGrid extends Grid<OntologySynonymSubmission> {
 			}
 		};
 		ontologyCol = new ColumnConfig<OntologySynonymSubmission, String>(
-				ontlogyPrefixValueProvider, 200, "Ontology");
+				ontlogyAcronymValueProvider, 200, "Ontology");
 		/*ontologyCol = new ColumnConfig<OntologyClassSubmission, Ontology>(
 				ontologyClassSubmissionProperties.targetOntology(), 200, "Ontology");
 		ontologyCol.setCell(new AbstractCell<Ontology>() {

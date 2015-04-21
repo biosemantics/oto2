@@ -1,24 +1,21 @@
 package edu.arizona.biosemantics.oto2.steps.server.rpc;
 
 import java.util.List;
-import java.util.Set;
-
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
-import edu.arizona.biosemantics.common.biology.TaxonGroup;
+import edu.arizona.biosemantics.oto2.steps.server.Configuration;
 import edu.arizona.biosemantics.oto2.steps.server.persist.DAOManager;
 import edu.arizona.biosemantics.oto2.steps.server.persist.file.OntologyDAO;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
-import edu.arizona.biosemantics.oto2.steps.shared.model.Context;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Ontology;
-import edu.arizona.biosemantics.oto2.steps.shared.model.Term;
-import edu.arizona.biosemantics.oto2.steps.shared.model.TypedContext;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmission;
+import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmissionStatus;
+import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySubmission;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynonymSubmission;
-import edu.arizona.biosemantics.oto2.steps.shared.rpc.IContextService;
+import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynonymSubmissionStatus;
+import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.Status;
+import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.ClassExistsException;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.IToOntologyService;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.OntologyFileException;
 
@@ -48,18 +45,22 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	
 	@Override
 	public void createOntology(Collection collection, Ontology ontology) throws OntologyFileException {
+		ontology.setIri(Configuration.etcOntologyBaseIRI +collection.getId() + "/" + ontology.getAcronym());
 		daoManager.getOntologyDBDAO().insert(ontology);
 		daoManager.getOntologyFileDAO().insertOntology(ontology);
 	}
 
 	@Override
-	public void submitClass(OntologyClassSubmission submission) throws OntologyFileException {
-		daoManager.getOntologyClassSubmissionDAO().insert(submission);
+	public void submitClass(OntologyClassSubmission submission) throws OntologyFileException, ClassExistsException {
+		submission = daoManager.getOntologyClassSubmissionDAO().insert(submission);
 		if(submission.getOntology().hasCollectionId()) {
 			Collection collection = daoManager.getCollectionDAO().get(submission.getTerm().getCollectionId());
-			daoManager.getOntologyFileDAO().insertClassSubmission(collection, submission);
+			String classIRI = daoManager.getOntologyFileDAO().insertClassSubmission(collection, submission);
+			setAccepted(submission, classIRI);
 		} else {
 			//TODO: send to bioportal for these ontologies that are not local
+			
+			setPending(submission);
 		}
 	}
 
@@ -69,9 +70,44 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 		if(submission.getOntology().hasCollectionId()) {
 			Collection collection = daoManager.getCollectionDAO().get(submission.getTerm().getCollectionId());
 			daoManager.getOntologyFileDAO().insertSynonymSubmission(collection, submission);
+			//setAccepted(submission, classIRI);
 		} else {
 			//TODO: send to bioportal for these ontologies that are not local
+		
+			
+			//setPending(submission);
 		}
 	}
 
+	
+	private void setAccepted(OntologySubmission submission, String classIRI) throws OntologyFileException {
+		this.setStatus(submission, classIRI, Status.ACCEPTED);
+	}
+	
+	private void setPending(OntologySubmission submission) throws OntologyFileException {
+		this.setStatus(submission, Status.PENDING);
+	}
+	
+	private void setRejected(OntologySubmission submission) throws OntologyFileException {
+		this.setStatus(submission, Status.REJECTED);
+	}
+	
+	private void setStatus(OntologySubmission submission, String classIRI, Status status) {
+		if(submission instanceof OntologyClassSubmission) {
+			OntologyClassSubmission ontologyClassSubmission = (OntologyClassSubmission) submission;
+			OntologyClassSubmissionStatus ontologyClassSubmissionStatus = new OntologyClassSubmissionStatus(ontologyClassSubmission.getId(), 
+					daoManager.getStatusDAO().get(status.getDisplayName()), classIRI);
+			daoManager.getOntologyClassSubmissionStatusDAO().insert(ontologyClassSubmissionStatus);
+		}
+		if(submission instanceof OntologySynonymSubmission) {
+			OntologySynonymSubmission ontologySynonymSubmission = (OntologySynonymSubmission) submission;
+			OntologySynonymSubmissionStatus ontologyClassSubmissionStatus = new OntologySynonymSubmissionStatus(ontologySynonymSubmission.getId(), 
+					daoManager.getStatusDAO().get(status.getDisplayName()), classIRI);
+			daoManager.getOntologySynonymSubmissionStatusDAO().insert(ontologyClassSubmissionStatus);
+		}
+	}
+	
+	private void setStatus(OntologySubmission submission, Status status) {
+		this.setStatus(submission, "", status);
+	}
 }

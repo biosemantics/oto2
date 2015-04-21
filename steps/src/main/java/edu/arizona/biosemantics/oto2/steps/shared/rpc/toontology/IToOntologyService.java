@@ -16,7 +16,7 @@ public interface IToOntologyService extends RemoteService {
 	
 	public List<Ontology> getOntologies(Collection collection);
 	
-	public void submitClass(OntologyClassSubmission submission) throws OntologyFileException;
+	public void submitClass(OntologyClassSubmission submission) throws OntologyFileException, ClassExistsException;
 
 	public void submitSynonym(OntologySynonymSubmission submission) throws OntologyFileException;
 	

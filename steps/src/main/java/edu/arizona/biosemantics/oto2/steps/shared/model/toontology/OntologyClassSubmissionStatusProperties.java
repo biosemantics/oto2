@@ -22,5 +22,5 @@ public interface OntologyClassSubmissionStatusProperties extends PropertyAccess<
 	  
 	  ValueProvider<OntologyClassSubmissionStatus, String> status();
 
-	  ValueProvider<OntologyClassSubmissionStatus, String> externalId();
+	  ValueProvider<OntologyClassSubmissionStatus, String> iri();
 }

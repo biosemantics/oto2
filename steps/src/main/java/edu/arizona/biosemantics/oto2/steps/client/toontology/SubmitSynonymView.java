@@ -143,7 +143,7 @@ public class SubmitSynonymView implements IsWidget {
 					public void onSelect(SelectEvent event) {
 						Ontology ontology = new Ontology();
 						ontology.setName(dialog.getName());
-						ontology.setPrefix(dialog.getPrefix());
+						ontology.setAcronym(dialog.getAcronym());
 						ontology.setTaxonGroups(dialog.getTaxonGroups());
 						ontology.setCollectionId(collection.getId());
 						

@@ -2,6 +2,7 @@ package edu.arizona.biosemantics.oto2.steps.client.common;
 
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
+import com.sencha.gxt.widget.core.client.box.AutoProgressMessageBox;
 import com.sencha.gxt.widget.core.client.box.ConfirmMessageBox;
 import com.sencha.gxt.widget.core.client.box.MessageBox;
 
@@ -12,6 +13,18 @@ public class Alerter {
 			super(title, message);
 			setIcon(ICONS.info());
 		}
+	}
+	
+	public static MessageBox startLoading() {
+		AutoProgressMessageBox box = new AutoProgressMessageBox("Loading", "Loading your data, please wait...");
+        box.setProgressText("Loading...");
+        box.auto();
+        box.show();
+        return box;
+	}
+	
+	public static void stopLoading(MessageBox box) {
+		box.hide();
 	}
 	
 	public static MessageBox failedToRefreshSubmissions() {
@@ -53,6 +66,10 @@ public class Alerter {
 	public static MessageBox failedToSubmitSynonym(Throwable caught) {
 		return showAlert("Synonym submission failed", "Failed to submit synonym.");
 	}
+	
+	public static MessageBox failedToSubmitClassExists(Throwable caught) {
+		return showAlert("Class submission failed", "Failed to submit class. " + caught.getMessage());
+	}
 
 	public static MessageBox failedToSubmitClass(Throwable caught) {
 		return showAlert("Class submission failed", "Failed to submit class.");
@@ -88,7 +105,6 @@ public class Alerter {
         box.setIcon(MessageBox.ICONS.question());
         box.show();
         return box;
-	}
-	
+	}	
 
 }

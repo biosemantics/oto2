@@ -7,7 +7,7 @@ import java.util.List;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Term;
 
-public class OntologySynonymSubmission implements Serializable, HasOntology, EntityQualityClass, Comparable<OntologySynonymSubmission> {
+public class OntologySynonymSubmission implements Serializable, OntologySubmission, EntityQualityClass, Comparable<OntologySynonymSubmission> {
 	
 	private int id = -1;
 	private Term term;
@@ -28,12 +28,12 @@ public class OntologySynonymSubmission implements Serializable, HasOntology, Ent
 			List<OntologySynonymSubmissionStatus> submissionStatuses) { 
 		this.id = id;
 		this.term = term;
-		this.submissionTerm = submissionTerm;
+		this.submissionTerm = submissionTerm == null ? "" : submissionTerm;
 		this.ontology = ontology;
-		this.classIRI = classIRI;
-		this.synonyms = synonyms;
-		this.source = source;
-		this.sampleSentence = sampleSentence;
+		this.classIRI = classIRI == null ? "" : classIRI;
+		this.synonyms = synonyms == null ? "" : synonyms;
+		this.source = source == null ? "" : source;
+		this.sampleSentence = sampleSentence == null ? "" : sampleSentence;
 		this.entity = entity;
 		this.quality = quality;
 		this.submissionStatuses = submissionStatuses;
@@ -42,12 +42,12 @@ public class OntologySynonymSubmission implements Serializable, HasOntology, Ent
 	public OntologySynonymSubmission(Term term, String submissionTerm, Ontology ontology, 
 			String classIRI, String synonyms, String source, String sampleSentence, boolean entity, boolean quality) { 
 		this.term = term;
-		this.submissionTerm = submissionTerm;
+		this.submissionTerm = submissionTerm == null ? "" : submissionTerm;
 		this.ontology = ontology;
-		this.classIRI = classIRI;
-		this.synonyms = synonyms;
-		this.source = source;
-		this.sampleSentence = sampleSentence;
+		this.classIRI = classIRI == null ? "" : classIRI;
+		this.synonyms = synonyms == null ? "" : synonyms;
+		this.source = source == null ? "" : source;
+		this.sampleSentence = sampleSentence == null ? "" : sampleSentence;
 		this.entity = entity;
 		this.quality = quality;
 	}

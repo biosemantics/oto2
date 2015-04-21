@@ -9,22 +9,22 @@ import edu.arizona.biosemantics.common.biology.TaxonGroup;
 public class Ontology implements Serializable, Comparable<Ontology> {
 
 	private int id = -1;
-	private String externalId;
+	private String iri;
 	private String name;
-	private String prefix;
+	private String acronym;
 	private Set<TaxonGroup> taxonGroups = new HashSet<TaxonGroup>();
 	private String browseURL;
 	private int collectionId = -1;
 	
 	public Ontology() { }
 	
-	public Ontology(int id, String externalId, String name, String prefix,
+	public Ontology(int id, String iri, String name, String acronym,
 			Set<TaxonGroup> taxonGroups, String browseURL, int collectionId) {
 		super();
 		this.id = id;
-		this.externalId = externalId;
+		this.iri = iri;
 		this.name = name;
-		this.prefix = prefix;
+		this.acronym = acronym;
 		this.taxonGroups = taxonGroups;
 		this.browseURL = browseURL;
 		this.collectionId = collectionId;
@@ -38,14 +38,6 @@ public class Ontology implements Serializable, Comparable<Ontology> {
 		this.id = id;
 	}
 
-	public String getExternalId() {
-		return externalId;
-	}
-
-	public void setExternalId(String externalId) {
-		this.externalId = externalId;
-	}
-
 	public String getName() {
 		return name;
 	}
@@ -54,12 +46,20 @@ public class Ontology implements Serializable, Comparable<Ontology> {
 		this.name = name;
 	}
 
-	public String getPrefix() {
-		return prefix;
+	public String getIri() {
+		return iri;
 	}
 
-	public void setPrefix(String prefix) {
-		this.prefix = prefix;
+	public void setIri(String iri) {
+		this.iri = iri;
+	}
+
+	public String getAcronym() {
+		return acronym;
+	}
+
+	public void setAcronym(String acronym) {
+		this.acronym = acronym;
 	}
 
 	public Set<TaxonGroup> getTaxonGroups() {
@@ -97,6 +97,28 @@ public class Ontology implements Serializable, Comparable<Ontology> {
 	@Override
 	public int compareTo(Ontology o) {
 		return this.getName().compareTo(o.getName());
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + id;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Ontology other = (Ontology) obj;
+		if (id != other.id)
+			return false;
+		return true;
 	}
 		
 }

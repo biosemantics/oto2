@@ -63,19 +63,19 @@ public class OntologyClassSubmissionDAO {
 			try(Query insert = new Query("INSERT INTO `otosteps_ontologyclasssubmission` "
 					+ "(`term`, `submission_term`, `ontology`, `class_iri`, `superclass_iri`, `definition`, `synonyms`, `source`, `sample_sentence`, "
 					+ "`part_of_iri`, `entity`, `quality`)"
-					+ " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+					+ " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
 				insert.setParameter(1, ontologyClassSubmission.getTerm().getId());
 				insert.setParameter(2, ontologyClassSubmission.getSubmissionTerm());
 				insert.setParameter(3, ontologyClassSubmission.getOntology().getId());
 				insert.setParameter(4, ontologyClassSubmission.getClassIRI());
-				insert.setParameter(4, ontologyClassSubmission.getSuperclassIRI());
-				insert.setParameter(5, ontologyClassSubmission.getDefinition());
-				insert.setParameter(6, ontologyClassSubmission.getSynonyms());
-				insert.setParameter(7, ontologyClassSubmission.getSource());
-				insert.setParameter(8, ontologyClassSubmission.getSampleSentence());
-				insert.setParameter(9, ontologyClassSubmission.getPartOfIRI());
-				insert.setParameter(10, ontologyClassSubmission.isEntity());
-				insert.setParameter(11, ontologyClassSubmission.isQuality());
+				insert.setParameter(5, ontologyClassSubmission.getSuperclassIRI());
+				insert.setParameter(6, ontologyClassSubmission.getDefinition());
+				insert.setParameter(7, ontologyClassSubmission.getSynonyms());
+				insert.setParameter(8, ontologyClassSubmission.getSource());
+				insert.setParameter(9, ontologyClassSubmission.getSampleSentence());
+				insert.setParameter(10, ontologyClassSubmission.getPartOfIRI());
+				insert.setParameter(11, ontologyClassSubmission.isEntity());
+				insert.setParameter(12, ontologyClassSubmission.isQuality());
 				insert.execute();
 				ResultSet generatedKeys = insert.getGeneratedKeys();
 				generatedKeys.next();
@@ -97,15 +97,15 @@ public class OntologyClassSubmissionDAO {
 			query.setParameter(2, ontologyClassSubmission.getSubmissionTerm());
 			query.setParameter(3, ontologyClassSubmission.getOntology().getId());
 			query.setParameter(4, ontologyClassSubmission.getClassIRI());
-			query.setParameter(4, ontologyClassSubmission.getSuperclassIRI());
-			query.setParameter(5, ontologyClassSubmission.getDefinition());
-			query.setParameter(6, ontologyClassSubmission.getSynonyms());
-			query.setParameter(7, ontologyClassSubmission.getSource());
-			query.setParameter(8, ontologyClassSubmission.getSampleSentence());
-			query.setParameter(9, ontologyClassSubmission.getPartOfIRI());
-			query.setParameter(10, ontologyClassSubmission.isEntity());
-			query.setParameter(11, ontologyClassSubmission.isQuality());
-			query.setParameter(12, ontologyClassSubmission.getId());
+			query.setParameter(5, ontologyClassSubmission.getSuperclassIRI());
+			query.setParameter(6, ontologyClassSubmission.getDefinition());
+			query.setParameter(7, ontologyClassSubmission.getSynonyms());
+			query.setParameter(8, ontologyClassSubmission.getSource());
+			query.setParameter(9, ontologyClassSubmission.getSampleSentence());
+			query.setParameter(10, ontologyClassSubmission.getPartOfIRI());
+			query.setParameter(11, ontologyClassSubmission.isEntity());
+			query.setParameter(12, ontologyClassSubmission.isQuality());
+			query.setParameter(13, ontologyClassSubmission.getId());
 			query.execute();
 			
 			for(OntologyClassSubmissionStatus ontologyClassSubmissionStatus : ontologyClassSubmission.getSubmissionStatuses())

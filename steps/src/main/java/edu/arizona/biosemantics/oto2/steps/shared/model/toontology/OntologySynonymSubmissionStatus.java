@@ -9,25 +9,25 @@ public class OntologySynonymSubmissionStatus implements Serializable, Comparable
 	private int id = -1;
 	private int ontologySynonymSubmissionId;
 	private Status status;
-	private String externalId;
+	private String iri;
 	
 	public OntologySynonymSubmissionStatus() { }
 	
 	public OntologySynonymSubmissionStatus(int ontologySynonymSubmissionId,
-			Status status, String externalId) {
+			Status status, String iri) {
 		super();
 		this.ontologySynonymSubmissionId = ontologySynonymSubmissionId;
 		this.status = status;
-		this.externalId = externalId;
+		this.iri = iri;
 	}
 	
 	public OntologySynonymSubmissionStatus(int id, int ontologySynonymSubmissionId,
-			Status status, String externalId) {
+			Status status, String iri) {
 		super();
 		this.id = id;
 		this.ontologySynonymSubmissionId = ontologySynonymSubmissionId;
 		this.status = status;
-		this.externalId = externalId;
+		this.iri = iri;
 	}
 	
 	public int getId() {
@@ -45,16 +45,18 @@ public class OntologySynonymSubmissionStatus implements Serializable, Comparable
 	public Status getStatus() {
 		return status;
 	}
-	public void setStatusId(Status status) {
+	public void setStatus(Status status) {
 		this.status = status;
 	}
-	public String getExternalId() {
-		return externalId;
-	}
-	public void setExternalId(String externalId) {
-		this.externalId = externalId;
-	}
 	
+	public String getIri() {
+		return iri;
+	}
+
+	public void setIri(String iri) {
+		this.iri = iri;
+	}
+
 	public boolean hasId() {
 		return id != -1;
 	}

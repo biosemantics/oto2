@@ -22,5 +22,5 @@ public interface OntologySynonymSubmissionStatusProperties extends PropertyAcces
 	  
 	  ValueProvider<OntologySynonymSubmissionStatus, String> status();
 
-	  ValueProvider<OntologySynonymSubmissionStatus, String> externalId();
+	  ValueProvider<OntologySynonymSubmissionStatus, String> iri();
 }

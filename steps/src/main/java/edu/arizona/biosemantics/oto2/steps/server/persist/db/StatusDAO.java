@@ -40,6 +40,20 @@ public class StatusDAO {
 		return status;
 	}
 	
+	public Status get(String name) {
+		Status status = null;
+		try(Query query = new Query("SELECT * FROM otosteps_status WHERE name = ?")) {
+			query.setParameter(1, name);
+			ResultSet result = query.execute();
+			while(result.next()) {
+				status = createStatus(result);
+			}
+		} catch(Exception e) {
+			log(LogLevel.ERROR, "Query Exception", e);
+		}
+		return status;
+	}
+	
 	private Status createStatus(ResultSet result) throws SQLException {
 		int id = result.getInt("id");
 		String name = result.getString("name");

@@ -50,6 +50,8 @@ public class ClassSubmissionsGrid extends Grid<OntologyClassSubmission> {
 		//grid.setBorders(false);
 		getView().setStripeRows(true);
 		getView().setColumnLines(true);
+		
+		//classSubmissionStore.remove.
 	}
 
 	private static ColumnModel<OntologyClassSubmission> createColumnModel() {
@@ -101,10 +103,10 @@ public class ClassSubmissionsGrid extends Grid<OntologyClassSubmission> {
 				categoryValueProvider, 200, "Category");
 
 		//relationCol.setCell(colorableCell);
-		ValueProvider<OntologyClassSubmission, String> ontlogyPrefixValueProvider = new ValueProvider<OntologyClassSubmission, String>() {
+		ValueProvider<OntologyClassSubmission, String> ontlogyAcronymValueProvider = new ValueProvider<OntologyClassSubmission, String>() {
 			@Override
 			public String getValue(OntologyClassSubmission object) {
-				return object.getOntology().getPrefix();
+				return object.getOntology().getAcronym();
 			}
 			@Override
 			public void setValue(OntologyClassSubmission object, String value) {	}
@@ -114,7 +116,7 @@ public class ClassSubmissionsGrid extends Grid<OntologyClassSubmission> {
 			}
 		};
 		ontologyCol = new ColumnConfig<OntologyClassSubmission, String>(
-				ontlogyPrefixValueProvider, 200, "Ontology");
+				ontlogyAcronymValueProvider, 200, "Ontology");
 		/*ontologyCol = new ColumnConfig<OntologyClassSubmission, Ontology>(
 				ontologyClassSubmissionProperties.targetOntology(), 200, "Ontology");
 		ontologyCol.setCell(new AbstractCell<Ontology>() {
