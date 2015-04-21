@@ -31,6 +31,8 @@ public interface OntologySynonymSubmissionProperties extends PropertyAccess<Onto
 	  ValueProvider<OntologySynonymSubmission, String> source();
 	  
 	  ValueProvider<OntologySynonymSubmission, String> sampleSentence();
+	  
+	  ValueProvider<OntologySynonymSubmission, String> user();
 	  	  
 	  ValueProvider<OntologySynonymSubmission, List<OntologySynonymSubmissionStatus>> submissionStatuses();
 

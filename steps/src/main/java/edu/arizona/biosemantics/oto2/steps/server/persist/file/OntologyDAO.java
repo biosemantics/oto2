@@ -173,7 +173,7 @@ public class OntologyDAO {
 		} catch (OWLOntologyStorageException e) {
 			throw new OntologyFileException(e);
 		}
-		return newOwlClass.getIRI().toQuotedString();
+		return newOwlClass.getIRI().toString();
 	}
 	
 	public void insertSynonymSubmission(Collection collection, OntologySynonymSubmission ontologySynonymSubmission) throws OntologyFileException { 

@@ -22,6 +22,7 @@ import edu.arizona.biosemantics.oto2.steps.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Term;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmissionProperties;
+import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmissionStatus;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmissionStatusProperties;
 
 public class ClassSubmissionsGrid extends Grid<OntologyClassSubmission> {
@@ -139,11 +140,50 @@ public class ClassSubmissionsGrid extends Grid<OntologyClassSubmission> {
 		final ColumnConfig<OntologyClassSubmission, String> partOfCol = new ColumnConfig<OntologyClassSubmission, String>(
 				ontologyClassSubmissionProperties.partOfIRI(), 200, "Part Of");
 		final ColumnConfig<OntologyClassSubmission, Boolean> entityCol = new ColumnConfig<OntologyClassSubmission, Boolean>(
-				ontologyClassSubmissionProperties.entity(), 200, "Entityt");
+				ontologyClassSubmissionProperties.entity(), 200, "Entity");
 		entityCol.setCell(new CheckBoxCell());
 		final ColumnConfig<OntologyClassSubmission, Boolean> qualityCol = new ColumnConfig<OntologyClassSubmission, Boolean>(
 				ontologyClassSubmissionProperties.quality(), 200, "Quality");
 		qualityCol.setCell(new CheckBoxCell());
+		final ColumnConfig<OntologyClassSubmission, String> statusCol = new ColumnConfig<OntologyClassSubmission, String>(
+				new ValueProvider<OntologyClassSubmission, String>() {
+					@Override
+					public String getValue(OntologyClassSubmission object) {
+						String status = "";
+						for(OntologyClassSubmissionStatus ontologyClassSubmissionStatus : object.getSubmissionStatuses()) {
+							//if(edu.arizona.biosemantics.oto2.steps.shared.model.toontology.Status.valueOf(ontologyClassSubmissionStatus.getStatus().getName().toUpperCase())
+							//		.equals(edu.arizona.biosemantics.oto2.steps.shared.model.toontology.Status.ACCEPTED))
+								status += ontologyClassSubmissionStatus.getStatus().getName() + ", ";
+						}
+						return status.length() >= 2 ? status.substring(0, status.length() - 2) : "";
+					}
+					@Override
+					public void setValue(OntologyClassSubmission object, String value) {	}
+					@Override
+					public String getPath() {
+						return "status";
+					}
+				}, 200, "Status");
+		final ColumnConfig<OntologyClassSubmission, String> iriCol = new ColumnConfig<OntologyClassSubmission, String>(
+				new ValueProvider<OntologyClassSubmission, String>() {
+					@Override
+					public String getValue(OntologyClassSubmission object) {
+						for(OntologyClassSubmissionStatus ontologyClassSubmissionStatus : object.getSubmissionStatuses()) {
+							if(edu.arizona.biosemantics.oto2.steps.shared.model.toontology.Status.valueOf(ontologyClassSubmissionStatus.getStatus().getName().toUpperCase())
+									.equals(edu.arizona.biosemantics.oto2.steps.shared.model.toontology.Status.ACCEPTED))
+								return ontologyClassSubmissionStatus.getIri();
+						}
+						return "";
+					}
+					@Override
+					public void setValue(OntologyClassSubmission object, String value) {	}
+					@Override
+					public String getPath() {
+						return "status";
+					}
+				}, 200, "IRI");
+		final ColumnConfig<OntologyClassSubmission, String> userCol = new ColumnConfig<OntologyClassSubmission, String>(
+				ontologyClassSubmissionProperties.user(), 200, "User");
 		
 		
 //		ValueProvider<Articulation, String> commentValueProvider = new ValueProvider<Articulation, String>() {
@@ -241,6 +281,9 @@ public class ClassSubmissionsGrid extends Grid<OntologyClassSubmission> {
 		columns.add(partOfCol);
 		columns.add(entityCol);
 		columns.add(qualityCol);
+		columns.add(statusCol);
+		columns.add(iriCol);
+		columns.add(userCol);
 
 		ColumnModel<OntologyClassSubmission> cm = new ColumnModel<OntologyClassSubmission>(columns);
 		return cm;

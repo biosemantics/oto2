@@ -21,8 +21,10 @@ import com.sencha.gxt.widget.core.client.grid.GroupingView;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Term;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmission;
+import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmissionStatus;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynonymSubmission;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynonymSubmissionProperties;
+import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynonymSubmissionStatus;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynonymSubmissionStatusProperties;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynonymSubmission;
 
@@ -134,6 +136,45 @@ public class SynonymSubmissionsGrid extends Grid<OntologySynonymSubmission> {
 				ontologySynonymSubmissionProperties.source(), 200, "Source");
 		final ColumnConfig<OntologySynonymSubmission, String> sampleCol = new ColumnConfig<OntologySynonymSubmission, String>(
 				ontologySynonymSubmissionProperties.sampleSentence(), 200, "Sample Sentence");
+		final ColumnConfig<OntologySynonymSubmission, String> statusCol = new ColumnConfig<OntologySynonymSubmission, String>(
+				new ValueProvider<OntologySynonymSubmission, String>() {
+					@Override
+					public String getValue(OntologySynonymSubmission object) {
+						String status = "";
+						for(OntologySynonymSubmissionStatus ontologyClassSubmissionStatus : object.getSubmissionStatuses()) {
+							//if(edu.arizona.biosemantics.oto2.steps.shared.model.toontology.Status.valueOf(ontologyClassSubmissionStatus.getStatus().getName().toUpperCase())
+							//		.equals(edu.arizona.biosemantics.oto2.steps.shared.model.toontology.Status.ACCEPTED))
+								status += ontologyClassSubmissionStatus.getStatus().getName() + ", ";
+						}
+						return status.length() >= 2 ? status.substring(0, status.length() - 2) : "";
+					}
+					@Override
+					public void setValue(OntologySynonymSubmission object, String value) {	}
+					@Override
+					public String getPath() {
+						return "status";
+					}
+				}, 200, "Status");
+		final ColumnConfig<OntologySynonymSubmission, String> iriCol = new ColumnConfig<OntologySynonymSubmission, String>(
+				new ValueProvider<OntologySynonymSubmission, String>() {
+					@Override
+					public String getValue(OntologySynonymSubmission object) {
+						for(OntologySynonymSubmissionStatus ontologyClassSubmissionStatus : object.getSubmissionStatuses()) {
+							if(edu.arizona.biosemantics.oto2.steps.shared.model.toontology.Status.valueOf(ontologyClassSubmissionStatus.getStatus().getName().toUpperCase())
+									.equals(edu.arizona.biosemantics.oto2.steps.shared.model.toontology.Status.ACCEPTED))
+								return ontologyClassSubmissionStatus.getIri();
+						}
+						return "";
+					}
+					@Override
+					public void setValue(OntologySynonymSubmission object, String value) {	}
+					@Override
+					public String getPath() {
+						return "status";
+					}
+				}, 200, "IRI");
+		final ColumnConfig<OntologySynonymSubmission, String> userCol = new ColumnConfig<OntologySynonymSubmission, String>(
+				ontologySynonymSubmissionProperties.user(), 200, "User");
 		
 //		ValueProvider<Articulation, String> commentValueProvider = new ValueProvider<Articulation, String>() {
 //			@Override
@@ -226,6 +267,9 @@ public class SynonymSubmissionsGrid extends Grid<OntologySynonymSubmission> {
 		columns.add(synonymsCol);
 		columns.add(sourceCol);
 		columns.add(sampleCol);
+		columns.add(statusCol);
+		columns.add(iriCol);
+		columns.add(userCol);
 		
 		ColumnModel<OntologySynonymSubmission> cm = new ColumnModel<OntologySynonymSubmission>(columns);
 		return cm;

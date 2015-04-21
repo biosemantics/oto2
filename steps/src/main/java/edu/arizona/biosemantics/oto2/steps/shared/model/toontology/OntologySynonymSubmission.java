@@ -19,13 +19,14 @@ public class OntologySynonymSubmission implements Serializable, OntologySubmissi
 	private String sampleSentence = "";
 	private boolean entity;
 	private boolean quality;
+	private String user;
 	private List<OntologySynonymSubmissionStatus> submissionStatuses = new LinkedList<OntologySynonymSubmissionStatus>();
 
 	public OntologySynonymSubmission() { }
 	
 	public OntologySynonymSubmission(int id, Term term, String submissionTerm, Ontology ontology, 
 			String classIRI, String synonyms, String source, String sampleSentence, boolean entity, boolean quality, 
-			List<OntologySynonymSubmissionStatus> submissionStatuses) { 
+			String user, List<OntologySynonymSubmissionStatus> submissionStatuses) { 
 		this.id = id;
 		this.term = term;
 		this.submissionTerm = submissionTerm == null ? "" : submissionTerm;
@@ -36,11 +37,12 @@ public class OntologySynonymSubmission implements Serializable, OntologySubmissi
 		this.sampleSentence = sampleSentence == null ? "" : sampleSentence;
 		this.entity = entity;
 		this.quality = quality;
+		this.user = user;
 		this.submissionStatuses = submissionStatuses;
 	}
 	
 	public OntologySynonymSubmission(Term term, String submissionTerm, Ontology ontology, 
-			String classIRI, String synonyms, String source, String sampleSentence, boolean entity, boolean quality) { 
+			String classIRI, String synonyms, String source, String sampleSentence, boolean entity, boolean quality, String user) { 
 		this.term = term;
 		this.submissionTerm = submissionTerm == null ? "" : submissionTerm;
 		this.ontology = ontology;
@@ -50,6 +52,7 @@ public class OntologySynonymSubmission implements Serializable, OntologySubmissi
 		this.sampleSentence = sampleSentence == null ? "" : sampleSentence;
 		this.entity = entity;
 		this.quality = quality;
+		this.user = user;
 	}
 	
 	public boolean hasId() {
@@ -166,5 +169,15 @@ public class OntologySynonymSubmission implements Serializable, OntologySubmissi
 	@Override
 	public int compareTo(OntologySynonymSubmission o) {
 		return this.getId() - o.getId();
+	}
+
+	public String getUser() {
+		return user;
+	}
+
+	public void setUser(String user) {
+		this.user = user;
 	}	
+	
+	
 }

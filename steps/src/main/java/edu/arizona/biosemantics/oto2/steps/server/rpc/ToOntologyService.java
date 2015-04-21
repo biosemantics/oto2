@@ -53,13 +53,13 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	@Override
 	public void submitClass(OntologyClassSubmission submission) throws OntologyFileException, ClassExistsException {
 		submission = daoManager.getOntologyClassSubmissionDAO().insert(submission);
+		Collection collection = daoManager.getCollectionDAO().get(submission.getTerm().getCollectionId());
+		
 		if(submission.getOntology().hasCollectionId()) {
-			Collection collection = daoManager.getCollectionDAO().get(submission.getTerm().getCollectionId());
 			String classIRI = daoManager.getOntologyFileDAO().insertClassSubmission(collection, submission);
 			setAccepted(submission, classIRI);
 		} else {
-			//TODO: send to bioportal for these ontologies that are not local
-			
+			daoManager.getOntologyBioportalDAO().insertClassSubmission(collection, submission);
 			setPending(submission);
 		}
 	}
@@ -67,15 +67,14 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	@Override
 	public void submitSynonym(OntologySynonymSubmission submission) throws OntologyFileException {
 		daoManager.getOntologySynonymSubmissionDAO().insert(submission);
+		Collection collection = daoManager.getCollectionDAO().get(submission.getTerm().getCollectionId());
 		if(submission.getOntology().hasCollectionId()) {
-			Collection collection = daoManager.getCollectionDAO().get(submission.getTerm().getCollectionId());
 			daoManager.getOntologyFileDAO().insertSynonymSubmission(collection, submission);
 			//setAccepted(submission, classIRI);
 		} else {
 			//TODO: send to bioportal for these ontologies that are not local
-		
-			
-			//setPending(submission);
+			daoManager.getOntologyBioportalDAO().insertSynonymSubmission(collection, submission);
+			setPending(submission);
 		}
 	}
 

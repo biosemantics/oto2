@@ -22,13 +22,14 @@ public class OntologyClassSubmission implements Serializable, EntityQualityClass
 	private String partOfIRI = "";
 	private boolean entity;
 	private boolean quality;
+	private String user;
 	private List<OntologyClassSubmissionStatus> submissionStatuses = new LinkedList<OntologyClassSubmissionStatus>();
 	
 	public OntologyClassSubmission() { }
 	
 	public OntologyClassSubmission(int id, Term term, String submissionTerm, Ontology ontology, String classIRI,
 			String superclassIRI, String definition, String synonyms, String source, String sampleSentence, 
-			String partOfIRI, boolean entity, boolean quality, List<OntologyClassSubmissionStatus> submissionStatuses) { 
+			String partOfIRI, boolean entity, boolean quality, String user, List<OntologyClassSubmissionStatus> submissionStatuses) { 
 		this.id = id;
 		this.term = term;
 		this.submissionTerm = submissionTerm == null ? "" : submissionTerm;
@@ -42,12 +43,13 @@ public class OntologyClassSubmission implements Serializable, EntityQualityClass
 		this.partOfIRI = partOfIRI == null ? "" : partOfIRI;
 		this.entity = entity;
 		this.quality = quality;
+		this.user = user;
 		this.submissionStatuses = submissionStatuses;
 	}
 	
 	public OntologyClassSubmission(Term term, String submissionTerm, Ontology ontology, String classIRI,
 			String superclassIRI, String definition, String synonyms, String source, String sampleSentence, 
-			String partOfIRI, boolean entity, boolean quality) { 
+			String partOfIRI, boolean entity, boolean quality, String user) { 
 		this.term = term;
 		this.submissionTerm = submissionTerm == null ? "" : submissionTerm;
 		this.ontology = ontology;
@@ -60,6 +62,7 @@ public class OntologyClassSubmission implements Serializable, EntityQualityClass
 		this.partOfIRI = partOfIRI == null ? "" : partOfIRI;
 		this.entity = entity;
 		this.quality = quality;
+		this.user = user;
 	}
 
 	public boolean hasId() {
@@ -206,6 +209,16 @@ public class OntologyClassSubmission implements Serializable, EntityQualityClass
 	@Override
 	public int compareTo(OntologyClassSubmission o) {
 		return this.getId() - o.getId();
+	}
+
+	public String getUser() {
+		return user;
+	}
+
+	public void setUser(String user) {
+		this.user = user;
 	}	
+	
+	
 
 }

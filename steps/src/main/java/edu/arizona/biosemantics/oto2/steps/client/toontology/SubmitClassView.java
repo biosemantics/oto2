@@ -35,6 +35,7 @@ import com.sencha.gxt.widget.core.client.form.TextArea;
 import com.sencha.gxt.widget.core.client.form.TextField;
 
 import edu.arizona.biosemantics.common.biology.TaxonGroup;
+import edu.arizona.biosemantics.oto2.steps.client.OtoSteps;
 import edu.arizona.biosemantics.oto2.steps.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.steps.client.common.CreateOntologyDialog;
 import edu.arizona.biosemantics.oto2.steps.client.event.LoadCollectionEvent;
@@ -195,7 +196,7 @@ public class SubmitClassView implements IsWidget {
 		submitButton.addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
-				OntologyClassSubmission submission = getClassSubmission();
+				final OntologyClassSubmission submission = getClassSubmission();
 				toOntologyService.submitClass(submission, new AsyncCallback<Void>() {
 					@Override
 					public void onFailure(Throwable caught) {
@@ -206,9 +207,9 @@ public class SubmitClassView implements IsWidget {
 					}
 					@Override
 					public void onSuccess(Void result) {
+						eventBus.fireEvent(new SubmitClassEvent(submission));
 					}
 				});
-				eventBus.fireEvent(new SubmitClassEvent(submission));
 			}
 		});
 	}
@@ -233,7 +234,7 @@ public class SubmitClassView implements IsWidget {
 		return new OntologyClassSubmission(termComboBox.getValue(), submissionTermField.getValue(), 
 				ontologyComboBox.getValue(), classIRIField.getValue(), superclassIRIField.getValue(),
 				definitionArea.getValue(), synonymsField.getValue(), sourceField.getValue(), sampleArea.getValue(), partOfField.getValue(), 
-				isEntityCheckBox.getValue(), isQualityCheckBox.getValue());
+				isEntityCheckBox.getValue(), isQualityCheckBox.getValue(), OtoSteps.user);
 	}
 
 	protected void initCollection() {

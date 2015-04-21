@@ -1,5 +1,6 @@
 package edu.arizona.biosemantics.oto2.steps.server.persist;
 
+import edu.arizona.biosemantics.oto2.steps.server.persist.bioportal.OntologyBioportalDAO;
 import edu.arizona.biosemantics.oto2.steps.server.persist.db.CollectionDAO;
 import edu.arizona.biosemantics.oto2.steps.server.persist.db.ContextDAO;
 import edu.arizona.biosemantics.oto2.steps.server.persist.db.OntologyClassSubmissionDAO;
@@ -22,6 +23,7 @@ public class DAOManager {
 	private ContextDAO contextDAO;
 	private StatusDAO statusDAO;
 	private edu.arizona.biosemantics.oto2.steps.server.persist.file.OntologyDAO ontologyFileDAO;
+	private OntologyBioportalDAO ontologyBioportalDAO;
 	
 	public DAOManager() {
 		collectionDAO = new CollectionDAO();
@@ -34,7 +36,7 @@ public class DAOManager {
 		contextDAO = new ContextDAO();
 		statusDAO = new StatusDAO();
 		ontologyFileDAO = new edu.arizona.biosemantics.oto2.steps.server.persist.file.OntologyDAO();
-		
+		ontologyBioportalDAO = new OntologyBioportalDAO();
 		
 		collectionDAO.setTermDAO(termDAO);
 		
@@ -88,6 +90,10 @@ public class DAOManager {
 
 	public StatusDAO getStatusDAO() {
 		return statusDAO;
+	}
+
+	public OntologyBioportalDAO getOntologyBioportalDAO() {
+		return ontologyBioportalDAO;
 	}
 	
 	
