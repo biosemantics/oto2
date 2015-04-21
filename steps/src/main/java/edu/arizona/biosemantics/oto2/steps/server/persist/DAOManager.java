@@ -47,6 +47,7 @@ public class DAOManager {
 		ontologySynonymSubmissionStatusDAO.setStatusDAO(statusDAO);
 		ontologyClassSubmissionStatusDAO.setStatusDAO(statusDAO);
 		ontologyFileDAO.setOntologyDAO(ontologyDBDAO);
+		ontologyFileDAO.setCollectionDAO(collectionDAO);
 	}
 
 	public CollectionDAO getCollectionDAO() {

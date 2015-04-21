@@ -35,33 +35,43 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	public List<Ontology> getOntologies(Collection collection) {
 		return daoManager.getOntologyDBDAO().getOntologiesForCollection(collection);
 	}
-
+	
 	@Override
-	public void submitClass(OntologyClassSubmission submission) {
-		daoManager.getOntologyClassSubmissionDAO().insert(submission);
-	}
-
-	@Override
-	public void submitSynonym(OntologySynonymSubmission submission) {
-		daoManager.getOntologySynonymSubmissionDAO().insert(submission);
-	}
-
-	@Override
-	public List<OntologyClassSubmission> getClassSubmissions(
-			Collection collection) {
+	public List<OntologyClassSubmission> getClassSubmissions(Collection collection) {
 		return daoManager.getOntologyClassSubmissionDAO().get(collection);
 	}
 
 	@Override
-	public List<OntologySynonymSubmission> getSynonymSubmissions(
-			Collection collection) {
+	public List<OntologySynonymSubmission> getSynonymSubmissions(Collection collection) {
 		return daoManager.getOntologySynonymSubmissionDAO().get(collection);
 	}
-
+	
 	@Override
 	public void createOntology(Collection collection, Ontology ontology) throws OntologyFileException {
 		daoManager.getOntologyDBDAO().insert(ontology);
-		daoManager.getOntologyFileDAO().insertOntology(collection, ontology);
+		daoManager.getOntologyFileDAO().insertOntology(ontology);
+	}
+
+	@Override
+	public void submitClass(OntologyClassSubmission submission) throws OntologyFileException {
+		daoManager.getOntologyClassSubmissionDAO().insert(submission);
+		if(submission.getOntology().hasCollectionId()) {
+			Collection collection = daoManager.getCollectionDAO().get(submission.getTerm().getCollectionId());
+			daoManager.getOntologyFileDAO().insertClassSubmission(collection, submission);
+		} else {
+			//TODO: send to bioportal for these ontologies that are not local
+		}
+	}
+
+	@Override
+	public void submitSynonym(OntologySynonymSubmission submission) throws OntologyFileException {
+		daoManager.getOntologySynonymSubmissionDAO().insert(submission);
+		if(submission.getOntology().hasCollectionId()) {
+			Collection collection = daoManager.getCollectionDAO().get(submission.getTerm().getCollectionId());
+			daoManager.getOntologyFileDAO().insertSynonymSubmission(collection, submission);
+		} else {
+			//TODO: send to bioportal for these ontologies that are not local
+		}
 	}
 
 }

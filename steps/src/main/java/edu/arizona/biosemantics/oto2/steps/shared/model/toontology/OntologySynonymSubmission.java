@@ -7,7 +7,7 @@ import java.util.List;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Term;
 
-public class OntologySynonymSubmission implements Serializable, HasOntology, EntityQualityClass {
+public class OntologySynonymSubmission implements Serializable, HasOntology, EntityQualityClass, Comparable<OntologySynonymSubmission> {
 	
 	private int id = -1;
 	private Term term;
@@ -161,5 +161,10 @@ public class OntologySynonymSubmission implements Serializable, HasOntology, Ent
 
 	public void setQuality(boolean quality) {
 		this.quality = quality;
+	}
+
+	@Override
+	public int compareTo(OntologySynonymSubmission o) {
+		return this.getId() - o.getId();
 	}	
 }

@@ -49,6 +49,7 @@ import uk.ac.manchester.cs.owlapi.modularity.SyntacticLocalityModuleExtractor;
 import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.steps.client.OtoSteps;
 import edu.arizona.biosemantics.oto2.steps.server.Configuration;
+import edu.arizona.biosemantics.oto2.steps.server.persist.db.CollectionDAO;
 import edu.arizona.biosemantics.oto2.steps.server.persist.db.OntologyClassSubmissionStatusDAO;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Ontology;
@@ -64,6 +65,7 @@ import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.UnsatisfiableCl
 public class OntologyDAO {
 	
 	private edu.arizona.biosemantics.oto2.steps.server.persist.db.OntologyDAO ontologyDAO;
+	private CollectionDAO collectionDAO;
 	private OntologyClassSubmissionStatusDAO ontologyClassSubmissionStatusDAO; 
 	
 	private static Map<String, OWLOntology> referencedOntologies = new HashMap<String, OWLOntology>();
@@ -116,9 +118,7 @@ public class OntologyDAO {
 		}
 	}
 
-	public void insertOntology(Collection collection, Ontology ontology) throws OntologyFileException {
-		ontology.setCollectionId(collection.getId());
-		
+	public void insertOntology(Ontology ontology) throws OntologyFileException {		
 		owlOntologyManager.addIRIMapper(createMapper(ontology));
 		OWLOntology owlOntology = null;
 		try {
@@ -128,7 +128,7 @@ public class OntologyDAO {
 			throw new OntologyFileException(e);
 		}
 		
-		addRelevantOntologies(collection, owlOntology);
+		addRelevantOntologies(collectionDAO.get(ontology.getCollectionId()), owlOntology);
 		addOntologyAxioms(owlOntology);
 		
 		try {
@@ -201,7 +201,7 @@ public class OntologyDAO {
 				} catch(OntologyNotFoundException | OWLOntologyCreationException | OWLOntologyStorageException e) {
 					throw new OntologyFileException(e);
 				} 
-			}	
+			}
 		}
 
 		//add other additional synonyms
@@ -780,6 +780,9 @@ public class OntologyDAO {
 	
 	public void setOntologyDAO(edu.arizona.biosemantics.oto2.steps.server.persist.db.OntologyDAO ontologyDAO) {
 		this.ontologyDAO = ontologyDAO;
-	}	
-	
+	}
+
+	public void setCollectionDAO(CollectionDAO collectionDAO) {
+		this.collectionDAO = collectionDAO;
+	}		
 }

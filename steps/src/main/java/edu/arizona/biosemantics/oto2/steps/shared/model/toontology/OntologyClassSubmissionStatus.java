@@ -1,8 +1,10 @@
 package edu.arizona.biosemantics.oto2.steps.shared.model.toontology;
 
+import java.io.Serializable;
+
 import edu.arizona.biosemantics.oto2.steps.shared.model.Status;
 
-public class OntologyClassSubmissionStatus {
+public class OntologyClassSubmissionStatus implements Serializable, Comparable<OntologyClassSubmissionStatus> {
 
 	private int id = -1;
 	private int ontologyClassSubmissionId;
@@ -55,6 +57,11 @@ public class OntologyClassSubmissionStatus {
 	
 	public boolean hasId() {
 		return id != -1;
+	}
+
+	@Override
+	public int compareTo(OntologyClassSubmissionStatus o) {
+		return this.getId() - o.getId();
 	}
 	
 	

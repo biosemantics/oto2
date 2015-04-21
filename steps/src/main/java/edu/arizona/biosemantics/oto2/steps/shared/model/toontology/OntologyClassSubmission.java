@@ -7,7 +7,7 @@ import java.util.List;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Term;
 
-public class OntologyClassSubmission implements Serializable, EntityQualityClass, HasOntology {
+public class OntologyClassSubmission implements Serializable, EntityQualityClass, HasOntology, Comparable<OntologyClassSubmission> {
 	
 	private int id = -1;
 	private Term term;
@@ -201,6 +201,11 @@ public class OntologyClassSubmission implements Serializable, EntityQualityClass
 
 	public boolean hasSuperclassIRI() {
 		return this.superclassIRI != null && !this.superclassIRI.trim().isEmpty();
+	}
+
+	@Override
+	public int compareTo(OntologyClassSubmission o) {
+		return this.getId() - o.getId();
 	}	
 
 }

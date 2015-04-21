@@ -6,7 +6,7 @@ import java.util.List;
 
 import edu.arizona.biosemantics.common.biology.TaxonGroup;
 
-public class Collection implements Serializable {
+public class Collection implements Serializable, Comparable<Collection> {
 
 	private int id = -1;
 	private String name = "";
@@ -98,5 +98,10 @@ public class Collection implements Serializable {
 
 	public void setTaxonGroup(TaxonGroup taxonGroup) {
 		this.taxonGroup = taxonGroup;
+	}
+
+	@Override
+	public int compareTo(Collection o) {
+		return this.getId() - o.getId();
 	}	
 }

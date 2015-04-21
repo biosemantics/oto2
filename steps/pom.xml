@@ -54,12 +54,12 @@
 			<version>${gwtVersion}</version>
 			<scope>provided</scope>
 		</dependency>
-		<dependency>
+		<!-- <dependency> conflict xerces with OWL dependency xerces causes clash ClassCastExceptions
 			<groupId>com.google.gwt</groupId>
 			<artifactId>gwt-dev</artifactId>
 			<version>${gwtVersion}</version>
 			<scope>provided</scope>
-		</dependency>
+		</dependency> -->
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>

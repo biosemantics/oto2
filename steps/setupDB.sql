@@ -41,7 +41,8 @@ CREATE TABLE IF NOT EXISTS `otosteps_ontology` (
   `collection` bigint(20) unsigned NULL DEFAULT NULL,
   `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `id` (`id`)
+  UNIQUE KEY `id` (`id`),
+  UNIQUE KEY `collection_prefix` (`collection`, `prefix`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0 ;
 
 CREATE TABLE IF NOT EXISTS `otosteps_ontology_taxongroup` (
