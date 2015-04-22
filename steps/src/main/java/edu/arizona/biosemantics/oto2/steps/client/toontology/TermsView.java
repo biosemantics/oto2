@@ -62,9 +62,11 @@ import com.sencha.gxt.widget.core.client.menu.MenuItem;
 import com.sencha.gxt.widget.core.client.tree.Tree;
 
 import edu.arizona.biosemantics.oto2.steps.client.OtoSteps;
+import edu.arizona.biosemantics.oto2.steps.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.steps.client.common.AllowSurpressSelectEventsListViewSelectionModel;
 import edu.arizona.biosemantics.oto2.steps.client.common.AllowSurpressSelectEventsTreeSelectionModel;
 import edu.arizona.biosemantics.oto2.steps.client.event.LoadCollectionEvent;
+import edu.arizona.biosemantics.oto2.steps.client.event.RefreshSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.TermSelectEvent;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Term;
@@ -74,6 +76,8 @@ import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.BucketTreeNod
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.TermTreeNode;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.TextTreeNode;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.TextTreeNodeProperties;
+import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.IToOntologyService;
+import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.IToOntologyServiceAsync;
 
 public class TermsView implements IsWidget {
 	
@@ -261,7 +265,7 @@ public class TermsView implements IsWidget {
 		}*/
 	}
 	
-	//private toOntologyServiceAsync toOntologyService = GWT.create(toOntologyService.class);
+	private IToOntologyServiceAsync toOntologyService = GWT.create(IToOntologyService.class);
 	private static final TermProperties termProperties = GWT.create(TermProperties.class);
 	private static final TextTreeNodeProperties textTreeNodeProperties = GWT.create(TextTreeNodeProperties.class);
 	
@@ -348,7 +352,16 @@ public class TermsView implements IsWidget {
 		refreshButton.addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
-				refreshMatchSubmissionsStatus();
+				toOntologyService.refreshOntologySubmissionStatuses(collection, new AsyncCallback<Void>() {
+					@Override
+					public void onFailure(Throwable caught) {
+						Alerter.failedToRefreshSubmissions();
+					}
+					@Override
+					public void onSuccess(Void result) {
+						eventBus.fireEvent(new RefreshSubmissionsEvent());
+					}
+				});
 			}
 		});
 		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
@@ -413,27 +426,7 @@ public class TermsView implements IsWidget {
 		this.termTermTreeNodeMap.put(termTreeNode.getTerm(), termTreeNode);
 		this.treeStore.add(bucketNode, termTreeNode);
 	}
-
-	private void refreshMatchSubmissionsStatus() {
-		/*toOntologyService.getSubmissionStatus(collection, new AsyncCallback<Void>() {
-					@Override
-					public void onSuccess(Void result) {
-						globalEventBus.fireEvent(new ProcessingEndEvent());
-						// update the match and submission part
-						Window.alert("Updated ontology matches and submissions successfully. ");
-						updateMatchesAndSubmissions(selectedCandidateTerm,
-								selectedCategory);
-					}
-
-					@Override
-					public void onFailure(Throwable caught) {
-						globalEventBus.fireEvent(new ProcessingEndEvent());
-						Window.alert("Server Error: failed to Update ontology matches and ontology submissions of terms in this upload. \n\n"
-								+ caught.getMessage());
-					}
-				});*/
-	}
-
+	
 	@Override
 	public Widget asWidget() {
 		return vertical;

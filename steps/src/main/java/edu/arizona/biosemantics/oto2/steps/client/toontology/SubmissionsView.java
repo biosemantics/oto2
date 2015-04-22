@@ -54,6 +54,7 @@ import edu.arizona.biosemantics.oto2.steps.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.steps.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.OntologyClassSubmissionSelectEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.OntologySynonymSubmissionSelectEvent;
+import edu.arizona.biosemantics.oto2.steps.client.event.RefreshSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.SubmitClassEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.SubmitSynonymEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.TermSelectEvent;
@@ -125,13 +126,18 @@ public class SubmissionsView implements IsWidget {
 				refreshSynonymSubmissions();
 			}
 		});
+		eventBus.addHandler(RefreshSubmissionsEvent.TYPE, new RefreshSubmissionsEvent.Handler() {
+			@Override
+			public void onSelect(RefreshSubmissionsEvent event) {
+				refreshSynonymSubmissions();
+				refreshClassSubmissions();
+			}
+		});
 		classSubmissionsGrid.getSelectionModel().addSelectionChangedHandler(new SelectionChangedHandler<OntologyClassSubmission>() {
 			@Override
-			public void onSelectionChanged(
-					SelectionChangedEvent<OntologyClassSubmission> event) {
-				System.out.println("");
+			public void onSelectionChanged(SelectionChangedEvent<OntologyClassSubmission> event) {
+			
 			}
-	
 		});
 		
 		classSubmissionsGrid.getSelectionModel().addSelectionHandler(new SelectionHandler<OntologyClassSubmission>() {
