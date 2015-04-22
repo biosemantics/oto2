@@ -843,5 +843,21 @@ public class OntologyDAO {
 
 	public void setCollectionDAO(CollectionDAO collectionDAO) {
 		this.collectionDAO = collectionDAO;
+	}
+
+	public void updateClassSubmission(Collection collection, OntologyClassSubmission submission) {
+		
+	}
+
+	public void updateSynonymSubmission(Collection collection,  OntologySynonymSubmission submission) {
+		
+	}
+
+	public void removeClassSubmission(Collection collection, OntologyClassSubmission submission) {
+		
+	}
+
+	public void removeSynonymSubmission(Collection collection, OntologySynonymSubmission submission) {
+		
 	}		
 }

@@ -19,8 +19,8 @@ import org.codehaus.jackson.map.ObjectWriter;
 import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.steps.server.persist.db.Query.QueryException;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
-import edu.arizona.biosemantics.oto2.steps.shared.model.Status;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Term;
+import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.Status;
 
 public class StatusDAO {
 		

@@ -13,6 +13,7 @@ import edu.arizona.biosemantics.oto2.steps.shared.model.Term;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmissionStatus;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynonymSubmission;
+import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.StatusEnum;
 
 public class OntologyClassSubmissionDAO {
 
@@ -155,6 +156,24 @@ public class OntologyClassSubmissionDAO {
 			log(LogLevel.ERROR, "Query Exception", e);
 		}
 		return result;
+	}
+	
+	public List<OntologyClassSubmission> get(Collection collection, StatusEnum status) {
+		List<OntologyClassSubmission> result = new LinkedList<OntologyClassSubmission>();
+		try(Query query = new Query("SELECT * FROM otosteps_ontologyclasssubmission s, otosteps_ontologyclasssubmissionstatus ss, otosteps_status st"
+				+ " otosteps_term t WHERE s.term = t.id AND t.collection = ? AND ss.ontologyclasssubmission = s.id AND ss.status = st.id AND"
+				+ " st.name = ?")) {
+			query.setParameter(1, collection.getId());
+			query.setParameter(2, status.getDisplayName());
+			ResultSet resultSet = query.execute();
+			while(resultSet.next()) {
+				result.add(createClassSubmission(resultSet));
+			}
+		} catch(Exception e) {
+			log(LogLevel.ERROR, "Query Exception", e);
+		}
+		return result;
 	}	
+
 	
 }

@@ -24,4 +24,17 @@ public interface IToOntologyServiceAsync {
 
 	public void createOntology(Collection collection, Ontology ontology, AsyncCallback<Void> asyncCallback);
 	
+	public void refreshOntologySubmissionStatuses(Collection collection, AsyncCallback<Void> callback);
+	
+	public void updatehOntologyClassSubmission(Collection collection, OntologyClassSubmission ontologyClassSubmission, 
+			AsyncCallback<Void> callback);
+
+	public void updatehOntologySynonymSubmission(Collection collection, OntologySynonymSubmission ontologySynonymSubmission, 
+			AsyncCallback<Void> callback);
+	
+	public void removeOntologyClassSubmission(Collection collection, OntologyClassSubmission ontologyClassSubmission, 
+			AsyncCallback<Void> callback);
+	
+	public void removeOntologySynonymSubmission(Collection collection, OntologySynonymSubmission ontologySynonymSubmission, 
+			AsyncCallback<Void> callbackw);
 }

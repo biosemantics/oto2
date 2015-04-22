@@ -50,6 +50,8 @@ public class DAOManager {
 		ontologyClassSubmissionStatusDAO.setStatusDAO(statusDAO);
 		ontologyFileDAO.setOntologyDAO(ontologyDBDAO);
 		ontologyFileDAO.setCollectionDAO(collectionDAO);
+		ontologyBioportalDAO.setOntologyClassSubmissionDAO(ontologyClassSubmissionDAO);
+		ontologyBioportalDAO.setOntologySynonymSubmissionDAO(ontologySynonymSubmissionDAO);
 	}
 
 	public CollectionDAO getCollectionDAO() {

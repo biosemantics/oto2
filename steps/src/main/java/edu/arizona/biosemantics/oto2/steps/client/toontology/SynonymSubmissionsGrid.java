@@ -160,8 +160,8 @@ public class SynonymSubmissionsGrid extends Grid<OntologySynonymSubmission> {
 					@Override
 					public String getValue(OntologySynonymSubmission object) {
 						for(OntologySynonymSubmissionStatus ontologyClassSubmissionStatus : object.getSubmissionStatuses()) {
-							if(edu.arizona.biosemantics.oto2.steps.shared.model.toontology.Status.valueOf(ontologyClassSubmissionStatus.getStatus().getName().toUpperCase())
-									.equals(edu.arizona.biosemantics.oto2.steps.shared.model.toontology.Status.ACCEPTED))
+							if(edu.arizona.biosemantics.oto2.steps.shared.model.toontology.StatusEnum.valueOf(ontologyClassSubmissionStatus.getStatus().getName().toUpperCase())
+									.equals(edu.arizona.biosemantics.oto2.steps.shared.model.toontology.StatusEnum.ACCEPTED))
 								return ontologyClassSubmissionStatus.getIri();
 						}
 						return "";

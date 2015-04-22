@@ -1,19 +1,39 @@
 package edu.arizona.biosemantics.oto2.steps.shared.model.toontology;
 
-public enum Status {
+import java.io.Serializable;
 
-	ACCEPTED("accepted"), PENDING("pending"), REJECTED("rejected");
+public class Status implements Serializable, Comparable<Status> {
+
+	private int id = -1;
+	private String name;
 	
-	private String displayName;
-
-	private Status(String displayName) {
-		this.displayName = displayName;
+	public Status() { }
+	
+	public Status(int id, String name) {
+		super();
+		this.id = id;
+		this.name = name;
+	}
+	public int getId() {
+		return id;
+	}
+	public void setId(int id) {
+		this.id = id;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	
+	public boolean hasId() {
+		return id != -1;
 	}
 
-	public String getDisplayName() {
-		return displayName;
+	@Override
+	public int compareTo(Status o) {
+		return this.name.compareTo(o.getName());
 	}
-	
-	
 	
 }

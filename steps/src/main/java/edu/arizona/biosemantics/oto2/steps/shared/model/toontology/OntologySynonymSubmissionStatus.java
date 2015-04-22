@@ -2,8 +2,6 @@ package edu.arizona.biosemantics.oto2.steps.shared.model.toontology;
 
 import java.io.Serializable;
 
-import edu.arizona.biosemantics.oto2.steps.shared.model.Status;
-
 public class OntologySynonymSubmissionStatus implements Serializable, Comparable<OntologySynonymSubmissionStatus> {
 
 	private int id = -1;

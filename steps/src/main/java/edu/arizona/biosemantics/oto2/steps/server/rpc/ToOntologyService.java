@@ -1,6 +1,7 @@
 package edu.arizona.biosemantics.oto2.steps.server.rpc;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
@@ -14,7 +15,7 @@ import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClass
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySubmission;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynonymSubmission;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynonymSubmissionStatus;
-import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.Status;
+import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.StatusEnum;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.ClassExistsException;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.IToOntologyService;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.OntologyFileException;
@@ -51,7 +52,7 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	}
 
 	@Override
-	public void submitClass(OntologyClassSubmission submission) throws OntologyFileException, ClassExistsException {
+	public void submitClass(OntologyClassSubmission submission) throws OntologyFileException, ClassExistsException, InterruptedException, ExecutionException {
 		submission = daoManager.getOntologyClassSubmissionDAO().insert(submission);
 		Collection collection = daoManager.getCollectionDAO().get(submission.getTerm().getCollectionId());
 		
@@ -65,7 +66,7 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	}
 
 	@Override
-	public void submitSynonym(OntologySynonymSubmission submission) throws OntologyFileException {
+	public void submitSynonym(OntologySynonymSubmission submission) throws OntologyFileException, InterruptedException, ExecutionException {
 		daoManager.getOntologySynonymSubmissionDAO().insert(submission);
 		Collection collection = daoManager.getCollectionDAO().get(submission.getTerm().getCollectionId());
 		if(submission.getOntology().hasCollectionId()) {
@@ -77,21 +78,71 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 			setPending(submission);
 		}
 	}
+	
+	/**
+	 * There's still open questions about this: What to do with a bioportal submission that has been accepted.
+	 * Should it still be possible to edit that submission? Would that be a resubmissoin then since the original
+	 * submisison is already permanently accepted?
+	 */
+	@Override
+	public void updatehOntologyClassSubmission(Collection collection, OntologyClassSubmission submission) {
+		daoManager.getOntologyClassSubmissionDAO().update(submission);
+		if(submission.getOntology().hasCollectionId()) {
+			daoManager.getOntologyFileDAO().updateClassSubmission(collection, submission);
+		} else {
+			daoManager.getOntologyBioportalDAO().updateClassSubmission(submission);
+		}
+	}
+
+	@Override
+	public void updatehOntologySynonymSubmission(Collection collection, OntologySynonymSubmission submission) {
+		daoManager.getOntologySynonymSubmissionDAO().update(submission);
+		if(submission.getOntology().hasCollectionId()) {
+			daoManager.getOntologyFileDAO().updateSynonymSubmission(collection, submission);
+		} else {
+			daoManager.getOntologyBioportalDAO().updateSynonymSubmission(submission);
+		}
+	}
+
+	@Override
+	public void removeOntologyClassSubmission(Collection collection, OntologyClassSubmission submission) {
+		daoManager.getOntologyClassSubmissionDAO().remove(submission);
+		if(submission.getOntology().hasCollectionId()) {
+			daoManager.getOntologyFileDAO().removeClassSubmission(collection, submission);
+		} else {
+			daoManager.getOntologyBioportalDAO().removeClassSubmission(submission);
+		}
+	}
+
+	@Override
+	public void removeOntologySynonymSubmission(Collection collection, OntologySynonymSubmission submission) {
+		daoManager.getOntologySynonymSubmissionDAO().remove(submission);
+		if(submission.getOntology().hasCollectionId()) {
+			daoManager.getOntologyFileDAO().removeSynonymSubmission(collection, submission);
+		} else {
+			daoManager.getOntologyBioportalDAO().removeSynonymSubmission(submission);
+		}
+	}
+	
+	@Override
+	public void refreshOntologySubmissionStatuses(Collection collection) {
+		daoManager.getOntologyBioportalDAO().refreshStatuses(collection);
+	}
 
 	
 	private void setAccepted(OntologySubmission submission, String classIRI) throws OntologyFileException {
-		this.setStatus(submission, classIRI, Status.ACCEPTED);
+		this.setStatus(submission, classIRI, StatusEnum.ACCEPTED);
 	}
 	
 	private void setPending(OntologySubmission submission) throws OntologyFileException {
-		this.setStatus(submission, Status.PENDING);
+		this.setStatus(submission, StatusEnum.PENDING);
 	}
 	
 	private void setRejected(OntologySubmission submission) throws OntologyFileException {
-		this.setStatus(submission, Status.REJECTED);
+		this.setStatus(submission, StatusEnum.REJECTED);
 	}
 	
-	private void setStatus(OntologySubmission submission, String classIRI, Status status) {
+	private void setStatus(OntologySubmission submission, String classIRI, StatusEnum status) {
 		if(submission instanceof OntologyClassSubmission) {
 			OntologyClassSubmission ontologyClassSubmission = (OntologyClassSubmission) submission;
 			OntologyClassSubmissionStatus ontologyClassSubmissionStatus = new OntologyClassSubmissionStatus(ontologyClassSubmission.getId(), 
@@ -106,7 +157,8 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 		}
 	}
 	
-	private void setStatus(OntologySubmission submission, Status status) {
+	private void setStatus(OntologySubmission submission, StatusEnum status) {
 		this.setStatus(submission, "", status);
 	}
+
 }
