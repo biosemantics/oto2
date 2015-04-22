@@ -189,11 +189,11 @@ public class SubmissionsView implements IsWidget {
 	}
 
 	private SynonymSubmissionsGrid createOntologySynonymSubmissionGrid() {
-		return new SynonymSubmissionsGrid(synonymSubmissionStore);
+		return new SynonymSubmissionsGrid(eventBus, synonymSubmissionStore);
 	}
 
 	private ClassSubmissionsGrid createOntologyClassSubmissionGrid() {
-		return new ClassSubmissionsGrid(classSubmissionStore);
+		return new ClassSubmissionsGrid(eventBus, classSubmissionStore);
 	}
 
 	@Override

@@ -151,7 +151,8 @@ public class OntologySynonymSubmissionDAO {
 
 	public List<OntologySynonymSubmission> get(Collection collection, StatusEnum status) {
 		List<OntologySynonymSubmission> result = new LinkedList<OntologySynonymSubmission>();
-		try(Query query = new Query("SELECT * FROM otosteps_ontologyclasssubmission s, otosteps_ontologyclasssubmissionstatus ss, otosteps_status st"
+		try(Query query = new Query("SELECT * FROM otosteps_ontologyclasssubmission s, "
+				+ "otosteps_ontologyclasssubmission_status ss, otosteps_status st,"
 				+ " otosteps_term t WHERE s.term = t.id AND t.collection = ? AND ss.ontologyclasssubmission = s.id AND ss.status = st.id AND"
 				+ " st.name = ?")) {
 			query.setParameter(1, collection.getId());

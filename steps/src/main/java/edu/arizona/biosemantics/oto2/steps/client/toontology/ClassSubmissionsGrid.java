@@ -5,28 +5,51 @@ import java.util.List;
 
 import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.logical.shared.SelectionEvent;
+import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
+import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.google.web.bindery.event.shared.EventBus;
 import com.sencha.gxt.cell.core.client.form.CheckBoxCell;
 import com.sencha.gxt.core.client.IdentityValueProvider;
 import com.sencha.gxt.core.client.Style.SelectionMode;
+import com.sencha.gxt.core.client.util.Format;
+import com.sencha.gxt.core.client.util.Params;
 import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.data.shared.ListStore;
+import com.sencha.gxt.widget.core.client.box.MultiLinePromptMessageBox;
+import com.sencha.gxt.widget.core.client.event.BeforeShowEvent;
+import com.sencha.gxt.widget.core.client.event.HideEvent;
+import com.sencha.gxt.widget.core.client.event.BeforeShowEvent.BeforeShowHandler;
+import com.sencha.gxt.widget.core.client.event.HideEvent.HideHandler;
 import com.sencha.gxt.widget.core.client.grid.CheckBoxSelectionModel;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.Grid;
 import com.sencha.gxt.widget.core.client.grid.GroupingView;
+import com.sencha.gxt.widget.core.client.info.Info;
+import com.sencha.gxt.widget.core.client.menu.HeaderMenuItem;
+import com.sencha.gxt.widget.core.client.menu.Item;
+import com.sencha.gxt.widget.core.client.menu.Menu;
+import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
+import edu.arizona.biosemantics.oto2.steps.client.common.Alerter;
+import edu.arizona.biosemantics.oto2.steps.client.event.LoadCollectionEvent;
+import edu.arizona.biosemantics.oto2.steps.client.event.RemoveOntologyClassSubmissionsEvent;
+import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Term;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmissionProperties;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmissionStatus;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmissionStatusProperties;
+import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.IToOntologyService;
+import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.IToOntologyServiceAsync;
 
 public class ClassSubmissionsGrid extends Grid<OntologyClassSubmission> {
 
+	private IToOntologyServiceAsync toOntologyService = GWT.create(IToOntologyService.class);
 	private static ColumnConfig<OntologyClassSubmission, String> ontologyCol;
 	private static OntologyClassSubmissionProperties ontologyClassSubmissionProperties = GWT.create(OntologyClassSubmissionProperties.class);
 	private static OntologyClassSubmissionStatusProperties ontologyClassSubmissionStatusProperties = GWT.create(OntologyClassSubmissionStatusProperties.class);
@@ -34,17 +57,20 @@ public class ClassSubmissionsGrid extends Grid<OntologyClassSubmission> {
 	
 	private ListStore<OntologyClassSubmission> classSubmissionStore =
 			new ListStore<OntologyClassSubmission>(ontologyClassSubmissionProperties.key());
+	private EventBus eventBus;
+	protected Collection collection;
 	
-	public ClassSubmissionsGrid(ListStore<OntologyClassSubmission> classSubmissionStore) {
+	public ClassSubmissionsGrid(EventBus eventBus, ListStore<OntologyClassSubmission> classSubmissionStore) {
 		super(classSubmissionStore, createColumnModel());
 		
+		this.eventBus = eventBus;
 		final GroupingView<OntologyClassSubmission> groupingView = new GroupingView<OntologyClassSubmission>();
 		groupingView.setShowGroupedColumn(false);
 		groupingView.setForceFit(true);
 		groupingView.groupBy(ontologyCol);
 		
 		setView(groupingView);
-		//grid.setContextMenu(createArticulationsContextMenu());
+		setContextMenu(createClassSubmissionsContextMenu());
 		
 		setSelectionModel(checkBoxSelectionModel);
 		//grid.getView().setAutoExpandColumn(taxonBCol);
@@ -53,6 +79,89 @@ public class ClassSubmissionsGrid extends Grid<OntologyClassSubmission> {
 		getView().setColumnLines(true);
 		
 		//classSubmissionStore.remove.
+		
+		bindEvents();
+	}
+
+	private void bindEvents() {
+		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
+			@Override
+			public void onLoad(LoadCollectionEvent event) {
+				ClassSubmissionsGrid.this.collection = event.getCollection();
+			}
+		});
+	}
+
+	private Menu createClassSubmissionsContextMenu() {
+		final Menu menu = new Menu();
+		//menu.add(new HeaderMenuItem("Annotation"));
+		
+		//if(this.removeEnabled) {
+			MenuItem deleteItem = new MenuItem("Remove");
+			menu.add(deleteItem);
+			deleteItem.addSelectionHandler(new SelectionHandler<Item>() {
+				@Override
+				public void onSelection(SelectionEvent<Item> event) {
+					toOntologyService.removeOntologyClassSubmissions(collection, 
+							ClassSubmissionsGrid.this.getSelectionModel().getSelectedItems(), new AsyncCallback<Void>() {
+						@Override
+						public void onFailure(Throwable caught) {
+							Alerter.failedToRemoveOntologyClassSubmission();
+						}
+						@Override
+						public void onSuccess(Void result) {
+							eventBus.fireEvent(new RemoveOntologyClassSubmissionsEvent(getSelectionModel().getSelectedItems()));
+						}
+					});
+				}
+			});
+		menu.add(deleteItem);	
+			
+		/*final MenuItem commentItem = new MenuItem("Comment");
+		commentItem.addSelectionHandler(new SelectionHandler<Item>() {
+			@Override
+			public void onSelection(SelectionEvent<Item> event) {
+				final List<Articulation> articulations = getSelectedArticulations();
+				final MultiLinePromptMessageBox box = new MultiLinePromptMessageBox("Comment", "");
+
+				if(articulations.size() == 1)
+					box.getTextArea().setValue(model.hasComment(articulations.get(0)) ? model.getComment(articulations.get(0)) : "");
+				else 
+					box.getTextArea().setValue("");
+				
+				box.addHideHandler(new HideHandler() {
+
+					@Override
+					public void onHide(HideEvent event) {
+						for(Articulation articulation : articulations) { 
+							eventBus.fireEvent(new SetCommentEvent(articulation, box.getValue()));
+							updateStore(articulation);
+						}
+						String comment = Format.ellipse(box.getValue(), 80);
+						String message = Format.substitute("'{0}' saved", new Params(comment));
+						Info.display("Comment", message);
+					}
+				});
+				box.show();
+			}
+		});
+		menu.add(commentItem);
+		
+		final MenuItem colorizeItem = new MenuItem("Colorize");
+		menu.addBeforeShowHandler(new BeforeShowHandler() {
+			@Override
+			public void onBeforeShow(BeforeShowEvent event) {
+				if(!model.getColors().isEmpty()) {
+					menu.insert(colorizeItem, menu.getWidgetIndex(commentItem));
+					//colors can change, refresh
+					colorizeItem.setSubMenu(createColorizeMenu());
+				} else {
+					menu.remove(colorizeItem);	
+				}
+			}
+		});*/
+		
+		return menu;
 	}
 
 	private static ColumnModel<OntologyClassSubmission> createColumnModel() {

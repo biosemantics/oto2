@@ -19,5 +19,9 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 			return daoManager.getCollectionDAO().get(id);
 		return null;
 	}
+	
+	public void update(Collection collection) {
+		daoManager.getCollectionDAO().update(collection);
+	}
 
 }

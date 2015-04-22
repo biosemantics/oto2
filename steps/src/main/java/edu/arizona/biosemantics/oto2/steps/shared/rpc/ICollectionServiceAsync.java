@@ -12,5 +12,7 @@ public interface ICollectionServiceAsync {
 	public void insert(Collection collection, AsyncCallback<Collection> callback);
 	
 	public void get(int id, String secret, AsyncCallback<Collection> callback);
+	
+	public void update(Collection collection, AsyncCallback<Void> callback);
 		
 }

@@ -17,9 +17,9 @@ public interface IToOntologyService extends RemoteService {
 	
 	public List<Ontology> getOntologies(Collection collection);
 	
-	public void submitClass(OntologyClassSubmission submission) throws OntologyFileException, ClassExistsException, InterruptedException, ExecutionException;
+	public void submitClass(OntologyClassSubmission submission) throws OntologyFileException, ClassExistsException, OntologyBioportalException;
 
-	public void submitSynonym(OntologySynonymSubmission submission) throws OntologyFileException, InterruptedException, ExecutionException;
+	public void submitSynonym(OntologySynonymSubmission submission) throws OntologyFileException, OntologyBioportalException;
 	
 	public List<OntologyClassSubmission> getClassSubmissions(Collection collection);
 
@@ -29,11 +29,15 @@ public interface IToOntologyService extends RemoteService {
 	
 	public void refreshOntologySubmissionStatuses(Collection collection);
 	
-	public void updatehOntologyClassSubmission(Collection collection, OntologyClassSubmission ontologyClassSubmission);
+	public void updateOntologyClassSubmissions(Collection collection, 
+			java.util.Collection<OntologyClassSubmission> ontologyClassSubmissions);
 
-	public void updatehOntologySynonymSubmission(Collection collection, OntologySynonymSubmission ontologySynonymSubmission);
+	public void updateOntologySynonymSubmissions(Collection collection, 
+			java.util.Collection<OntologySynonymSubmission> ontologySynonymSubmissions);
 	
-	public void removeOntologyClassSubmission(Collection collection, OntologyClassSubmission ontologyClassSubmission);
+	public void removeOntologyClassSubmissions(Collection collection, 
+			java.util.Collection<OntologyClassSubmission> ontologyClassSubmissions);
 	
-	public void removeOntologySynonymSubmission(Collection collection, OntologySynonymSubmission ontologySynonymSubmission);
+	public void removeOntologySynonymSubmissions(Collection collection, 
+			java.util.Collection<OntologySynonymSubmission> ontologySynonymSubmissions);
 }

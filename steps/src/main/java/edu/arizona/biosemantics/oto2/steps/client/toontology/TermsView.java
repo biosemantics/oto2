@@ -65,10 +65,12 @@ import edu.arizona.biosemantics.oto2.steps.client.OtoSteps;
 import edu.arizona.biosemantics.oto2.steps.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.steps.client.common.AllowSurpressSelectEventsListViewSelectionModel;
 import edu.arizona.biosemantics.oto2.steps.client.common.AllowSurpressSelectEventsTreeSelectionModel;
+import edu.arizona.biosemantics.oto2.steps.client.event.AddCommentEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.RefreshSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.TermSelectEvent;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.steps.shared.model.Comment;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Term;
 import edu.arizona.biosemantics.oto2.steps.shared.model.TermProperties;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.Bucket;
@@ -76,6 +78,8 @@ import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.BucketTreeNod
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.TermTreeNode;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.TextTreeNode;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.TextTreeNodeProperties;
+import edu.arizona.biosemantics.oto2.steps.shared.rpc.ICollectionServiceAsync;
+import edu.arizona.biosemantics.oto2.steps.shared.rpc.ICollectionService;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.IToOntologyService;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.IToOntologyServiceAsync;
 
@@ -90,26 +94,20 @@ public class TermsView implements IsWidget {
 
 		@Override
 		public void onBeforeShow(BeforeShowEvent event) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		/*@Override
-		public void onBeforeShow(BeforeShowEvent event) {
 			this.clear();
 			
 			List<Term> viewSelected = new LinkedList<Term>();
-			if(TermsView.this.getActiveWidget().equals(TermsView.this.termTree)) {
-				List<TextTreeNode> nodes = termTreeSelectionModel.getSelectedItems();	
-				for(TextTreeNode node : nodes)
-					if(node instanceof TermTreeNode) {
-						viewSelected.add(((TermTreeNode)node).getTerm());
-					} else if(node instanceof BucketTreeNode) {
-						viewSelected.addAll(((BucketTreeNode)node).getBucket().getTerms());
+			List<TextTreeNode> nodes = termTreeSelectionModel.getSelectedItems();	
+			for(TextTreeNode node : nodes)
+				if(node instanceof TermTreeNode) {
+					viewSelected.add(((TermTreeNode)node).getTerm());
+				} else if(node instanceof BucketTreeNode) {
+					for(TextTreeNode child : treeStore.getChildren(node)) {
+						if(node instanceof TermTreeNode) {
+							viewSelected.add(((TermTreeNode)node).getTerm());
+						}
 					}
-			} else if(TermsView.this.getActiveWidget().equals(TermsView.this.listView)) {
-				viewSelected = listViewSelectionModel.getSelectedItems();
-			}
+				}
 			
 			final List<Term> selected = viewSelected;
 			
@@ -119,71 +117,27 @@ public class TermsView implements IsWidget {
 			} else {				
 				final List<Term> terms = new LinkedList<Term>(selected);
 				
-				if(!collection.getLabels().isEmpty()) {
-					Menu categorizeMenu = new Menu();
-					VerticalLayoutContainer verticalLayoutContainer = new VerticalLayoutContainer();
-					final List<Label> categorizeLabels = new LinkedList<Label>();
-					final TextButton categorizeButton = new TextButton("Categorize");
-					categorizeButton.setEnabled(false);
-					
-					FlowLayoutContainer flowLayoutContainer = new FlowLayoutContainer();
-					VerticalLayoutContainer checkBoxPanel = new VerticalLayoutContainer();
-					flowLayoutContainer.add(checkBoxPanel);
-					flowLayoutContainer.setScrollMode(ScrollMode.AUTOY);
-					flowLayoutContainer.getElement().getStyle().setProperty("maxHeight", "150px");
-					for(final Label collectionLabel : collection.getLabels()) {
-						CheckBox checkBox = new CheckBox();
-						checkBox.setBoxLabel(collectionLabel.getName());
-						checkBox.setValue(false);
-						checkBox.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
-							@Override
-							public void onValueChange(ValueChangeEvent<Boolean> event) {
-								if(event.getValue())
-									categorizeLabels.add(collectionLabel);
-								else
-									categorizeLabels.remove(collectionLabel);
-								categorizeButton.setEnabled(!categorizeLabels.isEmpty());
-							}
-						});
-						checkBoxPanel.add(checkBox);
+				/*this.add(new HeaderMenuItem("Term"));
+				MenuItem markUseless = new MenuItem("Mark");
+				Menu subMenu = new Menu();
+				markUseless.setSubMenu(subMenu);
+				MenuItem useless = new MenuItem("Not Usefull");
+				MenuItem useful = new MenuItem("Useful");
+				subMenu.add(useless);
+				subMenu.add(useful);
+				useless.addSelectionHandler(new SelectionHandler<Item>() {
+					@Override
+					public void onSelection(SelectionEvent<Item> event) {
+						eventBus.fireEvent(new TermMarkUselessEvent(terms, true));
 					}
-					verticalLayoutContainer.add(flowLayoutContainer);
-					categorizeButton.addSelectHandler(new SelectHandler() {
-						@Override
-						public void onSelect(SelectEvent event) {
-							eventBus.fireEvent(new TermCategorizeEvent(terms, categorizeLabels));
-							TermMenu.this.hide();
-						}
-					});
-					verticalLayoutContainer.add(categorizeButton);
-					categorizeMenu.add(verticalLayoutContainer);
-					MenuItem categorize = new MenuItem("Categorize to");
-					categorize.setSubMenu(categorizeMenu);
-					this.add(new HeaderMenuItem("Categorize"));
-					this.add(categorize);
-					
-					this.add(new HeaderMenuItem("Term"));
-					MenuItem markUseless = new MenuItem("Mark");
-					Menu subMenu = new Menu();
-					markUseless.setSubMenu(subMenu);
-					MenuItem useless = new MenuItem("Not Usefull");
-					MenuItem useful = new MenuItem("Useful");
-					subMenu.add(useless);
-					subMenu.add(useful);
-					useless.addSelectionHandler(new SelectionHandler<Item>() {
-						@Override
-						public void onSelection(SelectionEvent<Item> event) {
-							eventBus.fireEvent(new TermMarkUselessEvent(terms, true));
-						}
-					});
-					useful.addSelectionHandler(new SelectionHandler<Item>() {
-						@Override
-						public void onSelection(SelectionEvent<Item> event) {
-							eventBus.fireEvent(new TermMarkUselessEvent(terms, false));
-						}
-					});
-					this.add(markUseless);
-				}
+				});
+				useful.addSelectionHandler(new SelectionHandler<Item>() {
+					@Override
+					public void onSelection(SelectionEvent<Item> event) {
+						eventBus.fireEvent(new TermMarkUselessEvent(terms, false));
+					}
+				});
+				this.add(markUseless);*/
 				
 				if(selected.size() == 1) {
 					final Term term = selected.get(0);
@@ -224,7 +178,7 @@ public class TermsView implements IsWidget {
 						}
 					});
 					this.add(split);*/
-		/*		}
+				}
 								
 				MenuItem comment = new MenuItem("Comment");
 				final Term term = selected.get(0);
@@ -236,22 +190,24 @@ public class TermsView implements IsWidget {
 						box.addHideHandler(new HideHandler() {
 							@Override
 							public void onHide(HideEvent event) {
-								Comment newComment = new Comment(Oto.user, box.getValue());
+								final Comment newComment = new Comment(OtoSteps.user, box.getValue());
 								for(final Term term : selected) {
-									collectionService.addComment(newComment, term.getId(), new AsyncCallback<Comment>() {
-										@Override
-										public void onSuccess(Comment result) {
-											eventBus.fireEvent(new CommentEvent(term, result));
-											String comment = Format.ellipse(box.getValue(), 80);
-											String message = Format.substitute("'{0}' saved", new Params(comment));
-											Info.display("Comment", message);
-										}
-										@Override
-										public void onFailure(Throwable caught) {
-											Alerter.addCommentFailed(caught);
-										}
-									});
+									collection.addComment(term, newComment);
 								}
+								collectionService.update(collection, new AsyncCallback<Void>() {
+									@Override
+									public void onFailure(Throwable caught) {
+										Alerter.addCommentFailed(caught);
+									}
+									@Override
+									public void onSuccess(Void result) {
+										eventBus.fireEvent(new AddCommentEvent(
+												(java.util.Collection)selected, newComment));
+										String comment = Format.ellipse(box.getValue(), 80);
+										String message = Format.substitute("'{0}' saved", new Params(comment));
+										Info.display("Comment", message);
+									}
+								});
 							}
 						});
 						box.show();
@@ -262,9 +218,15 @@ public class TermsView implements IsWidget {
 			
 			if(this.getWidgetCount() == 0)
 				event.setCancelled(true);
-		}*/
+		}
+
+		protected String getUsersComment(Term term) {
+			//collection.getC
+			return "";
+		}
 	}
-	
+
+	private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
 	private IToOntologyServiceAsync toOntologyService = GWT.create(IToOntologyService.class);
 	private static final TermProperties termProperties = GWT.create(TermProperties.class);
 	private static final TextTreeNodeProperties textTreeNodeProperties = GWT.create(TextTreeNodeProperties.class);

@@ -1,10 +1,20 @@
 package edu.arizona.biosemantics.oto2.steps.client.common;
 
+import com.google.gwt.event.shared.EventBus;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.box.AutoProgressMessageBox;
 import com.sencha.gxt.widget.core.client.box.ConfirmMessageBox;
 import com.sencha.gxt.widget.core.client.box.MessageBox;
+import com.sencha.gxt.widget.core.client.box.PromptMessageBox;
+import com.sencha.gxt.widget.core.client.event.BeforeSelectEvent;
+import com.sencha.gxt.widget.core.client.event.SelectEvent;
+import com.sencha.gxt.widget.core.client.event.BeforeSelectEvent.BeforeSelectHandler;
+import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
+
+import edu.arizona.biosemantics.oto2.steps.client.event.TermRenameEvent;
+import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.steps.shared.model.Term;
 
 public class Alerter {
 
@@ -25,6 +35,15 @@ public class Alerter {
 	
 	public static void stopLoading(MessageBox box) {
 		box.hide();
+	}
+	
+	public static MessageBox alertTermWithNameExists(String newName) {
+		return showInfo("Term with name exists", "Failed to rename term. " +
+				"Another term with the same spelling <b>" + newName + "</b> exists already.");
+	}
+	
+	public static MessageBox addCommentFailed(Throwable caught) {
+		return showAlert("Add Comment", "Adding of comment failed.");
 	}
 	
 	public static MessageBox failedToRefreshSubmissions() {
@@ -105,6 +124,35 @@ public class Alerter {
         box.setIcon(MessageBox.ICONS.question());
         box.show();
         return box;
-	}	
+	}
 
+	public static void failedToRemoveOntologyClassSubmission() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public static void dialogRename(final EventBus eventBus, final Term term, final Collection collection) {
+		final PromptMessageBox box = new PromptMessageBox(
+				"Correct Spelling", "Please input new spelling");
+		box.getButton(PredefinedButton.OK).addBeforeSelectHandler(new BeforeSelectHandler() {
+			@Override
+			public void onBeforeSelect(BeforeSelectEvent event) {
+				if(box.getTextField().getValue().trim().isEmpty()) {
+					event.setCancelled(true);
+					AlertMessageBox alert = new AlertMessageBox("Empty", "Empty not allowed");
+					alert.show();
+				}
+			}
+		});
+		box.getTextField().setValue(term.getTerm());
+		box.getTextField().setAllowBlank(false);
+		box.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
+			@Override
+			public void onSelect(SelectEvent event) {
+				String newName = box.getValue();
+				eventBus.fireEvent(new TermRenameEvent(term, term.getTerm(), newName, collection));
+			}
+		});
+		box.show();
+	}
 }

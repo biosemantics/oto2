@@ -18,4 +18,8 @@ public class BucketTreeNode extends TextTreeNode {
 		return "bucket-" + bucket.getId();
 	}
 	
+	public Bucket getBucket() {
+		return bucket;
+	}
+	
 }

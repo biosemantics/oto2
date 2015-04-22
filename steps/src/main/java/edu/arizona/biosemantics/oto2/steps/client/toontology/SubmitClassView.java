@@ -81,6 +81,7 @@ public class SubmitClassView implements IsWidget {
 	private ComboBox<Term> termComboBox;
 	private VerticalLayoutContainer vlc;
 	private TextButton createOntologyButton = new TextButton("Create");
+	private OntologyClassSubmission ontologyClassSubmission;
 	
 	public SubmitClassView(EventBus eventBus) {
 		this.eventBus = eventBus;
@@ -196,6 +197,7 @@ public class SubmitClassView implements IsWidget {
 		submitButton.addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
+				
 				final OntologyClassSubmission submission = getClassSubmission();
 				toOntologyService.submitClass(submission, new AsyncCallback<Void>() {
 					@Override
@@ -214,8 +216,8 @@ public class SubmitClassView implements IsWidget {
 		});
 	}
 
-	protected void setOntologyClassSubmission(
-			OntologyClassSubmission ontologyClassSubmission) {
+	protected void setOntologyClassSubmission(OntologyClassSubmission ontologyClassSubmission) {
+		this.ontologyClassSubmission = ontologyClassSubmission;
 		this.termComboBox.setValue(ontologyClassSubmission.getTerm());
 		this.submissionTermField.setValue(ontologyClassSubmission.getSubmissionTerm()); 
 		this.ontologyComboBox.setValue(ontologyClassSubmission.getOntology());

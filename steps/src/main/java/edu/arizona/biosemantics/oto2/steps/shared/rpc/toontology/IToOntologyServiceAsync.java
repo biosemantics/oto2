@@ -26,15 +26,19 @@ public interface IToOntologyServiceAsync {
 	
 	public void refreshOntologySubmissionStatuses(Collection collection, AsyncCallback<Void> callback);
 	
-	public void updatehOntologyClassSubmission(Collection collection, OntologyClassSubmission ontologyClassSubmission, 
+	public void updateOntologyClassSubmissions(Collection collection, 
+			java.util.Collection<OntologyClassSubmission> ontologyClassSubmissions, 
 			AsyncCallback<Void> callback);
 
-	public void updatehOntologySynonymSubmission(Collection collection, OntologySynonymSubmission ontologySynonymSubmission, 
+	public void updateOntologySynonymSubmissions(Collection collection, 
+			java.util.Collection<OntologySynonymSubmission> ontologySynonymSubmissions, 
 			AsyncCallback<Void> callback);
 	
-	public void removeOntologyClassSubmission(Collection collection, OntologyClassSubmission ontologyClassSubmission, 
+	public void removeOntologyClassSubmissions(Collection collection, 
+			java.util.Collection<OntologyClassSubmission> ontologyClassSubmissions, 
 			AsyncCallback<Void> callback);
 	
-	public void removeOntologySynonymSubmission(Collection collection, OntologySynonymSubmission ontologySynonymSubmission, 
+	public void removeOntologySynonymSubmissions(Collection collection, 
+			java.util.Collection<OntologySynonymSubmission> ontologySynonymSubmissions, 
 			AsyncCallback<Void> callbackw);
 }

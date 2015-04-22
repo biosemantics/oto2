@@ -1,10 +1,20 @@
 package edu.arizona.biosemantics.oto2.steps.server.persist.db;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -18,8 +28,11 @@ import org.codehaus.jackson.map.ObjectWriter;
 
 import edu.arizona.biosemantics.common.biology.TaxonGroup;
 import edu.arizona.biosemantics.common.log.LogLevel;
+import edu.arizona.biosemantics.oto2.steps.server.Configuration;
 import edu.arizona.biosemantics.oto2.steps.server.persist.db.Query.QueryException;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.steps.shared.model.Color;
+import edu.arizona.biosemantics.oto2.steps.shared.model.Comment;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Term;
 
 public class CollectionDAO {
@@ -78,7 +91,16 @@ public class CollectionDAO {
 			taxonGroup = TaxonGroup.valueOf(taxonGroupString);
 		} catch(IllegalArgumentException e) { }
 		
-		return new Collection(id, name, taxonGroup, secret, terms);
+		Collection deserializedCollection = deserialize(id);
+		Map<Object, List<Comment>> comments = new HashMap<Object, List<Comment>>();
+		Map<Object, Color> colorizations = new HashMap<Object, Color>();
+		List<Color> colors = new LinkedList<Color>();
+		if(deserializedCollection != null) {
+			comments = deserializedCollection.getComments();
+			colorizations = deserializedCollection.getColorizations();
+			colors = deserializedCollection.getColors();
+		}
+		return new Collection(id, name, taxonGroup, secret, terms, comments, colorizations, colors);
 	}
 
 	public Collection insert(Collection collection)  {
@@ -95,6 +117,8 @@ public class CollectionDAO {
 				
 				for(Term term : collection.getTerms()) 
 					termDAO.insert(term, collection.getId());
+				
+				serialize(collection);
 			} catch(Exception e) {
 				log(LogLevel.ERROR, "Query Exception", e);
 			}
@@ -111,11 +135,34 @@ public class CollectionDAO {
 			query.execute();
 			for(Term term : collection.getTerms()) 
 				termDAO.update(term, collection.getId());
+			
+			serialize(collection);
 		} catch(QueryException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
 		}
 	}
 	
+	private Collection deserialize(int collectionId) {
+		String file = Configuration.collectionOntologyDirectory + File.separator + collectionId
+				+ File.separator + "collection.ser";
+		try(ObjectInput input = new ObjectInputStream(new BufferedInputStream(new FileInputStream(file)))) {
+			return (Collection) input.readObject();
+		} catch (ClassNotFoundException | IOException e) {
+			log(LogLevel.ERROR, "Deserialization of user failed", e);
+		}
+		return null;
+	}
+	
+	private void serialize(Collection collection) {
+		String file = Configuration.collectionOntologyDirectory + File.separator + collection.getId()
+				+ File.separator + "collection.ser";
+		try (ObjectOutput output = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(file)))) {
+			output.writeObject(collection);
+		} catch (IOException e) {
+			log(LogLevel.ERROR, "Serialization of user failed", e);
+		}
+	}
+
 	public void remove(Collection collection)  {
 		try(Query query = new Query("DELETE FROM otosteps_collection WHERE id = ?")) {
 			query.setParameter(1, collection.getId());

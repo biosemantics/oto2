@@ -5,8 +5,12 @@ import java.util.List;
 
 import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.logical.shared.SelectionEvent;
+import com.google.gwt.event.logical.shared.SelectionHandler;
+import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.sencha.gxt.cell.core.client.form.CheckBoxCell;
 import com.sencha.gxt.core.client.IdentityValueProvider;
 import com.sencha.gxt.core.client.ValueProvider;
@@ -17,7 +21,15 @@ import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.Grid;
 import com.sencha.gxt.widget.core.client.grid.GroupingView;
+import com.sencha.gxt.widget.core.client.menu.Item;
+import com.sencha.gxt.widget.core.client.menu.Menu;
+import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
+import edu.arizona.biosemantics.oto2.steps.client.common.Alerter;
+import edu.arizona.biosemantics.oto2.steps.client.event.LoadCollectionEvent;
+import edu.arizona.biosemantics.oto2.steps.client.event.RemoveOntologyClassSubmissionsEvent;
+import edu.arizona.biosemantics.oto2.steps.client.event.RemoveOntologySynonymsSubmissionsEvent;
+import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Term;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmission;
@@ -27,9 +39,12 @@ import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynon
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynonymSubmissionStatus;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynonymSubmissionStatusProperties;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynonymSubmission;
+import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.IToOntologyService;
+import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.IToOntologyServiceAsync;
 
 public class SynonymSubmissionsGrid extends Grid<OntologySynonymSubmission> {
 
+	private IToOntologyServiceAsync toOntologyService = GWT.create(IToOntologyService.class);
 	private static ColumnConfig<OntologySynonymSubmission, String> ontologyCol;
 	private static OntologySynonymSubmissionProperties ontologySynonymSubmissionProperties = GWT.create(OntologySynonymSubmissionProperties.class);
 	private static OntologySynonymSubmissionStatusProperties ontologySynonymSubmissionStatusProperties = GWT.create(OntologySynonymSubmissionStatusProperties.class);
@@ -37,9 +52,12 @@ public class SynonymSubmissionsGrid extends Grid<OntologySynonymSubmission> {
 	
 	private ListStore<OntologySynonymSubmission> synonymSubmissionStore =
 			new ListStore<OntologySynonymSubmission>(ontologySynonymSubmissionProperties.key());
+	private EventBus eventBus;
+	protected Collection collection;
 	
-	public SynonymSubmissionsGrid(ListStore<OntologySynonymSubmission> synonymSubmissionStore) {
+	public SynonymSubmissionsGrid(EventBus eventBus, ListStore<OntologySynonymSubmission> synonymSubmissionStore) {
 		super(synonymSubmissionStore, createColumnModel());
+		this.eventBus = eventBus;
 		
 		final GroupingView<OntologySynonymSubmission> groupingView = new GroupingView<OntologySynonymSubmission>();
 		groupingView.setShowGroupedColumn(false);
@@ -47,13 +65,96 @@ public class SynonymSubmissionsGrid extends Grid<OntologySynonymSubmission> {
 		groupingView.groupBy(ontologyCol);
 		
 		setView(groupingView);
-		//grid.setContextMenu(createArticulationsContextMenu());
+		setContextMenu(createSynonymSubmissionsContextMenu());
 	
 		setSelectionModel(checkBoxSelectionModel);
 		//grid.getView().setAutoExpandColumn(taxonBCol);
 		//grid.setBorders(false);
 		getView().setStripeRows(true);
 		getView().setColumnLines(true);
+		
+		bindEvents();
+	}
+
+	private Menu createSynonymSubmissionsContextMenu() {
+		final Menu menu = new Menu();
+		//menu.add(new HeaderMenuItem("Annotation"));
+		
+		//if(this.removeEnabled) {
+			MenuItem deleteItem = new MenuItem("Remove");
+			menu.add(deleteItem);
+			deleteItem.addSelectionHandler(new SelectionHandler<Item>() {
+				@Override
+				public void onSelection(SelectionEvent<Item> event) {
+					toOntologyService.removeOntologySynonymSubmissions(collection, 
+							SynonymSubmissionsGrid.this.getSelectionModel().getSelectedItems(), new AsyncCallback<Void>() {
+						@Override
+						public void onFailure(Throwable caught) {
+							Alerter.failedToRemoveOntologyClassSubmission();
+						}
+						@Override
+						public void onSuccess(Void result) {	
+							eventBus.fireEvent(new RemoveOntologySynonymsSubmissionsEvent(getSelectionModel().getSelectedItems()));
+						}
+					});
+				}
+			});
+		menu.add(deleteItem);	
+			
+		/*final MenuItem commentItem = new MenuItem("Comment");
+		commentItem.addSelectionHandler(new SelectionHandler<Item>() {
+			@Override
+			public void onSelection(SelectionEvent<Item> event) {
+				final List<Articulation> articulations = getSelectedArticulations();
+				final MultiLinePromptMessageBox box = new MultiLinePromptMessageBox("Comment", "");
+
+				if(articulations.size() == 1)
+					box.getTextArea().setValue(model.hasComment(articulations.get(0)) ? model.getComment(articulations.get(0)) : "");
+				else 
+					box.getTextArea().setValue("");
+				
+				box.addHideHandler(new HideHandler() {
+
+					@Override
+					public void onHide(HideEvent event) {
+						for(Articulation articulation : articulations) { 
+							eventBus.fireEvent(new SetCommentEvent(articulation, box.getValue()));
+							updateStore(articulation);
+						}
+						String comment = Format.ellipse(box.getValue(), 80);
+						String message = Format.substitute("'{0}' saved", new Params(comment));
+						Info.display("Comment", message);
+					}
+				});
+				box.show();
+			}
+		});
+		menu.add(commentItem);
+		
+		final MenuItem colorizeItem = new MenuItem("Colorize");
+		menu.addBeforeShowHandler(new BeforeShowHandler() {
+			@Override
+			public void onBeforeShow(BeforeShowEvent event) {
+				if(!model.getColors().isEmpty()) {
+					menu.insert(colorizeItem, menu.getWidgetIndex(commentItem));
+					//colors can change, refresh
+					colorizeItem.setSubMenu(createColorizeMenu());
+				} else {
+					menu.remove(colorizeItem);	
+				}
+			}
+		});*/
+		
+		return menu;
+	}
+
+	private void bindEvents() {
+		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
+			@Override
+			public void onLoad(LoadCollectionEvent event) {
+				SynonymSubmissionsGrid.this.collection = event.getCollection();
+			}
+		});
 	}
 
 	private static ColumnModel<OntologySynonymSubmission> createColumnModel() {
