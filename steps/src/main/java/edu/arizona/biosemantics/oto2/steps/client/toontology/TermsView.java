@@ -68,8 +68,10 @@ import edu.arizona.biosemantics.oto2.steps.client.common.AllowSurpressSelectEven
 import edu.arizona.biosemantics.oto2.steps.client.event.AddCommentEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.RefreshSubmissionsEvent;
+import edu.arizona.biosemantics.oto2.steps.client.event.SetColorEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.TermSelectEvent;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.steps.shared.model.Color;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Comment;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Term;
 import edu.arizona.biosemantics.oto2.steps.shared.model.TermProperties;
@@ -191,9 +193,7 @@ public class TermsView implements IsWidget {
 							@Override
 							public void onHide(HideEvent event) {
 								final Comment newComment = new Comment(OtoSteps.user, box.getValue());
-								for(final Term term : selected) {
-									collection.addComment(term, newComment);
-								}
+								collection.addComment(selected, newComment);
 								collectionService.update(collection, new AsyncCallback<Void>() {
 									@Override
 									public void onFailure(Throwable caught) {
@@ -214,10 +214,60 @@ public class TermsView implements IsWidget {
 					}
 				});
 				this.add(comment);
+				
+				final MenuItem colorizeItem = new MenuItem("Colorize");
+				if(!collection.getColors().isEmpty()) {
+					this.add(colorizeItem);
+					colorizeItem.setSubMenu(createColorizeMenu(selected));
+				} 
 			}
 			
 			if(this.getWidgetCount() == 0)
 				event.setCancelled(true);
+		}
+
+		protected Menu createColorizeMenu(final List<Term> selected) {
+			Menu colorMenu = new Menu();
+			MenuItem offItem = new MenuItem("None");
+			offItem.addSelectionHandler(new SelectionHandler<Item>() {
+				@Override
+				public void onSelection(SelectionEvent<Item> event) {
+					collection.setColorizations((java.util.Collection)selected, null);
+					collectionService.update(collection, new AsyncCallback<Void>() {
+						@Override
+						public void onFailure(Throwable caught) {
+							Alerter.failedToSetColor();
+						}
+						@Override
+						public void onSuccess(Void result) {
+							eventBus.fireEvent(new SetColorEvent(selected, null, true));
+						}
+					});
+				}
+			});
+			colorMenu.add(offItem);
+			for(final Color color : collection.getColors()) {
+				MenuItem colorItem = new MenuItem(color.getUse());
+				colorItem.getElement().getStyle().setProperty("backgroundColor", "#" + color.getHex());
+				colorItem.addSelectionHandler(new SelectionHandler<Item>() {
+					@Override
+					public void onSelection(SelectionEvent<Item> event) {
+						collection.setColorizations((java.util.Collection)selected, color);
+						collectionService.update(collection, new AsyncCallback<Void>() {
+							@Override
+							public void onFailure(Throwable caught) {
+								Alerter.failedToSetColor();
+							}
+							@Override
+							public void onSuccess(Void result) {
+								eventBus.fireEvent(new SetColorEvent(selected, color, true));
+							}
+						});
+					}
+				});
+				colorMenu.add(colorItem);
+			}
+			return colorMenu;
 		}
 
 		protected String getUsersComment(Term term) {
@@ -262,22 +312,22 @@ public class TermsView implements IsWidget {
 		termTree.setCell(new AbstractCell<TextTreeNode>() {
 			@Override
 			public void render(com.google.gwt.cell.client.Cell.Context context,	TextTreeNode textTreeNode, SafeHtmlBuilder sb) {
-					String colorHex = "";
-					/*if(textTreeNode instanceof TermTreeNode) {
+					if(textTreeNode instanceof TermTreeNode) {
 						TermTreeNode termTreeNode = (TermTreeNode)textTreeNode;
 						Term term = termTreeNode.getTerm();
-						if(term.getUseless()) {
-							sb.append(SafeHtmlUtils.fromTrustedString("<div style='padding-left:5px; padding-right:5px; background-color:gray; " +
-									"color:white'>" + 
+						if(collection.hasColorization(term)) {
+							String colorHex = collection.getColorization(term).getHex();
+							sb.append(SafeHtmlUtils.fromTrustedString("<div style='padding-left:5px; padding-right:5px; background-color:#" + colorHex + 
+									"'>" + 
 									textTreeNode.getText() + "</div>"));
 						} else {
 							sb.append(SafeHtmlUtils.fromTrustedString("<div style='padding-left:5px; padding-right:5px'>" + textTreeNode.getText() +
 									"</div>"));
 						}
-					} else {*/
-						sb.append(SafeHtmlUtils.fromTrustedString("<div style=''>" + textTreeNode.getText() +
+					} else {
+						sb.append(SafeHtmlUtils.fromTrustedString("<div style='padding-left:5px; padding-right:5px'>" + textTreeNode.getText() +
 								"</div>"));
-					//}
+					}
 			}
 		});
 		
@@ -379,6 +429,20 @@ public class TermsView implements IsWidget {
 					List<TextTreeNode> selectionTree = new LinkedList<TextTreeNode>();
 					selectionTree.add(termTreeNode);
 					termTreeSelectionModel.setSelection(selectionTree, true);
+				}
+			}
+		});
+		
+		eventBus.addHandler(SetColorEvent.TYPE, new SetColorEvent.SetColorEventHandler() {
+			@Override
+			public void onSet(SetColorEvent event) {
+				for(Object object : event.getObjects()) {
+					if(object instanceof Term) {
+						Term term = (Term)object;
+						List<TextTreeNode> treeStoreContent = treeStore.getAll();
+						if(termTermTreeNodeMap.get(term) != null && treeStoreContent.contains(termTermTreeNodeMap.get(term))) 
+							treeStore.update(termTermTreeNodeMap.get(term));
+					}
 				}
 			}
 		});

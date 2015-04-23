@@ -235,7 +235,7 @@ public class CommentsDialog extends CommonDialog {
 				ColumnConfig<CommentEntry, String> config = grid.getColumnModel().getColumn(cell.getCol());
 				if(config.equals(textCol)) 
 					eventBus.fireEvent(new SetCommentEvent(commentEntry.getObject(), 
-							new Comment(OtoSteps.user, commentEntry.getText())));
+							new Comment(OtoSteps.user, commentEntry.getText()), false));
 			}
 		});
 
@@ -260,7 +260,7 @@ public class CommentsDialog extends CommonDialog {
 			public void onSelection(SelectionEvent<Item> event) {
 				for (CommentEntry commentEntry : grid.getSelectionModel().getSelectedItems()) {
 					commentStore.remove(commentEntry);
-					eventBus.fireEvent(new SetCommentEvent(commentEntry.getObject(), new Comment("", "")));
+					eventBus.fireEvent(new SetCommentEvent(commentEntry.getObject(), new Comment("", ""), false));
 				}
 			}
 		});
@@ -275,27 +275,33 @@ public class CommentsDialog extends CommonDialog {
 			if(object instanceof Term) {
 				Term term = (Term)object;
 				List<Comment> comments = commentsMap.get(term);
-				for(Comment comment : comments)
-					commentEntries.add(new CommentEntry("taxon-" + term.getId(), term, term.getTerm(), 
+				for(int c=0; c<comments.size(); c++) {
+					Comment comment = comments.get(c);
+					commentEntries.add(new CommentEntry("term-" + term.getId() + "-" + c, term, term.getTerm(), 
 							comment.getUser(), comment.getComment()));
+				}
 			}
 			if(object instanceof OntologyClassSubmission) {
 				OntologyClassSubmission ontologyClassSubmission = (OntologyClassSubmission)object;
 				List<Comment> comments = commentsMap.get(ontologyClassSubmission);
-				for(Comment comment : comments)
-					commentEntries.add(new CommentEntry("ontologyClassSubmission-" + ontologyClassSubmission.getId(), 
+				for(int c=0; c<comments.size(); c++) {
+					Comment comment = comments.get(c);
+					commentEntries.add(new CommentEntry("ontologyClassSubmission-" + ontologyClassSubmission.getId() + "-" + c, 
 							ontologyClassSubmission, 
 							ontologyClassSubmission.getSubmissionTerm() + " -> " + ontologyClassSubmission.getOntology().getAcronym(), 
 							comment.getUser(), comment.getComment()));
+				}
 			}
 			if(object instanceof OntologySynonymSubmission) {
 				OntologySynonymSubmission ontologySynonymSubmission = (OntologySynonymSubmission)object;
 				List<Comment> comments = commentsMap.get(ontologySynonymSubmission);
-				for(Comment comment : comments)
-					commentEntries.add(new CommentEntry("ontologySynonymSubmission-" + ontologySynonymSubmission.getId(), 
+				for(int c=0; c<comments.size(); c++) {
+					Comment comment = comments.get(c);
+					commentEntries.add(new CommentEntry("ontologySynonymSubmission-" + ontologySynonymSubmission.getId() + "-" + c, 
 							ontologySynonymSubmission, 
 							ontologySynonymSubmission.getSubmissionTerm() + " -> " + ontologySynonymSubmission.getOntology().getAcronym(), 
 							comment.getUser(), comment.getComment()));
+				}
 			}
 		}
 		

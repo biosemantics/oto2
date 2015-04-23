@@ -1,5 +1,8 @@
 package edu.arizona.biosemantics.oto2.steps.client.event;
 
+import java.util.Collection;
+import java.util.LinkedList;
+
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
 
@@ -13,11 +16,16 @@ public class SetColorEvent extends GwtEvent<SetColorEventHandler> {
 	}
 	
 	public static Type<SetColorEventHandler> TYPE = new Type<SetColorEventHandler>();
-	private Object object;
+	private Collection<Object> objects;
 	private Color color;
 	
-	public SetColorEvent(Object object, Color color) {
-		this.object = object;
+	public SetColorEvent(Object object, Color color, boolean collection) {
+		if(collection) {
+			this.objects = (java.util.Collection)object;
+		} else {
+			this.objects = new LinkedList<Object>();
+			this.objects.add(objects);
+		}
 		this.color = color;
 	}
 	
@@ -35,8 +43,8 @@ public class SetColorEvent extends GwtEvent<SetColorEventHandler> {
 		return TYPE;
 	}
 
-	public Object getObject() {
-		return object;
+	public Collection<Object> getObjects() {
+		return objects;
 	}
 
 	public Color getColor() {

@@ -42,6 +42,10 @@ public class Alerter {
 				"Another term with the same spelling <b>" + newName + "</b> exists already.");
 	}
 	
+	public static MessageBox failedToSetColors(Throwable caught) {
+		return showAlert("Set Colors failed", "Failed to set colors.");
+	}
+	
 	public static MessageBox addCommentFailed(Throwable caught) {
 		return showAlert("Add Comment", "Adding of comment failed.");
 	}
@@ -155,4 +159,11 @@ public class Alerter {
 		});
 		box.show();
 	}
+
+	public static void failedToSetColor() {
+		// TODO Auto-generated method stub
+		
+	}
+
+
 }

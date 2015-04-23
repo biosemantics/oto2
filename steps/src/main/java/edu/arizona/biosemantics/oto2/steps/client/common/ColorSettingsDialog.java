@@ -8,6 +8,7 @@ import java.util.Set;
 import com.google.gwt.cell.client.CheckboxCell;
 import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.cell.client.TextInputCell;
+import com.google.gwt.core.shared.GWT;
 import com.google.gwt.editor.client.Editor;
 import com.google.gwt.editor.client.EditorError;
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -20,6 +21,7 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.regexp.shared.RegExp;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.Column;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ScrollPanel;
@@ -41,9 +43,13 @@ import com.sencha.gxt.widget.core.client.form.error.DefaultEditorError;
 import edu.arizona.biosemantics.oto2.steps.client.event.SetColorsEvent;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Color;
+import edu.arizona.biosemantics.oto2.steps.shared.rpc.ICollectionService;
+import edu.arizona.biosemantics.oto2.steps.shared.rpc.ICollectionServiceAsync;
 
 
 public class ColorSettingsDialog extends CommonDialog {
+	
+	private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
 
 	public ColorSettingsDialog(final EventBus eventBus, final Collection collection) {
 		final CellTable<Color> colorsTable = new CellTable<Color>();
@@ -58,7 +64,17 @@ public class ColorSettingsDialog extends CommonDialog {
 		this.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
-				eventBus.fireEvent(new SetColorsEvent(colorsCopy));
+				collection.setColors(colorsCopy);
+				collectionService.update(collection, new AsyncCallback<Void>() {
+					@Override
+					public void onFailure(Throwable caught) {
+						Alerter.failedToSetColors(caught);
+					}
+					@Override
+					public void onSuccess(Void result) {
+						eventBus.fireEvent(new SetColorsEvent(colorsCopy));
+					}
+				});
 			}
 		});
 

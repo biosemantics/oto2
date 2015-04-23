@@ -209,7 +209,7 @@ public class ColorsDialog extends CommonDialog {
 					CellSelectionEvent cellEvent = (CellSelectionEvent)event;
 					final ColorEntry colorEntry = grid.getStore().get(cellEvent.getContext().getIndex());
 					colorEntry.setColor(selectedColor);
-					eventBus.fireEvent(new SetColorEvent(colorEntry.getObject(), selectedColor));
+					eventBus.fireEvent(new SetColorEvent(colorEntry.getObject(), selectedColor, false));
 					colorEntriesStore.update(colorEntry);
 				}
 			}
@@ -356,7 +356,7 @@ public class ColorsDialog extends CommonDialog {
 				for(ColorEntry colorEntry : grid.getSelectionModel().getSelectedItems()) {
 					colorEntriesStore.remove(colorEntry);
 					Object object = colorEntry.getObject();
-					eventBus.fireEvent(new SetColorEvent(object, null));
+					eventBus.fireEvent(new SetColorEvent(object, null, false));
 				}
 			}
 		});

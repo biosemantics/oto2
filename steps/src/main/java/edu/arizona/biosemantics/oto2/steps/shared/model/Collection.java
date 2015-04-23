@@ -121,6 +121,11 @@ public class Collection implements Serializable, Comparable<Collection> {
 		return colorizations.get(object);
 	}
 
+	public void setColorizations(java.util.Collection<Object> objects, Color color) {
+		for(Object object : objects)
+			setColorization(object, color);
+	}
+	
 	public void setColorization(Object object, Color color) {
 		colorizations.put(object, color);
 	}
@@ -131,6 +136,11 @@ public class Collection implements Serializable, Comparable<Collection> {
 	
 	public List<Comment> getComment(Object object) {
 		return comments.get(object);
+	}
+	
+	public void addComments(java.util.Collection<Object> objects, Comment comment) {
+		for(Object object : objects) 
+			this.addComment(object, comment);
 	}
 	
 	public void addComment(Object object, Comment comment) {
@@ -147,9 +157,21 @@ public class Collection implements Serializable, Comparable<Collection> {
 	public List<Color> getColors() {
 		return colors;
 	}
+	
+	public void setColors(List<Color> colors) {
+		this.colors = colors;
+	}
 
 	public Map<Object, List<Comment>> getComments() {
 		return comments;
+	}
+
+	public boolean hasColorization(Object object) {
+		return this.colorizations.get(object) != null;
+	}
+	
+	public boolean hasComments(Object object) {
+		return this.comments.get(object) != null && !comments.get(object).isEmpty();
 	}
 
 		
