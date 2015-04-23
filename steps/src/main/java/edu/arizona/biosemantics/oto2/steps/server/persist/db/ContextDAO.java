@@ -1,6 +1,5 @@
 package edu.arizona.biosemantics.oto2.steps.server.persist.db;
 
-import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashSet;
@@ -10,13 +9,13 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.steps.server.persist.db.Query.QueryException;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.steps.shared.model.Context;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Term;
 import edu.arizona.biosemantics.oto2.steps.shared.model.TypedContext;
 import edu.arizona.biosemantics.oto2.steps.shared.model.TypedContext.Type;
-import edu.arizona.biosemantics.oto2.steps.shared.model.Context;
-import edu.arizona.biosemantics.common.log.LogLevel;
 
 public class ContextDAO {
 

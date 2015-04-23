@@ -20,6 +20,7 @@ import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.StatusEnum;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.ClassExistsException;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.IToOntologyService;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.OntologyBioportalException;
+import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.OntologyExistsException;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.OntologyFileException;
 
 public class ToOntologyService extends RemoteServiceServlet implements IToOntologyService {
@@ -47,10 +48,13 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	}
 	
 	@Override
-	public void createOntology(Collection collection, Ontology ontology) throws OntologyFileException {
+	public void createOntology(Collection collection, Ontology ontology) throws OntologyFileException, OntologyExistsException {
 		ontology.setIri(Configuration.etcOntologyBaseIRI +collection.getId() + "/" + ontology.getAcronym());
-		daoManager.getOntologyDBDAO().insert(ontology);
-		daoManager.getOntologyFileDAO().insertOntology(ontology);
+		ontology = daoManager.getOntologyDBDAO().insert(ontology);
+		if(ontology.hasId())
+			daoManager.getOntologyFileDAO().insertOntology(ontology);
+		else
+			throw new OntologyExistsException();
 	}
 
 	@Override

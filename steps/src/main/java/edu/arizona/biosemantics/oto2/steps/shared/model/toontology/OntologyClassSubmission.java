@@ -4,10 +4,13 @@ import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 
+import edu.arizona.biosemantics.oto2.steps.shared.model.Colorable;
+import edu.arizona.biosemantics.oto2.steps.shared.model.Commentable;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Term;
 
-public class OntologyClassSubmission implements Serializable, EntityQualityClass, OntologySubmission, Comparable<OntologyClassSubmission> {
+public class OntologyClassSubmission implements Serializable, Colorable, Commentable, 
+		EntityQualityClass, OntologySubmission, Comparable<OntologyClassSubmission> {
 	
 	private int id = -1;
 	private Term term;
@@ -240,6 +243,8 @@ public class OntologyClassSubmission implements Serializable, EntityQualityClass
 			return false;
 		return true;
 	}	
+	
+	
 	
 
 }

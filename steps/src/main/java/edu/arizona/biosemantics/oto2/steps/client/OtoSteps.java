@@ -1,20 +1,14 @@
 package edu.arizona.biosemantics.oto2.steps.client;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.shared.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.event.shared.SimpleEventBus;
 import com.google.gwt.user.client.rpc.AsyncCallback;
-import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RootLayoutPanel;
-import com.google.gwt.user.client.ui.RootPanel;
 
 import edu.arizona.biosemantics.oto2.steps.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
-import edu.arizona.biosemantics.oto2.steps.shared.model.Term;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.ICollectionService;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.ICollectionServiceAsync;
 
@@ -40,7 +34,6 @@ public class OtoSteps implements EntryPoint {
 				if(result != null)
 					eventBus.fireEvent(new LoadCollectionEvent(result));
 			} 
-			
 		});
 	}
 

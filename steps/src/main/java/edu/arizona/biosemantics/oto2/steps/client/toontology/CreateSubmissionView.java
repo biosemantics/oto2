@@ -2,18 +2,11 @@ package edu.arizona.biosemantics.oto2.steps.client.toontology;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
-import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.IsWidget;
-import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.widget.core.client.TabPanel;
 import com.sencha.gxt.widget.core.client.TabPanel.TabPanelAppearance;
 import com.sencha.gxt.widget.core.client.TabPanel.TabPanelBottomAppearance;
-import com.sencha.gxt.widget.core.client.form.TextField;
-
-import edu.arizona.biosemantics.oto2.steps.client.info.ContextView;
-import edu.arizona.biosemantics.oto2.steps.client.info.DictionaryView;
 
 public class CreateSubmissionView implements IsWidget {
 

@@ -10,7 +10,6 @@ import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Context;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Term;
 import edu.arizona.biosemantics.oto2.steps.shared.model.TypedContext;
-import edu.arizona.biosemantics.oto2.steps.shared.rpc.ICollectionService;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.IContextService;
 
 public class ContextService extends RemoteServiceServlet implements IContextService {

@@ -6,8 +6,8 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Context;
-import edu.arizona.biosemantics.oto2.steps.shared.model.TypedContext;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Term;
+import edu.arizona.biosemantics.oto2.steps.shared.model.TypedContext;
 
 /**
  * The async counterpart of <code>GreetingService</code>.

@@ -7,8 +7,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import com.sencha.gxt.data.shared.ListStore;
-
 import edu.arizona.biosemantics.common.biology.TaxonGroup;
 
 public class Collection implements Serializable, Comparable<Collection> {
@@ -18,8 +16,8 @@ public class Collection implements Serializable, Comparable<Collection> {
 	private TaxonGroup taxonGroup;
 	private String secret = "";
 	private List<Term> terms = new LinkedList<Term>();
-	private Map<Object, List<Comment>> comments = new HashMap<Object, List<Comment>>();
-	private Map<Object, Color> colorizations = new HashMap<Object, Color>();	
+	private Map<Commentable, List<Comment>> comments = new HashMap<Commentable, List<Comment>>();
+	private Map<Colorable, Color> colorizations = new HashMap<Colorable, Color>();	
 	private List<Color> colors = new ArrayList<Color>();
 	
 	public Collection() { }
@@ -32,7 +30,7 @@ public class Collection implements Serializable, Comparable<Collection> {
 	}
 	
 	public Collection(int id, String name, TaxonGroup taxonGroup, String secret, List<Term> terms, 
-			Map<Object, List<Comment>> comments, Map<Object, Color> colorizations, List<Color> colors) {
+			Map<Commentable, List<Comment>> comments, Map<Colorable, Color> colorizations, List<Color> colors) {
 		super();
 		this.id = id;
 		this.name = name;
@@ -117,41 +115,49 @@ public class Collection implements Serializable, Comparable<Collection> {
 		return this.getId() - o.getId();
 	}
 
-	public Color getColorization(Object object) {
-		return colorizations.get(object);
+	public Color getColorization(Colorable coloralable) {
+		return colorizations.get(coloralable);
 	}
 
-	public void setColorizations(java.util.Collection<Object> objects, Color color) {
-		for(Object object : objects)
-			setColorization(object, color);
+	public void setColorizations(java.util.Collection<Colorable> coloralables, Color color) {
+		for(Colorable coloralable : coloralables)
+			setColorization(coloralable, color);
 	}
 	
-	public void setColorization(Object object, Color color) {
-		colorizations.put(object, color);
+	public void setColorization(Colorable coloralable, Color color) {
+		colorizations.put(coloralable, color);
 	}
 	
-	public Map<Object, Color> getColorizations() {
+	public Map<Colorable, Color> getColorizations() {
 		return colorizations;
 	}
 	
-	public List<Comment> getComment(Object object) {
-		return comments.get(object);
+	public void setComments(Map<Commentable, List<Comment>> comments) {
+		this.comments = comments;
+	}
+
+	public void setColorizations(Map<Colorable, Color> colorizations) {
+		this.colorizations = colorizations;
+	}
+
+	public List<Comment> getComment(Commentable commentable) {
+		return comments.get(commentable);
 	}
 	
-	public void addComments(java.util.Collection<Object> objects, Comment comment) {
-		for(Object object : objects) 
-			this.addComment(object, comment);
+	public void addComments(java.util.Collection<Commentable> commentables, Comment comment) {
+		for(Commentable commentable : commentables) 
+			this.addComment(commentable, comment);
 	}
 	
-	public void addComment(Object object, Comment comment) {
-		if(!comments.containsKey(object))
-			comments.put(object, new LinkedList<Comment>());
-		this.comments.get(object).add(comment);
+	public void addComment(Commentable commentable, Comment comment) {
+		if(!comments.containsKey(commentable))
+			comments.put(commentable, new LinkedList<Comment>());
+		this.comments.get(commentable).add(comment);
 	}
 	
-	public void removeComment(Object object, Comment comment) {
-		if(comments.containsKey(object))
-			comments.get(object).remove(comment);
+	public void removeComment(Commentable commentable, Comment comment) {
+		if(comments.containsKey(commentable))
+			comments.get(commentable).remove(comment);
 	}
 
 	public List<Color> getColors() {
@@ -162,17 +168,16 @@ public class Collection implements Serializable, Comparable<Collection> {
 		this.colors = colors;
 	}
 
-	public Map<Object, List<Comment>> getComments() {
+	public Map<Commentable, List<Comment>> getComments() {
 		return comments;
 	}
 
-	public boolean hasColorization(Object object) {
-		return this.colorizations.get(object) != null;
+	public boolean hasColorization(Colorable colorable) {
+		return this.colorizations.get(colorable) != null;
 	}
 	
-	public boolean hasComments(Object object) {
-		return this.comments.get(object) != null && !comments.get(object).isEmpty();
+	public boolean hasComments(Commentable commentable) {
+		return this.comments.get(commentable) != null && !comments.get(commentable).isEmpty();
 	}
-
-		
+	
 }

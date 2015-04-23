@@ -1,7 +1,5 @@
 package edu.arizona.biosemantics.oto2.steps.server;
 
-import java.io.File;
-
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 

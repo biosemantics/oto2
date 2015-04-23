@@ -6,7 +6,6 @@ import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
 
 import edu.arizona.biosemantics.oto2.steps.client.event.RemoveOntologySynonymsSubmissionsEvent.Handler;
-import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynonymSubmission;
 
 public class RemoveOntologySynonymsSubmissionsEvent  extends GwtEvent<Handler> {

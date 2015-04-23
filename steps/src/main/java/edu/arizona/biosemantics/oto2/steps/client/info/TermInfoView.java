@@ -5,10 +5,7 @@ import com.google.gwt.event.logical.shared.BeforeSelectionEvent;
 import com.google.gwt.event.logical.shared.BeforeSelectionHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.Widget;
-import com.sencha.gxt.widget.core.client.Dialog;
 import com.sencha.gxt.widget.core.client.TabPanel;
-
-import edu.arizona.biosemantics.oto2.steps.client.common.Alerter;
 
 public class TermInfoView extends TabPanel {
 	

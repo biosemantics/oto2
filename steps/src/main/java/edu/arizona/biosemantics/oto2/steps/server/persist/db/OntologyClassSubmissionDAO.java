@@ -12,7 +12,6 @@ import edu.arizona.biosemantics.oto2.steps.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Term;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmissionStatus;
-import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynonymSubmission;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.StatusEnum;
 
 public class OntologyClassSubmissionDAO {

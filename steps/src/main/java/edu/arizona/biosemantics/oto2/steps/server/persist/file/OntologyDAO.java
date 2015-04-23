@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.AddImport;
@@ -29,6 +28,7 @@ import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLOntologyDocumentAlreadyExistsException;
 import org.semanticweb.owlapi.model.OWLOntologyIRIMapper;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
@@ -54,8 +54,8 @@ import edu.arizona.biosemantics.oto2.steps.server.persist.db.OntologyClassSubmis
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.EntityQualityClass;
-import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySubmission;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmission;
+import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySubmission;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynonymSubmission;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.ClassExistsException;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.OntologyFileException;
@@ -112,9 +112,9 @@ public class OntologyDAO {
 		for(Ontology ontology : staticOntologyDAO.getPermanentOntologies()) {
 			File file = getPermanentOntologyFile(ontology);
 			try {
+				owlOntologyManager.addIRIMapper(createMapper(ontology));
 				OWLOntology owlOntology = owlOntologyManager.loadOntologyFromOntologyDocument(file);
 				referencedOntologies.put(ontology, owlOntology);
-				owlOntologyManager.addIRIMapper(createMapper(ontology));
 			} catch (OWLOntologyCreationException e) {
 				Logger.getLogger(OntologyDAO.class).error("Could not load ontology", e);
 			}
@@ -629,8 +629,6 @@ public class OntologyDAO {
 		List<Ontology> relevantOntologies = ontologyDAO.getRelevantOntologiesForCollection(collection);
 		for(Ontology relevantOntology : relevantOntologies) {
 			if(!relevantOntology.hasCollectionId()) {
-				//upload files from server, add live access to ontology url later
-				owlOntologyManager.addIRIMapper(createMapper(relevantOntology));
 				addImportDeclaration(owlOntology, relevantOntology);
 			}
 		}
@@ -642,7 +640,12 @@ public class OntologyDAO {
 		owlOntologyManager.applyChange(new AddImport(owlOntology, importDeclaraton));
 		if (owlOntologyManager.getOntology(relevantIRI) == null)
 			try {
-				owlOntologyManager.loadOntology(relevantIRI);
+				owlOntologyManager.addIRIMapper(createMapper(relevantOntology));
+				try {
+					owlOntologyManager.loadOntology(relevantIRI);
+				} catch (OWLOntologyDocumentAlreadyExistsException e) {
+					
+				}
 			} catch (OWLOntologyCreationException e) {
 				log(LogLevel.ERROR, "Couldn't load ontology", e);
 				throw new OntologyFileException(e);

@@ -17,7 +17,6 @@ import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.PropertyAccess;
 import com.sencha.gxt.widget.core.client.ContentPanel;
-import com.sencha.gxt.widget.core.client.Dialog;
 import com.sencha.gxt.widget.core.client.event.CompleteEditEvent;
 import com.sencha.gxt.widget.core.client.event.CompleteEditEvent.CompleteEditHandler;
 import com.sencha.gxt.widget.core.client.form.TextField;
@@ -36,10 +35,10 @@ import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
 import edu.arizona.biosemantics.oto2.steps.client.OtoSteps;
-import edu.arizona.biosemantics.oto2.steps.client.common.ColorsDialog.ColorEntry;
 import edu.arizona.biosemantics.oto2.steps.client.event.SetCommentEvent;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Comment;
+import edu.arizona.biosemantics.oto2.steps.shared.model.Commentable;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Term;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynonymSubmission;
@@ -270,10 +269,10 @@ public class CommentsDialog extends CommonDialog {
 	private List<CommentEntry> createComments() {
 		List<CommentEntry> commentEntries = new LinkedList<CommentEntry>();
 		
-		Map<Object, List<Comment>> commentsMap =  collection.getComments();
-		for(Object object : commentsMap.keySet()) {
-			if(object instanceof Term) {
-				Term term = (Term)object;
+		Map<Commentable, List<Comment>> commentsMap =  collection.getComments();
+		for(Commentable commentable : commentsMap.keySet()) {
+			if(commentable instanceof Term) {
+				Term term = (Term)commentable;
 				List<Comment> comments = commentsMap.get(term);
 				for(int c=0; c<comments.size(); c++) {
 					Comment comment = comments.get(c);
@@ -281,8 +280,8 @@ public class CommentsDialog extends CommonDialog {
 							comment.getUser(), comment.getComment()));
 				}
 			}
-			if(object instanceof OntologyClassSubmission) {
-				OntologyClassSubmission ontologyClassSubmission = (OntologyClassSubmission)object;
+			if(commentable instanceof OntologyClassSubmission) {
+				OntologyClassSubmission ontologyClassSubmission = (OntologyClassSubmission)commentable;
 				List<Comment> comments = commentsMap.get(ontologyClassSubmission);
 				for(int c=0; c<comments.size(); c++) {
 					Comment comment = comments.get(c);
@@ -292,8 +291,8 @@ public class CommentsDialog extends CommonDialog {
 							comment.getUser(), comment.getComment()));
 				}
 			}
-			if(object instanceof OntologySynonymSubmission) {
-				OntologySynonymSubmission ontologySynonymSubmission = (OntologySynonymSubmission)object;
+			if(commentable instanceof OntologySynonymSubmission) {
+				OntologySynonymSubmission ontologySynonymSubmission = (OntologySynonymSubmission)commentable;
 				List<Comment> comments = commentsMap.get(ontologySynonymSubmission);
 				for(int c=0; c<comments.size(); c++) {
 					Comment comment = comments.get(c);

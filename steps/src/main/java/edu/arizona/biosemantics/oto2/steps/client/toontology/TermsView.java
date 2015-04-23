@@ -8,52 +8,30 @@ import java.util.Map;
 
 import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
-import com.google.gwt.event.logical.shared.ValueChangeEvent;
-import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.core.client.IdentityValueProvider;
-import com.sencha.gxt.core.client.dom.AutoScrollSupport;
-import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
 import com.sencha.gxt.core.client.util.Format;
 import com.sencha.gxt.core.client.util.Params;
-import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.SortDir;
 import com.sencha.gxt.data.shared.Store.StoreSortInfo;
 import com.sencha.gxt.data.shared.TreeStore;
-import com.sencha.gxt.dnd.core.client.DND.Operation;
-import com.sencha.gxt.dnd.core.client.DndDragEnterEvent;
-import com.sencha.gxt.dnd.core.client.DndDragStartEvent;
-import com.sencha.gxt.dnd.core.client.DndDropEvent;
-import com.sencha.gxt.dnd.core.client.DndDropEvent.DndDropHandler;
-import com.sencha.gxt.dnd.core.client.DropTarget;
-import com.sencha.gxt.dnd.core.client.ListViewDragSource;
-import com.sencha.gxt.dnd.core.client.TreeDragSource;
-import com.sencha.gxt.widget.core.client.Composite;
-import com.sencha.gxt.widget.core.client.ListView;
-import com.sencha.gxt.widget.core.client.TabPanel;
 import com.sencha.gxt.widget.core.client.box.MultiLinePromptMessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
-import com.sencha.gxt.widget.core.client.container.FlowLayoutContainer;
-import com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
 import com.sencha.gxt.widget.core.client.event.BeforeShowEvent;
-import com.sencha.gxt.widget.core.client.event.HideEvent;
 import com.sencha.gxt.widget.core.client.event.BeforeShowEvent.BeforeShowHandler;
+import com.sencha.gxt.widget.core.client.event.HideEvent;
 import com.sencha.gxt.widget.core.client.event.HideEvent.HideHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
-import com.sencha.gxt.widget.core.client.form.CheckBox;
 import com.sencha.gxt.widget.core.client.info.Info;
 import com.sencha.gxt.widget.core.client.menu.HeaderMenuItem;
 import com.sencha.gxt.widget.core.client.menu.Item;
@@ -63,7 +41,6 @@ import com.sencha.gxt.widget.core.client.tree.Tree;
 
 import edu.arizona.biosemantics.oto2.steps.client.OtoSteps;
 import edu.arizona.biosemantics.oto2.steps.client.common.Alerter;
-import edu.arizona.biosemantics.oto2.steps.client.common.AllowSurpressSelectEventsListViewSelectionModel;
 import edu.arizona.biosemantics.oto2.steps.client.common.AllowSurpressSelectEventsTreeSelectionModel;
 import edu.arizona.biosemantics.oto2.steps.client.event.AddCommentEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.LoadCollectionEvent;
@@ -80,8 +57,8 @@ import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.BucketTreeNod
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.TermTreeNode;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.TextTreeNode;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.TextTreeNodeProperties;
-import edu.arizona.biosemantics.oto2.steps.shared.rpc.ICollectionServiceAsync;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.ICollectionService;
+import edu.arizona.biosemantics.oto2.steps.shared.rpc.ICollectionServiceAsync;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.IToOntologyService;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.IToOntologyServiceAsync;
 
@@ -181,7 +158,9 @@ public class TermsView implements IsWidget {
 					});
 					this.add(split);*/
 				}
-								
+					
+
+				this.add(new HeaderMenuItem("Annotation"));
 				MenuItem comment = new MenuItem("Comment");
 				final Term term = selected.get(0);
 				comment.addSelectionHandler(new SelectionHandler<Item>() {
@@ -193,7 +172,7 @@ public class TermsView implements IsWidget {
 							@Override
 							public void onHide(HideEvent event) {
 								final Comment newComment = new Comment(OtoSteps.user, box.getValue());
-								collection.addComment(selected, newComment);
+								collection.addComments((java.util.Collection)selected, newComment);
 								collectionService.update(collection, new AsyncCallback<Void>() {
 									@Override
 									public void onFailure(Throwable caught) {

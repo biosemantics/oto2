@@ -2,10 +2,8 @@ package edu.arizona.biosemantics.oto2.steps.client.event;
 
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
-import com.google.gwt.event.shared.GwtEvent.Type;
 
 import edu.arizona.biosemantics.oto2.steps.client.event.SetUserEvent.Handler;
-import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
 
 public class SetUserEvent extends GwtEvent<Handler> {
 

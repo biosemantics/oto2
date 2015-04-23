@@ -1,6 +1,5 @@
 package edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;

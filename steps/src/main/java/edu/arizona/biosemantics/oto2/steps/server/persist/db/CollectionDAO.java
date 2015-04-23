@@ -21,18 +21,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.ObjectWriter;
-
 import edu.arizona.biosemantics.common.biology.TaxonGroup;
 import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.steps.server.Configuration;
 import edu.arizona.biosemantics.oto2.steps.server.persist.db.Query.QueryException;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Color;
+import edu.arizona.biosemantics.oto2.steps.shared.model.Colorable;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Comment;
+import edu.arizona.biosemantics.oto2.steps.shared.model.Commentable;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Term;
 
 public class CollectionDAO {
@@ -92,8 +89,8 @@ public class CollectionDAO {
 		} catch(IllegalArgumentException e) { }
 		
 		Collection deserializedCollection = deserialize(id);
-		Map<Object, List<Comment>> comments = new HashMap<Object, List<Comment>>();
-		Map<Object, Color> colorizations = new HashMap<Object, Color>();
+		Map<Commentable, List<Comment>> comments = new HashMap<Commentable, List<Comment>>();
+		Map<Colorable, Color> colorizations = new HashMap<Colorable, Color>();
 		List<Color> colors = new LinkedList<Color>();
 		if(deserializedCollection != null) {
 			comments = deserializedCollection.getComments();
@@ -154,8 +151,10 @@ public class CollectionDAO {
 	}
 	
 	private void serialize(Collection collection) {
-		String file = Configuration.collectionOntologyDirectory + File.separator + collection.getId()
+		String path = Configuration.collectionOntologyDirectory + File.separator + collection.getId()
 				+ File.separator + "collection.ser";
+		File file = new File(path);
+		file.getParentFile().mkdirs();
 		try (ObjectOutput output = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(file)))) {
 			output.writeObject(collection);
 		} catch (IOException e) {

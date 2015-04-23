@@ -6,8 +6,8 @@ import java.util.LinkedList;
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
 
-import edu.arizona.biosemantics.oto2.steps.shared.model.Color;
 import edu.arizona.biosemantics.oto2.steps.client.event.SetColorEvent.SetColorEventHandler;
+import edu.arizona.biosemantics.oto2.steps.shared.model.Color;
 
 public class SetColorEvent extends GwtEvent<SetColorEventHandler> {
 

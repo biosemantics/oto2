@@ -1,7 +1,6 @@
 package edu.arizona.biosemantics.oto2.steps.client.hierarchy;
 
 import com.google.gwt.event.shared.EventBus;
-import com.sencha.gxt.widget.core.client.Composite;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;

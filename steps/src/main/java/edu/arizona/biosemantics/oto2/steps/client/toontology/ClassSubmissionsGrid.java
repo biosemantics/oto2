@@ -3,15 +3,13 @@ package edu.arizona.biosemantics.oto2.steps.client.toontology;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
-import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
-import com.google.gwt.safehtml.shared.SafeHtmlUtils;
+import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.rpc.AsyncCallback;
-import com.google.web.bindery.event.shared.EventBus;
-import com.sencha.gxt.cell.core.client.form.CheckBoxCell;
+import com.google.gwt.user.client.ui.IsWidget;
+import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.core.client.IdentityValueProvider;
 import com.sencha.gxt.core.client.Style.SelectionMode;
 import com.sencha.gxt.core.client.util.Format;
@@ -27,6 +25,7 @@ import com.sencha.gxt.widget.core.client.grid.CheckBoxSelectionModel;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.Grid;
+import com.sencha.gxt.widget.core.client.grid.GridSelectionModel;
 import com.sencha.gxt.widget.core.client.grid.GroupingView;
 import com.sencha.gxt.widget.core.client.info.Info;
 import com.sencha.gxt.widget.core.client.menu.HeaderMenuItem;
@@ -34,49 +33,60 @@ import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
+import edu.arizona.biosemantics.oto2.steps.client.OtoSteps;
 import edu.arizona.biosemantics.oto2.steps.client.common.Alerter;
+import edu.arizona.biosemantics.oto2.steps.client.common.ColorableCell;
+import edu.arizona.biosemantics.oto2.steps.client.common.ColorableCheckBoxCell;
+import edu.arizona.biosemantics.oto2.steps.client.common.ColorableCheckBoxCell.CommentableColorableProvider;
+import edu.arizona.biosemantics.oto2.steps.client.event.AddCommentEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.RemoveOntologyClassSubmissionsEvent;
+import edu.arizona.biosemantics.oto2.steps.client.event.SetColorEvent;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
-import edu.arizona.biosemantics.oto2.steps.shared.model.Ontology;
-import edu.arizona.biosemantics.oto2.steps.shared.model.Term;
+import edu.arizona.biosemantics.oto2.steps.shared.model.Color;
+import edu.arizona.biosemantics.oto2.steps.shared.model.Colorable;
+import edu.arizona.biosemantics.oto2.steps.shared.model.Comment;
+import edu.arizona.biosemantics.oto2.steps.shared.model.Commentable;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmissionProperties;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmissionStatus;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmissionStatusProperties;
+import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynonymSubmission;
+import edu.arizona.biosemantics.oto2.steps.shared.rpc.ICollectionService;
+import edu.arizona.biosemantics.oto2.steps.shared.rpc.ICollectionServiceAsync;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.IToOntologyService;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.IToOntologyServiceAsync;
 
-public class ClassSubmissionsGrid extends Grid<OntologyClassSubmission> {
+public class ClassSubmissionsGrid implements IsWidget {
 
+	private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
 	private IToOntologyServiceAsync toOntologyService = GWT.create(IToOntologyService.class);
 	private static ColumnConfig<OntologyClassSubmission, String> ontologyCol;
 	private static OntologyClassSubmissionProperties ontologyClassSubmissionProperties = GWT.create(OntologyClassSubmissionProperties.class);
 	private static OntologyClassSubmissionStatusProperties ontologyClassSubmissionStatusProperties = GWT.create(OntologyClassSubmissionStatusProperties.class);
 	private static CheckBoxSelectionModel<OntologyClassSubmission> checkBoxSelectionModel;
 	
-	private ListStore<OntologyClassSubmission> classSubmissionStore =
-			new ListStore<OntologyClassSubmission>(ontologyClassSubmissionProperties.key());
 	private EventBus eventBus;
 	protected Collection collection;
+	private Grid<OntologyClassSubmission> grid;
 	
-	public ClassSubmissionsGrid(EventBus eventBus, ListStore<OntologyClassSubmission> classSubmissionStore) {
-		super(classSubmissionStore, createColumnModel());
-		
+	public ClassSubmissionsGrid(EventBus eventBus, ListStore<OntologyClassSubmission> classSubmissionStore) {		
 		this.eventBus = eventBus;
+		grid = new Grid<OntologyClassSubmission>(classSubmissionStore, createColumnModel(classSubmissionStore));
+		
 		final GroupingView<OntologyClassSubmission> groupingView = new GroupingView<OntologyClassSubmission>();
 		groupingView.setShowGroupedColumn(false);
 		groupingView.setForceFit(true);
 		groupingView.groupBy(ontologyCol);
 		
-		setView(groupingView);
-		setContextMenu(createClassSubmissionsContextMenu());
+		grid.setView(groupingView);
+		grid.setContextMenu(createClassSubmissionsContextMenu());
 		
-		setSelectionModel(checkBoxSelectionModel);
+		grid.setSelectionModel(checkBoxSelectionModel);
 		//grid.getView().setAutoExpandColumn(taxonBCol);
 		//grid.setBorders(false);
-		getView().setStripeRows(true);
-		getView().setColumnLines(true);
+		grid.getView().setStripeRows(true);
+		grid.getView().setColumnLines(true);
 		
 		//classSubmissionStore.remove.
 		
@@ -90,33 +100,143 @@ public class ClassSubmissionsGrid extends Grid<OntologyClassSubmission> {
 				ClassSubmissionsGrid.this.collection = event.getCollection();
 			}
 		});
+		
+		eventBus.addHandler(SetColorEvent.TYPE, new SetColorEvent.SetColorEventHandler() {
+			@Override
+			public void onSet(SetColorEvent event) {
+				for(Object object : event.getObjects()) {
+					if(object instanceof OntologyClassSubmission) {
+						OntologyClassSubmission ontologyClassSubmission = (OntologyClassSubmission)object;
+						if(grid.getStore().findModel(ontologyClassSubmission) != null)
+							grid.getStore().update(ontologyClassSubmission);
+					}
+				}
+			}
+		});
 	}
 
 	private Menu createClassSubmissionsContextMenu() {
 		final Menu menu = new Menu();
-		//menu.add(new HeaderMenuItem("Annotation"));
 		
-		//if(this.removeEnabled) {
-			MenuItem deleteItem = new MenuItem("Remove");
-			menu.add(deleteItem);
-			deleteItem.addSelectionHandler(new SelectionHandler<Item>() {
-				@Override
-				public void onSelection(SelectionEvent<Item> event) {
-					toOntologyService.removeOntologyClassSubmissions(collection, 
-							ClassSubmissionsGrid.this.getSelectionModel().getSelectedItems(), new AsyncCallback<Void>() {
+		menu.addBeforeShowHandler(new BeforeShowHandler() {
+			@Override
+			public void onBeforeShow(BeforeShowEvent event) {
+				menu.clear();
+				MenuItem deleteItem = new MenuItem("Remove");
+				menu.add(deleteItem);
+				deleteItem.addSelectionHandler(new SelectionHandler<Item>() {
+					@Override
+					public void onSelection(SelectionEvent<Item> event) {
+						toOntologyService.removeOntologyClassSubmissions(collection, 
+								grid.getSelectionModel().getSelectedItems(), new AsyncCallback<Void>() {
+							@Override
+							public void onFailure(Throwable caught) {
+								Alerter.failedToRemoveOntologyClassSubmission();
+							}
+							@Override
+							public void onSuccess(Void result) {
+								eventBus.fireEvent(new RemoveOntologyClassSubmissionsEvent(grid.getSelectionModel().getSelectedItems()));
+							}
+						});
+					}
+				});
+				menu.add(deleteItem);
+
+				final List<OntologyClassSubmission> selected = checkBoxSelectionModel.getSelectedItems();
+				
+				menu.add(new HeaderMenuItem("Annotation"));
+				MenuItem comment = new MenuItem("Comment");
+				final OntologyClassSubmission ontologyClassSubmission = selected.get(0);
+				comment.addSelectionHandler(new SelectionHandler<Item>() {
+					@Override
+					public void onSelection(SelectionEvent<Item> event) {
+						final MultiLinePromptMessageBox box = new MultiLinePromptMessageBox("Comment", "");
+						box.getTextArea().setValue(getUsersComment(ontologyClassSubmission));
+						box.addHideHandler(new HideHandler() {
+							@Override
+							public void onHide(HideEvent event) {
+								final Comment newComment = new Comment(OtoSteps.user, box.getValue());
+								collection.addComments((java.util.Collection)selected, newComment);
+								collectionService.update(collection, new AsyncCallback<Void>() {
+									@Override
+									public void onFailure(Throwable caught) {
+										Alerter.addCommentFailed(caught);
+									}
+									@Override
+									public void onSuccess(Void result) {
+										eventBus.fireEvent(new AddCommentEvent(
+												(java.util.Collection)selected, newComment));
+										String comment = Format.ellipse(box.getValue(), 80);
+										String message = Format.substitute("'{0}' saved", new Params(comment));
+										Info.display("Comment", message);
+									}
+								});
+							}
+						});
+						box.show();
+					}
+
+					private String getUsersComment(
+							OntologyClassSubmission ontologyClassSubmission) {
+						// TODO Auto-generated method stub
+						return null;
+					}
+				});
+				menu.add(comment);
+				final MenuItem colorizeItem = new MenuItem("Colorize");
+				if(!collection.getColors().isEmpty()) {
+					menu.add(colorizeItem);
+					colorizeItem.setSubMenu(createColorizeMenu(selected));
+				} 
+			}
+
+			protected Menu createColorizeMenu(final List<OntologyClassSubmission> selected) {
+				Menu colorMenu = new Menu();
+				MenuItem offItem = new MenuItem("None");
+				offItem.addSelectionHandler(new SelectionHandler<Item>() {
+					@Override
+					public void onSelection(SelectionEvent<Item> event) {
+						collection.setColorizations((java.util.Collection)selected, null);
+						collectionService.update(collection, new AsyncCallback<Void>() {
+							@Override
+							public void onFailure(Throwable caught) {
+								Alerter.failedToSetColor();
+							}
+							@Override
+							public void onSuccess(Void result) {
+								eventBus.fireEvent(new SetColorEvent(selected, null, true));
+							}
+						});
+					}
+				});
+				colorMenu.add(offItem);
+				for(final Color color : collection.getColors()) {
+					MenuItem colorItem = new MenuItem(color.getUse());
+					colorItem.getElement().getStyle().setProperty("backgroundColor", "#" + color.getHex());
+					colorItem.addSelectionHandler(new SelectionHandler<Item>() {
 						@Override
-						public void onFailure(Throwable caught) {
-							Alerter.failedToRemoveOntologyClassSubmission();
-						}
-						@Override
-						public void onSuccess(Void result) {
-							eventBus.fireEvent(new RemoveOntologyClassSubmissionsEvent(getSelectionModel().getSelectedItems()));
+						public void onSelection(SelectionEvent<Item> event) {
+							collection.setColorizations((java.util.Collection)selected, color);
+							collectionService.update(collection, new AsyncCallback<Void>() {
+								@Override
+								public void onFailure(Throwable caught) {
+									caught.printStackTrace();
+									Alerter.failedToSetColor();
+								}
+								@Override
+								public void onSuccess(Void result) {
+									eventBus.fireEvent(new SetColorEvent(selected, color, true));
+								}
+							});
 						}
 					});
+					colorMenu.add(colorItem);
 				}
-			});
-		menu.add(deleteItem);	
-			
+				return colorMenu;
+			}
+		});
+
+		
 		/*final MenuItem commentItem = new MenuItem("Comment");
 		commentItem.addSelectionHandler(new SelectionHandler<Item>() {
 			@Override
@@ -164,19 +284,24 @@ public class ClassSubmissionsGrid extends Grid<OntologyClassSubmission> {
 		return menu;
 	}
 
-	private static ColumnModel<OntologyClassSubmission> createColumnModel() {
+	private ColumnModel<OntologyClassSubmission> createColumnModel(ListStore<OntologyClassSubmission> classSubmissionStore) {
 		IdentityValueProvider<OntologyClassSubmission> identity = new IdentityValueProvider<OntologyClassSubmission>();
 		checkBoxSelectionModel = new CheckBoxSelectionModel<OntologyClassSubmission>(
 				identity);
 		checkBoxSelectionModel.setSelectionMode(SelectionMode.MULTI);
 
-		/*ColorableCell colorableCell = new ColorableCell(eventBus, model);
-		colorableCell.setCommentColorizableObjectsStore(articulationsStore, new CommentColorizableObjectsProvider() {
+		ColorableCell colorableCell = new ColorableCell(eventBus, collection);
+		colorableCell.setCommentColorizableObjectsStore(classSubmissionStore, new ColorableCell.CommentableColorableProvider() {
 			@Override
-			public Object provide(Object source) {
-				return source;
+			public Colorable provideColorable(Object source) {
+				return (OntologyClassSubmission)source;
 			}
-		}); */
+			@Override
+			public Commentable provideCommentable(Object source) {
+				return (OntologyClassSubmission)source;
+			}
+		});
+		
 		ValueProvider<OntologyClassSubmission, String> termValueProvider = new ValueProvider<OntologyClassSubmission, String>() {
 			@Override
 			public String getValue(OntologyClassSubmission object) {
@@ -191,11 +316,12 @@ public class ClassSubmissionsGrid extends Grid<OntologyClassSubmission> {
 		};
 		final ColumnConfig<OntologyClassSubmission, String> termCol = new ColumnConfig<OntologyClassSubmission, String>(
 				termValueProvider, 200, "Candidate Term");
+		termCol.setCell(colorableCell);
 
 		
 		final ColumnConfig<OntologyClassSubmission, String> submissionTermCol = new ColumnConfig<OntologyClassSubmission, String>(
 				ontologyClassSubmissionProperties.submissionTerm(), 200, "Term");
-		//taxonACol.setCell(colorableCell);
+		submissionTermCol.setCell(colorableCell);
 		
 		ValueProvider<OntologyClassSubmission, String> categoryValueProvider = new ValueProvider<OntologyClassSubmission, String>() {
 			@Override
@@ -211,6 +337,7 @@ public class ClassSubmissionsGrid extends Grid<OntologyClassSubmission> {
 		};
 		final ColumnConfig<OntologyClassSubmission, String> categoryCol = new ColumnConfig<OntologyClassSubmission, String>(
 				categoryValueProvider, 200, "Category");
+		categoryCol.setCell(colorableCell);
 
 		//relationCol.setCell(colorableCell);
 		ValueProvider<OntologyClassSubmission, String> ontlogyAcronymValueProvider = new ValueProvider<OntologyClassSubmission, String>() {
@@ -225,8 +352,8 @@ public class ClassSubmissionsGrid extends Grid<OntologyClassSubmission> {
 				return "ontology-prefix";
 			}
 		};
-		ontologyCol = new ColumnConfig<OntologyClassSubmission, String>(
-				ontlogyAcronymValueProvider, 200, "Ontology");
+		ontologyCol = new ColumnConfig<OntologyClassSubmission, String>(ontlogyAcronymValueProvider, 200, "Ontology");
+		ontologyCol.setCell(colorableCell);
 		/*ontologyCol = new ColumnConfig<OntologyClassSubmission, Ontology>(
 				ontologyClassSubmissionProperties.targetOntology(), 200, "Ontology");
 		ontologyCol.setCell(new AbstractCell<Ontology>() {
@@ -238,22 +365,39 @@ public class ClassSubmissionsGrid extends Grid<OntologyClassSubmission> {
 		}); */
 		final ColumnConfig<OntologyClassSubmission, String> superClassCol = new ColumnConfig<OntologyClassSubmission, String>(
 				ontologyClassSubmissionProperties.superclassIRI(), 200, "Superclass");
+		superClassCol.setCell(colorableCell);
 		final ColumnConfig<OntologyClassSubmission, String> definitionCol = new ColumnConfig<OntologyClassSubmission, String>(
 				ontologyClassSubmissionProperties.definition(), 200, "Defintion");
+		definitionCol.setCell(colorableCell);
 		final ColumnConfig<OntologyClassSubmission, String> synonymsCol = new ColumnConfig<OntologyClassSubmission, String>(
 				ontologyClassSubmissionProperties.synonyms(), 200, "Synonyms");
+		synonymsCol.setCell(colorableCell);
 		final ColumnConfig<OntologyClassSubmission, String> sourceCol = new ColumnConfig<OntologyClassSubmission, String>(
 				ontologyClassSubmissionProperties.source(), 200, "Source");
+		sourceCol.setCell(colorableCell);
 		final ColumnConfig<OntologyClassSubmission, String> sampleCol = new ColumnConfig<OntologyClassSubmission, String>(
 				ontologyClassSubmissionProperties.sampleSentence(), 200, "Sample Sentence");
+		sampleCol.setCell(colorableCell);
 		final ColumnConfig<OntologyClassSubmission, String> partOfCol = new ColumnConfig<OntologyClassSubmission, String>(
 				ontologyClassSubmissionProperties.partOfIRI(), 200, "Part Of");
+		partOfCol.setCell(colorableCell);
 		final ColumnConfig<OntologyClassSubmission, Boolean> entityCol = new ColumnConfig<OntologyClassSubmission, Boolean>(
 				ontologyClassSubmissionProperties.entity(), 200, "Entity");
-		entityCol.setCell(new CheckBoxCell());
+		ColorableCheckBoxCell colorableCheckBoxCell = new ColorableCheckBoxCell(eventBus, collection);
+		colorableCheckBoxCell.setCommentColorizableObjectsStore((ListStore)classSubmissionStore, new CommentableColorableProvider() {
+			@Override
+			public Colorable provideColorable(Object source) {
+				return (OntologyClassSubmission)source;
+			}
+			@Override
+			public Commentable provideCommentable(Object source) {
+				return (OntologyClassSubmission)source;
+			}
+		});
+		entityCol.setCell(colorableCheckBoxCell);
 		final ColumnConfig<OntologyClassSubmission, Boolean> qualityCol = new ColumnConfig<OntologyClassSubmission, Boolean>(
 				ontologyClassSubmissionProperties.quality(), 200, "Quality");
-		qualityCol.setCell(new CheckBoxCell());
+		qualityCol.setCell(colorableCheckBoxCell);
 		final ColumnConfig<OntologyClassSubmission, String> statusCol = new ColumnConfig<OntologyClassSubmission, String>(
 				new ValueProvider<OntologyClassSubmission, String>() {
 					@Override
@@ -273,6 +417,7 @@ public class ClassSubmissionsGrid extends Grid<OntologyClassSubmission> {
 						return "status";
 					}
 				}, 200, "Status");
+		statusCol.setCell(colorableCell);
 		final ColumnConfig<OntologyClassSubmission, String> iriCol = new ColumnConfig<OntologyClassSubmission, String>(
 				new ValueProvider<OntologyClassSubmission, String>() {
 					@Override
@@ -291,8 +436,11 @@ public class ClassSubmissionsGrid extends Grid<OntologyClassSubmission> {
 						return "status";
 					}
 				}, 200, "IRI");
+		iriCol.setCell(colorableCell);
 		final ColumnConfig<OntologyClassSubmission, String> userCol = new ColumnConfig<OntologyClassSubmission, String>(
 				ontologyClassSubmissionProperties.user(), 200, "User");
+		userCol.setCell(colorableCell);
+		
 		
 		
 //		ValueProvider<Articulation, String> commentValueProvider = new ValueProvider<Articulation, String>() {
@@ -396,6 +544,15 @@ public class ClassSubmissionsGrid extends Grid<OntologyClassSubmission> {
 
 		ColumnModel<OntologyClassSubmission> cm = new ColumnModel<OntologyClassSubmission>(columns);
 		return cm;
+	}
+
+	@Override
+	public Widget asWidget() {
+		return grid;
+	}
+
+	public GridSelectionModel<OntologyClassSubmission> getSelectionModel() {
+		return grid.getSelectionModel();
 	}
 	
 }

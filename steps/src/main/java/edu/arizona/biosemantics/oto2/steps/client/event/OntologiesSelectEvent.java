@@ -1,6 +1,5 @@
 package edu.arizona.biosemantics.oto2.steps.client.event;
 
-import java.util.List;
 import java.util.Set;
 
 import com.google.gwt.event.shared.EventHandler;

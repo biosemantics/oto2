@@ -5,7 +5,6 @@ import com.sencha.gxt.core.client.util.Margins;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.TabPanel;
 import com.sencha.gxt.widget.core.client.container.BorderLayoutContainer;
-import com.sencha.gxt.widget.core.client.container.BorderLayoutContainer.BorderLayoutData;
 
 import edu.arizona.biosemantics.oto2.steps.client.hierarchy.HierarchyView;
 import edu.arizona.biosemantics.oto2.steps.client.info.TermInfoView;

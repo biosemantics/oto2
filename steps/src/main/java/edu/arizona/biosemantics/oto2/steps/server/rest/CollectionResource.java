@@ -1,11 +1,8 @@
 package edu.arizona.biosemantics.oto2.steps.server.rest;
 
-import java.util.Iterator;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -15,9 +12,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.UriInfo;
 
+import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.steps.server.rpc.CollectionService;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
-import edu.arizona.biosemantics.common.log.LogLevel;
 
 /**
  * Just a REST-like wrapper around the RPC service

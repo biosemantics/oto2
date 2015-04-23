@@ -2,7 +2,7 @@ package edu.arizona.biosemantics.oto2.steps.shared.model;
 
 import java.io.Serializable;
 
-public class Term implements Serializable, Comparable<Term> {
+public class Term implements Serializable, Comparable<Term>, Colorable, Commentable {
 
 	private int id = -1;
 	private String term;

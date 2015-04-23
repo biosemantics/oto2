@@ -2,14 +2,12 @@ package edu.arizona.biosemantics.oto2.steps.client.event;
 
 import java.util.Collection;
 import java.util.LinkedList;
-import java.util.List;
 
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
 
 import edu.arizona.biosemantics.oto2.steps.client.event.AddCommentEvent.CommentHandler;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Comment;
-import edu.arizona.biosemantics.oto2.steps.shared.model.Term;
 
 public class AddCommentEvent extends GwtEvent<CommentHandler> {
 

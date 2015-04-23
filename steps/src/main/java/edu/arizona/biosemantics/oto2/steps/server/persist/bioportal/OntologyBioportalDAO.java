@@ -1,7 +1,5 @@
 package edu.arizona.biosemantics.oto2.steps.server.persist.bioportal;
 
-import java.io.IOException;
-import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;

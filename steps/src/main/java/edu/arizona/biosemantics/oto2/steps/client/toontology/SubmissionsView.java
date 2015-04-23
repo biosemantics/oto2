@@ -1,54 +1,21 @@
 package edu.arizona.biosemantics.oto2.steps.client.toontology;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import com.google.gwt.cell.client.AbstractCell;
-import com.google.gwt.cell.client.Cell.Context;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.shared.EventBus;
-import com.google.gwt.safehtml.shared.SafeHtml;
-import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
-import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.client.rpc.AsyncCallback;
-import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.IsWidget;
-import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
-import com.sencha.gxt.cell.core.client.form.CheckBoxCell;
-import com.sencha.gxt.core.client.IdentityValueProvider;
-import com.sencha.gxt.core.client.ValueProvider;
-import com.sencha.gxt.core.client.Style.SelectionMode;
 import com.sencha.gxt.data.shared.ListStore;
-import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.widget.core.client.TabPanel;
 import com.sencha.gxt.widget.core.client.TabPanel.TabPanelAppearance;
 import com.sencha.gxt.widget.core.client.TabPanel.TabPanelBottomAppearance;
-import com.sencha.gxt.widget.core.client.box.AutoProgressMessageBox;
 import com.sencha.gxt.widget.core.client.box.MessageBox;
-import com.sencha.gxt.widget.core.client.event.CompleteEditEvent;
-import com.sencha.gxt.widget.core.client.event.StartEditEvent;
-import com.sencha.gxt.widget.core.client.event.CompleteEditEvent.CompleteEditHandler;
-import com.sencha.gxt.widget.core.client.event.StartEditEvent.StartEditHandler;
-import com.sencha.gxt.widget.core.client.form.ComboBox;
-import com.sencha.gxt.widget.core.client.form.TextField;
-import com.sencha.gxt.widget.core.client.grid.CheckBoxSelectionModel;
-import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
-import com.sencha.gxt.widget.core.client.grid.ColumnModel;
-import com.sencha.gxt.widget.core.client.grid.Grid;
-import com.sencha.gxt.widget.core.client.grid.GroupingView;
-import com.sencha.gxt.widget.core.client.grid.RowExpander;
-import com.sencha.gxt.widget.core.client.grid.RowNumberer;
-import com.sencha.gxt.widget.core.client.grid.Grid.GridCell;
-import com.sencha.gxt.widget.core.client.grid.editing.GridInlineEditing;
-import com.sencha.gxt.widget.core.client.grid.filters.GridFilters;
-import com.sencha.gxt.widget.core.client.grid.filters.ListFilter;
-import com.sencha.gxt.widget.core.client.grid.filters.StringFilter;
 import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent;
 import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent.SelectionChangedHandler;
-import com.sencha.gxt.widget.core.client.tips.QuickTip;
 
 import edu.arizona.biosemantics.oto2.steps.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.steps.client.event.LoadCollectionEvent;
@@ -57,20 +24,13 @@ import edu.arizona.biosemantics.oto2.steps.client.event.OntologySynonymSubmissio
 import edu.arizona.biosemantics.oto2.steps.client.event.RefreshSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.SubmitClassEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.SubmitSynonymEvent;
-import edu.arizona.biosemantics.oto2.steps.client.event.TermSelectEvent;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
-import edu.arizona.biosemantics.oto2.steps.shared.model.Ontology;
-import edu.arizona.biosemantics.oto2.steps.shared.model.Term;
-import edu.arizona.biosemantics.oto2.steps.shared.model.TypedContext;
-import edu.arizona.biosemantics.oto2.steps.shared.model.TypedContextProperties;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmissionProperties;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmissionStatusProperties;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynonymSubmission;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynonymSubmissionProperties;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynonymSubmissionStatusProperties;
-import edu.arizona.biosemantics.oto2.steps.shared.rpc.IContextService;
-import edu.arizona.biosemantics.oto2.steps.shared.rpc.IContextServiceAsync;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.IToOntologyService;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.IToOntologyServiceAsync;
 
@@ -134,10 +94,14 @@ public class SubmissionsView implements IsWidget {
 			}
 		});
 		classSubmissionsGrid.getSelectionModel().addSelectionChangedHandler(new SelectionChangedHandler<OntologyClassSubmission>() {
+
 			@Override
-			public void onSelectionChanged(SelectionChangedEvent<OntologyClassSubmission> event) {
-			
+			public void onSelectionChanged(
+					SelectionChangedEvent<OntologyClassSubmission> event) {
+				// TODO Auto-generated method stub
+				
 			}
+			
 		});
 		
 		classSubmissionsGrid.getSelectionModel().addSelectionHandler(new SelectionHandler<OntologyClassSubmission>() {

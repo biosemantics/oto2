@@ -1,9 +1,7 @@
 package edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology;
 
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
@@ -25,7 +23,7 @@ public interface IToOntologyService extends RemoteService {
 
 	public List<OntologySynonymSubmission> getSynonymSubmissions(Collection collection);
 	
-	public void createOntology(Collection collection, Ontology ontology) throws OntologyFileException;
+	public void createOntology(Collection collection, Ontology ontology) throws OntologyFileException, OntologyExistsException;
 	
 	public void refreshOntologySubmissionStatuses(Collection collection);
 	

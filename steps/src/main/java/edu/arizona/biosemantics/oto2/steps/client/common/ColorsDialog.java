@@ -41,6 +41,7 @@ import edu.arizona.biosemantics.oto2.steps.client.event.SetColorEvent;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Color;
 import edu.arizona.biosemantics.oto2.steps.shared.model.ColorProperties;
+import edu.arizona.biosemantics.oto2.steps.shared.model.Colorable;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Term;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynonymSubmission;
@@ -366,25 +367,25 @@ public class ColorsDialog extends CommonDialog {
 	private List<ColorEntry> createColorEntries() {	
 		List<ColorEntry> colorEntries = new LinkedList<ColorEntry>();
 				
-		Map<Object, Color> colorizationMap = collection.getColorizations();
-		for(Object object : colorizationMap.keySet()) {
-			if(object instanceof Term) {
-				Term term = (Term)object;
-				colorEntries.add(new ColorEntry("term-" + term.getId(), term, term.getTerm(), colorizationMap.get(object)));
+		Map<Colorable, Color> colorizationMap = collection.getColorizations();
+		for(Colorable colorable : colorizationMap.keySet()) {
+			if(colorable instanceof Term) {
+				Term term = (Term)colorable;
+				colorEntries.add(new ColorEntry("term-" + term.getId(), term, term.getTerm(), colorizationMap.get(colorable)));
 			}
-			if(object instanceof OntologyClassSubmission) {
-				OntologyClassSubmission ontologyClassSubmission = (OntologyClassSubmission)object;
+			if(colorable instanceof OntologyClassSubmission) {
+				OntologyClassSubmission ontologyClassSubmission = (OntologyClassSubmission)colorable;
 				colorEntries.add(new ColorEntry("ontologyClassSubmission-" + ontologyClassSubmission.getId(), 
 						ontologyClassSubmission, 
 						ontologyClassSubmission.getSubmissionTerm() + " -> " + ontologyClassSubmission.getOntology().getAcronym(), 
-						colorizationMap.get(object)));
+						colorizationMap.get(colorable)));
 			}
-			if(object instanceof OntologySynonymSubmission) {
-				OntologySynonymSubmission ontologySynonymSubmission = (OntologySynonymSubmission)object;
+			if(colorable instanceof OntologySynonymSubmission) {
+				OntologySynonymSubmission ontologySynonymSubmission = (OntologySynonymSubmission)colorable;
 				colorEntries.add(new ColorEntry("ontologySynonymSubmission-" + ontologySynonymSubmission.getId(), 
 						ontologySynonymSubmission, 
 						ontologySynonymSubmission.getSubmissionTerm() + " -> " + ontologySynonymSubmission.getOntology().getAcronym(), 
-						colorizationMap.get(object)));
+						colorizationMap.get(colorable)));
 			}
 		}
 		return colorEntries;
