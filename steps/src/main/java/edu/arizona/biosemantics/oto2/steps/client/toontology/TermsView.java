@@ -46,6 +46,7 @@ import edu.arizona.biosemantics.oto2.steps.client.event.AddCommentEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.RefreshSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.SetColorEvent;
+import edu.arizona.biosemantics.oto2.steps.client.event.TermMarkUselessEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.TermSelectEvent;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Color;
@@ -93,8 +94,32 @@ public class TermsView implements IsWidget {
 			if(selected == null || selected.isEmpty()) {
 				event.setCancelled(true);
 				this.hide();
-			} else {				
-				final List<Term> terms = new LinkedList<Term>(selected);
+			} else {
+				this.add(new HeaderMenuItem("Term"));
+				MenuItem markUseless = new MenuItem("Mark");
+				Menu subMenu = new Menu();
+				markUseless.setSubMenu(subMenu);
+				MenuItem useless = new MenuItem("Not Usefull");
+				MenuItem useful = new MenuItem("Useful");
+				subMenu.add(useless);
+				subMenu.add(useful);
+				useless.addSelectionHandler(new SelectionHandler<Item>() {
+					@Override
+					public void onSelection(SelectionEvent<Item> event) {
+						for(Term term : selected)
+							term.setRemoved(true);
+						eventBus.fireEvent(new TermMarkUselessEvent(selected, true));
+					}
+				});
+				useful.addSelectionHandler(new SelectionHandler<Item>() {
+					@Override
+					public void onSelection(SelectionEvent<Item> event) {
+						for(Term term : selected)
+							term.setRemoved(false);
+						eventBus.fireEvent(new TermMarkUselessEvent(selected, false));
+					}
+				});
+				this.add(markUseless);
 				
 				/*this.add(new HeaderMenuItem("Term"));
 				MenuItem markUseless = new MenuItem("Mark");
@@ -294,14 +319,20 @@ public class TermsView implements IsWidget {
 					if(textTreeNode instanceof TermTreeNode) {
 						TermTreeNode termTreeNode = (TermTreeNode)textTreeNode;
 						Term term = termTreeNode.getTerm();
-						if(collection.hasColorization(term)) {
-							String colorHex = collection.getColorization(term).getHex();
-							sb.append(SafeHtmlUtils.fromTrustedString("<div style='padding-left:5px; padding-right:5px; background-color:#" + colorHex + 
-									"'>" + 
+						if(term.isRemoved()) {
+							sb.append(SafeHtmlUtils.fromTrustedString("<div style='padding-left:5px; padding-right:5px; background-color:gray; " +
+									"color:white'>" + 
 									textTreeNode.getText() + "</div>"));
 						} else {
-							sb.append(SafeHtmlUtils.fromTrustedString("<div style='padding-left:5px; padding-right:5px'>" + textTreeNode.getText() +
-									"</div>"));
+							if(collection.hasColorization(term)) {
+								String colorHex = collection.getColorization(term).getHex();
+								sb.append(SafeHtmlUtils.fromTrustedString("<div style='padding-left:5px; padding-right:5px; background-color:#" + colorHex + 
+										"'>" + 
+										textTreeNode.getText() + "</div>"));
+							} else {
+								sb.append(SafeHtmlUtils.fromTrustedString("<div style='padding-left:5px; padding-right:5px'>" + textTreeNode.getText() +
+										"</div>"));
+							}
 						}
 					} else {
 						sb.append(SafeHtmlUtils.fromTrustedString("<div style='padding-left:5px; padding-right:5px'>" + textTreeNode.getText() +
@@ -309,7 +340,6 @@ public class TermsView implements IsWidget {
 					}
 			}
 		});
-		
 		termTree.setSelectionModel(termTreeSelectionModel);
 		termTree.getElement().setAttribute("source", "termsview");
 		termTree.setContextMenu(new TermMenu());
@@ -324,19 +354,21 @@ public class TermsView implements IsWidget {
 	}
 	
 	private void addDefaultNodes() {
-		availableTermsNode = new BucketTreeNode(new Bucket("Available Terms"));
-		removedTermsNode = new BucketTreeNode(new Bucket("Removed Terms"));
+		//availableTermsNode = new BucketTreeNode(new Bucket("Available Terms"));
+		//removedTermsNode = new BucketTreeNode(new Bucket("Removed Terms"));
 		availableStructureTermsNode = new BucketTreeNode(new Bucket("Structures"));
-		removedStructureTermsNode = new BucketTreeNode(new Bucket("Structures"));
+		//removedStructureTermsNode = new BucketTreeNode(new Bucket("Structures"));
 		availableCharacterTermsNode = new BucketTreeNode(new Bucket("Characters"));
-		removedCharacterTermsNode = new BucketTreeNode(new Bucket("Characters"));
+		//removedCharacterTermsNode = new BucketTreeNode(new Bucket("Characters"));
 		
-		treeStore.add(availableTermsNode);
-		treeStore.add(availableTermsNode, availableStructureTermsNode);
-		treeStore.add(availableTermsNode, availableCharacterTermsNode);
-		treeStore.add(removedTermsNode);
-		treeStore.add(removedTermsNode, removedStructureTermsNode);
-		treeStore.add(removedTermsNode, removedCharacterTermsNode);
+		//treeStore.add(availableTermsNode);
+		//treeStore.add(availableTermsNode, availableStructureTermsNode);
+		//treeStore.add(availableTermsNode, availableCharacterTermsNode);
+		//treeStore.add(removedTermsNode);
+		//treeStore.add(removedTermsNode, removedStructureTermsNode);
+		//treeStore.add(removedTermsNode, removedCharacterTermsNode);
+		treeStore.add(availableStructureTermsNode);
+		treeStore.add(availableCharacterTermsNode);
 	}
 
 	private void bindEvents() {
@@ -359,7 +391,7 @@ public class TermsView implements IsWidget {
 			@Override
 			public void onLoad(LoadCollectionEvent event) {
 				TermsView.this.collection = event.getCollection();
-				treeStore.removeChildren(availableStructureTermsNode);
+				/*treeStore.removeChildren(availableStructureTermsNode);
 				treeStore.removeChildren(availableCharacterTermsNode);
 				treeStore.removeChildren(removedStructureTermsNode);
 				treeStore.removeChildren(removedCharacterTermsNode);
@@ -383,7 +415,18 @@ public class TermsView implements IsWidget {
 						}
 						break;
 					}
+				}*/
+				for(Term term : event.getCollection().getTerms()) {
+					switch(term.getCategory().toLowerCase()) {
+						case "character":
+							addTermTreeNode(availableCharacterTermsNode, new TermTreeNode(term));
+							break;
+						case "structure":
+							addTermTreeNode(availableStructureTermsNode, new TermTreeNode(term));
+							break;
+					}
 				}
+				
 				termTree.expandAll();
 			}
 		});
@@ -422,6 +465,17 @@ public class TermsView implements IsWidget {
 						if(termTermTreeNodeMap.get(term) != null && treeStoreContent.contains(termTermTreeNodeMap.get(term))) 
 							treeStore.update(termTermTreeNodeMap.get(term));
 					}
+				}
+			}
+		});
+		
+		eventBus.addHandler(TermMarkUselessEvent.TYPE, new TermMarkUselessEvent.Handler() {
+			@Override
+			public void onSelect(TermMarkUselessEvent event) {
+				List<TextTreeNode> treeStoreContent = treeStore.getAll();
+				for(Term term : event.getTerms()) {
+					if(termTermTreeNodeMap.get(term) != null && treeStoreContent.contains(termTermTreeNodeMap.get(term))) 
+						treeStore.update(termTermTreeNodeMap.get(term));
 				}
 			}
 		});

@@ -176,7 +176,7 @@ public class OntologyDAO {
 		return newOwlClass.getIRI().toString();
 	}
 	
-	public void insertSynonymSubmission(Collection collection, OntologySynonymSubmission ontologySynonymSubmission) throws OntologyFileException { 
+	public String insertSynonymSubmission(Collection collection, OntologySynonymSubmission ontologySynonymSubmission) throws OntologyFileException { 
 		OWLOntology owlOntology = getOwlOntology(collection, ontologySynonymSubmission);
 		OWLReasoner owlReasoner = owlReasonerFactory.createReasoner(owlOntology, owlReasonerConfig);
 		
@@ -241,6 +241,7 @@ public class OntologyDAO {
 		submission.setPermanentID(idString.replaceFirst(";$", ""));
 		submission.setSuperClass(superString.replaceFirst(";$", ""));	
 		submission.setTmpID(""); */
+		return ontologySynonymSubmission.getClassIRI().toString();
 	}
 	
 

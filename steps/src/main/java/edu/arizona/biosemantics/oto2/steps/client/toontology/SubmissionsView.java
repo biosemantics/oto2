@@ -108,7 +108,7 @@ public class SubmissionsView implements IsWidget {
 		eventBus.addHandler(RemoveOntologySynonymSubmissionsEvent.TYPE, new RemoveOntologySynonymSubmissionsEvent.Handler() {
 			@Override
 			public void onRemove(RemoveOntologySynonymSubmissionsEvent event) {
-				refreshClassSubmissions();
+				refreshSynonymSubmissions();
 			}
 		});
 		eventBus.addHandler(UpdateOntologyClassSubmissionsEvent.TYPE, new UpdateOntologyClassSubmissionsEvent.Handler() {
@@ -120,7 +120,7 @@ public class SubmissionsView implements IsWidget {
 		eventBus.addHandler(UpdateOntologySynonymsSubmissionsEvent.TYPE, new UpdateOntologySynonymsSubmissionsEvent.Handler() {
 			@Override
 			public void onRemove(UpdateOntologySynonymsSubmissionsEvent event) {
-				refreshClassSubmissions();
+				refreshSynonymSubmissions();
 			}
 		});
 	}

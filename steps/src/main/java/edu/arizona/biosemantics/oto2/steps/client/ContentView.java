@@ -3,6 +3,7 @@ package edu.arizona.biosemantics.oto2.steps.client;
 import com.google.gwt.event.shared.EventBus;
 import com.sencha.gxt.core.client.util.Margins;
 import com.sencha.gxt.widget.core.client.ContentPanel;
+import com.sencha.gxt.widget.core.client.TabItemConfig;
 import com.sencha.gxt.widget.core.client.TabPanel;
 import com.sencha.gxt.widget.core.client.container.BorderLayoutContainer;
 
@@ -31,9 +32,15 @@ public class ContentView extends BorderLayoutContainer {
 		TabPanel tabPanel = new TabPanel();
 		//tabPanel.addSelectionHandler(handler);
 		tabPanel.setWidth(450);
-		tabPanel.add(new ToOntologyView(eventBus), "To Ontology");
-		tabPanel.add(new HierarchyView(eventBus), "Hierarchy");
-		tabPanel.add(new OrderView(eventBus), "Orders");
+		TabItemConfig toOntologyConfig = new TabItemConfig("To Ontology");
+		toOntologyConfig.setEnabled(true);
+		tabPanel.add(new ToOntologyView(eventBus), toOntologyConfig);
+		TabItemConfig hierarchyConfig = new TabItemConfig("Hierarchy");
+		hierarchyConfig.setEnabled(false);
+		tabPanel.add(new HierarchyView(eventBus), hierarchyConfig);
+		TabItemConfig orderConfig = new TabItemConfig("Orders");
+		orderConfig.setEnabled(false);
+		tabPanel.add(new OrderView(eventBus), orderConfig);
 	
 		this.setWidget(tabPanel);
 		

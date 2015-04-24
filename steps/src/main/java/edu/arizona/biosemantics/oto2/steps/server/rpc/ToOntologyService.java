@@ -79,8 +79,8 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 		daoManager.getOntologySynonymSubmissionDAO().insert(submission);
 		Collection collection = daoManager.getCollectionDAO().get(submission.getTerm().getCollectionId());
 		if(submission.getOntology().hasCollectionId()) {
-			daoManager.getOntologyFileDAO().insertSynonymSubmission(collection, submission);
-			//setAccepted(submission, classIRI);
+			String classIRI = daoManager.getOntologyFileDAO().insertSynonymSubmission(collection, submission);
+			setAccepted(submission, classIRI);
 		} else {
 			//TODO: send to bioportal for these ontologies that are not local
 			try {
