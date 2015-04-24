@@ -29,11 +29,11 @@ import com.sencha.gxt.widget.core.client.form.TextField;
 import edu.arizona.biosemantics.oto2.steps.client.OtoSteps;
 import edu.arizona.biosemantics.oto2.steps.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.steps.client.common.CreateOntologyDialog;
-import edu.arizona.biosemantics.oto2.steps.client.event.EditClassEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.OntologyClassSubmissionSelectEvent;
-import edu.arizona.biosemantics.oto2.steps.client.event.SubmitClassEvent;
+import edu.arizona.biosemantics.oto2.steps.client.event.CreateOntologyClassSubmissionEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.TermSelectEvent;
+import edu.arizona.biosemantics.oto2.steps.client.event.UpdateOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.steps.shared.model.OntologyProperties;
@@ -102,8 +102,8 @@ public class SubmitClassView implements IsWidget {
 	    formContainer.add(new FieldLabel(sourceField, "Source"), new VerticalLayoutData(1, -1));
 	    formContainer.add(new FieldLabel(sampleArea, "Sample Sentence"), new VerticalLayoutData(1, 100));
 	    formContainer.add(new FieldLabel(partOfField, "Part of IRI"), new VerticalLayoutData(1, -1));
-	    formContainer.add(new FieldLabel(isEntityCheckBox, "Entity"), new VerticalLayoutData(1, -1));
-	    formContainer.add(new FieldLabel(isQualityCheckBox, "Quality"), new VerticalLayoutData(1, -1));
+	    formContainer.add(new FieldLabel(isEntityCheckBox, "Is Entity"), new VerticalLayoutData(1, -1));
+	    formContainer.add(new FieldLabel(isQualityCheckBox, "Is Quality"), new VerticalLayoutData(1, -1));
 	    formContainer.setScrollMode(ScrollMode.AUTOY);
 	    formContainer.setAdjustForScroll(true);
 	    vlc.add(formContainer, new VerticalLayoutData(1, 1));
@@ -151,21 +151,21 @@ public class SubmitClassView implements IsWidget {
 				dialog.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
 					@Override
 					public void onSelect(SelectEvent event) {
-						Ontology ontology = new Ontology();
+						final Ontology ontology = new Ontology();
 						ontology.setName(dialog.getName());
 						ontology.setAcronym(dialog.getAcronym());
 						ontology.setTaxonGroups(dialog.getTaxonGroups());
 						ontology.setCollectionId(collection.getId());
 						
-						toOntologyService.createOntology(collection, ontology, new AsyncCallback<Void>() {
+						toOntologyService.createOntology(collection, ontology, new AsyncCallback<Ontology>() {
 							@Override
 							public void onFailure(Throwable caught) {
 								Alerter.failedToCreateOntology();
 							}
 							@Override
-							public void onSuccess(Void result) {
+							public void onSuccess(Ontology result) {
 								Alerter.succesfulCreatedOntology();
-								refreshOntologies();
+								refreshOntologies(result);
 							}
 						});
 					}
@@ -193,7 +193,7 @@ public class SubmitClassView implements IsWidget {
 			public void onSelect(SelectEvent event) {
 				
 				final OntologyClassSubmission submission = getClassSubmission();
-				toOntologyService.submitClass(submission, new AsyncCallback<Void>() {
+				toOntologyService.submitClass(submission, new AsyncCallback<OntologyClassSubmission>() {
 					@Override
 					public void onFailure(Throwable caught) {
 						if(caught instanceof ClassExistsException) {
@@ -202,8 +202,8 @@ public class SubmitClassView implements IsWidget {
 							Alerter.failedToSubmitClass(caught);
 					}
 					@Override
-					public void onSuccess(Void result) {
-						eventBus.fireEvent(new SubmitClassEvent(submission));
+					public void onSuccess(OntologyClassSubmission result) {
+						eventBus.fireEvent(new CreateOntologyClassSubmissionEvent(result));
 					}
 				});
 			}
@@ -222,7 +222,7 @@ public class SubmitClassView implements IsWidget {
 					}
 					@Override
 					public void onSuccess(Void result) {
-						eventBus.fireEvent(new EditClassEvent(submissions));
+						eventBus.fireEvent(new UpdateOntologyClassSubmissionsEvent(submissions));
 					}
 				});
 			}
@@ -245,17 +245,17 @@ public class SubmitClassView implements IsWidget {
 	
 	protected void clearFields(boolean fireEvents) {
 		this.termComboBox.setValue(null, false);
-		this.submissionTermField.setValue(null, false); 
+		this.submissionTermField.setValue("", false); 
 		this.ontologyComboBox.setValue(null, false);
-		this.classIRIField.setValue(null, false);
-		this.superclassIRIField.setValue(null, false);
-		this.definitionArea.setValue(null, false);
-		this.synonymsField.setValue(null, false);
-		this.sourceField.setValue(null, false);
-		this.sampleArea.setValue(null, false);
-		this.partOfField.setValue(null, false);
-		this.isEntityCheckBox.setValue(null, false);
-		this.isQualityCheckBox.setValue(null, false);
+		this.classIRIField.setValue("", false);
+		this.superclassIRIField.setValue("", false);
+		this.definitionArea.setValue("", false);
+		this.synonymsField.setValue("", false);
+		this.sourceField.setValue("", false);
+		this.sampleArea.setValue("", false);
+		this.partOfField.setValue("", false);
+		this.isEntityCheckBox.setValue(false, false);
+		this.isQualityCheckBox.setValue(false, false);
 	}
 
 	protected void setOntologyClassSubmission(OntologyClassSubmission ontologyClassSubmission) {
@@ -275,6 +275,9 @@ public class SubmitClassView implements IsWidget {
 	}
 	
 	protected OntologyClassSubmission getClassSubmission() {
+		boolean entity = isEntityCheckBox.getValue();
+		boolean quality = isQualityCheckBox.getValue();
+		String user = OtoSteps.user;
 		return new OntologyClassSubmission(termComboBox.getValue(), submissionTermField.getValue(), 
 				ontologyComboBox.getValue(), classIRIField.getValue(), superclassIRIField.getValue(),
 				definitionArea.getValue(), synonymsField.getValue(), sourceField.getValue(), sampleArea.getValue(), partOfField.getValue(), 
@@ -282,7 +285,7 @@ public class SubmitClassView implements IsWidget {
 	}
 
 	protected void initCollection() {
-		refreshOntologies();
+		refreshOntologies(null);
 		refreshTerms();
 	}
 
@@ -291,7 +294,7 @@ public class SubmitClassView implements IsWidget {
 		termStore.addAll(collection.getTerms());
 	}
 
-	private void refreshOntologies() {
+	private void refreshOntologies(final Ontology ontologyToSelect) {
 		toOntologyService.getOntologies(collection, new AsyncCallback<List<Ontology>>() {
 			@Override
 			public void onFailure(Throwable caught) {
@@ -302,6 +305,8 @@ public class SubmitClassView implements IsWidget {
 			public void onSuccess(List<Ontology> result) {
 				ontologiesStore.clear();
 				ontologiesStore.addAll(result);
+				if(ontologyToSelect != null)
+					ontologyComboBox.setValue(ontologyToSelect);
 			}
 		});
 	}

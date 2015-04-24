@@ -13,15 +13,15 @@ public interface IToOntologyServiceAsync {
 
 	public void getOntologies(Collection collection, AsyncCallback<List<Ontology>> callback);
 
-	public void submitClass(OntologyClassSubmission submission, AsyncCallback<Void> callback);
+	public void submitClass(OntologyClassSubmission submission, AsyncCallback<OntologyClassSubmission> callback);
 
-	public void submitSynonym(OntologySynonymSubmission submission, AsyncCallback<Void> callback);
+	public void submitSynonym(OntologySynonymSubmission submission, AsyncCallback<OntologySynonymSubmission> callback);
 
 	public void getClassSubmissions(Collection collection, AsyncCallback<List<OntologyClassSubmission>> callback);
 
 	public void getSynonymSubmissions(Collection collection, AsyncCallback<List<OntologySynonymSubmission>> callback);
 
-	public void createOntology(Collection collection, Ontology ontology, AsyncCallback<Void> asyncCallback);
+	public void createOntology(Collection collection, Ontology ontology, AsyncCallback<Ontology> callback);
 	
 	public void refreshOntologySubmissionStatuses(Collection collection, AsyncCallback<Void> callback);
 	

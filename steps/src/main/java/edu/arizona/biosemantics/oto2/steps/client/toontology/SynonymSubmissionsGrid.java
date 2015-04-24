@@ -39,7 +39,7 @@ import edu.arizona.biosemantics.oto2.steps.client.common.ColorableCell;
 import edu.arizona.biosemantics.oto2.steps.client.event.AddCommentEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.OntologySynonymSubmissionSelectEvent;
-import edu.arizona.biosemantics.oto2.steps.client.event.RemoveOntologySynonymsSubmissionsEvent;
+import edu.arizona.biosemantics.oto2.steps.client.event.RemoveOntologySynonymSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.SetColorEvent;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Color;
@@ -99,72 +99,74 @@ public class SynonymSubmissionsGrid implements IsWidget {
 			@Override
 			public void onBeforeShow(BeforeShowEvent event) {
 				menu.clear();
-				MenuItem deleteItem = new MenuItem("Remove");
-				menu.add(deleteItem);
-				deleteItem.addSelectionHandler(new SelectionHandler<Item>() {
-					@Override
-					public void onSelection(SelectionEvent<Item> event) {
-						toOntologyService.removeOntologySynonymSubmissions(collection, 
-								grid.getSelectionModel().getSelectedItems(), new AsyncCallback<Void>() {
-							@Override
-							public void onFailure(Throwable caught) {
-								Alerter.failedToRemoveOntologyClassSubmission();
-							}
-							@Override
-							public void onSuccess(Void result) {
-								eventBus.fireEvent(new RemoveOntologySynonymsSubmissionsEvent(grid.getSelectionModel().getSelectedItems()));
-							}
-						});
-					}
-				});
-				menu.add(deleteItem);
-
 				final List<OntologySynonymSubmission> selected = checkBoxSelectionModel.getSelectedItems();
-				
-				menu.add(new HeaderMenuItem("Annotation"));
-				MenuItem comment = new MenuItem("Comment");
-				final OntologySynonymSubmission ontologySynonymSubmission = selected.get(0);
-				comment.addSelectionHandler(new SelectionHandler<Item>() {
-					@Override
-					public void onSelection(SelectionEvent<Item> event) {
-						final MultiLinePromptMessageBox box = new MultiLinePromptMessageBox("Comment", "");
-						box.getTextArea().setValue(getUsersComment(ontologySynonymSubmission));
-						box.addHideHandler(new HideHandler() {
-							@Override
-							public void onHide(HideEvent event) {
-								final Comment newComment = new Comment(OtoSteps.user, box.getValue());
-								collection.addComments((java.util.Collection)selected, newComment);
-								collectionService.update(collection, new AsyncCallback<Void>() {
-									@Override
-									public void onFailure(Throwable caught) {
-										Alerter.addCommentFailed(caught);
-									}
-									@Override
-									public void onSuccess(Void result) {
-										eventBus.fireEvent(new AddCommentEvent(
-												(java.util.Collection)selected, newComment));
-										String comment = Format.ellipse(box.getValue(), 80);
-										String message = Format.substitute("'{0}' saved", new Params(comment));
-										Info.display("Comment", message);
-									}
-								});
-							}
-						});
-						box.show();
-					}
+				if(!selected.isEmpty()) {
+					
+					MenuItem deleteItem = new MenuItem("Remove");
+					menu.add(deleteItem);
+					deleteItem.addSelectionHandler(new SelectionHandler<Item>() {
+						@Override
+						public void onSelection(SelectionEvent<Item> event) {
+							toOntologyService.removeOntologySynonymSubmissions(collection, 
+									grid.getSelectionModel().getSelectedItems(), new AsyncCallback<Void>() {
+								@Override
+								public void onFailure(Throwable caught) {
+									Alerter.failedToRemoveOntologyClassSubmission();
+								}
+								@Override
+								public void onSuccess(Void result) {
+									eventBus.fireEvent(new RemoveOntologySynonymSubmissionsEvent(grid.getSelectionModel().getSelectedItems()));
+								}
+							});
+						}
+					});
+					menu.add(deleteItem);
 
-					private String getUsersComment(
-							OntologySynonymSubmission ontologySynonymSubmission) {
-						// TODO Auto-generated method stub
-						return null;
-					}
-				});
-				menu.add(comment);
-				final MenuItem colorizeItem = new MenuItem("Colorize");
-				if(!collection.getColors().isEmpty()) {
-					menu.add(colorizeItem);
-					colorizeItem.setSubMenu(createColorizeMenu(selected));
-				} 
+					menu.add(new HeaderMenuItem("Annotation"));
+					MenuItem comment = new MenuItem("Comment");
+					final OntologySynonymSubmission ontologySynonymSubmission = selected.get(0);
+					comment.addSelectionHandler(new SelectionHandler<Item>() {
+						@Override
+						public void onSelection(SelectionEvent<Item> event) {
+							final MultiLinePromptMessageBox box = new MultiLinePromptMessageBox("Comment", "");
+							box.getTextArea().setValue(getUsersComment(ontologySynonymSubmission));
+							box.addHideHandler(new HideHandler() {
+								@Override
+								public void onHide(HideEvent event) {
+									final Comment newComment = new Comment(OtoSteps.user, box.getValue());
+									collection.addComments((java.util.Collection)selected, newComment);
+									collectionService.update(collection, new AsyncCallback<Void>() {
+										@Override
+										public void onFailure(Throwable caught) {
+											Alerter.addCommentFailed(caught);
+										}
+										@Override
+										public void onSuccess(Void result) {
+											eventBus.fireEvent(new AddCommentEvent(
+													(java.util.Collection)selected, newComment));
+											String comment = Format.ellipse(box.getValue(), 80);
+											String message = Format.substitute("'{0}' saved", new Params(comment));
+											Info.display("Comment", message);
+										}
+									});
+								}
+							});
+							box.show();
+						}
+	
+						private String getUsersComment(
+								OntologySynonymSubmission ontologySynonymSubmission) {
+							// TODO Auto-generated method stub
+							return null;
+						}
+					});
+					menu.add(comment);
+					final MenuItem colorizeItem = new MenuItem("Colorize");
+					if(!collection.getColors().isEmpty()) {
+						menu.add(colorizeItem);
+						colorizeItem.setSubMenu(createColorizeMenu(selected));
+					} 
+				}
 			}
 
 			protected Menu createColorizeMenu(final List<OntologySynonymSubmission> selected) {

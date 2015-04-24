@@ -28,10 +28,6 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	private DAOManager daoManager = new DAOManager();
 	private OntologyDAO ontologyDAO = new OntologyDAO();
 	
-	public Collection insert(Collection collection) {
-		return daoManager.getCollectionDAO().insert(collection);
-	}
-
 	@Override
 	public List<Ontology> getOntologies(Collection collection) {
 		return daoManager.getOntologyDBDAO().getOntologiesForCollection(collection);
@@ -48,17 +44,18 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	}
 	
 	@Override
-	public void createOntology(Collection collection, Ontology ontology) throws OntologyFileException, OntologyExistsException {
+	public Ontology createOntology(Collection collection, Ontology ontology) throws OntologyFileException, OntologyExistsException {
 		ontology.setIri(Configuration.etcOntologyBaseIRI +collection.getId() + "/" + ontology.getAcronym());
 		ontology = daoManager.getOntologyDBDAO().insert(ontology);
 		if(ontology.hasId())
 			daoManager.getOntologyFileDAO().insertOntology(ontology);
 		else
 			throw new OntologyExistsException();
+		return ontology;
 	}
 
 	@Override
-	public void submitClass(OntologyClassSubmission submission) throws OntologyFileException, ClassExistsException, OntologyBioportalException {
+	public OntologyClassSubmission submitClass(OntologyClassSubmission submission) throws OntologyFileException, ClassExistsException, OntologyBioportalException {
 		submission = daoManager.getOntologyClassSubmissionDAO().insert(submission);
 		Collection collection = daoManager.getCollectionDAO().get(submission.getTerm().getCollectionId());
 		
@@ -74,10 +71,11 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 			}
 			setPending(submission);
 		}
+		return submission;
 	}
 
 	@Override
-	public void submitSynonym(OntologySynonymSubmission submission) throws OntologyFileException, OntologyBioportalException {
+	public OntologySynonymSubmission submitSynonym(OntologySynonymSubmission submission) throws OntologyFileException, OntologyBioportalException {
 		daoManager.getOntologySynonymSubmissionDAO().insert(submission);
 		Collection collection = daoManager.getCollectionDAO().get(submission.getTerm().getCollectionId());
 		if(submission.getOntology().hasCollectionId()) {
@@ -93,6 +91,7 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 			}
 			setPending(submission);
 		}
+		return submission;
 	}
 	
 	/**
@@ -102,52 +101,72 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	 */
 	@Override
 	public void updateOntologyClassSubmissions(Collection collection, 
-			java.util.Collection<OntologyClassSubmission> submissions) {
+			java.util.Collection<OntologyClassSubmission> submissions) throws OntologyBioportalException {
 		for(OntologyClassSubmission submission : submissions) {
 			daoManager.getOntologyClassSubmissionDAO().update(submission);
 			if(submission.getOntology().hasCollectionId()) {
 				daoManager.getOntologyFileDAO().updateClassSubmission(collection, submission);
 			} else {
-				daoManager.getOntologyBioportalDAO().updateClassSubmission(submission);
+				try {
+					daoManager.getOntologyBioportalDAO().updateClassSubmission(collection, submission);
+				} catch (InterruptedException | ExecutionException e) {
+					log(LogLevel.ERROR, "Couldn't update at bioportal", e);
+					throw new OntologyBioportalException(e);
+				}
 			}
 		}
 	}
 
 	@Override
 	public void updateOntologySynonymSubmissions(Collection collection, 
-			java.util.Collection<OntologySynonymSubmission> submissions) {
+			java.util.Collection<OntologySynonymSubmission> submissions) throws OntologyBioportalException {
 		for(OntologySynonymSubmission submission : submissions) { 
 			daoManager.getOntologySynonymSubmissionDAO().update(submission);
 			if(submission.getOntology().hasCollectionId()) {
 				daoManager.getOntologyFileDAO().updateSynonymSubmission(collection, submission);
 			} else {
-				daoManager.getOntologyBioportalDAO().updateSynonymSubmission(submission);
+				try {
+					daoManager.getOntologyBioportalDAO().updateSynonymSubmission(collection, submission);
+				} catch (InterruptedException | ExecutionException e) {
+					log(LogLevel.ERROR, "Couldn't update at bioportal", e);
+					throw new OntologyBioportalException(e);
+				}
 			}
 		}
 	}
 
 	@Override
 	public void removeOntologyClassSubmissions(Collection collection, 
-			java.util.Collection<OntologyClassSubmission> submissions) {
+			java.util.Collection<OntologyClassSubmission> submissions) throws OntologyBioportalException {
 		for(OntologyClassSubmission submission : submissions) {
 			daoManager.getOntologyClassSubmissionDAO().remove(submission);
 			if(submission.getOntology().hasCollectionId()) {
 				daoManager.getOntologyFileDAO().removeClassSubmission(collection, submission);
 			} else {
-				daoManager.getOntologyBioportalDAO().removeClassSubmission(submission);
+				try {
+					daoManager.getOntologyBioportalDAO().removeClassSubmission(submission);
+				} catch (InterruptedException | ExecutionException e) {
+					log(LogLevel.ERROR, "Couldn't remove at bioportal", e);
+					throw new OntologyBioportalException(e);
+				}
 			}
 		}
 	}
 
 	@Override
 	public void removeOntologySynonymSubmissions(Collection collection, 
-			java.util.Collection<OntologySynonymSubmission> submissions) {
+			java.util.Collection<OntologySynonymSubmission> submissions) throws OntologyBioportalException {
 		for(OntologySynonymSubmission submission : submissions) {
 			daoManager.getOntologySynonymSubmissionDAO().remove(submission);
 			if(submission.getOntology().hasCollectionId()) {
 				daoManager.getOntologyFileDAO().removeSynonymSubmission(collection, submission);
 			} else {
-				daoManager.getOntologyBioportalDAO().removeSynonymSubmission(submission);
+				try {
+					daoManager.getOntologyBioportalDAO().removeSynonymSubmission(submission);
+				} catch (InterruptedException | ExecutionException e) {
+					log(LogLevel.ERROR, "Couldn't remove at bioportal", e);
+					throw new OntologyBioportalException(e);
+				}
 			}
 		}
 	}

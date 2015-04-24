@@ -30,6 +30,18 @@ public class OntologyBioportalDAO {
 	private OntologyClassSubmissionStatusDAO ontologyClassSubmissionStatusDAO;
 	private OntologySynonymSubmissionStatusDAO ontologySynonymSubmissionStatusDAO;
 	
+	public void refreshStatuses(Collection collection) {
+		List<OntologyClassSubmission> ontologyClassSubmissions = ontologyClassSubmissionDAO.get(collection, StatusEnum.PENDING);
+		List<OntologySynonymSubmission> ontologySynonymSubmissions = ontologySynonymSubmissionDAO.get(collection, StatusEnum.PENDING);
+		
+		for(OntologyClassSubmission ontologyClassSubmission : ontologyClassSubmissions) {
+			refresh(ontologyClassSubmission);
+		}
+		for(OntologySynonymSubmission ontologySynonymSubmission : ontologySynonymSubmissions) {
+			refresh(ontologySynonymSubmission);
+		}
+	}
+	
 	public String insertClassSubmission(Collection collection, OntologyClassSubmission submission) throws InterruptedException, ExecutionException {
 		try(BioPortalClient bioPortalClient = new BioPortalClient(Configuration.bioportalUrl, Configuration.bioportalApiKey);) {
 			bioPortalClient.open();
@@ -38,23 +50,6 @@ public class OntologyBioportalDAO {
 			String temporaryIRI = result.get().getId();
 			return temporaryIRI;
 		}
-	}
-
-	private ProvisionalClass createProvisionalClass(Collection collection, OntologyClassSubmission submission) {
-		ProvisionalClass provisionalClass = new ProvisionalClass();
-		provisionalClass.setLabel(submission.getSubmissionTerm());
-		List<String> definitions = new LinkedList<String>();
-		definitions.add(submission.getDefinition());
-		provisionalClass.setDefinition(definitions);
-		provisionalClass.setSubclassOf(submission.getSuperclassIRI());
-		List<String> synonyms = new LinkedList<String>();
-		synonyms.add(submission.getSynonyms());
-		provisionalClass.setSynonym(synonyms);
-		List<String> ontologies = new LinkedList<String>();
-		ontologies.add(submission.getOntology().getIri());
-		provisionalClass.setOntology(ontologies);
-		provisionalClass.setCreator(OtoSteps.user);
-		return provisionalClass;
 	}
 
 	public String insertSynonymSubmission(Collection collection, OntologySynonymSubmission submission) throws InterruptedException, ExecutionException {
@@ -67,6 +62,60 @@ public class OntologyBioportalDAO {
 		}
 	}
 	
+	public String updateClassSubmission(Collection collection, OntologyClassSubmission submission) throws InterruptedException, ExecutionException {
+		try(BioPortalClient bioPortalClient = new BioPortalClient(Configuration.bioportalUrl, Configuration.bioportalApiKey)) {
+			bioPortalClient.open();
+			Future<ProvisionalClass> result = bioPortalClient.patchProvisionalClass(createProvisionalClass(collection, submission));
+			String temporaryIRI = result.get().getId();
+			return temporaryIRI;
+		}
+	}
+
+	public String updateSynonymSubmission(Collection collection, OntologySynonymSubmission submission) throws InterruptedException, ExecutionException {
+		try(BioPortalClient bioPortalClient = new BioPortalClient(Configuration.bioportalUrl, Configuration.bioportalApiKey)) {
+			bioPortalClient.open();
+			Future<ProvisionalClass> result = bioPortalClient.patchProvisionalClass(createProvisionalClass(collection, submission));
+			String temporaryIRI = result.get().getId();
+			return temporaryIRI;
+		}
+	}
+
+	public void removeClassSubmission(OntologyClassSubmission submission) throws InterruptedException, ExecutionException {
+		try(BioPortalClient bioPortalClient = new BioPortalClient(Configuration.bioportalUrl, Configuration.bioportalApiKey)) {
+			bioPortalClient.open();
+			Future<ProvisionalClass> result = bioPortalClient.deleteProvisionalClass(getPendingStatus(submission).getIri());
+			result.get();
+		}
+	}
+
+	public void removeSynonymSubmission(OntologySynonymSubmission submission) throws InterruptedException, ExecutionException {
+		try(BioPortalClient bioPortalClient = new BioPortalClient(Configuration.bioportalUrl, Configuration.bioportalApiKey)) {
+			bioPortalClient.open();
+			Future<ProvisionalClass> result = bioPortalClient.deleteProvisionalClass(getPendingStatus(submission).getIri());
+			result.get();
+		}
+	}
+
+	public void setOntologyClassSubmissionDAO(
+			OntologyClassSubmissionDAO ontologyClassSubmissionDAO) {
+		this.ontologyClassSubmissionDAO = ontologyClassSubmissionDAO;
+	}
+
+	public void setOntologySynonymSubmissionDAO(
+			OntologySynonymSubmissionDAO ontologySynonymSubmissionDAO) {
+		this.ontologySynonymSubmissionDAO = ontologySynonymSubmissionDAO;
+	}
+
+	public void setOntologyClassSubmissionStatusDAO(
+			OntologyClassSubmissionStatusDAO ontologyClassSubmissionStatusDAO) {
+		this.ontologyClassSubmissionStatusDAO = ontologyClassSubmissionStatusDAO;
+	}
+
+	public void setOntologySynonymSubmissionStatusDAO(
+			OntologySynonymSubmissionStatusDAO ontologySynonymSubmissionStatusDAO) {
+		this.ontologySynonymSubmissionStatusDAO = ontologySynonymSubmissionStatusDAO;
+	}
+
 	private ProvisionalClass createProvisionalClass(Collection collection, OntologySynonymSubmission submission) {
 		ProvisionalClass provisionalClass = new ProvisionalClass();
 		provisionalClass.setLabel(submission.getSubmissionTerm());
@@ -80,16 +129,26 @@ public class OntologyBioportalDAO {
 		return provisionalClass;
 	}
 	
-	public void refreshStatuses(Collection collection) {
-		List<OntologyClassSubmission> ontologyClassSubmissions = ontologyClassSubmissionDAO.get(collection, StatusEnum.PENDING);
-		List<OntologySynonymSubmission> ontologySynonymSubmissions = ontologySynonymSubmissionDAO.get(collection, StatusEnum.PENDING);
+	private ProvisionalClass createProvisionalClass(Collection collection, OntologyClassSubmission submission) {
+		String definitionToSubmit = submission.getDefinition() + " "
+				+ "[this term has been used in sentence '"
+				+ submission.getSampleSentence() + "' in source '"
+				+ submission.getSource() + "']";
 		
-		for(OntologyClassSubmission ontologyClassSubmission : ontologyClassSubmissions) {
-			refresh(ontologyClassSubmission);
-		}
-		for(OntologySynonymSubmission ontologySynonymSubmission : ontologySynonymSubmissions) {
-			refresh(ontologySynonymSubmission);
-		}
+		ProvisionalClass provisionalClass = new ProvisionalClass();
+		provisionalClass.setLabel(submission.getSubmissionTerm());
+		List<String> definitions = new LinkedList<String>();
+		definitions.add(definitionToSubmit);
+		provisionalClass.setDefinition(definitions);
+		provisionalClass.setSubclassOf(submission.getSuperclassIRI());
+		List<String> synonyms = new LinkedList<String>();
+		synonyms.add(submission.getSynonyms());
+		provisionalClass.setSynonym(synonyms);
+		List<String> ontologies = new LinkedList<String>();
+		ontologies.add(submission.getOntology().getIri());
+		provisionalClass.setOntology(ontologies);
+		provisionalClass.setCreator(OtoSteps.user);
+		return provisionalClass;
 	}
 	
 	private void refresh(OntologySynonymSubmission ontologySynonymSubmission) {
@@ -132,7 +191,7 @@ public class OntologyBioportalDAO {
 
 	private void refresh(OntologyClassSubmission ontologyClassSubmission) {
 		OntologyClassSubmissionStatus pendingStatus = getPendingStatus(ontologyClassSubmission);
-		if(isAccepted(ontologyClassSubmission)) {
+		if(!isAccepted(ontologyClassSubmission)) {
 			try(BioPortalClient bioPortalClient = new BioPortalClient(Configuration.bioportalUrl, Configuration.bioportalApiKey);) {
 				bioPortalClient.open();
 				Future<ProvisionalClass> result = bioPortalClient.getProvisionalClass(pendingStatus.getIri());
@@ -167,69 +226,4 @@ public class OntologyBioportalDAO {
 		}
 		return false;
 	}
-
-	/*public void updateTerm() {
-		/*String definitionToSubmit = submission.getDefinition() + " "
-				+ "[this term has been used in sentence '"
-				+ submission.getSampleSentence() + "' in source '"
-				+ submission.getSource() + "']";
-		ProvisionalClass provisionalClass = new ProvisionalClass();
-		provisionalClass.setId(submission.getTmpID());
-		provisionalClass.setLabel(submission.getTerm());
-		List<String> definitions = new LinkedList<String>();
-		definitions.add(submission.getDefinition());
-		provisionalClass.setDefinition(definitions);
-		provisionalClass.setSubclassOf(submission.getSuperClass());
-		List<String> synonyms = new LinkedList<String>();
-		// need to split ?
-		synonyms.add(submission.getSynonyms());
-		provisionalClass.setSynonym(synonyms);
-		List<String> ontologies = new LinkedList<String>();
-		ontologies.add(submission.getOntologyID());
-		provisionalClass.setOntology(ontologies);
-		provisionalClass.setCreator(bioportalUserID);
-
-		bioPortalClient.patchProvisionalClass(provisionalClass);
-	}*/
-
-	/*public void deleteTerm() {
-		/*bioPortalClient.deleteProvisionalClass(submission.getTmpID());
-	}*/
-
-	public void setOntologyClassSubmissionDAO(
-			OntologyClassSubmissionDAO ontologyClassSubmissionDAO) {
-		this.ontologyClassSubmissionDAO = ontologyClassSubmissionDAO;
-	}
-
-	public void setOntologySynonymSubmissionDAO(
-			OntologySynonymSubmissionDAO ontologySynonymSubmissionDAO) {
-		this.ontologySynonymSubmissionDAO = ontologySynonymSubmissionDAO;
-	}
-
-	public void setOntologyClassSubmissionStatusDAO(
-			OntologyClassSubmissionStatusDAO ontologyClassSubmissionStatusDAO) {
-		this.ontologyClassSubmissionStatusDAO = ontologyClassSubmissionStatusDAO;
-	}
-
-	public void setOntologySynonymSubmissionStatusDAO(
-			OntologySynonymSubmissionStatusDAO ontologySynonymSubmissionStatusDAO) {
-		this.ontologySynonymSubmissionStatusDAO = ontologySynonymSubmissionStatusDAO;
-	}
-
-	public void updateClassSubmission(OntologyClassSubmission submission) {
-		
-	}
-
-	public void updateSynonymSubmission(OntologySynonymSubmission submission) {
-		
-	}
-
-	public void removeClassSubmission(OntologyClassSubmission submission) {
-		
-	}
-
-	public void removeSynonymSubmission(OntologySynonymSubmission submission) {
-		
-	}
-
 }

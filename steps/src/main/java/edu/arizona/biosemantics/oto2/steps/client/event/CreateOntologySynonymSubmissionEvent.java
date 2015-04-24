@@ -3,19 +3,19 @@ package edu.arizona.biosemantics.oto2.steps.client.event;
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
 
-import edu.arizona.biosemantics.oto2.steps.client.event.SubmitSynonymEvent.Handler;
+import edu.arizona.biosemantics.oto2.steps.client.event.CreateOntologySynonymSubmissionEvent.Handler;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynonymSubmission;
 
-public class SubmitSynonymEvent extends GwtEvent<Handler> {
+public class CreateOntologySynonymSubmissionEvent extends GwtEvent<Handler> {
 
 	public interface Handler extends EventHandler {
-		void onSubmission(SubmitSynonymEvent event);
+		void onSubmission(CreateOntologySynonymSubmissionEvent event);
 	}
 	
     public static Type<Handler> TYPE = new Type<Handler>();
 	private OntologySynonymSubmission synonymSubmission;
 
-    public SubmitSynonymEvent(OntologySynonymSubmission synonymSubmission) {
+    public CreateOntologySynonymSubmissionEvent(OntologySynonymSubmission synonymSubmission) {
     	this.synonymSubmission = synonymSubmission;
     }
     

@@ -40,12 +40,15 @@ public class OntologyClassSubmissionStatus implements Serializable, Comparable<O
 	public void setOntologyClassSubmissionId(int ontologyClassSubmissionId) {
 		this.ontologyClassSubmissionId = ontologyClassSubmissionId;
 	}
+	
 	public Status getStatus() {
 		return status;
 	}
+	
 	public void setStatus(Status status) {
 		this.status = status;
 	}
+	
 	public String getIri() {
 		return iri;
 	}

@@ -123,81 +123,83 @@ public class ClassSubmissionsGrid implements IsWidget {
 				eventBus.fireEvent(new OntologyClassSubmissionSelectEvent(event.getSelectedItem()));
 			}
 		});
+
 	}
 
 	private Menu createClassSubmissionsContextMenu() {
 		final Menu menu = new Menu();
-		
+
 		menu.addBeforeShowHandler(new BeforeShowHandler() {
 			@Override
 			public void onBeforeShow(BeforeShowEvent event) {
 				menu.clear();
-				MenuItem deleteItem = new MenuItem("Remove");
-				menu.add(deleteItem);
-				deleteItem.addSelectionHandler(new SelectionHandler<Item>() {
-					@Override
-					public void onSelection(SelectionEvent<Item> event) {
-						toOntologyService.removeOntologyClassSubmissions(collection, 
-								grid.getSelectionModel().getSelectedItems(), new AsyncCallback<Void>() {
-							@Override
-							public void onFailure(Throwable caught) {
-								Alerter.failedToRemoveOntologyClassSubmission();
-							}
-							@Override
-							public void onSuccess(Void result) {
-								eventBus.fireEvent(new RemoveOntologyClassSubmissionsEvent(grid.getSelectionModel().getSelectedItems()));
-							}
-						});
-					}
-				});
-				menu.add(deleteItem);
-
 				final List<OntologyClassSubmission> selected = checkBoxSelectionModel.getSelectedItems();
+				if(!selected.isEmpty()) {
+					MenuItem deleteItem = new MenuItem("Remove");
+					menu.add(deleteItem);
+					deleteItem.addSelectionHandler(new SelectionHandler<Item>() {
+						@Override
+						public void onSelection(SelectionEvent<Item> event) {
+							toOntologyService.removeOntologyClassSubmissions(collection, 
+									grid.getSelectionModel().getSelectedItems(), new AsyncCallback<Void>() {
+								@Override
+								public void onFailure(Throwable caught) {
+									Alerter.failedToRemoveOntologyClassSubmission();
+								}
+								@Override
+								public void onSuccess(Void result) {
+									eventBus.fireEvent(new RemoveOntologyClassSubmissionsEvent(grid.getSelectionModel().getSelectedItems()));
+								}
+							});
+						}
+					});
+					menu.add(deleteItem);
 				
-				menu.add(new HeaderMenuItem("Annotation"));
-				MenuItem comment = new MenuItem("Comment");
-				final OntologyClassSubmission ontologyClassSubmission = selected.get(0);
-				comment.addSelectionHandler(new SelectionHandler<Item>() {
-					@Override
-					public void onSelection(SelectionEvent<Item> event) {
-						final MultiLinePromptMessageBox box = new MultiLinePromptMessageBox("Comment", "");
-						box.getTextArea().setValue(getUsersComment(ontologyClassSubmission));
-						box.addHideHandler(new HideHandler() {
-							@Override
-							public void onHide(HideEvent event) {
-								final Comment newComment = new Comment(OtoSteps.user, box.getValue());
-								collection.addComments((java.util.Collection)selected, newComment);
-								collectionService.update(collection, new AsyncCallback<Void>() {
-									@Override
-									public void onFailure(Throwable caught) {
-										Alerter.addCommentFailed(caught);
-									}
-									@Override
-									public void onSuccess(Void result) {
-										eventBus.fireEvent(new AddCommentEvent(
-												(java.util.Collection)selected, newComment));
-										String comment = Format.ellipse(box.getValue(), 80);
-										String message = Format.substitute("'{0}' saved", new Params(comment));
-										Info.display("Comment", message);
-									}
-								});
-							}
-						});
-						box.show();
-					}
-
-					private String getUsersComment(
-							OntologyClassSubmission ontologyClassSubmission) {
-						// TODO Auto-generated method stub
-						return null;
-					}
-				});
-				menu.add(comment);
-				final MenuItem colorizeItem = new MenuItem("Colorize");
-				if(!collection.getColors().isEmpty()) {
-					menu.add(colorizeItem);
-					colorizeItem.setSubMenu(createColorizeMenu(selected));
-				} 
+					menu.add(new HeaderMenuItem("Annotation"));
+					MenuItem comment = new MenuItem("Comment");
+					final OntologyClassSubmission ontologyClassSubmission = selected.get(0);
+					comment.addSelectionHandler(new SelectionHandler<Item>() {
+						@Override
+						public void onSelection(SelectionEvent<Item> event) {
+							final MultiLinePromptMessageBox box = new MultiLinePromptMessageBox("Comment", "");
+							box.getTextArea().setValue(getUsersComment(ontologyClassSubmission));
+							box.addHideHandler(new HideHandler() {
+								@Override
+								public void onHide(HideEvent event) {
+									final Comment newComment = new Comment(OtoSteps.user, box.getValue());
+									collection.addComments((java.util.Collection)selected, newComment);
+									collectionService.update(collection, new AsyncCallback<Void>() {
+										@Override
+										public void onFailure(Throwable caught) {
+											Alerter.addCommentFailed(caught);
+										}
+										@Override
+										public void onSuccess(Void result) {
+											eventBus.fireEvent(new AddCommentEvent(
+													(java.util.Collection)selected, newComment));
+											String comment = Format.ellipse(box.getValue(), 80);
+											String message = Format.substitute("'{0}' saved", new Params(comment));
+											Info.display("Comment", message);
+										}
+									});
+								}
+							});
+							box.show();
+						}
+	
+						private String getUsersComment(
+								OntologyClassSubmission ontologyClassSubmission) {
+							// TODO Auto-generated method stub
+							return null;
+						}
+					});
+					menu.add(comment);
+					final MenuItem colorizeItem = new MenuItem("Colorize");
+					if(!collection.getColors().isEmpty()) {
+						menu.add(colorizeItem);
+						colorizeItem.setSubMenu(createColorizeMenu(selected));
+					} 
+				}
 			}
 
 			protected Menu createColorizeMenu(final List<OntologyClassSubmission> selected) {

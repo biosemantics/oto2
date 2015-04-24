@@ -22,8 +22,12 @@ import edu.arizona.biosemantics.oto2.steps.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.OntologyClassSubmissionSelectEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.OntologySynonymSubmissionSelectEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.RefreshSubmissionsEvent;
-import edu.arizona.biosemantics.oto2.steps.client.event.SubmitClassEvent;
-import edu.arizona.biosemantics.oto2.steps.client.event.SubmitSynonymEvent;
+import edu.arizona.biosemantics.oto2.steps.client.event.RemoveOntologyClassSubmissionsEvent;
+import edu.arizona.biosemantics.oto2.steps.client.event.RemoveOntologySynonymSubmissionsEvent;
+import edu.arizona.biosemantics.oto2.steps.client.event.CreateOntologyClassSubmissionEvent;
+import edu.arizona.biosemantics.oto2.steps.client.event.CreateOntologySynonymSubmissionEvent;
+import edu.arizona.biosemantics.oto2.steps.client.event.UpdateOntologyClassSubmissionsEvent;
+import edu.arizona.biosemantics.oto2.steps.client.event.UpdateOntologySynonymsSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmissionProperties;
@@ -75,15 +79,15 @@ public class SubmissionsView implements IsWidget {
 				refreshSynonymSubmissions();
 			}
 		});
-		eventBus.addHandler(SubmitClassEvent.TYPE, new SubmitClassEvent.Handler() {
+		eventBus.addHandler(CreateOntologyClassSubmissionEvent.TYPE, new CreateOntologyClassSubmissionEvent.Handler() {
 			@Override
-			public void onSubmission(SubmitClassEvent event) {
+			public void onSubmission(CreateOntologyClassSubmissionEvent event) {
 				refreshClassSubmissions();
 			}
 		});
-		eventBus.addHandler(SubmitSynonymEvent.TYPE, new SubmitSynonymEvent.Handler() {
+		eventBus.addHandler(CreateOntologySynonymSubmissionEvent.TYPE, new CreateOntologySynonymSubmissionEvent.Handler() {
 			@Override
-			public void onSubmission(SubmitSynonymEvent event) {
+			public void onSubmission(CreateOntologySynonymSubmissionEvent event) {
 				refreshSynonymSubmissions();
 			}
 		});
@@ -91,6 +95,31 @@ public class SubmissionsView implements IsWidget {
 			@Override
 			public void onSelect(RefreshSubmissionsEvent event) {
 				refreshSynonymSubmissions();
+				refreshClassSubmissions();
+			}
+		});
+		
+		eventBus.addHandler(RemoveOntologyClassSubmissionsEvent.TYPE, new RemoveOntologyClassSubmissionsEvent.Handler() {
+			@Override
+			public void onRemove(RemoveOntologyClassSubmissionsEvent event) {
+				refreshClassSubmissions();
+			}
+		});
+		eventBus.addHandler(RemoveOntologySynonymSubmissionsEvent.TYPE, new RemoveOntologySynonymSubmissionsEvent.Handler() {
+			@Override
+			public void onRemove(RemoveOntologySynonymSubmissionsEvent event) {
+				refreshClassSubmissions();
+			}
+		});
+		eventBus.addHandler(UpdateOntologyClassSubmissionsEvent.TYPE, new UpdateOntologyClassSubmissionsEvent.Handler() {
+			@Override
+			public void onRemove(UpdateOntologyClassSubmissionsEvent event) {
+				refreshClassSubmissions();
+			}
+		});
+		eventBus.addHandler(UpdateOntologySynonymsSubmissionsEvent.TYPE, new UpdateOntologySynonymsSubmissionsEvent.Handler() {
+			@Override
+			public void onRemove(UpdateOntologySynonymsSubmissionsEvent event) {
 				refreshClassSubmissions();
 			}
 		});

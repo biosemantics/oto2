@@ -15,27 +15,27 @@ public interface IToOntologyService extends RemoteService {
 	
 	public List<Ontology> getOntologies(Collection collection);
 	
-	public void submitClass(OntologyClassSubmission submission) throws OntologyFileException, ClassExistsException, OntologyBioportalException;
+	public OntologyClassSubmission submitClass(OntologyClassSubmission submission) throws OntologyFileException, ClassExistsException, OntologyBioportalException;
 
-	public void submitSynonym(OntologySynonymSubmission submission) throws OntologyFileException, OntologyBioportalException;
+	public OntologySynonymSubmission submitSynonym(OntologySynonymSubmission submission) throws OntologyFileException, OntologyBioportalException;
 	
 	public List<OntologyClassSubmission> getClassSubmissions(Collection collection);
 
 	public List<OntologySynonymSubmission> getSynonymSubmissions(Collection collection);
 	
-	public void createOntology(Collection collection, Ontology ontology) throws OntologyFileException, OntologyExistsException;
+	public Ontology createOntology(Collection collection, Ontology ontology) throws OntologyFileException, OntologyExistsException;
 	
 	public void refreshOntologySubmissionStatuses(Collection collection);
 	
 	public void updateOntologyClassSubmissions(Collection collection, 
-			java.util.Collection<OntologyClassSubmission> ontologyClassSubmissions);
+			java.util.Collection<OntologyClassSubmission> ontologyClassSubmissions) throws OntologyFileException, OntologyBioportalException;
 
 	public void updateOntologySynonymSubmissions(Collection collection, 
-			java.util.Collection<OntologySynonymSubmission> ontologySynonymSubmissions);
+			java.util.Collection<OntologySynonymSubmission> ontologySynonymSubmissions) throws OntologyFileException, OntologyBioportalException;
 	
 	public void removeOntologyClassSubmissions(Collection collection, 
-			java.util.Collection<OntologyClassSubmission> ontologyClassSubmissions);
+			java.util.Collection<OntologyClassSubmission> ontologyClassSubmissions) throws OntologyFileException, OntologyBioportalException;
 	
 	public void removeOntologySynonymSubmissions(Collection collection, 
-			java.util.Collection<OntologySynonymSubmission> ontologySynonymSubmissions);
+			java.util.Collection<OntologySynonymSubmission> ontologySynonymSubmissions) throws OntologyFileException, OntologyBioportalException;
 }

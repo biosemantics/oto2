@@ -7,6 +7,7 @@ import com.google.gwt.event.shared.GwtEvent;
 
 import edu.arizona.biosemantics.oto2.steps.client.event.UpdateOntologySynonymsSubmissionsEvent.Handler;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmission;
+import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynonymSubmission;
 
 public class UpdateOntologySynonymsSubmissionsEvent  extends GwtEvent<Handler> {
 
@@ -15,10 +16,10 @@ public class UpdateOntologySynonymsSubmissionsEvent  extends GwtEvent<Handler> {
 	}
 	
     public static Type<Handler> TYPE = new Type<Handler>();
-	private List<OntologyClassSubmission> ontologyClassSubmissions;
+	private List<OntologySynonymSubmission> ontologySynonymSubmissions;
 	
-	public UpdateOntologySynonymsSubmissionsEvent(List<OntologyClassSubmission> ontologyClassSubmissions) {
-		this.ontologyClassSubmissions = ontologyClassSubmissions;
+	public UpdateOntologySynonymsSubmissionsEvent(List<OntologySynonymSubmission> ontologySynonymSubmissions) {
+		this.ontologySynonymSubmissions = ontologySynonymSubmissions;
 	}
 
 	@Override
@@ -31,8 +32,8 @@ public class UpdateOntologySynonymsSubmissionsEvent  extends GwtEvent<Handler> {
 		handler.onRemove(this);
 	}
 
-	public List<OntologyClassSubmission> getOntologyClassSubmissions() {
-		return ontologyClassSubmissions;
+	public List<OntologySynonymSubmission> getOntologySynonymSubmissions() {
+		return ontologySynonymSubmissions;
 	}
 
 }
