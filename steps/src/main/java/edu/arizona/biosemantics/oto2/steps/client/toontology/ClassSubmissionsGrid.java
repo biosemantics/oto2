@@ -32,6 +32,8 @@ import com.sencha.gxt.widget.core.client.menu.HeaderMenuItem;
 import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
+import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent;
+import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent.SelectionChangedHandler;
 
 import edu.arizona.biosemantics.oto2.steps.client.OtoSteps;
 import edu.arizona.biosemantics.oto2.steps.client.common.Alerter;
@@ -40,6 +42,8 @@ import edu.arizona.biosemantics.oto2.steps.client.common.ColorableCheckBoxCell;
 import edu.arizona.biosemantics.oto2.steps.client.common.ColorableCheckBoxCell.CommentableColorableProvider;
 import edu.arizona.biosemantics.oto2.steps.client.event.AddCommentEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.LoadCollectionEvent;
+import edu.arizona.biosemantics.oto2.steps.client.event.OntologyClassSubmissionSelectEvent;
+import edu.arizona.biosemantics.oto2.steps.client.event.OntologySynonymSubmissionSelectEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.RemoveOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.SetColorEvent;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
@@ -111,6 +115,12 @@ public class ClassSubmissionsGrid implements IsWidget {
 							grid.getStore().update(ontologyClassSubmission);
 					}
 				}
+			}
+		});
+		getSelectionModel().addSelectionHandler(new SelectionHandler<OntologyClassSubmission>() {
+			@Override
+			public void onSelection(SelectionEvent<OntologyClassSubmission> event) {
+				eventBus.fireEvent(new OntologyClassSubmissionSelectEvent(event.getSelectedItem()));
 			}
 		});
 	}

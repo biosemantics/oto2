@@ -33,6 +33,7 @@ import com.sencha.gxt.widget.core.client.grid.filters.StringFilter;
 import com.sencha.gxt.widget.core.client.tips.QuickTip;
 
 import edu.arizona.biosemantics.oto2.steps.client.common.Alerter;
+import edu.arizona.biosemantics.oto2.steps.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.TermSelectEvent;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Term;
@@ -139,13 +140,12 @@ public class ContextView implements IsWidget {
 	}
 
 	private void bindEvents() {
-		/*eventBus.addHandler(TermRenameEvent.TYPE, new TermRenameEvent.RenameTermHandler() {
+		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
 			@Override
-			public void onRename(TermRenameEvent event) {
-				if(event.getTerm().equals(currentTerm))
-					refresh();
+			public void onLoad(LoadCollectionEvent event) {
+				setCollection(event.getCollection());
 			}
-		});*/
+		});
 		eventBus.addHandler(TermSelectEvent.TYPE, new TermSelectEvent.Handler() {
 			@Override
 			public void onSelect(TermSelectEvent event) {

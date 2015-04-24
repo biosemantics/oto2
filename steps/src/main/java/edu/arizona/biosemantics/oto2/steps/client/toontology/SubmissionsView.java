@@ -56,7 +56,8 @@ public class SubmissionsView implements IsWidget {
 	public SubmissionsView(EventBus eventBus) {
 		this.eventBus = eventBus;
 		
-		tabPanel = new TabPanel(GWT.<TabPanelAppearance> create(TabPanelBottomAppearance.class));
+		//tabPanel = new TabPanel(GWT.<TabPanelAppearance> create(TabPanelBottomAppearance.class));
+		tabPanel = new TabPanel();
 		classSubmissionsGrid = createOntologyClassSubmissionGrid();
 		synonymSubmissionsGrid = createOntologySynonymSubmissionGrid();
 		tabPanel.add(createOntologyClassSubmissionGrid(), "Class");
@@ -91,29 +92,6 @@ public class SubmissionsView implements IsWidget {
 			public void onSelect(RefreshSubmissionsEvent event) {
 				refreshSynonymSubmissions();
 				refreshClassSubmissions();
-			}
-		});
-		classSubmissionsGrid.getSelectionModel().addSelectionChangedHandler(new SelectionChangedHandler<OntologyClassSubmission>() {
-
-			@Override
-			public void onSelectionChanged(
-					SelectionChangedEvent<OntologyClassSubmission> event) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-		});
-		
-		classSubmissionsGrid.getSelectionModel().addSelectionHandler(new SelectionHandler<OntologyClassSubmission>() {
-			@Override
-			public void onSelection(SelectionEvent<OntologyClassSubmission> event) {
-				eventBus.fireEvent(new OntologyClassSubmissionSelectEvent(event.getSelectedItem()));
-			}
-		});
-		synonymSubmissionsGrid.getSelectionModel().addSelectionHandler(new SelectionHandler<OntologySynonymSubmission>() {
-			@Override
-			public void onSelection(SelectionEvent<OntologySynonymSubmission> event) {
-				eventBus.fireEvent(new OntologySynonymSubmissionSelectEvent(event.getSelectedItem()));
 			}
 		});
 	}

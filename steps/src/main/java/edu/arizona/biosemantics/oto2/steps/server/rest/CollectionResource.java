@@ -37,7 +37,7 @@ public class CollectionResource {
 	@POST
 	@Produces({ MediaType.APPLICATION_JSON })
 	@Consumes({ MediaType.APPLICATION_JSON })
-	public Collection put(Collection collection) throws Exception {
+	public Collection post(Collection collection) throws Exception {
 		try {
 			return collectionService.insert(collection);
 		} catch (Exception e) {

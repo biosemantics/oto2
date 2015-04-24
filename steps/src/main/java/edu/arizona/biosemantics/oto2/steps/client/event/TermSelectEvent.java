@@ -1,5 +1,6 @@
 package edu.arizona.biosemantics.oto2.steps.client.event;
 
+import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
 
@@ -15,7 +16,7 @@ public class TermSelectEvent extends GwtEvent<Handler> {
     public static Type<Handler> TYPE = new Type<Handler>();
     
     private Term term;
-    
+
     public TermSelectEvent(Term term) {
         this.term = term;
     }
@@ -33,5 +34,7 @@ public class TermSelectEvent extends GwtEvent<Handler> {
 	public Term getTerm() {
 		return term;
 	}
+	
+	
 
 }

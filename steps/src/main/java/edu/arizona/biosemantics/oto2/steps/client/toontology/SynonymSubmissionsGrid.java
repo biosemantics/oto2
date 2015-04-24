@@ -38,6 +38,7 @@ import edu.arizona.biosemantics.oto2.steps.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.steps.client.common.ColorableCell;
 import edu.arizona.biosemantics.oto2.steps.client.event.AddCommentEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.LoadCollectionEvent;
+import edu.arizona.biosemantics.oto2.steps.client.event.OntologySynonymSubmissionSelectEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.RemoveOntologySynonymsSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.SetColorEvent;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
@@ -219,6 +220,12 @@ public class SynonymSubmissionsGrid implements IsWidget {
 			@Override
 			public void onLoad(LoadCollectionEvent event) {
 				SynonymSubmissionsGrid.this.collection = event.getCollection();
+			}
+		});
+		getSelectionModel().addSelectionHandler(new SelectionHandler<OntologySynonymSubmission>() {
+			@Override
+			public void onSelection(SelectionEvent<OntologySynonymSubmission> event) {
+				eventBus.fireEvent(new OntologySynonymSubmissionSelectEvent(event.getSelectedItem()));
 			}
 		});
 		

@@ -1,5 +1,7 @@
 package edu.arizona.biosemantics.oto2.steps.shared.model;
 
-public interface Colorable {
+import java.io.Serializable;
+
+public interface Colorable extends Serializable {
 
 }

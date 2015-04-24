@@ -15,7 +15,8 @@ public class CreateSubmissionView implements IsWidget {
 	private TabPanel tabPanel;
 
 	public CreateSubmissionView(EventBus eventBus) {
-		tabPanel = new TabPanel(GWT.<TabPanelAppearance> create(TabPanelBottomAppearance.class));
+		//tabPanel = new TabPanel(GWT.<TabPanelAppearance> create(TabPanelBottomAppearance.class));
+		tabPanel = new TabPanel();
 		
 		submitClassView = new SubmitClassView(eventBus);
 		submitSynonymView = new SubmitSynonymView(eventBus);

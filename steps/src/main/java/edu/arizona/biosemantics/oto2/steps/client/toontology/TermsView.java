@@ -394,7 +394,7 @@ public class TermsView implements IsWidget {
 				TextTreeNode node = event.getSelectedItem();
 				if(node instanceof TermTreeNode) {
 					TermTreeNode termTreeNode = (TermTreeNode)node;
-					eventBus.fireEvent(new TermSelectEvent(termTreeNode.getTerm()));
+					eventBus.fireEventFromSource(new TermSelectEvent(termTreeNode.getTerm()), TermsView.this);
 				}
 			}
 		});

@@ -165,5 +165,10 @@ public class Alerter {
 		
 	}
 
+	public static void failedToEditClass(Throwable caught) {
+		// TODO Auto-generated method stub
+		
+	}
+
 
 }

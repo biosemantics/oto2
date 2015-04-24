@@ -1,5 +1,6 @@
 package edu.arizona.biosemantics.oto2.steps.client.toontology;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import com.google.gwt.core.client.GWT;
@@ -28,6 +29,7 @@ import com.sencha.gxt.widget.core.client.form.TextField;
 import edu.arizona.biosemantics.oto2.steps.client.OtoSteps;
 import edu.arizona.biosemantics.oto2.steps.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.steps.client.common.CreateOntologyDialog;
+import edu.arizona.biosemantics.oto2.steps.client.event.EditClassEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.OntologyClassSubmissionSelectEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.SubmitClassEvent;
@@ -52,10 +54,11 @@ public class SubmitClassView implements IsWidget {
 	
 	private ListStore<Ontology> ontologiesStore = new ListStore<Ontology>(ontologyProperties.key());
 	private ListStore<Term> termStore = new ListStore<Term>(termProperties.key());
-	private TextButton submitButton = new TextButton("Submit");
+	private TextButton editButton = new TextButton("Edit Submission");
+	private TextButton submitButton = new TextButton("Save as New Submission");
 	private TextField submissionTermField = new TextField();
 	private TextField categoryField = new TextField();
-	private TextButton browseOntologiesButton = new TextButton("Browse");
+	private TextButton browseOntologiesButton = new TextButton("Browse Selected Ontology");
 	private ComboBox<Ontology> ontologyComboBox;
 	private TextField classIRIField = new TextField();
 	private TextField superclassIRIField = new TextField();
@@ -68,8 +71,8 @@ public class SubmitClassView implements IsWidget {
 	private CheckBox isQualityCheckBox = new CheckBox();
 	private ComboBox<Term> termComboBox;
 	private VerticalLayoutContainer vlc;
-	private TextButton createOntologyButton = new TextButton("Create");
-	private OntologyClassSubmission ontologyClassSubmission;
+	private TextButton createOntologyButton = new TextButton("Create New Ontology");
+	private OntologyClassSubmission selectedSubmission;
 	
 	public SubmitClassView(EventBus eventBus) {
 		this.eventBus = eventBus;
@@ -101,10 +104,10 @@ public class SubmitClassView implements IsWidget {
 	    formContainer.add(new FieldLabel(partOfField, "Part of IRI"), new VerticalLayoutData(1, -1));
 	    formContainer.add(new FieldLabel(isEntityCheckBox, "Entity"), new VerticalLayoutData(1, -1));
 	    formContainer.add(new FieldLabel(isQualityCheckBox, "Quality"), new VerticalLayoutData(1, -1));
-	    formContainer.add(submitButton, new VerticalLayoutData(1, -1));
 	    formContainer.setScrollMode(ScrollMode.AUTOY);
 	    formContainer.setAdjustForScroll(true);
 	    vlc.add(formContainer, new VerticalLayoutData(1, 1));
+	    vlc.add(editButton, new VerticalLayoutData(1,-1));
 	    vlc.add(submitButton, new VerticalLayoutData(1,-1));
 		bindEvents();		
 	}
@@ -121,7 +124,11 @@ public class SubmitClassView implements IsWidget {
 		eventBus.addHandler(TermSelectEvent.TYPE, new TermSelectEvent.Handler() {
 			@Override
 			public void onSelect(TermSelectEvent event) {
-				termComboBox.setValue(event.getTerm(), true);
+				if(!event.getSource().equals(SubmitClassView.this)) {
+					clearFields(false);
+					setSelectedSubmission(null);
+					setTerm(event.getTerm());
+				}
 			}
 		});
 		eventBus.addHandler(OntologyClassSubmissionSelectEvent.TYPE, new OntologyClassSubmissionSelectEvent.Handler() {
@@ -133,9 +140,8 @@ public class SubmitClassView implements IsWidget {
 		termComboBox.addValueChangeHandler(new ValueChangeHandler<Term>() {
 			@Override
 			public void onValueChange(ValueChangeEvent<Term> event) {
-				eventBus.fireEvent(new TermSelectEvent(event.getValue()));
-				categoryField.setValue(termComboBox.getValue().getCategory());
-				submissionTermField.setValue(termComboBox.getValue().getTerm());
+				setTerm(event.getValue());
+				eventBus.fireEventFromSource(new TermSelectEvent(event.getValue()), SubmitClassView.this);
 			}
 		});
 		createOntologyButton.addSelectHandler(new SelectHandler() {
@@ -202,10 +208,58 @@ public class SubmitClassView implements IsWidget {
 				});
 			}
 		});
+		editButton.addSelectHandler(new SelectHandler() {
+			@Override
+			public void onSelect(SelectEvent event) {
+				final OntologyClassSubmission submission = getClassSubmission();
+				submission.setId(selectedSubmission.getId());
+				final List<OntologyClassSubmission> submissions = new LinkedList<OntologyClassSubmission>();
+				submissions.add(submission);
+				toOntologyService.updateOntologyClassSubmissions(collection, submissions, new AsyncCallback<Void>() {
+					@Override
+					public void onFailure(Throwable caught) {
+						Alerter.failedToEditClass(caught);
+					}
+					@Override
+					public void onSuccess(Void result) {
+						eventBus.fireEvent(new EditClassEvent(submissions));
+					}
+				});
+			}
+		});
+	}
+
+	protected void setTerm(Term term) {
+		termComboBox.setValue(term);
+		categoryField.setValue(termComboBox.getValue().getCategory());
+		submissionTermField.setValue(termComboBox.getValue().getTerm());
+	}
+
+	protected void setSelectedSubmission(OntologyClassSubmission ontologyClassSubmission) {
+		this.selectedSubmission = ontologyClassSubmission;
+		if(selectedSubmission == null)
+			this.editButton.setEnabled(false);
+		else
+			this.editButton.setEnabled(true);
+	}
+	
+	protected void clearFields(boolean fireEvents) {
+		this.termComboBox.setValue(null, false);
+		this.submissionTermField.setValue(null, false); 
+		this.ontologyComboBox.setValue(null, false);
+		this.classIRIField.setValue(null, false);
+		this.superclassIRIField.setValue(null, false);
+		this.definitionArea.setValue(null, false);
+		this.synonymsField.setValue(null, false);
+		this.sourceField.setValue(null, false);
+		this.sampleArea.setValue(null, false);
+		this.partOfField.setValue(null, false);
+		this.isEntityCheckBox.setValue(null, false);
+		this.isQualityCheckBox.setValue(null, false);
 	}
 
 	protected void setOntologyClassSubmission(OntologyClassSubmission ontologyClassSubmission) {
-		this.ontologyClassSubmission = ontologyClassSubmission;
+		this.setSelectedSubmission(ontologyClassSubmission);
 		this.termComboBox.setValue(ontologyClassSubmission.getTerm());
 		this.submissionTermField.setValue(ontologyClassSubmission.getSubmissionTerm()); 
 		this.ontologyComboBox.setValue(ontologyClassSubmission.getOntology());

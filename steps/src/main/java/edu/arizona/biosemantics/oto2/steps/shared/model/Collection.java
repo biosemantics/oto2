@@ -7,6 +7,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
+
 import edu.arizona.biosemantics.common.biology.TaxonGroup;
 
 public class Collection implements Serializable, Comparable<Collection> {
@@ -16,7 +18,9 @@ public class Collection implements Serializable, Comparable<Collection> {
 	private TaxonGroup taxonGroup;
 	private String secret = "";
 	private List<Term> terms = new LinkedList<Term>();
+	@JsonIgnore
 	private Map<Commentable, List<Comment>> comments = new HashMap<Commentable, List<Comment>>();
+	@JsonIgnore
 	private Map<Colorable, Color> colorizations = new HashMap<Colorable, Color>();	
 	private List<Color> colors = new ArrayList<Color>();
 	

@@ -105,14 +105,14 @@ public class Client implements AutoCloseable {
 		int id = col.get().getId();
 		System.out.println(id);
 		
-		/*Future<Collection> colFu = client.get(id, "my secret");
-		colFu.get();
 		
 		List<Context> contexts = new LinkedList<Context>();
-		contexts.add(new Context(1, "src", "aaaa"));
-		contexts.add(new Context(1, "src2", "aaaa2"));
+		contexts.add(new Context(1, "a", "the blue house on the street"));
+		contexts.add(new Context(1, "b", "the red car in the garage"));
+		contexts.add(new Context(1, "c", "leafs on the ground and a leafish leaf"));
+		contexts.add(new Context(1, "d", "long stems with wide branches at the stem"));
 		
-		Future<List<Context>> result = client.put(id, "my secret", contexts);
+		Future<List<Context>> result = client.post(id, "my secret", contexts);
 		result.get();
 		
 		

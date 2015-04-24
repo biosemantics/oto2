@@ -69,7 +69,7 @@ public class ContextDAO {
 	
 	public Context get(int id)  {
 		Context context = null;
-		try(Query query = new Query("SELECT * FROM oto_context WHERE id = ?")) {
+		try(Query query = new Query("SELECT * FROM otosteps_context WHERE id = ?")) {
 			query.setParameter(1, id);
 			ResultSet result = query.execute();
 			while(result.next()) {
@@ -83,7 +83,7 @@ public class ContextDAO {
 	
 	public List<Context> get(Collection collection)  {
 		List<Context> contexts = new LinkedList<Context>();
-		try(Query query = new Query("SELECT * FROM oto_context WHERE collectionId = ?")) {
+		try(Query query = new Query("SELECT * FROM otosteps_context WHERE collectionId = ?")) {
 			query.setParameter(1, collection.getId());
 			ResultSet result = query.execute();
 			while(result.next()) {
@@ -106,7 +106,7 @@ public class ContextDAO {
 
 	public Context insert(Context context)  {
 		if(!context.hasId()) {
-			try(Query insert = new Query("INSERT INTO `oto_context` " +
+			try(Query insert = new Query("INSERT INTO `otosteps_context` " +
 					"(`collection`, `source`, `text`) VALUES (?, ?, ?)")) {
 				insert.setParameter(1, context.getCollectionId());
 				insert.setParameter(2, context.getSource().trim());
@@ -124,7 +124,7 @@ public class ContextDAO {
 	}
 	
 	public void update(Context context)  {
-		try(Query query = new Query("UPDATE oto_context "
+		try(Query query = new Query("UPDATE otosteps_context "
 				+ "SET collectionId = ?, source = ?, text = ? WHERE id = ?")) {
 			query.setParameter(1, context.getCollectionId());
 			query.setParameter(2, context.getSource());
@@ -137,7 +137,7 @@ public class ContextDAO {
 	}
 	
 	public void remove(Context context)  {
-		try(Query query = new Query("DELETE FROM oto_context WHERE id = ?")) {
+		try(Query query = new Query("DELETE FROM otosteps_context WHERE id = ?")) {
 			query.setParameter(1, context.getId());
 			query.execute();
 		} catch(QueryException e) {
@@ -146,7 +146,7 @@ public class ContextDAO {
 	}	
 	
 	public void remove(int collectionId)  {
-		try(Query query = new Query("DELETE FROM oto_context WHERE collectionId = ?")) {
+		try(Query query = new Query("DELETE FROM otosteps_context WHERE collectionId = ?")) {
 			query.setParameter(1, collectionId);
 			query.execute();
 		} catch(QueryException e) {
@@ -188,7 +188,7 @@ public class ContextDAO {
 		 * Both can be customized, however it has to be customized for the mysql installation, and wouldn't be part of the application source
 		 */
 		 /* for(Search search : searches) 
-			try(Query query = new Query("SELECT * FROM oto_context WHERE collection = ? AND MATCH (text) AGAINST (? IN NATURAL LANGUAGE MODE)")) {
+			try(Query query = new Query("SELECT * FROM otosteps_context WHERE collection = ? AND MATCH (text) AGAINST (? IN NATURAL LANGUAGE MODE)")) {
 				query.setParameter(1, collection.getId());
 				query.setParameter(2, search.getSearch());	
 				ResultSet result = query.execute();
@@ -201,7 +201,7 @@ public class ContextDAO {
 			}
 		*/
 		for(Search search : searches) 
-			try(Query query = new Query("SELECT * FROM oto_context WHERE collection = ? AND text RLIKE ?")) {
+			try(Query query = new Query("SELECT * FROM otosteps_context WHERE collection = ? AND text RLIKE ?")) {
 				query.setParameter(1, collection.getId());
 				query.setParameter(2, "^(.*[^a-zA-Z])?" + search.getSearch() + "([^a-zA-Z].*)?$");	
 				ResultSet result = query.execute();
