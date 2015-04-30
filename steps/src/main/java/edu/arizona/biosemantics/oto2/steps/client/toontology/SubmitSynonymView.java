@@ -15,6 +15,7 @@ import com.sencha.gxt.cell.core.client.form.ComboBoxCell.TriggerAction;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
+import com.sencha.gxt.widget.core.client.box.MessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
@@ -146,21 +147,40 @@ public class SubmitSynonymView implements IsWidget {
 				dialog.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
 					@Override
 					public void onSelect(SelectEvent event) {
-						Ontology ontology = new Ontology();
+						final Ontology ontology = new Ontology();
 						ontology.setName(dialog.getName());
 						ontology.setAcronym(dialog.getAcronym());
 						ontology.setTaxonGroups(dialog.getTaxonGroups());
 						ontology.setCollectionId(collection.getId());
 						
+						if(!dialog.getTaxonGroups().contains(collection.getTaxonGroup())) {
+							MessageBox box = Alerter.warnOntologyUnaivableForCollection();
+							box.getButton(PredefinedButton.YES).addSelectHandler(new SelectHandler() {
+								@Override
+								public void onSelect(SelectEvent event) {
+									createOntology(ontology);
+								}
+							});
+						} else {
+							createOntology(ontology);
+						}
+						
+						createOntology(ontology);
+					}
+
+					private void createOntology(Ontology ontology) {
+						final MessageBox box = Alerter.startLoading();
 						toOntologyService.createOntology(collection, ontology, new AsyncCallback<Ontology>() {
 							@Override
 							public void onFailure(Throwable caught) {
 								Alerter.failedToCreateOntology();
+								Alerter.stopLoading(box);
 							}
 							@Override
 							public void onSuccess(Ontology result) {
 								Alerter.succesfulCreatedOntology();
 								refreshOntologies(result);
+								Alerter.stopLoading(box);
 							}
 						});
 					}
@@ -242,7 +262,7 @@ public class SubmitSynonymView implements IsWidget {
 	protected void clearFields(boolean fireEvents) {
 		this.termComboBox.setValue(null, false);
 		this.submissionTermField.setValue("", false); 
-		this.ontologyComboBox.setValue(null, false);
+		//this.ontologyComboBox.setValue(null, false);
 		this.classIRIField.setValue("", false);
 		this.synonymsField.setValue("", false);
 		this.sourceField.setValue("", false);
@@ -255,7 +275,8 @@ public class SubmitSynonymView implements IsWidget {
 		this.selectedSubmission = ontologySynonymSubmission;
 		this.termComboBox.setValue(ontologySynonymSubmission.getTerm());
 		this.submissionTermField.setValue(ontologySynonymSubmission.getSubmissionTerm()); 
-		this.ontologyComboBox.setValue(ontologySynonymSubmission.getOntology());
+		if(ontologySynonymSubmission.hasOntology())
+			this.ontologyComboBox.setValue(ontologySynonymSubmission.getOntology());
 		this.classIRIField.setValue(ontologySynonymSubmission.getClassIRI());
 		this.synonymsField.setValue(ontologySynonymSubmission.getSynonyms());
 		this.sourceField.setValue(ontologySynonymSubmission.getSource());

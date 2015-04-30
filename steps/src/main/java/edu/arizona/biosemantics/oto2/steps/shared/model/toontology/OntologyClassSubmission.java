@@ -242,9 +242,10 @@ public class OntologyClassSubmission implements Serializable, Colorable, Comment
 		if (id != other.id)
 			return false;
 		return true;
+	}
+
+	public boolean hasOntology() {
+		return ontology != null;
 	}	
-	
-	
-	
 
 }

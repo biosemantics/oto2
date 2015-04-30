@@ -203,6 +203,10 @@ public class OntologySynonymSubmission implements Serializable, Colorable, Comme
 			return false;
 		return true;
 	}	
+	
+	public boolean hasOntology() {
+		return ontology != null;
+	}	
 		
 	
 }

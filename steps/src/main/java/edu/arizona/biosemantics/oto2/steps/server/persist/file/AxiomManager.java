@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
@@ -157,6 +158,11 @@ public class AxiomManager  {
 				}    	
 			}
 		}
+	}
+	
+	public void addDepreciatedAxiom(IRI iri, OWLOntology owlOntology) {
+		OWLAxiom depreceatedAxiom = owlOntologyManager.getOWLDataFactory().getDeprecatedOWLAnnotationAssertionAxiom(iri);
+		owlOntologyManager.applyChange(new AddAxiom(owlOntology, depreceatedAxiom));
 	}
 	
 	public void addSynonymAxioms(OWLOntology owlOntology, OntologyClassSubmission ontologyClassSubmission, OWLClass newOwlClass) {
@@ -385,5 +391,7 @@ public class AxiomManager  {
 		// TODO Auto-generated method stub
 		
 	}
+
+
 	
 }

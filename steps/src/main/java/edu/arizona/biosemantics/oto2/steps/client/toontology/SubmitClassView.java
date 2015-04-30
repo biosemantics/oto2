@@ -171,15 +171,18 @@ public class SubmitClassView implements IsWidget {
 					}
 
 					private void createOntology(Ontology ontology) {
+						final MessageBox box = Alerter.startLoading();
 						toOntologyService.createOntology(collection, ontology, new AsyncCallback<Ontology>() {
 							@Override
 							public void onFailure(Throwable caught) {
 								Alerter.failedToCreateOntology();
+								Alerter.stopLoading(box);
 							}
 							@Override
 							public void onSuccess(Ontology result) {
 								Alerter.succesfulCreatedOntology();
 								refreshOntologies(result);
+								Alerter.stopLoading(box);
 							}
 						});
 					}
@@ -260,7 +263,7 @@ public class SubmitClassView implements IsWidget {
 	protected void clearFields(boolean fireEvents) {
 		this.termComboBox.setValue(null, false);
 		this.submissionTermField.setValue("", false); 
-		this.ontologyComboBox.setValue(null, false);
+		//this.ontologyComboBox.setValue(null, false);
 		this.classIRIField.setValue("", false);
 		this.superclassIRIField.setValue("", false);
 		this.definitionArea.setValue("", false);
@@ -276,7 +279,8 @@ public class SubmitClassView implements IsWidget {
 		this.setSelectedSubmission(ontologyClassSubmission);
 		this.termComboBox.setValue(ontologyClassSubmission.getTerm());
 		this.submissionTermField.setValue(ontologyClassSubmission.getSubmissionTerm()); 
-		this.ontologyComboBox.setValue(ontologyClassSubmission.getOntology());
+		if(ontologyClassSubmission.hasOntology())
+			this.ontologyComboBox.setValue(ontologyClassSubmission.getOntology());
 		this.classIRIField.setValue(ontologyClassSubmission.getClassIRI());
 		this.superclassIRIField.setValue(ontologyClassSubmission.getSuperclassIRI());
 		this.definitionArea.setValue(ontologyClassSubmission.getDefinition());
