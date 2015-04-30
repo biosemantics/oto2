@@ -21,7 +21,7 @@ public class TermInfoView extends TabPanel {
 		
 		add(contextView, "Context");
 		//add(ontologiesView, "Ontologies");
-		add(dictionaryView, "Dictionary");
+		//add(dictionaryView, "Dictionary");
 		
 		this.addBeforeSelectionHandler(new BeforeSelectionHandler<Widget>() {
 			@Override

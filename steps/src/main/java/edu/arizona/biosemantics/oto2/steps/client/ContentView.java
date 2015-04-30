@@ -35,12 +35,12 @@ public class ContentView extends BorderLayoutContainer {
 		TabItemConfig toOntologyConfig = new TabItemConfig("To Ontology");
 		toOntologyConfig.setEnabled(true);
 		tabPanel.add(new ToOntologyView(eventBus), toOntologyConfig);
-		TabItemConfig hierarchyConfig = new TabItemConfig("Hierarchy");
+		/*TabItemConfig hierarchyConfig = new TabItemConfig("Hierarchy");
 		hierarchyConfig.setEnabled(false);
 		tabPanel.add(new HierarchyView(eventBus), hierarchyConfig);
 		TabItemConfig orderConfig = new TabItemConfig("Orders");
 		orderConfig.setEnabled(false);
-		tabPanel.add(new OrderView(eventBus), orderConfig);
+		tabPanel.add(new OrderView(eventBus), orderConfig);*/
 	
 		this.setWidget(tabPanel);
 		

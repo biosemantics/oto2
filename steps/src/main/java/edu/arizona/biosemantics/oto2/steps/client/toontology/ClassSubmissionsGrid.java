@@ -128,81 +128,24 @@ public class ClassSubmissionsGrid implements IsWidget {
 
 	private Menu createClassSubmissionsContextMenu() {
 		final Menu menu = new Menu();
-
 		menu.addBeforeShowHandler(new BeforeShowHandler() {
 			@Override
 			public void onBeforeShow(BeforeShowEvent event) {
 				menu.clear();
 				final List<OntologyClassSubmission> selected = checkBoxSelectionModel.getSelectedItems();
 				if(!selected.isEmpty()) {
-					MenuItem deleteItem = new MenuItem("Remove");
-					menu.add(deleteItem);
-					deleteItem.addSelectionHandler(new SelectionHandler<Item>() {
-						@Override
-						public void onSelection(SelectionEvent<Item> event) {
-							toOntologyService.removeClassSubmissions(collection, 
-									grid.getSelectionModel().getSelectedItems(), new AsyncCallback<Void>() {
-								@Override
-								public void onFailure(Throwable caught) {
-									Alerter.failedToRemoveOntologyClassSubmission();
-								}
-								@Override
-								public void onSuccess(Void result) {
-									eventBus.fireEvent(new RemoveOntologyClassSubmissionsEvent(grid.getSelectionModel().getSelectedItems()));
-								}
-							});
-						}
-					});
-					menu.add(deleteItem);
-				
+					menu.add(createRemoveItem(selected));
 					menu.add(new HeaderMenuItem("Annotation"));
-					MenuItem comment = new MenuItem("Comment");
-					final OntologyClassSubmission ontologyClassSubmission = selected.get(0);
-					comment.addSelectionHandler(new SelectionHandler<Item>() {
-						@Override
-						public void onSelection(SelectionEvent<Item> event) {
-							final MultiLinePromptMessageBox box = new MultiLinePromptMessageBox("Comment", "");
-							box.getTextArea().setValue(getUsersComment(ontologyClassSubmission));
-							box.addHideHandler(new HideHandler() {
-								@Override
-								public void onHide(HideEvent event) {
-									final Comment newComment = new Comment(OtoSteps.user, box.getValue());
-									collection.addComments((java.util.Collection)selected, newComment);
-									collectionService.update(collection, new AsyncCallback<Void>() {
-										@Override
-										public void onFailure(Throwable caught) {
-											Alerter.addCommentFailed(caught);
-										}
-										@Override
-										public void onSuccess(Void result) {
-											eventBus.fireEvent(new AddCommentEvent(
-													(java.util.Collection)selected, newComment));
-											String comment = Format.ellipse(box.getValue(), 80);
-											String message = Format.substitute("'{0}' saved", new Params(comment));
-											Info.display("Comment", message);
-										}
-									});
-								}
-							});
-							box.show();
-						}
-	
-						private String getUsersComment(
-								OntologyClassSubmission ontologyClassSubmission) {
-							// TODO Auto-generated method stub
-							return null;
-						}
-					});
-					menu.add(comment);
-					final MenuItem colorizeItem = new MenuItem("Colorize");
+					menu.add(createCommentItem(selected));
 					if(!collection.getColors().isEmpty()) {
-						menu.add(colorizeItem);
-						colorizeItem.setSubMenu(createColorizeMenu(selected));
+						menu.add(createColorizeItem(selected));
 					} 
 				}
+				event.setCancelled(menu.getWidgetCount() == 0);
 			}
 
-			protected Menu createColorizeMenu(final List<OntologyClassSubmission> selected) {
+			private Widget createColorizeItem(final List<OntologyClassSubmission> selected) {
+				final MenuItem colorizeItem = new MenuItem("Colorize");
 				Menu colorMenu = new Menu();
 				MenuItem offItem = new MenuItem("None");
 				offItem.addSelectionHandler(new SelectionHandler<Item>() {
@@ -244,55 +187,74 @@ public class ClassSubmissionsGrid implements IsWidget {
 					});
 					colorMenu.add(colorItem);
 				}
-				return colorMenu;
+
+				colorizeItem.setSubMenu(colorMenu);
+				return colorizeItem;
 			}
-		});
 
-		
-		/*final MenuItem commentItem = new MenuItem("Comment");
-		commentItem.addSelectionHandler(new SelectionHandler<Item>() {
-			@Override
-			public void onSelection(SelectionEvent<Item> event) {
-				final List<Articulation> articulations = getSelectedArticulations();
-				final MultiLinePromptMessageBox box = new MultiLinePromptMessageBox("Comment", "");
-
-				if(articulations.size() == 1)
-					box.getTextArea().setValue(model.hasComment(articulations.get(0)) ? model.getComment(articulations.get(0)) : "");
-				else 
-					box.getTextArea().setValue("");
-				
-				box.addHideHandler(new HideHandler() {
-
+			private Widget createCommentItem(final List<OntologyClassSubmission> selected) {
+				MenuItem comment = new MenuItem("Comment");
+				final OntologyClassSubmission ontologyClassSubmission = selected.get(0);
+				comment.addSelectionHandler(new SelectionHandler<Item>() {
 					@Override
-					public void onHide(HideEvent event) {
-						for(Articulation articulation : articulations) { 
-							eventBus.fireEvent(new SetCommentEvent(articulation, box.getValue()));
-							updateStore(articulation);
-						}
-						String comment = Format.ellipse(box.getValue(), 80);
-						String message = Format.substitute("'{0}' saved", new Params(comment));
-						Info.display("Comment", message);
+					public void onSelection(SelectionEvent<Item> event) {
+						final MultiLinePromptMessageBox box = new MultiLinePromptMessageBox("Comment", "");
+						box.getTextArea().setValue(getUsersComment(ontologyClassSubmission));
+						box.addHideHandler(new HideHandler() {
+							@Override
+							public void onHide(HideEvent event) {
+								final Comment newComment = new Comment(OtoSteps.user, box.getValue());
+								collection.addComments((java.util.Collection)selected, newComment);
+								collectionService.update(collection, new AsyncCallback<Void>() {
+									@Override
+									public void onFailure(Throwable caught) {
+										Alerter.addCommentFailed(caught);
+									}
+									@Override
+									public void onSuccess(Void result) {
+										eventBus.fireEvent(new AddCommentEvent(
+												(java.util.Collection)selected, newComment));
+										String comment = Format.ellipse(box.getValue(), 80);
+										String message = Format.substitute("'{0}' saved", new Params(comment));
+										Info.display("Comment", message);
+									}
+								});
+							}
+						});
+						box.show();
+					}
+
+					private String getUsersComment(
+							OntologyClassSubmission ontologyClassSubmission) {
+						// TODO Auto-generated method stub
+						return null;
 					}
 				});
-				box.show();
+				return comment;
 			}
-		});
-		menu.add(commentItem);
-		
-		final MenuItem colorizeItem = new MenuItem("Colorize");
-		menu.addBeforeShowHandler(new BeforeShowHandler() {
-			@Override
-			public void onBeforeShow(BeforeShowEvent event) {
-				if(!model.getColors().isEmpty()) {
-					menu.insert(colorizeItem, menu.getWidgetIndex(commentItem));
-					//colors can change, refresh
-					colorizeItem.setSubMenu(createColorizeMenu());
-				} else {
-					menu.remove(colorizeItem);	
-				}
+
+			private Widget createRemoveItem(final List<OntologyClassSubmission> selected) {
+				MenuItem deleteItem = new MenuItem("Remove");
+				menu.add(deleteItem);
+				deleteItem.addSelectionHandler(new SelectionHandler<Item>() {
+					@Override
+					public void onSelection(SelectionEvent<Item> event) {
+						toOntologyService.removeClassSubmissions(collection, 
+								grid.getSelectionModel().getSelectedItems(), new AsyncCallback<Void>() {
+							@Override
+							public void onFailure(Throwable caught) {
+								Alerter.failedToRemoveOntologyClassSubmission();
+							}
+							@Override
+							public void onSuccess(Void result) {
+								eventBus.fireEvent(new RemoveOntologyClassSubmissionsEvent(grid.getSelectionModel().getSelectedItems()));
+							}
+						});
+					}
+				});
+				return deleteItem;
 			}
-		});*/
-		
+		});		
 		return menu;
 	}
 

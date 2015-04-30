@@ -23,7 +23,6 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyIRIMapper;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
-import org.semanticweb.owlapi.model.UnloadableImportException;
 import org.semanticweb.owlapi.model.parameters.OntologyCopy;
 import org.semanticweb.owlapi.search.EntitySearcher;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
@@ -54,7 +53,7 @@ public class OntologyDAO2 {
 			for(Ontology ontology : new edu.arizona.biosemantics.oto2.steps.server.persist.db.OntologyDAO().getPermanentOntologies()) {
 				File file = getPermanentOntologyFile(ontology);
 				try {
-					owlOntologyManager.addIRIMapper(createMapper(ontology));
+					owlOntologyManager.getIRIMappers().add(createMapper(ontology));
 					OWLOntology owlOntology = owlOntologyManager.loadOntologyFromOntologyDocument(file);
 					
 					System.out.println(file.getName());
@@ -138,11 +137,11 @@ public class OntologyDAO2 {
 		try {
 			for(Ontology ontology : ontologyDBDAO.getRelevantOntologiesForCollection(collection)) {
 				if(permanentOntologies.containsKey(ontology)) {
-					owlOntologyManager.addIRIMapper(createMapper(ontology));
+					owlOntologyManager.getIRIMappers().add(createMapper(ontology));
 					//OWLOntology clonedOwlOntology = owlOntologyManager.createOntology(createOntologyIRI(ontology));
 					OWLOntology clonedOwlOntology = clone(permanentOntologies.get(ontology));
 				} else {
-					owlOntologyManager.addIRIMapper(createMapper(ontology));
+					owlOntologyManager.getIRIMappers().add(createMapper(ontology));
 					//try {
 						owlOntologyManager.loadOntologyFromOntologyDocument(getCollectionOntologyFile(ontology));
 					//} catch(UnloadableImportException e) { }
@@ -217,6 +216,7 @@ public class OntologyDAO2 {
 			log(LogLevel.ERROR, "Could not add relevant ontologies", e);
 		}
 		for(Ontology relevantOntology : relevantOntologies) {
+			//only import RO per default at this time
 			if(relevantOntology.getIri().equals("http://purl.bioontology.org/obo/OBOREL")) {
 				addImportDeclaration(owlOntology, relevantOntology);
 			}

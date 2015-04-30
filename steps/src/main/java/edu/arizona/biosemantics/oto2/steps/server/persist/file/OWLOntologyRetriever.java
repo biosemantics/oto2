@@ -2,6 +2,7 @@ package edu.arizona.biosemantics.oto2.steps.server.persist.file;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Set;
 
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -41,7 +42,7 @@ public class OWLOntologyRetriever  {
 	public OWLOntology getOWLOntology(Collection collection, OWLClass owlClass) throws OntologyNotFoundException {
 		List<Ontology> relevantOntologies;
 		try {
-			relevantOntologies = ontologyDBDAO.getOntologiesForCollection(collection);
+			relevantOntologies = ontologyDBDAO.getRelevantOntologiesForCollection(collection);
 		} catch (QueryException e) {
 			throw new OntologyNotFoundException("Could not find ontology for class " + owlClass.getIRI().toString(), e);
 		}
@@ -57,17 +58,23 @@ public class OWLOntologyRetriever  {
 		}
 		
 		for(Ontology ontology : relevantOntologies) {
-			String ontologyIRI = ontology.getIri().toLowerCase();
-			String hackyOntologyIdentifier = ontologyIRI;
-			if(ontologyIRI.contains("/")) {
-				hackyOntologyIdentifier = ontologyIRI.substring(ontologyIRI.lastIndexOf("/") + 1);
-				if(hackyOntologyIdentifier.contains("_"))
-					hackyOntologyIdentifier = hackyOntologyIdentifier.substring(0, hackyOntologyIdentifier.indexOf("_"));
-				else if(hackyOntologyIdentifier.contains("#"))
-					hackyOntologyIdentifier = hackyOntologyIdentifier.substring(0, hackyOntologyIdentifier.indexOf("#"));
+			OWLOntology owlOntology = owlOntologyManager.getOntology(OntologyDAO2.createOntologyIRI(ontology));
+			Set<OWLOntology> closureOntologies = owlOntologyManager.getImportsClosure(owlOntology);
+			for(OWLOntology closureOntology : closureOntologies) {
+				String ontologyIRI = closureOntology.getOntologyID().getOntologyIRI().toString();
+				//String ontologyIRI = ontology.getIri().toLowerCase();
+				String hackyOntologyIdentifier = ontologyIRI;
+				if(ontologyIRI.contains("/")) {
+					hackyOntologyIdentifier = ontologyIRI.substring(ontologyIRI.lastIndexOf("/") + 1);
+					if(hackyOntologyIdentifier.contains("_"))
+						hackyOntologyIdentifier = hackyOntologyIdentifier.substring(0, hackyOntologyIdentifier.indexOf("_"));
+					else if(hackyOntologyIdentifier.contains("#"))
+						hackyOntologyIdentifier = hackyOntologyIdentifier.substring(0, hackyOntologyIdentifier.indexOf("#"));
+				}
+				if(hackyOntologyIdentifier.equals(hackyOwlClassIdentifier))
+					return closureOntology;
+					//return owlOntologyManager.getOntology(IRI.create(ontology.getIri()));
 			}
-			if(hackyOntologyIdentifier.equals(hackyOwlClassIdentifier))
-				return owlOntologyManager.getOntology(IRI.create(ontology.getIri()));
 		}
 		
 		/*for(OWLOntology ontology : owlOntologyManager.getOntologies()) {

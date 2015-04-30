@@ -16,6 +16,7 @@ import com.sencha.gxt.widget.core.client.menu.MenuItem;
 import edu.arizona.biosemantics.oto2.steps.client.common.ColorSettingsDialog;
 import edu.arizona.biosemantics.oto2.steps.client.common.ColorsDialog;
 import edu.arizona.biosemantics.oto2.steps.client.common.CommentsDialog;
+import edu.arizona.biosemantics.oto2.steps.client.event.DownloadEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
 
@@ -43,8 +44,8 @@ public class MenuView extends MenuBar {
 	
 	protected void addItems() {
 		add(createFileItem());
-		add(createSearchItem());
-		add(createOntologiesItem());
+		//add(createSearchItem());
+		//add(createOntologiesItem());
 		add(createAnnotationsItem());
 		//add(createViewItem());
 		add(createQuestionItem());
@@ -151,6 +152,14 @@ public class MenuView extends MenuBar {
 	private Widget createFileItem() {
 		Menu sub = new Menu();
 		MenuBarItem item = new MenuBarItem("File", sub);
+		MenuItem downloadItem = new MenuItem("Download Ontologies");
+		downloadItem.addSelectionHandler(new SelectionHandler<Item>() {
+			@Override
+			public void onSelection(SelectionEvent<Item> arg0) {
+				eventBus.fireEvent(new DownloadEvent(collection));
+			}
+		});
+		sub.add(downloadItem);
 		return item;
 	}
 }
