@@ -38,7 +38,7 @@ public class CollectionDAO {
 
 	public CollectionDAO() {} 
 	
-	public boolean isValidSecret(int id, String secret)  {
+	public boolean isValidSecret(int id, String secret) throws QueryException  {
 		try(Query query = new Query("SELECT secret FROM otosteps_collection WHERE id = ?")) {
 			query.setParameter(1, id);
 			ResultSet result = query.execute();
@@ -46,13 +46,14 @@ public class CollectionDAO {
 				String validSecret = result.getString(1);
 				return validSecret.equals(secret);
 			}
-		} catch(Exception e) {
+		} catch(QueryException | SQLException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
 		}
 		return false;
 	}
 	
-	public Collection get(int id)  {
+	public Collection get(int id) throws QueryException, IOException  {
 		Collection collection = null;
 		try(Query query = new Query("SELECT * FROM otosteps_collection WHERE id = ?")) {
 			query.setParameter(1, id);
@@ -60,8 +61,9 @@ public class CollectionDAO {
 			while(result.next()) {
 				collection = createCollection(result);
 			}
-		} catch(Exception e) {
+		} catch(QueryException | SQLException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
 		}
 		
 		try(Query query = new Query("UPDATE otosteps_collection SET lastretrieved = ? WHERE id = ?")) {
@@ -71,12 +73,13 @@ public class CollectionDAO {
 			query.execute();
 		} catch(QueryException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
+			throw e;
 		}
 		
 		return collection;
 	}
 	
-	private Collection createCollection(ResultSet result) throws SQLException {
+	private Collection createCollection(ResultSet result) throws SQLException, IOException {
 		int id = result.getInt("id");
 		String name = result.getString("name");
 		String taxonGroupString = result.getString("taxongroup");
@@ -100,7 +103,7 @@ public class CollectionDAO {
 		return new Collection(id, name, taxonGroup, secret, terms, comments, colorizations, colors);
 	}
 
-	public Collection insert(Collection collection)  {
+	public Collection insert(Collection collection) throws QueryException, IOException  {
 		if(!collection.hasId()) {
 			try(Query insert = new Query("INSERT INTO `otosteps_collection` (`name`, `taxongroup`, `secret`) VALUES(?, ?, ?)")) {
 				insert.setParameter(1, collection.getName().trim());
@@ -116,14 +119,15 @@ public class CollectionDAO {
 					termDAO.insert(term, collection.getId());
 				
 				serialize(collection);
-			} catch(Exception e) {
+			} catch(QueryException | SQLException e) {
 				log(LogLevel.ERROR, "Query Exception", e);
+				throw new QueryException(e);
 			}
 		}
 		return collection;
 	}
 	
-	public void update(Collection collection)  {		
+	public void update(Collection collection) throws QueryException, IOException  {		
 		try(Query query = new Query("UPDATE otosteps_collection SET name = ?, taxongroup = ?, secret = ? WHERE id = ?")) {
 			query.setParameter(1, collection.getName());
 			query.setParameter(2, collection.getTaxonGroup().toString());
@@ -136,21 +140,22 @@ public class CollectionDAO {
 			serialize(collection);
 		} catch(QueryException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
+			throw e;
 		}
 	}
 	
-	private Collection deserialize(int collectionId) {
+	private Collection deserialize(int collectionId) throws IOException {
 		String file = Configuration.collectionOntologyDirectory + File.separator + collectionId
 				+ File.separator + "collection.ser";
 		try(ObjectInput input = new ObjectInputStream(new BufferedInputStream(new FileInputStream(file)))) {
 			return (Collection) input.readObject();
 		} catch (ClassNotFoundException | IOException e) {
 			log(LogLevel.ERROR, "Deserialization of user failed", e);
+			throw new IOException(e);
 		}
-		return null;
 	}
 	
-	private void serialize(Collection collection) {
+	private void serialize(Collection collection) throws IOException {
 		String path = Configuration.collectionOntologyDirectory + File.separator + collection.getId()
 				+ File.separator + "collection.ser";
 		File file = new File(path);
@@ -159,10 +164,11 @@ public class CollectionDAO {
 			output.writeObject(collection);
 		} catch (IOException e) {
 			log(LogLevel.ERROR, "Serialization of user failed", e);
+			throw e;
 		}
 	}
 
-	public void remove(Collection collection)  {
+	public void remove(Collection collection) throws QueryException  {
 		try(Query query = new Query("DELETE FROM otosteps_collection WHERE id = ?")) {
 			query.setParameter(1, collection.getId());
 			query.execute();
@@ -170,10 +176,11 @@ public class CollectionDAO {
 				termDAO.remove(term);
 		} catch(QueryException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
+			throw e;
 		}
 	}
 	
-	public List<Collection> getCollections(TaxonGroup taxonGroup) {
+	public List<Collection> getCollections(TaxonGroup taxonGroup) throws IOException, QueryException {
 		List<Collection> collections = new LinkedList<Collection>();
 		try(Query query = new Query("SELECT id FROM otosteps_collection WHERE taxongroup = ?")) {
 			query.setParameter(1, taxonGroup.toString());
@@ -184,13 +191,14 @@ public class CollectionDAO {
 				if(collection != null)
 					collections.add(collection);
 			}
-		} catch(Exception e) {
+		} catch(QueryException | SQLException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
 		}
 		return collections;
 	}
 
-	public Set<TaxonGroup> getTypes() {
+	public Set<TaxonGroup> getTypes() throws QueryException {
 		Set<TaxonGroup> taxonGroups = new HashSet<TaxonGroup>();
 		try(Query query = new Query("SELECT DISTINCT taxongroup FROM otosteps_collection")) {
 			ResultSet result = query.execute();
@@ -202,8 +210,9 @@ public class CollectionDAO {
 				} catch(IllegalArgumentException e) { }
 				taxonGroups.add(taxonGroup);
 			}
-		} catch(Exception e) {
+		} catch(QueryException | SQLException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
 		}
 		return taxonGroups;
 	}

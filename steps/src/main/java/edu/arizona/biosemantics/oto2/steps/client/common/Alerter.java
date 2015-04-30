@@ -37,6 +37,11 @@ public class Alerter {
 		box.hide();
 	}
 	
+	public static MessageBox warnOntologyUnaivableForCollection() {
+		return showConfirm("Taxon group of dataset not included", "You have not included the taxon group of this dataset. "
+				+ "The created ontology will not be available to use with this dataset. Do you want to create it anyway?");
+	}
+	
 	public static MessageBox alertTermWithNameExists(String newName) {
 		return showInfo("Term with name exists", "Failed to rename term. " +
 				"Another term with the same spelling <b>" + newName + "</b> exists already.");
@@ -169,6 +174,8 @@ public class Alerter {
 		// TODO Auto-generated method stub
 		
 	}
+
+
 
 
 }

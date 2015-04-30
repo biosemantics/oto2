@@ -190,7 +190,7 @@ public class SubmitSynonymView implements IsWidget {
 			@Override
 			public void onSelect(SelectEvent event) {
 				final OntologySynonymSubmission submission = getSynonymSubmission();
-				toOntologyService.submitSynonym(submission, new AsyncCallback<OntologySynonymSubmission>() {
+				toOntologyService.createSynonymSubmission(submission, new AsyncCallback<OntologySynonymSubmission>() {
 					@Override
 					public void onFailure(Throwable caught) {
 						Alerter.failedToSubmitSynonym(caught);
@@ -210,7 +210,7 @@ public class SubmitSynonymView implements IsWidget {
 				submission.setId(selectedSubmission.getId());
 				final List<OntologySynonymSubmission> submissions = new LinkedList<OntologySynonymSubmission>();
 				submissions.add(submission);
-				toOntologyService.updateOntologySynonymSubmissions(collection, submissions, new AsyncCallback<Void>() {
+				toOntologyService.updateSynonymSubmissions(collection, submissions, new AsyncCallback<Void>() {
 					@Override
 					public void onFailure(Throwable caught) {
 						Alerter.failedToEditClass(caught);

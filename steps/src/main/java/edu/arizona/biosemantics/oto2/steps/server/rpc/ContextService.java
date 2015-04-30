@@ -1,11 +1,13 @@
 package edu.arizona.biosemantics.oto2.steps.server.rpc;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
 import edu.arizona.biosemantics.oto2.steps.server.persist.DAOManager;
+import edu.arizona.biosemantics.oto2.steps.server.persist.db.Query.QueryException;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Context;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Term;
@@ -16,7 +18,7 @@ public class ContextService extends RemoteServiceServlet implements IContextServ
 
 	private DAOManager daoManager = new DAOManager();
 	
-	public Collection insert(Collection collection) {
+	public Collection insert(Collection collection) throws QueryException, IOException {
 		return daoManager.getCollectionDAO().insert(collection);
 	}
 
@@ -26,7 +28,7 @@ public class ContextService extends RemoteServiceServlet implements IContextServ
 	}
 	
 	@Override
-	public List<Context> insert(int collectionId, String secret, List<Context> contexts) {
+	public List<Context> insert(int collectionId, String secret, List<Context> contexts) throws QueryException {
 		if(daoManager.getCollectionDAO().isValidSecret(collectionId, secret)) {
 			List<Context> result = new ArrayList<Context>(contexts.size());
 			for(Context context : contexts) {

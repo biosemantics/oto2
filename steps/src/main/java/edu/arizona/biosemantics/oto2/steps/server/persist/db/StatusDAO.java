@@ -11,7 +11,7 @@ public class StatusDAO {
 		
 	public StatusDAO() {} 
 	
-	public Status get(int id)  {
+	public Status get(int id) throws QueryException  {
 		Status status = null;
 		try(Query query = new Query("SELECT * FROM otosteps_status WHERE id = ?")) {
 			query.setParameter(1, id);
@@ -19,13 +19,14 @@ public class StatusDAO {
 			while(result.next()) {
 				status = createStatus(result);
 			}
-		} catch(Exception e) {
+		} catch(QueryException | SQLException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
 		}
 		return status;
 	}
 	
-	public Status get(String name) {
+	public Status get(String name) throws QueryException {
 		Status status = null;
 		try(Query query = new Query("SELECT * FROM otosteps_status WHERE name = ?")) {
 			query.setParameter(1, name);
@@ -33,8 +34,9 @@ public class StatusDAO {
 			while(result.next()) {
 				status = createStatus(result);
 			}
-		} catch(Exception e) {
+		} catch(QueryException | SQLException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
 		}
 		return status;
 	}
@@ -45,7 +47,7 @@ public class StatusDAO {
 		return new Status(id, name);
 	}
 
-	public Status insert(Status status)  {
+	public Status insert(Status status) throws QueryException  {
 		if(!status.hasId()) {
 			try(Query insert = new Query("INSERT INTO `otosteps_status` (`name`) VALUES(?)")) {
 				insert.setParameter(1, status.getName());
@@ -55,29 +57,32 @@ public class StatusDAO {
 				int id = generatedKeys.getInt(1);
 				
 				status.setId(id);
-			} catch(Exception e) {
+			} catch(QueryException | SQLException e) {
 				log(LogLevel.ERROR, "Query Exception", e);
+				throw new QueryException(e);
 			}
 		}
 		return status;
 	}
 	
-	public void update(Status status)  {		
+	public void update(Status status) throws QueryException  {		
 		try(Query query = new Query("UPDATE otosteps_status SET name = ? WHERE id = ?")) {
 			query.setParameter(1, status.getName());
 			query.setParameter(2, status.getId());
 			query.execute();
 		} catch(QueryException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
+			throw e;
 		}
 	}
 	
-	public void remove(Status status)  {
+	public void remove(Status status) throws QueryException  {
 		try(Query query = new Query("DELETE FROM otosteps_status WHERE id = ?")) {
 			query.setParameter(1, status.getId());
 			query.execute();
 		} catch(QueryException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
+			throw e;
 		}
 	}
 }

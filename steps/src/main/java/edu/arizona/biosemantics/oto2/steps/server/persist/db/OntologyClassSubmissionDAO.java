@@ -22,7 +22,7 @@ public class OntologyClassSubmissionDAO {
 	
 	public OntologyClassSubmissionDAO() {} 
 	
-	public OntologyClassSubmission get(int id)  {
+	public OntologyClassSubmission get(int id) throws QueryException  {
 		OntologyClassSubmission classSubmission = null;
 		try(Query query = new Query("SELECT * FROM otosteps_ontologyclasssubmission WHERE id = ?")) {
 			query.setParameter(1, id);
@@ -30,13 +30,14 @@ public class OntologyClassSubmissionDAO {
 			while(result.next()) {
 				classSubmission = createClassSubmission(result);
 			}
-		} catch(Exception e) {
+		} catch(QueryException | SQLException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
 		}
 		return classSubmission;
 	}
 	
-	private OntologyClassSubmission createClassSubmission(ResultSet result) throws SQLException {
+	private OntologyClassSubmission createClassSubmission(ResultSet result) throws QueryException, SQLException {
 		int id = result.getInt("id");
 		int termId = result.getInt("term");
 		String submission_term = result.getString("submission_term");
@@ -59,7 +60,7 @@ public class OntologyClassSubmissionDAO {
 				partOfIRI, entity, quality, user, ontologyClassSubmissionStatuses);
 	}
 
-	public OntologyClassSubmission insert(OntologyClassSubmission ontologyClassSubmission)  {
+	public OntologyClassSubmission insert(OntologyClassSubmission ontologyClassSubmission) throws QueryException  {
 		if(!ontologyClassSubmission.hasId()) {
 			try(Query insert = new Query("INSERT INTO `otosteps_ontologyclasssubmission` "
 					+ "(`term`, `submission_term`, `ontology`, `class_iri`, `superclass_iri`, `definition`, `synonyms`, `source`, `sample_sentence`, "
@@ -84,14 +85,15 @@ public class OntologyClassSubmissionDAO {
 				int id = generatedKeys.getInt(1);
 				
 				ontologyClassSubmission.setId(id);
-			} catch(Exception e) {
+			} catch(QueryException | SQLException e) {
 				log(LogLevel.ERROR, "Query Exception", e);
+				throw new QueryException(e);
 			}
 		}
 		return ontologyClassSubmission;
 	}
 	
-	public void update(OntologyClassSubmission ontologyClassSubmission)  {		
+	public void update(OntologyClassSubmission ontologyClassSubmission) throws QueryException  {		
 		try(Query query = new Query("UPDATE otosteps_ontologyclasssubmission SET term = ?, submission_term = ?,"
 				+ " ontology = ?, class_iri = ?, superclass_iri = ?, definition = ?, synonyms = ?, source = ?, sample_sentence = ?, part_of_iri = ?, "
 				+ "entity = ?, quality = ?, user = ? WHERE id = ?")) {
@@ -115,10 +117,11 @@ public class OntologyClassSubmissionDAO {
 				ontologyClassSubmissionStatusDAO.update(ontologyClassSubmissionStatus);
 		} catch(QueryException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
+			throw e;
 		}
 	}
 	
-	public void remove(OntologyClassSubmission ontologyClassSubmission)  {
+	public void remove(OntologyClassSubmission ontologyClassSubmission) throws QueryException  {
 		try(Query query = new Query("DELETE FROM otosteps_ontologyclasssubmission WHERE id = ?")) {
 			query.setParameter(1, ontologyClassSubmission.getId());
 			query.execute();
@@ -127,6 +130,7 @@ public class OntologyClassSubmissionDAO {
 				ontologyClassSubmissionStatusDAO.remove(ontologySubmissionStatus);
 		} catch(QueryException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
+			throw e;
 		}
 	}
 
@@ -143,7 +147,7 @@ public class OntologyClassSubmissionDAO {
 		this.ontologyDAO = ontologyDAO;
 	}
 
-	public List<OntologyClassSubmission> get(Collection collection) {
+	public List<OntologyClassSubmission> get(Collection collection) throws QueryException {
 		List<OntologyClassSubmission> result = new LinkedList<OntologyClassSubmission>();
 		try(Query query = new Query("SELECT * FROM otosteps_ontologyclasssubmission s, otosteps_term t WHERE s.term = t.id AND t.collection = ?")) {
 			query.setParameter(1, collection.getId());
@@ -151,13 +155,14 @@ public class OntologyClassSubmissionDAO {
 			while(resultSet.next()) {
 				result.add(createClassSubmission(resultSet));
 			}
-		} catch(Exception e) {
+		} catch(QueryException | SQLException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
 		}
 		return result;
 	}
 	
-	public List<OntologyClassSubmission> get(Collection collection, StatusEnum status) {
+	public List<OntologyClassSubmission> get(Collection collection, StatusEnum status) throws QueryException {
 		List<OntologyClassSubmission> result = new LinkedList<OntologyClassSubmission>();
 		try(Query query = new Query("SELECT * FROM otosteps_ontologyclasssubmission s, "
 				+ "otosteps_ontologyclasssubmission_status ss, otosteps_status st,"
@@ -169,8 +174,9 @@ public class OntologyClassSubmissionDAO {
 			while(resultSet.next()) {
 				result.add(createClassSubmission(resultSet));
 			}
-		} catch(Exception e) {
+		} catch(QueryException | SQLException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
 		}
 		return result;
 	}	

@@ -16,7 +16,7 @@ public class OntologySynonymSubmissionStatusDAO {
 	
 	public OntologySynonymSubmissionStatusDAO() {} 
 	
-	public OntologySynonymSubmissionStatus get(int id)  {
+	public OntologySynonymSubmissionStatus get(int id) throws QueryException  {
 		OntologySynonymSubmissionStatus ontologySynonymSubmissionStatus = null;
 		try(Query query = new Query("SELECT * FROM otosteps_ontologysynonymsubmission_status WHERE id = ?")) {
 			query.setParameter(1, id);
@@ -24,13 +24,14 @@ public class OntologySynonymSubmissionStatusDAO {
 			while(result.next()) {
 				ontologySynonymSubmissionStatus = createOntologySynonymSubmissionStatus(result);
 			}
-		} catch(Exception e) {
+		} catch(QueryException | SQLException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
 		}
 		return ontologySynonymSubmissionStatus;
 	}
 	
-	private OntologySynonymSubmissionStatus createOntologySynonymSubmissionStatus(ResultSet result) throws SQLException {
+	private OntologySynonymSubmissionStatus createOntologySynonymSubmissionStatus(ResultSet result) throws SQLException, QueryException {
 		int id = result.getInt("id");
 		int ontologysynonymsubmissionId = result.getInt("ontologysynonymsubmission");
 		Status status = statusDAO.get(result.getInt("status"));
@@ -38,7 +39,7 @@ public class OntologySynonymSubmissionStatusDAO {
 		return new OntologySynonymSubmissionStatus(id, ontologysynonymsubmissionId, status, externalId);
 	}
 
-	public OntologySynonymSubmissionStatus insert(OntologySynonymSubmissionStatus ontologySynonymSubmissionStatus)  {
+	public OntologySynonymSubmissionStatus insert(OntologySynonymSubmissionStatus ontologySynonymSubmissionStatus) throws QueryException  {
 		if(!ontologySynonymSubmissionStatus.hasId()) {
 			try(Query insert = new Query("INSERT INTO `otosteps_ontologysynonymsubmission_status` "
 					+ "(`ontologysynonymsubmission`, `status`, `iri`) VALUES(?, ?, ?)")) {
@@ -51,14 +52,15 @@ public class OntologySynonymSubmissionStatusDAO {
 				int id = generatedKeys.getInt(1);
 				
 				ontologySynonymSubmissionStatus.setId(id);
-			} catch(Exception e) {
+			} catch(QueryException | SQLException e) {
 				log(LogLevel.ERROR, "Query Exception", e);
+				throw new QueryException(e);
 			}
 		}
 		return ontologySynonymSubmissionStatus;
 	}
 	
-	public void update(OntologySynonymSubmissionStatus ontologySynonymSubmissionStatus)  {		
+	public void update(OntologySynonymSubmissionStatus ontologySynonymSubmissionStatus) throws QueryException  {		
 		try(Query query = new Query("UPDATE otosteps_ontologysynonymsubmission_status SET ontologysynonymsubmission = ?, "
 				+ "status = ?, iri = ? WHERE id = ?")) {
 			query.setParameter(1, ontologySynonymSubmissionStatus.getOntologySynonymSubmissionId());
@@ -68,19 +70,21 @@ public class OntologySynonymSubmissionStatusDAO {
 			query.execute();
 		} catch(QueryException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
+			throw e;
 		}
 	}
 	
-	public void remove(OntologySynonymSubmissionStatus ontologySynonymSubmissionStatus)  {
+	public void remove(OntologySynonymSubmissionStatus ontologySynonymSubmissionStatus) throws QueryException  {
 		try(Query query = new Query("DELETE FROM otosteps_ontologysynonymsubmission_status WHERE id = ?")) {
 			query.setParameter(1, ontologySynonymSubmissionStatus.getId());
 			query.execute();
 		} catch(QueryException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
+			throw e;
 		}
 	}
 
-	public List<OntologySynonymSubmissionStatus> getStatusOfOntologySynonymSubmission(int ontologySynonymSubmissionId) {
+	public List<OntologySynonymSubmissionStatus> getStatusOfOntologySynonymSubmission(int ontologySynonymSubmissionId) throws QueryException {
 		List<OntologySynonymSubmissionStatus> ontologySynonymSubmissionStatuses = new LinkedList<OntologySynonymSubmissionStatus>();
 		try(Query query = new Query("SELECT id FROM otosteps_ontologysynonymsubmission_status WHERE ontologysynonymsubmission = ?")) {
 			query.setParameter(1, ontologySynonymSubmissionId);
@@ -91,8 +95,9 @@ public class OntologySynonymSubmissionStatusDAO {
 				if(ontologySynonymSubmissionStatus != null)
 					ontologySynonymSubmissionStatuses.add(ontologySynonymSubmissionStatus);
 			}
-		} catch(Exception e) {
+		} catch(QueryException | SQLException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
 		}
 		return ontologySynonymSubmissionStatuses;
 	}

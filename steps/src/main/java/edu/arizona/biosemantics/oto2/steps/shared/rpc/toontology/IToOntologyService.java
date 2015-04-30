@@ -5,6 +5,7 @@ import java.util.List;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
+import edu.arizona.biosemantics.oto2.steps.server.persist.db.Query.QueryException;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmission;
@@ -13,29 +14,29 @@ import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynon
 @RemoteServiceRelativePath("toOntology")
 public interface IToOntologyService extends RemoteService {
 	
-	public List<Ontology> getOntologies(Collection collection);
+	public List<Ontology> getOntologies(Collection collection) throws Exception;
 	
-	public OntologyClassSubmission submitClass(OntologyClassSubmission submission) throws OntologyFileException, ClassExistsException, OntologyBioportalException;
+	public OntologyClassSubmission createClassSubmission(OntologyClassSubmission submission) throws CreateClassSubmissionException, OntologyBioportalException, OntologyFileException, ClassExistsException;
 
-	public OntologySynonymSubmission submitSynonym(OntologySynonymSubmission submission) throws OntologyFileException, OntologyBioportalException;
+	public OntologySynonymSubmission createSynonymSubmission(OntologySynonymSubmission submission) throws CreateSynonymSubmissionException, OntologyFileException, OntologyBioportalException;
 	
-	public List<OntologyClassSubmission> getClassSubmissions(Collection collection);
+	public List<OntologyClassSubmission> getClassSubmissions(Collection collection) throws  Exception;
 
-	public List<OntologySynonymSubmission> getSynonymSubmissions(Collection collection);
+	public List<OntologySynonymSubmission> getSynonymSubmissions(Collection collection) throws Exception;
 	
-	public Ontology createOntology(Collection collection, Ontology ontology) throws OntologyFileException, OntologyExistsException;
+	public Ontology createOntology(Collection collection, Ontology ontology) throws CreateOntologyException;
 	
-	public void refreshOntologySubmissionStatuses(Collection collection);
+	public void refreshSubmissionStatuses(Collection collection) throws Exception;
 	
-	public void updateOntologyClassSubmissions(Collection collection, 
-			java.util.Collection<OntologyClassSubmission> ontologyClassSubmissions) throws OntologyFileException, OntologyBioportalException;
+	public void updateClassSubmissions(Collection collection, 
+			java.util.Collection<OntologyClassSubmission> ontologyClassSubmissions) throws UpdateClassSubmissionException, OntologyBioportalException;
 
-	public void updateOntologySynonymSubmissions(Collection collection, 
-			java.util.Collection<OntologySynonymSubmission> ontologySynonymSubmissions) throws OntologyFileException, OntologyBioportalException;
+	public void updateSynonymSubmissions(Collection collection, 
+			java.util.Collection<OntologySynonymSubmission> ontologySynonymSubmissions) throws UpdateSynonymSubmissionException, OntologyBioportalException;
 	
-	public void removeOntologyClassSubmissions(Collection collection, 
-			java.util.Collection<OntologyClassSubmission> ontologyClassSubmissions) throws OntologyFileException, OntologyBioportalException;
+	public void removeClassSubmissions(Collection collection, 
+			java.util.Collection<OntologyClassSubmission> ontologyClassSubmissions) throws RemoveClassSubmissionException, OntologyBioportalException;
 	
-	public void removeOntologySynonymSubmissions(Collection collection, 
-			java.util.Collection<OntologySynonymSubmission> ontologySynonymSubmissions) throws OntologyFileException, OntologyBioportalException;
+	public void removeSynonymSubmissions(Collection collection, 
+			java.util.Collection<OntologySynonymSubmission> ontologySynonymSubmissions) throws RemoveSynonymSubmissionException, OntologyBioportalException;
 }

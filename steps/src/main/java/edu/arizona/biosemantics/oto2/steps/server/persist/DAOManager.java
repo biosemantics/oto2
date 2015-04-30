@@ -10,6 +10,9 @@ import edu.arizona.biosemantics.oto2.steps.server.persist.db.OntologySynonymSubm
 import edu.arizona.biosemantics.oto2.steps.server.persist.db.OntologySynonymSubmissionStatusDAO;
 import edu.arizona.biosemantics.oto2.steps.server.persist.db.StatusDAO;
 import edu.arizona.biosemantics.oto2.steps.server.persist.db.TermDAO;
+import edu.arizona.biosemantics.oto2.steps.server.persist.file.OntologyDAO2;
+import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.OntologyFileException;
 
 public class DAOManager {
 
@@ -22,7 +25,6 @@ public class DAOManager {
 	private OntologySynonymSubmissionStatusDAO ontologySynonymSubmissionStatusDAO;
 	private ContextDAO contextDAO;
 	private StatusDAO statusDAO;
-	private edu.arizona.biosemantics.oto2.steps.server.persist.file.OntologyDAO ontologyFileDAO;
 	private OntologyBioportalDAO ontologyBioportalDAO;
 	
 	public DAOManager() {
@@ -35,7 +37,6 @@ public class DAOManager {
 		ontologySynonymSubmissionStatusDAO = new OntologySynonymSubmissionStatusDAO();
 		contextDAO = new ContextDAO();
 		statusDAO = new StatusDAO();
-		ontologyFileDAO = new edu.arizona.biosemantics.oto2.steps.server.persist.file.OntologyDAO();
 		ontologyBioportalDAO = new OntologyBioportalDAO();
 		
 		collectionDAO.setTermDAO(termDAO);
@@ -48,8 +49,8 @@ public class DAOManager {
 		ontologySynonymSubmissionDAO.setOntologySynonymSubmissionStatusDAO(ontologySynonymSubmissionStatusDAO);
 		ontologySynonymSubmissionStatusDAO.setStatusDAO(statusDAO);
 		ontologyClassSubmissionStatusDAO.setStatusDAO(statusDAO);
-		ontologyFileDAO.setOntologyDAO(ontologyDBDAO);
-		ontologyFileDAO.setCollectionDAO(collectionDAO);
+		//ontologyFileDAO.setOntologyDAO(ontologyDBDAO);
+		//ontologyFileDAO.setCollectionDAO(collectionDAO);
 		ontologyBioportalDAO.setOntologyClassSubmissionDAO(ontologyClassSubmissionDAO);
 		ontologyBioportalDAO.setOntologySynonymSubmissionDAO(ontologySynonymSubmissionDAO);
 	}
@@ -66,8 +67,8 @@ public class DAOManager {
 		return ontologyDBDAO;
 	}
 	
-	public edu.arizona.biosemantics.oto2.steps.server.persist.file.OntologyDAO getOntologyFileDAO() {
-		return ontologyFileDAO;
+	public OntologyDAO2 getOntologyFileDAO(Collection collection) throws OntologyFileException {
+		return new OntologyDAO2(collection, ontologyDBDAO);
 	}
 
 	public OntologyClassSubmissionDAO getOntologyClassSubmissionDAO() {

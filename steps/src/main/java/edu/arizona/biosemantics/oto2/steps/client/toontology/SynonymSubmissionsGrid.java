@@ -107,7 +107,7 @@ public class SynonymSubmissionsGrid implements IsWidget {
 					deleteItem.addSelectionHandler(new SelectionHandler<Item>() {
 						@Override
 						public void onSelection(SelectionEvent<Item> event) {
-							toOntologyService.removeOntologySynonymSubmissions(collection, 
+							toOntologyService.removeSynonymSubmissions(collection, 
 									grid.getSelectionModel().getSelectedItems(), new AsyncCallback<Void>() {
 								@Override
 								public void onFailure(Throwable caught) {

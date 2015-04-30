@@ -14,6 +14,7 @@ import edu.arizona.biosemantics.oto2.steps.server.persist.db.OntologyClassSubmis
 import edu.arizona.biosemantics.oto2.steps.server.persist.db.OntologyClassSubmissionStatusDAO;
 import edu.arizona.biosemantics.oto2.steps.server.persist.db.OntologySynonymSubmissionDAO;
 import edu.arizona.biosemantics.oto2.steps.server.persist.db.OntologySynonymSubmissionStatusDAO;
+import edu.arizona.biosemantics.oto2.steps.server.persist.db.Query.QueryException;
 import edu.arizona.biosemantics.oto2.steps.server.persist.db.StatusDAO;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmission;
@@ -30,7 +31,7 @@ public class OntologyBioportalDAO {
 	private OntologyClassSubmissionStatusDAO ontologyClassSubmissionStatusDAO;
 	private OntologySynonymSubmissionStatusDAO ontologySynonymSubmissionStatusDAO;
 	
-	public void refreshStatuses(Collection collection) {
+	public void refreshStatuses(Collection collection) throws QueryException {
 		List<OntologyClassSubmission> ontologyClassSubmissions = ontologyClassSubmissionDAO.get(collection, StatusEnum.PENDING);
 		List<OntologySynonymSubmission> ontologySynonymSubmissions = ontologySynonymSubmissionDAO.get(collection, StatusEnum.PENDING);
 		
@@ -151,7 +152,7 @@ public class OntologyBioportalDAO {
 		return provisionalClass;
 	}
 	
-	private void refresh(OntologySynonymSubmission ontologySynonymSubmission) {
+	private void refresh(OntologySynonymSubmission ontologySynonymSubmission) throws QueryException {
 		OntologySynonymSubmissionStatus pendingStatus = getPendingStatus(ontologySynonymSubmission);
 		if(isAccepted(ontologySynonymSubmission)) {
 			try(BioPortalClient bioPortalClient = new BioPortalClient(Configuration.bioportalUrl, Configuration.bioportalApiKey);) {
@@ -189,7 +190,7 @@ public class OntologyBioportalDAO {
 		return null;
 	}
 
-	private void refresh(OntologyClassSubmission ontologyClassSubmission) {
+	private void refresh(OntologyClassSubmission ontologyClassSubmission) throws QueryException {
 		OntologyClassSubmissionStatus pendingStatus = getPendingStatus(ontologyClassSubmission);
 		if(!isAccepted(ontologyClassSubmission)) {
 			try(BioPortalClient bioPortalClient = new BioPortalClient(Configuration.bioportalUrl, Configuration.bioportalApiKey);) {

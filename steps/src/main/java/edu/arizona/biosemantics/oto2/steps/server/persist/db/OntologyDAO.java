@@ -17,7 +17,7 @@ public class OntologyDAO {
 	
 	public OntologyDAO() {} 
 	
-	public Ontology get(int id)  {
+	public Ontology get(int id) throws QueryException  {
 		Ontology ontology = null;
 		try(Query query = new Query("SELECT * FROM otosteps_ontology WHERE id = ?")) {
 			query.setParameter(1, id);
@@ -25,13 +25,14 @@ public class OntologyDAO {
 			while(result.next()) {
 				ontology = createOntology(result);
 			}
-		} catch(Exception e) {
+		} catch(QueryException | SQLException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
 		}
 		return ontology;
 	}
 	
-	private Ontology createOntology(ResultSet result) throws SQLException {
+	private Ontology createOntology(ResultSet result) throws QueryException, SQLException {
 		int id = result.getInt("id");
 		String externalId = result.getString("iri");
 		String name = result.getString("name");
@@ -43,7 +44,7 @@ public class OntologyDAO {
 		return new Ontology(id, externalId, name, prefix, taxonGroups, browseURL, collectionId);
 	}
 
-	private Set<TaxonGroup> getTaxonGroups(int id) {
+	private Set<TaxonGroup> getTaxonGroups(int id) throws QueryException {
 		Set<TaxonGroup> taxonGroups = new HashSet<TaxonGroup>();
 		try(Query query = new Query("SELECT taxongroup FROM otosteps_ontology_taxongroup WHERE ontology = ?")) {
 			query.setParameter(1, id);
@@ -55,13 +56,14 @@ public class OntologyDAO {
 					taxonGroups.add(taxonGroup);
 				} catch(IllegalArgumentException e) {}
 			}
-		} catch(Exception e) {
+		} catch(QueryException | SQLException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
 		}
 		return taxonGroups;
 	}
 
-	public Ontology insert(Ontology ontology)  {
+	public Ontology insert(Ontology ontology) throws QueryException  {
 		if(!ontology.hasId()) {
 			try(Query insert = new Query("INSERT INTO `otosteps_ontology` (`iri`, `name`, `acronym`, "
 					+ "`browse_url`, `collection`) VALUES(?, ?, ?, ?, ?)")) {
@@ -78,27 +80,29 @@ public class OntologyDAO {
 				ontology.setId(id);
 				
 				addTaxonGroups(ontology);
-			} catch(Exception e) {
+			} catch(QueryException | SQLException e) {
 				log(LogLevel.ERROR, "Query Exception", e);
+				throw new QueryException(e);
 			}
 		}
 		return ontology;
 	}
 	
-	private void addTaxonGroups(Ontology ontology) {
+	private void addTaxonGroups(Ontology ontology) throws QueryException {
 		for(TaxonGroup taxonGroup : ontology.getTaxonGroups()) {
 			try(Query query = new Query("INSERT INTO `otosteps_ontology_taxongroup` (`ontology`, `taxongroup`) "
 					+ "VALUES(?, ?)")) {
 				query.setParameter(1, ontology.getId());
 				query.setParameter(2, taxonGroup.toString());
 				query.execute();
-			} catch(Exception e) {
+			} catch(QueryException e) {
 				log(LogLevel.ERROR, "Query Exception", e);
+				throw e;
 			}
 		}
 	}
 
-	public void update(Ontology ontology)  {		
+	public void update(Ontology ontology) throws QueryException  {		
 		try(Query query = new Query("UPDATE otosteps_ontology SET iri = ?, name = ?, acronym = ?, "
 				+ "browse_url = ?, collection = ? WHERE id = ?")) {
 			query.setParameter(1, ontology.getIri());
@@ -112,10 +116,11 @@ public class OntologyDAO {
 			ensureTaxonGroups(ontology);
 		} catch(QueryException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
+			throw e;
 		}
 	}
 	
-	private void ensureTaxonGroups(Ontology ontology) {
+	private void ensureTaxonGroups(Ontology ontology) throws QueryException {
 		Set<TaxonGroup> currentTaxonGroups = this.getTaxonGroups(ontology.getId());
 		Set<TaxonGroup> toRemoveTaxonGroups = new HashSet<TaxonGroup>(currentTaxonGroups);
 		toRemoveTaxonGroups.removeAll(ontology.getTaxonGroups());
@@ -126,8 +131,9 @@ public class OntologyDAO {
 			try(Query query = new Query("DELETE FROM otosteps_ontology WHERE id = ? AND taxongroup = ?")) {
 				query.setParameter(1, ontology.getId());
 				query.setParameter(2, taxonGroup.toString());
-			} catch(Exception e) {
+			} catch(QueryException e) {
 				log(LogLevel.ERROR, "Query Exception", e);
+				throw e;
 			}
 		}
 		for(TaxonGroup taxonGroup : toAddTaxonGroups) {
@@ -136,13 +142,14 @@ public class OntologyDAO {
 				query.setParameter(1, ontology.getId());
 				query.setParameter(2, taxonGroup.toString());
 				query.execute();
-			} catch(Exception e) {
+			} catch(QueryException e) {
 				log(LogLevel.ERROR, "Query Exception", e);
+				throw e;
 			}
 		}
 	}
 
-	public void remove(Ontology ontology)  {
+	public void remove(Ontology ontology) throws QueryException  {
 		try(Query query = new Query("DELETE FROM otosteps_ontology WHERE id = ?")) {
 			query.setParameter(1, ontology.getId());
 			query.execute();
@@ -150,20 +157,22 @@ public class OntologyDAO {
 			removeTaxonGroups(ontology);
 		} catch(QueryException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
+			throw e;
 		}
 	}
 
-	private void removeTaxonGroups(Ontology ontology) {
+	private void removeTaxonGroups(Ontology ontology) throws QueryException {
 		try(Query query = new Query("DELETE FROM otosteps_ontology_taxongroup WHERE ontology = ?")) {
 			query.setParameter(1, ontology.getId());
 			query.execute();
 			
 		} catch(QueryException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
+			throw e;
 		}
 	}
 
-	public List<Ontology> getOntologiesForCollection(Collection collection) {
+	public List<Ontology> getOntologiesForCollection(Collection collection) throws QueryException {
 		List<Ontology> ontologies = new LinkedList<Ontology>();
 		try(Query query = new Query("SELECT id FROM otosteps_ontology WHERE collection = ? OR collection = -1")) {
 			query.setParameter(1, collection.getId());
@@ -174,13 +183,14 @@ public class OntologyDAO {
 				if(ontology != null)
 					ontologies.add(ontology);
 			}
-		} catch(Exception e) {
+		} catch(QueryException | SQLException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
 		}
 		return ontologies;
 	}
 
-	public List<Ontology> getRelevantOntologiesForCollection(Collection collection) {
+	public List<Ontology> getRelevantOntologiesForCollection(Collection collection) throws QueryException {
 		List<Ontology> collectionOntologies = this.getOntologiesForCollection(collection);
 		List<Ontology> relevantOntologies = new LinkedList<Ontology>();
 		for(Ontology collectionOntology : collectionOntologies) 
@@ -189,7 +199,7 @@ public class OntologyDAO {
 		return relevantOntologies;
 	}
 	
-	public List<Ontology> getPermanentOntologies() {
+	public List<Ontology> getPermanentOntologies() throws QueryException {
 		List<Ontology> ontologies = new LinkedList<Ontology>();
 		try(Query query = new Query("SELECT id FROM otosteps_ontology WHERE collection = -1")) {
 			ResultSet result = query.execute();
@@ -199,8 +209,9 @@ public class OntologyDAO {
 				if(ontology != null)
 					ontologies.add(ontology);
 			}
-		} catch(Exception e) {
+		} catch(QueryException | SQLException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
 		}
 		return ontologies;
 	}

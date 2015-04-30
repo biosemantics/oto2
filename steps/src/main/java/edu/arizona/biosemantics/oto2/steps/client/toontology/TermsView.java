@@ -375,7 +375,7 @@ public class TermsView implements IsWidget {
 		refreshButton.addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
-				toOntologyService.refreshOntologySubmissionStatuses(collection, new AsyncCallback<Void>() {
+				toOntologyService.refreshSubmissionStatuses(collection, new AsyncCallback<Void>() {
 					@Override
 					public void onFailure(Throwable caught) {
 						Alerter.failedToRefreshSubmissions();

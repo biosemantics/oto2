@@ -15,6 +15,7 @@ import com.sencha.gxt.cell.core.client.form.ComboBoxCell.TriggerAction;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
+import com.sencha.gxt.widget.core.client.box.MessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
@@ -156,7 +157,20 @@ public class SubmitClassView implements IsWidget {
 						ontology.setAcronym(dialog.getAcronym());
 						ontology.setTaxonGroups(dialog.getTaxonGroups());
 						ontology.setCollectionId(collection.getId());
-						
+						if(!dialog.getTaxonGroups().contains(collection.getTaxonGroup())) {
+							MessageBox box = Alerter.warnOntologyUnaivableForCollection();
+							box.getButton(PredefinedButton.YES).addSelectHandler(new SelectHandler() {
+								@Override
+								public void onSelect(SelectEvent event) {
+									createOntology(ontology);
+								}
+							});
+						} else {
+							createOntology(ontology);
+						}
+					}
+
+					private void createOntology(Ontology ontology) {
 						toOntologyService.createOntology(collection, ontology, new AsyncCallback<Ontology>() {
 							@Override
 							public void onFailure(Throwable caught) {
@@ -193,7 +207,7 @@ public class SubmitClassView implements IsWidget {
 			public void onSelect(SelectEvent event) {
 				
 				final OntologyClassSubmission submission = getClassSubmission();
-				toOntologyService.submitClass(submission, new AsyncCallback<OntologyClassSubmission>() {
+				toOntologyService.createClassSubmission(submission, new AsyncCallback<OntologyClassSubmission>() {
 					@Override
 					public void onFailure(Throwable caught) {
 						if(caught instanceof ClassExistsException) {
@@ -215,7 +229,7 @@ public class SubmitClassView implements IsWidget {
 				submission.setId(selectedSubmission.getId());
 				final List<OntologyClassSubmission> submissions = new LinkedList<OntologyClassSubmission>();
 				submissions.add(submission);
-				toOntologyService.updateOntologyClassSubmissions(collection, submissions, new AsyncCallback<Void>() {
+				toOntologyService.updateClassSubmissions(collection, submissions, new AsyncCallback<Void>() {
 					@Override
 					public void onFailure(Throwable caught) {
 						Alerter.failedToEditClass(caught);

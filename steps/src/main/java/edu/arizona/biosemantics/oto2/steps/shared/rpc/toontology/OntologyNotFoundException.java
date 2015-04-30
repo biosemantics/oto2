@@ -6,4 +6,8 @@ public class OntologyNotFoundException extends Exception {
 		super(message);
 	}
 
+	public OntologyNotFoundException(String message, Throwable t) {
+		super(message, t);
+	}
+
 }

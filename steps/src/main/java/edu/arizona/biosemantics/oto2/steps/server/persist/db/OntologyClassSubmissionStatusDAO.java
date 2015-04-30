@@ -16,7 +16,7 @@ public class OntologyClassSubmissionStatusDAO {
 	
 	public OntologyClassSubmissionStatusDAO() {} 
 	
-	public OntologyClassSubmissionStatus get(int id)  {
+	public OntologyClassSubmissionStatus get(int id) throws QueryException  {
 		OntologyClassSubmissionStatus ontologyClassSubmissionStatus = null;
 		try(Query query = new Query("SELECT * FROM otosteps_ontologyclasssubmission_status WHERE id = ?")) {
 			query.setParameter(1, id);
@@ -24,13 +24,14 @@ public class OntologyClassSubmissionStatusDAO {
 			while(result.next()) {
 				ontologyClassSubmissionStatus = createOntologyClassSubmissionStatus(result);
 			}
-		} catch(Exception e) {
+		} catch(QueryException | SQLException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
 		}
 		return ontologyClassSubmissionStatus;
 	}
 	
-	private OntologyClassSubmissionStatus createOntologyClassSubmissionStatus(ResultSet result) throws SQLException {
+	private OntologyClassSubmissionStatus createOntologyClassSubmissionStatus(ResultSet result) throws SQLException, QueryException {
 		int id = result.getInt("id");
 		int ontologyclasssubmissionId = result.getInt("ontologyclasssubmission");
 		Status status = statusDAO.get(result.getInt("status"));
@@ -38,7 +39,7 @@ public class OntologyClassSubmissionStatusDAO {
 		return new OntologyClassSubmissionStatus(id, ontologyclasssubmissionId, status, iri);
 	}
 
-	public OntologyClassSubmissionStatus insert(OntologyClassSubmissionStatus ontologyClassSubmissionStatus)  {
+	public OntologyClassSubmissionStatus insert(OntologyClassSubmissionStatus ontologyClassSubmissionStatus) throws QueryException  {
 		if(!ontologyClassSubmissionStatus.hasId()) {
 			try(Query insert = new Query("INSERT INTO `otosteps_ontologyclasssubmission_status` "
 					+ "(`ontologyclasssubmission`, `status`, `iri`) VALUES(?, ?, ?)")) {
@@ -51,14 +52,15 @@ public class OntologyClassSubmissionStatusDAO {
 				int id = generatedKeys.getInt(1);
 				
 				ontologyClassSubmissionStatus.setId(id);
-			} catch(Exception e) {
+			} catch(QueryException | SQLException e) {
 				log(LogLevel.ERROR, "Query Exception", e);
+				throw new QueryException(e);
 			}
 		}
 		return ontologyClassSubmissionStatus;
 	}
 	
-	public void update(OntologyClassSubmissionStatus ontologyClassSubmissionStatus)  {		
+	public void update(OntologyClassSubmissionStatus ontologyClassSubmissionStatus) throws QueryException  {		
 		try(Query query = new Query("UPDATE otosteps_ontologyclasssubmission_status SET ontologyclasssubmission = ?, "
 				+ "status = ?, iri = ? WHERE id = ?")) {
 			query.setParameter(1, ontologyClassSubmissionStatus.getOntologyClassSubmissionId());
@@ -68,19 +70,21 @@ public class OntologyClassSubmissionStatusDAO {
 			query.execute();
 		} catch(QueryException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
+			throw e;
 		}
 	}
 	
-	public void remove(OntologyClassSubmissionStatus ontologyClassSubmissionStatus)  {
+	public void remove(OntologyClassSubmissionStatus ontologyClassSubmissionStatus) throws QueryException  {
 		try(Query query = new Query("DELETE FROM otosteps_ontologyclasssubmission_status WHERE id = ?")) {
 			query.setParameter(1, ontologyClassSubmissionStatus.getId());
 			query.execute();
 		} catch(QueryException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
+			throw e;
 		}
 	}
 
-	public List<OntologyClassSubmissionStatus> getStatusOfOntologyClassSubmission(int ontologyClassSubmissionId) {
+	public List<OntologyClassSubmissionStatus> getStatusOfOntologyClassSubmission(int ontologyClassSubmissionId) throws QueryException {
 		List<OntologyClassSubmissionStatus> ontologyClassSubmissionStatuses = new LinkedList<OntologyClassSubmissionStatus>();
 		try(Query query = new Query("SELECT id FROM otosteps_ontologyclasssubmission_status WHERE ontologyclasssubmission = ?")) {
 			query.setParameter(1, ontologyClassSubmissionId);
@@ -91,8 +95,9 @@ public class OntologyClassSubmissionStatusDAO {
 				if(ontologyClassSubmissionStatus != null)
 					ontologyClassSubmissionStatuses.add(ontologyClassSubmissionStatus);
 			}
-		} catch(Exception e) {
+		} catch(QueryException | SQLException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
 		}
 		return ontologyClassSubmissionStatuses;
 	}

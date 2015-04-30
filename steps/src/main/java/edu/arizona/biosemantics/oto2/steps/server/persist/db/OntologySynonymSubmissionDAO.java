@@ -22,7 +22,7 @@ public class OntologySynonymSubmissionDAO {
 	
 	public OntologySynonymSubmissionDAO() {} 
 	
-	public OntologySynonymSubmission get(int id)  {
+	public OntologySynonymSubmission get(int id) throws QueryException  {
 		OntologySynonymSubmission ontologySynonymSubmission = null;
 		try(Query query = new Query("SELECT * FROM otosteps_ontologysynonymsubmission WHERE id = ?")) {
 			query.setParameter(1, id);
@@ -30,13 +30,14 @@ public class OntologySynonymSubmissionDAO {
 			while(result.next()) {
 				ontologySynonymSubmission = createSynonymSubmission(result);
 			}
-		} catch(Exception e) {
+		} catch(QueryException | SQLException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
 		}
 		return ontologySynonymSubmission;
 	}
 	
-	private OntologySynonymSubmission createSynonymSubmission(ResultSet result) throws SQLException {
+	private OntologySynonymSubmission createSynonymSubmission(ResultSet result) throws SQLException, QueryException {
 		int id = result.getInt("id");
 		int termId = result.getInt("term");
 		String submission_term = result.getString("submission_term");
@@ -56,7 +57,7 @@ public class OntologySynonymSubmissionDAO {
 				user, ontologysynonymSubmissionStatuses);
 	}
 
-	public OntologySynonymSubmission insert(OntologySynonymSubmission ontologySynonymSubmission)  {
+	public OntologySynonymSubmission insert(OntologySynonymSubmission ontologySynonymSubmission) throws QueryException  {
 		if(!ontologySynonymSubmission.hasId()) {
 			try(Query insert = new Query("INSERT INTO `otosteps_ontologysynonymsubmission` "
 					+ "(`term`, `submission_term`, `ontology`, `class_iri`, `synonyms`, `source`, `sample_sentence`, "
@@ -78,14 +79,15 @@ public class OntologySynonymSubmissionDAO {
 				int id = generatedKeys.getInt(1);
 				
 				ontologySynonymSubmission.setId(id);
-			} catch(Exception e) {
+			} catch(QueryException | SQLException e) {
 				log(LogLevel.ERROR, "Query Exception", e);
+				throw new QueryException(e);
 			}
 		}
 		return ontologySynonymSubmission;
 	}
 	
-	public void update(OntologySynonymSubmission ontologySynonymSubmission)  {		
+	public void update(OntologySynonymSubmission ontologySynonymSubmission) throws QueryException  {		
 		try(Query query = new Query("UPDATE otosteps_ontologysynonymsubmission SET term = ?, submission_term = ?,"
 				+ " ontology = ?, class_iri = ?, synonyms = ?, source = ?, sample_sentence = ?, entity = ?, quality = ?, user = ? "
 				+ "WHERE id = ?")) {
@@ -106,10 +108,11 @@ public class OntologySynonymSubmissionDAO {
 				ontologySynonymSubmissionStatusDAO.update(ontologySynonymSubmissionStatus);
 		} catch(QueryException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
+			throw e;
 		}
 	}
 	
-	public void remove(OntologySynonymSubmission ontologySynonymSubmission)  {
+	public void remove(OntologySynonymSubmission ontologySynonymSubmission) throws QueryException  {
 		try(Query query = new Query("DELETE FROM otosteps_ontologysynonymsubmission WHERE id = ?")) {
 			query.setParameter(1, ontologySynonymSubmission.getId());
 			query.execute();
@@ -118,6 +121,7 @@ public class OntologySynonymSubmissionDAO {
 				ontologySynonymSubmissionStatusDAO.remove(ontologySubmissionStatus);
 		} catch(QueryException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
+			throw e;
 		}
 	}
 
@@ -134,7 +138,7 @@ public class OntologySynonymSubmissionDAO {
 		this.ontologyDAO = ontologyDAO;
 	}
 
-	public List<OntologySynonymSubmission> get(Collection collection) {
+	public List<OntologySynonymSubmission> get(Collection collection) throws QueryException {
 		List<OntologySynonymSubmission> result = new LinkedList<OntologySynonymSubmission>();
 		try(Query query = new Query("SELECT * FROM otosteps_ontologysynonymsubmission s, otosteps_term t WHERE s.term = t.id AND t.collection = ?")) {
 			query.setParameter(1, collection.getId());
@@ -142,13 +146,14 @@ public class OntologySynonymSubmissionDAO {
 			while(resultSet.next()) {
 				result.add(createSynonymSubmission(resultSet));
 			}
-		} catch(Exception e) {
+		} catch(QueryException | SQLException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
 		}
 		return result;
 	}
 
-	public List<OntologySynonymSubmission> get(Collection collection, StatusEnum status) {
+	public List<OntologySynonymSubmission> get(Collection collection, StatusEnum status) throws QueryException {
 		List<OntologySynonymSubmission> result = new LinkedList<OntologySynonymSubmission>();
 		try(Query query = new Query("SELECT * FROM otosteps_ontologyclasssubmission s, "
 				+ "otosteps_ontologyclasssubmission_status ss, otosteps_status st,"
@@ -160,8 +165,9 @@ public class OntologySynonymSubmissionDAO {
 			while(resultSet.next()) {
 				result.add(createSynonymSubmission(resultSet));
 			}
-		} catch(Exception e) {
+		} catch(QueryException | SQLException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
 		}
 		return result;
 	}	

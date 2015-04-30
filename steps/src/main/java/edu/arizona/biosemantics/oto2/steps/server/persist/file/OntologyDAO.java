@@ -1,6 +1,7 @@
 package edu.arizona.biosemantics.oto2.steps.server.persist.file;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -8,6 +9,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -51,6 +53,7 @@ import edu.arizona.biosemantics.oto2.steps.client.OtoSteps;
 import edu.arizona.biosemantics.oto2.steps.server.Configuration;
 import edu.arizona.biosemantics.oto2.steps.server.persist.db.CollectionDAO;
 import edu.arizona.biosemantics.oto2.steps.server.persist.db.OntologyClassSubmissionStatusDAO;
+import edu.arizona.biosemantics.oto2.steps.server.persist.db.Query.QueryException;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.EntityQualityClass;
@@ -109,15 +112,19 @@ public class OntologyDAO {
 		broadSynonymProperty = owlDataFactory.getOWLAnnotationProperty(IRI.create("http://www.geneontology.org/formats/oboInOwl#hasBroadSynonym"));
 		
 		// loading ontologies takes time, preload them
-		for(Ontology ontology : staticOntologyDAO.getPermanentOntologies()) {
-			File file = getPermanentOntologyFile(ontology);
-			try {
-				owlOntologyManager.addIRIMapper(createMapper(ontology));
-				OWLOntology owlOntology = owlOntologyManager.loadOntologyFromOntologyDocument(file);
-				referencedOntologies.put(ontology, owlOntology);
-			} catch (OWLOntologyCreationException e) {
-				Logger.getLogger(OntologyDAO.class).error("Could not load ontology", e);
+		try {
+			for(Ontology ontology : staticOntologyDAO.getPermanentOntologies()) {
+				File file = getPermanentOntologyFile(ontology);
+				try {
+					owlOntologyManager.addIRIMapper(createMapper(ontology));
+					OWLOntology owlOntology = owlOntologyManager.loadOntologyFromOntologyDocument(file);
+					referencedOntologies.put(ontology, owlOntology);
+				} catch (OWLOntologyCreationException e) {
+					Logger.getLogger(OntologyDAO.class).error("Could not load ontology", e);
+				}
 			}
+		} catch (QueryException e) {
+			Logger.getLogger(OntologyDAO.class).error("Could not load ontologies", e);
 		}
 	}
 
@@ -131,7 +138,11 @@ public class OntologyDAO {
 			throw new OntologyFileException(e);
 		}
 		
-		addRelevantOntologies(collectionDAO.get(ontology.getCollectionId()), owlOntology);
+		try {
+			addRelevantOntologies(collectionDAO.get(ontology.getCollectionId()), owlOntology);
+		} catch (QueryException | IOException e) {
+			throw new OntologyFileException(e);
+		}
 		addOntologyAxioms(owlOntology);
 		
 		try {
@@ -394,7 +405,12 @@ public class OntologyDAO {
 	//http://purl.obolibrary.org/obo/hao
 	//http://www.etc-project.org/owl/ontologies/1/my_ontology#term
 	private OWLOntology getOWLOntology(Collection collection, OWLClass owlClass) throws OntologyNotFoundException {
-		List<Ontology> relevantOntologies = ontologyDAO.getOntologiesForCollection(collection);
+		List<Ontology> relevantOntologies;
+		try {
+			relevantOntologies = ontologyDAO.getOntologiesForCollection(collection);
+		} catch (QueryException e) {
+			throw new OntologyNotFoundException("Could not find ontology for class " + owlClass.getIRI().toString(), e);
+		}
 		
 		String owlClassIRI = owlClass.getIRI().toString().toLowerCase();
 		String hackyOwlClassIdentifier = owlClassIRI;
@@ -627,7 +643,12 @@ public class OntologyDAO {
 	}
 	
 	private void addRelevantOntologies(Collection collection, OWLOntology owlOntology) throws OntologyFileException {
-		List<Ontology> relevantOntologies = ontologyDAO.getRelevantOntologiesForCollection(collection);
+		List<Ontology> relevantOntologies = new LinkedList<Ontology>();
+		try {
+			relevantOntologies = ontologyDAO.getRelevantOntologiesForCollection(collection);
+		} catch (QueryException e) {
+			log(LogLevel.ERROR, "Could not add relevant ontologies", e);
+		}
 		for(Ontology relevantOntology : relevantOntologies) {
 			if(!relevantOntology.hasCollectionId()) {
 				addImportDeclaration(owlOntology, relevantOntology);
@@ -849,12 +870,17 @@ public class OntologyDAO {
 		this.collectionDAO = collectionDAO;
 	}
 
-	public void updateClassSubmission(Collection collection, OntologyClassSubmission submission) {
-		
+	public void updateClassSubmission(Collection collection, OntologyClassSubmission submission) throws ClassExistsException, OntologyFileException {
+		//OWLOntology owlOntology = this.getOwlOntology(collection, submission);
+		//OWLClass owlClass = owlDataFactory.getOWLClass(IRI.create(submission.getClassIRI()));
+		//owlClass
+		this.removeClassSubmission(collection, submission);
+		this.insertClassSubmission(collection, submission);
 	}
 
 	public void updateSynonymSubmission(Collection collection,  OntologySynonymSubmission submission) {
-		
+		this.removeSynonymSubmission(collection, submission);
+		this.removeSynonymSubmission(collection, submission);
 	}
 
 	public void removeClassSubmission(Collection collection, OntologyClassSubmission submission) {
@@ -862,6 +888,17 @@ public class OntologyDAO {
 	}
 
 	public void removeSynonymSubmission(Collection collection, OntologySynonymSubmission submission) {
-		
-	}		
+		OWLOntology owlOntology = this.getOwlOntology(collection, submission);
+		OWLClass owlClass = owlDataFactory.getOWLClass(IRI.create(submission.getClassIRI()));
+		owlOntologyManager.
+		owlOntologyManager.remove
+	}
+
+	public void removeOntology(Ontology ontology) {
+		OWLOntology owlOntology = referencedOntologies.get(ontology);
+		if(owlOntology != null) {
+			owlOntologyManager.removeOntology(owlOntology);
+			referencedOntologies.remove(ontology);
+		}
+	}
 }
