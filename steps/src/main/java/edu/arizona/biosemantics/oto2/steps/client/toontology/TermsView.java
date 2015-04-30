@@ -75,154 +75,34 @@ public class TermsView implements IsWidget {
 		@Override
 		public void onBeforeShow(BeforeShowEvent event) {
 			this.clear();
-			
-			List<Term> viewSelected = new LinkedList<Term>();
+			List<Term> selected = new LinkedList<Term>();
 			List<TextTreeNode> nodes = termTreeSelectionModel.getSelectedItems();	
-			for(TextTreeNode node : nodes)
+			for(TextTreeNode node : nodes) {
 				if(node instanceof TermTreeNode) {
-					viewSelected.add(((TermTreeNode)node).getTerm());
+					selected.add(((TermTreeNode)node).getTerm());
 				} else if(node instanceof BucketTreeNode) {
 					for(TextTreeNode child : treeStore.getChildren(node)) {
 						if(node instanceof TermTreeNode) {
-							viewSelected.add(((TermTreeNode)node).getTerm());
+							selected.add(((TermTreeNode)node).getTerm());
 						}
 					}
 				}
-			
-			final List<Term> selected = viewSelected;
+			}
 			
 			if(selected == null || selected.isEmpty()) {
 				event.setCancelled(true);
 				this.hide();
 			} else {
 				this.add(new HeaderMenuItem("Term"));
-				MenuItem markUseless = new MenuItem("Mark");
-				Menu subMenu = new Menu();
-				markUseless.setSubMenu(subMenu);
-				MenuItem useless = new MenuItem("Not Usefull");
-				MenuItem useful = new MenuItem("Useful");
-				subMenu.add(useless);
-				subMenu.add(useful);
-				useless.addSelectionHandler(new SelectionHandler<Item>() {
-					@Override
-					public void onSelection(SelectionEvent<Item> event) {
-						for(Term term : selected)
-							term.setRemoved(true);
-						eventBus.fireEvent(new TermMarkUselessEvent(selected, true));
-					}
-				});
-				useful.addSelectionHandler(new SelectionHandler<Item>() {
-					@Override
-					public void onSelection(SelectionEvent<Item> event) {
-						for(Term term : selected)
-							term.setRemoved(false);
-						eventBus.fireEvent(new TermMarkUselessEvent(selected, false));
-					}
-				});
-				this.add(markUseless);
-				
-				/*this.add(new HeaderMenuItem("Term"));
-				MenuItem markUseless = new MenuItem("Mark");
-				Menu subMenu = new Menu();
-				markUseless.setSubMenu(subMenu);
-				MenuItem useless = new MenuItem("Not Usefull");
-				MenuItem useful = new MenuItem("Useful");
-				subMenu.add(useless);
-				subMenu.add(useful);
-				useless.addSelectionHandler(new SelectionHandler<Item>() {
-					@Override
-					public void onSelection(SelectionEvent<Item> event) {
-						eventBus.fireEvent(new TermMarkUselessEvent(terms, true));
-					}
-				});
-				useful.addSelectionHandler(new SelectionHandler<Item>() {
-					@Override
-					public void onSelection(SelectionEvent<Item> event) {
-						eventBus.fireEvent(new TermMarkUselessEvent(terms, false));
-					}
-				});
-				this.add(markUseless);*/
-				
+				this.add(createMarkUseless(selected));
 				if(selected.size() == 1) {
-					final Term term = selected.get(0);
-					MenuItem rename = new MenuItem("Correct Spelling");
-					rename.addSelectionHandler(new SelectionHandler<Item>() {
-						@Override
-						public void onSelection(SelectionEvent<Item> event) {
-							Alerter.dialogRename(eventBus, term, collection);
-						}
-					});
-					this.add(rename);
-					/*MenuItem split = new MenuItem("Split Term");
-					split.addSelectionHandler(new SelectionHandler<Item>() {
-						@Override
-						public void onSelection(SelectionEvent<Item> event) {
-							final PromptMessageBox box = new PromptMessageBox(
-									"Split Term", "Please input splitted terms' separated by space.");
-							box.getButton(PredefinedButton.OK).addBeforeSelectHandler(new BeforeSelectHandler() {
-								@Override
-								public void onBeforeSelect(BeforeSelectEvent event) {
-									if(box.getTextField().getValue().trim().isEmpty()) {
-										event.setCancelled(true);
-										AlertMessageBox alert = new AlertMessageBox("Empty", "Empty not allowed");
-										alert.show();
-									}
-								}
-							});
-							box.getTextField().setValue(term.getTerm());
-							box.getTextField().setAllowBlank(false);
-							box.addHideHandler(new HideHandler() {
-								@Override
-								public void onHide(HideEvent event) {
-									String newName = box.getValue();
-									eventBus.fireEvent(new TermSplitEvent(term, newName));
-								}
-							});
-							box.show();
-						}
-					});
-					this.add(split);*/
+					this.add(createRename(selected));
 				}
-					
-
 				this.add(new HeaderMenuItem("Annotation"));
-				MenuItem comment = new MenuItem("Comment");
-				final Term term = selected.get(0);
-				comment.addSelectionHandler(new SelectionHandler<Item>() {
-					@Override
-					public void onSelection(SelectionEvent<Item> event) {
-						final MultiLinePromptMessageBox box = new MultiLinePromptMessageBox("Comment", "");
-						box.getTextArea().setValue(getUsersComment(term));
-						box.addHideHandler(new HideHandler() {
-							@Override
-							public void onHide(HideEvent event) {
-								final Comment newComment = new Comment(OtoSteps.user, box.getValue());
-								collection.addComments((java.util.Collection)selected, newComment);
-								collectionService.update(collection, new AsyncCallback<Void>() {
-									@Override
-									public void onFailure(Throwable caught) {
-										Alerter.addCommentFailed(caught);
-									}
-									@Override
-									public void onSuccess(Void result) {
-										eventBus.fireEvent(new AddCommentEvent(
-												(java.util.Collection)selected, newComment));
-										String comment = Format.ellipse(box.getValue(), 80);
-										String message = Format.substitute("'{0}' saved", new Params(comment));
-										Info.display("Comment", message);
-									}
-								});
-							}
-						});
-						box.show();
-					}
-				});
-				this.add(comment);
+				this.add(createComment(selected));
 				
-				final MenuItem colorizeItem = new MenuItem("Colorize");
 				if(!collection.getColors().isEmpty()) {
-					this.add(colorizeItem);
-					colorizeItem.setSubMenu(createColorizeMenu(selected));
+					this.add(createColorize(selected));
 				} 
 			}
 			
@@ -230,7 +110,8 @@ public class TermsView implements IsWidget {
 				event.setCancelled(true);
 		}
 
-		protected Menu createColorizeMenu(final List<Term> selected) {
+		private Widget createColorize(final List<Term> selected) {
+			final MenuItem colorizeItem = new MenuItem("Colorize");
 			Menu colorMenu = new Menu();
 			MenuItem offItem = new MenuItem("None");
 			offItem.addSelectionHandler(new SelectionHandler<Item>() {
@@ -271,7 +152,82 @@ public class TermsView implements IsWidget {
 				});
 				colorMenu.add(colorItem);
 			}
-			return colorMenu;
+			colorizeItem.setSubMenu(colorMenu);
+			return colorizeItem;
+		}
+
+		private Widget createComment(final List<Term> selected) {
+			MenuItem comment = new MenuItem("Comment");
+			final Term term = selected.get(0);
+			comment.addSelectionHandler(new SelectionHandler<Item>() {
+				@Override
+				public void onSelection(SelectionEvent<Item> event) {
+					final MultiLinePromptMessageBox box = new MultiLinePromptMessageBox("Comment", "");
+					box.getTextArea().setValue(getUsersComment(term));
+					box.addHideHandler(new HideHandler() {
+						@Override
+						public void onHide(HideEvent event) {
+							final Comment newComment = new Comment(OtoSteps.user, box.getValue());
+							collection.addComments((java.util.Collection)selected, newComment);
+							collectionService.update(collection, new AsyncCallback<Void>() {
+								@Override
+								public void onFailure(Throwable caught) {
+									Alerter.addCommentFailed(caught);
+								}
+								@Override
+								public void onSuccess(Void result) {
+									eventBus.fireEvent(new AddCommentEvent(
+											(java.util.Collection)selected, newComment));
+									String comment = Format.ellipse(box.getValue(), 80);
+									String message = Format.substitute("'{0}' saved", new Params(comment));
+									Info.display("Comment", message);
+								}
+							});
+						}
+					});
+					box.show();
+				}
+			});
+			return comment;
+		}
+
+		private Widget createRename(List<Term> selected) {
+			final Term term = selected.get(0);
+			MenuItem rename = new MenuItem("Correct Spelling");
+			rename.addSelectionHandler(new SelectionHandler<Item>() {
+				@Override
+				public void onSelection(SelectionEvent<Item> event) {
+					Alerter.dialogRename(eventBus, term, collection);
+				}
+			});
+			return rename;
+		}
+
+		private Widget createMarkUseless(final List<Term> selected) {
+			MenuItem markUseless = new MenuItem("Mark");
+			Menu subMenu = new Menu();
+			markUseless.setSubMenu(subMenu);
+			MenuItem useless = new MenuItem("Not Usefull");
+			MenuItem useful = new MenuItem("Useful");
+			subMenu.add(useless);
+			subMenu.add(useful);
+			useless.addSelectionHandler(new SelectionHandler<Item>() {
+				@Override
+				public void onSelection(SelectionEvent<Item> event) {
+					for(Term term : selected)
+						term.setRemoved(true);
+					eventBus.fireEvent(new TermMarkUselessEvent(selected, true));
+				}
+			});
+			useful.addSelectionHandler(new SelectionHandler<Item>() {
+				@Override
+				public void onSelection(SelectionEvent<Item> event) {
+					for(Term term : selected)
+						term.setRemoved(false);
+					eventBus.fireEvent(new TermMarkUselessEvent(selected, false));
+				}
+			});
+			return markUseless;
 		}
 
 		protected String getUsersComment(Term term) {

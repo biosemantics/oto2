@@ -101,75 +101,20 @@ public class SynonymSubmissionsGrid implements IsWidget {
 				menu.clear();
 				final List<OntologySynonymSubmission> selected = checkBoxSelectionModel.getSelectedItems();
 				if(!selected.isEmpty()) {
-					
-					MenuItem deleteItem = new MenuItem("Remove");
-					menu.add(deleteItem);
-					deleteItem.addSelectionHandler(new SelectionHandler<Item>() {
-						@Override
-						public void onSelection(SelectionEvent<Item> event) {
-							toOntologyService.removeSynonymSubmissions(collection, 
-									grid.getSelectionModel().getSelectedItems(), new AsyncCallback<Void>() {
-								@Override
-								public void onFailure(Throwable caught) {
-									Alerter.failedToRemoveOntologyClassSubmission();
-								}
-								@Override
-								public void onSuccess(Void result) {
-									eventBus.fireEvent(new RemoveOntologySynonymSubmissionsEvent(grid.getSelectionModel().getSelectedItems()));
-								}
-							});
-						}
-					});
-					menu.add(deleteItem);
-
+					menu.add(createRemoveItem(selected));
 					menu.add(new HeaderMenuItem("Annotation"));
-					MenuItem comment = new MenuItem("Comment");
-					final OntologySynonymSubmission ontologySynonymSubmission = selected.get(0);
-					comment.addSelectionHandler(new SelectionHandler<Item>() {
-						@Override
-						public void onSelection(SelectionEvent<Item> event) {
-							final MultiLinePromptMessageBox box = new MultiLinePromptMessageBox("Comment", "");
-							box.getTextArea().setValue(getUsersComment(ontologySynonymSubmission));
-							box.addHideHandler(new HideHandler() {
-								@Override
-								public void onHide(HideEvent event) {
-									final Comment newComment = new Comment(OtoSteps.user, box.getValue());
-									collection.addComments((java.util.Collection)selected, newComment);
-									collectionService.update(collection, new AsyncCallback<Void>() {
-										@Override
-										public void onFailure(Throwable caught) {
-											Alerter.addCommentFailed(caught);
-										}
-										@Override
-										public void onSuccess(Void result) {
-											eventBus.fireEvent(new AddCommentEvent(
-													(java.util.Collection)selected, newComment));
-											String comment = Format.ellipse(box.getValue(), 80);
-											String message = Format.substitute("'{0}' saved", new Params(comment));
-											Info.display("Comment", message);
-										}
-									});
-								}
-							});
-							box.show();
-						}
-	
-						private String getUsersComment(
-								OntologySynonymSubmission ontologySynonymSubmission) {
-							// TODO Auto-generated method stub
-							return null;
-						}
-					});
-					menu.add(comment);
-					final MenuItem colorizeItem = new MenuItem("Colorize");
+					menu.add(createCommentItem(selected));
 					if(!collection.getColors().isEmpty()) {
-						menu.add(colorizeItem);
-						colorizeItem.setSubMenu(createColorizeMenu(selected));
+						menu.add(createColorizeItem(selected));
 					} 
 				}
+				event.setCancelled(menu.getWidgetCount() == 0);
 			}
-
-			protected Menu createColorizeMenu(final List<OntologySynonymSubmission> selected) {
+			
+					
+			private Widget createColorizeItem(final List<OntologySynonymSubmission> selected) {
+				final MenuItem colorizeItem = new MenuItem("Colorize");
+					
 				Menu colorMenu = new Menu();
 				MenuItem offItem = new MenuItem("None");
 				offItem.addSelectionHandler(new SelectionHandler<Item>() {
@@ -211,7 +156,73 @@ public class SynonymSubmissionsGrid implements IsWidget {
 					});
 					colorMenu.add(colorItem);
 				}
-				return colorMenu;
+				
+				colorizeItem.setSubMenu(colorMenu);
+				return colorizeItem;
+			}
+
+
+			private Widget createCommentItem(final List<OntologySynonymSubmission> selected) {
+				MenuItem comment = new MenuItem("Comment");
+				final OntologySynonymSubmission ontologySynonymSubmission = selected.get(0);
+				comment.addSelectionHandler(new SelectionHandler<Item>() {
+					@Override
+					public void onSelection(SelectionEvent<Item> event) {
+						final MultiLinePromptMessageBox box = new MultiLinePromptMessageBox("Comment", "");
+						box.getTextArea().setValue(getUsersComment(ontologySynonymSubmission));
+						box.addHideHandler(new HideHandler() {
+							@Override
+							public void onHide(HideEvent event) {
+								final Comment newComment = new Comment(OtoSteps.user, box.getValue());
+								collection.addComments((java.util.Collection)selected, newComment);
+								collectionService.update(collection, new AsyncCallback<Void>() {
+									@Override
+									public void onFailure(Throwable caught) {
+										Alerter.addCommentFailed(caught);
+									}
+									@Override
+									public void onSuccess(Void result) {
+										eventBus.fireEvent(new AddCommentEvent(
+												(java.util.Collection)selected, newComment));
+										String comment = Format.ellipse(box.getValue(), 80);
+										String message = Format.substitute("'{0}' saved", new Params(comment));
+										Info.display("Comment", message);
+									}
+								});
+							}
+						});
+						box.show();
+					}
+
+					private String getUsersComment(
+							OntologySynonymSubmission ontologySynonymSubmission) {
+						// TODO Auto-generated method stub
+						return null;
+					}
+				});
+				return comment;
+			}
+
+
+			private Widget createRemoveItem(List<OntologySynonymSubmission> selected) {
+				MenuItem deleteItem = new MenuItem("Remove");
+				deleteItem.addSelectionHandler(new SelectionHandler<Item>() {
+					@Override
+					public void onSelection(SelectionEvent<Item> event) {
+						toOntologyService.removeSynonymSubmissions(collection, 
+								grid.getSelectionModel().getSelectedItems(), new AsyncCallback<Void>() {
+							@Override
+							public void onFailure(Throwable caught) {
+								Alerter.failedToRemoveOntologyClassSubmission();
+							}
+							@Override
+							public void onSuccess(Void result) {
+								eventBus.fireEvent(new RemoveOntologySynonymSubmissionsEvent(grid.getSelectionModel().getSelectedItems()));
+							}
+						});
+					}
+				});
+				return deleteItem;
 			}
 		});
 		return menu;
