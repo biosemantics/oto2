@@ -98,6 +98,10 @@ public class Alerter {
 	public static MessageBox failedToSubmitClassExists(Throwable caught) {
 		return showAlert("Class submission failed", "Failed to submit class. " + caught.getMessage());
 	}
+	
+	public static MessageBox failedToSubmitClassOntologyNotFound(Throwable caught) {
+		return showAlert("Class submission failed", "Failed to submit class. The originating ontology of the class could not be retrieved.");
+	}
 
 	public static MessageBox failedToSubmitClass(Throwable caught) {
 		return showAlert("Class submission failed", "Failed to submit class.");
@@ -174,6 +178,8 @@ public class Alerter {
 		// TODO Auto-generated method stub
 		
 	}
+
+
 
 
 

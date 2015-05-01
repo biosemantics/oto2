@@ -57,7 +57,7 @@ public class ModuleCreator  {
 		seeds.add(owlClass);
 		
 		File moduleFile = new File(OntologyDAO2.getCollectionOntologyDirectory(submission.getOntology()), 
-				"module." + annotationsReader.get(collection, owlClass, labelProperty) + ".owl");
+				"module." + annotationsReader.get(collection, owlClass, labelProperty) + "." + owlClass.getIRI().getShortForm() + ".owl");
 		IRI moduleIRI = IRI.create(moduleFile);
 		
 		// remove the existing module -- in effect replace the old module with the new one.

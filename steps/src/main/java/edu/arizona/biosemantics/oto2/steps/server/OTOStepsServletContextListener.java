@@ -8,6 +8,7 @@ import org.slf4j.bridge.SLF4JBridgeHandler;
 import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.steps.server.persist.db.ConnectionPool;
 import edu.arizona.biosemantics.oto2.steps.server.persist.db.Query;
+import edu.arizona.biosemantics.oto2.steps.server.persist.file.OntologyDAO2;
 
 public class OTOStepsServletContextListener implements ServletContextListener {
 	private ConnectionPool connectionPool;
@@ -46,6 +47,11 @@ public class OTOStepsServletContextListener implements ServletContextListener {
 		} catch (Exception e) {
 			log(LogLevel.ERROR, "Exception initializing oto context", e);
 		}
+		
+
+		log(LogLevel.INFO, "Load permanent ontologies");
+		OntologyDAO2.loadPermanentOntologies();
+		log(LogLevel.INFO, "Done loading permanent ontologies");
 		
 		initializeFiles();
 	}

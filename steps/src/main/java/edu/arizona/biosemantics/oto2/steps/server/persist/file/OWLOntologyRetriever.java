@@ -1,14 +1,20 @@
 package edu.arizona.biosemantics.oto2.steps.server.persist.file;
 
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.search.EntitySearcher;
 
+import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.steps.server.persist.DAOManager;
 import edu.arizona.biosemantics.oto2.steps.server.persist.db.OntologyDAO;
 import edu.arizona.biosemantics.oto2.steps.server.persist.db.Query.QueryException;
@@ -43,61 +49,88 @@ public class OWLOntologyRetriever  {
 	 * There are 3 ways an ontology can reference the origin of a class' definition
 	 * (1) By importing the ontology that contains the class definition as a whole using an import declaration
 	 * (2) Using RDFS:defined_by
-	 * (3) Using IAO_0000412
+	 * (3) Using obo:IAO_0000412 ("imported from"): may still be used in some OBO originated ontologies
 	 * */
 	public OWLOntology getOWLOntology(Collection collection, OWLClass owlClass) throws OntologyNotFoundException {
-		List<Ontology> relevantOntologies;
+		java.util.Collection<Ontology> ontologies = null;
 		try {
-			relevantOntologies = ontologyDBDAO.getRelevantOntologiesForCollection(collection);
+			ontologies = ontologyDBDAO.getAllOntologiesForCollection(collection);
 		} catch (QueryException e) {
 			throw new OntologyNotFoundException("Could not find ontology for class " + owlClass.getIRI().toString(), e);
 		}
 		
-		String owlClassIRI = owlClass.getIRI().toString().toLowerCase();
+		String owlClassIRI = owlClass.getIRI().getShortForm().toLowerCase();
 		String hackyOwlClassIdentifier = owlClassIRI;
-		if(owlClassIRI.contains("/")) {
-			hackyOwlClassIdentifier = owlClassIRI.substring(owlClassIRI.lastIndexOf("/") + 1);
-			if(hackyOwlClassIdentifier.contains("_"))
-				hackyOwlClassIdentifier = hackyOwlClassIdentifier.substring(0, hackyOwlClassIdentifier.indexOf("_"));
-			else if(hackyOwlClassIdentifier.contains("#"))
-				hackyOwlClassIdentifier = hackyOwlClassIdentifier.substring(0, hackyOwlClassIdentifier.indexOf("#"));
-		}
-		
-		for(Ontology ontology : relevantOntologies) {
-			OWLOntology owlOntology = owlOntologyManager.getOntology(OntologyDAO2.createOntologyIRI(ontology));
-			Set<OWLOntology> closureOntologies = owlOntologyManager.getImportsClosure(owlOntology);
-			for(OWLOntology closureOntology : closureOntologies) {
-				String ontologyIRI = closureOntology.getOntologyID().getOntologyIRI().toString();
-				//String ontologyIRI = ontology.getIri().toLowerCase();
+		if(hackyOwlClassIdentifier.contains("_"))
+			hackyOwlClassIdentifier = hackyOwlClassIdentifier.substring(0, hackyOwlClassIdentifier.indexOf("_"));
+		else if(hackyOwlClassIdentifier.contains("#"))
+			hackyOwlClassIdentifier = hackyOwlClassIdentifier.substring(0, hackyOwlClassIdentifier.indexOf("#"));
+
+		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create("http://purl.obolibrary.org/obo/caro.owl"));
+		for(Ontology ontology : ontologies) {
+			owlOntology = owlOntologyManager.getOntology(OntologyDAO2.createOntologyIRI(ontology));
+			java.util.Collection<OWLOntology> referencedOntologies = owlOntologyManager.getImportsClosure(owlOntology);//getReferencedOntologies(owlOntology);
+			for(OWLOntology referencedOntology : referencedOntologies) {
+				String ontologyIRI = referencedOntology.getOntologyID().getOntologyIRI().get().getShortForm();
 				String hackyOntologyIdentifier = ontologyIRI;
-				if(ontologyIRI.contains("/")) {
-					hackyOntologyIdentifier = ontologyIRI.substring(ontologyIRI.lastIndexOf("/") + 1);
-					if(hackyOntologyIdentifier.contains("_"))
-						hackyOntologyIdentifier = hackyOntologyIdentifier.substring(0, hackyOntologyIdentifier.indexOf("_"));
-					else if(hackyOntologyIdentifier.contains("#"))
-						hackyOntologyIdentifier = hackyOntologyIdentifier.substring(0, hackyOntologyIdentifier.indexOf("#"));
-				}
+				
+				//caro ontology iri is ..../caro.obo.owl, references are /caro_0000XYZ
+				if(hackyOntologyIdentifier.contains("."))
+					hackyOntologyIdentifier = hackyOntologyIdentifier.substring(0, hackyOntologyIdentifier.indexOf("."));
 				if(hackyOntologyIdentifier.equals(hackyOwlClassIdentifier))
-					return closureOntology;
-					//return owlOntologyManager.getOntology(IRI.create(ontology.getIri()));
+					return referencedOntology;
 			}
 		}
-		
-		/*for(OWLOntology ontology : owlOntologyManager.getOntologies()) {
-			if(owlClass.isDefined(ontology))
-				return ontology;
-		}*/
-		/*String iri = owlClass.getIRI().toString();
-		if(iri.startsWith(Configuration.oboOntologyBaseIRI)) {
-			String ontologyIRI = iri.substring(0, iri.lastIndexOf("_")).toLowerCase();
-			OWLOntology ontology = referencedOntologies.get(ontologyIRI);
-			return ontology;
-		}
-		if(iri.startsWith(Configuration.etcOntologyBaseIRI)) {
-			String ontologyIRI = iri.substring(0, iri.lastIndexOf("#")).toLowerCase();
-			OWLOntology ontology = referencedOntologies.get(ontologyIRI);
-			return ontology;
-		}*/
 		throw new OntologyNotFoundException("Could not find ontology for class " + owlClass.getIRI().toString());
+	}
+
+	private java.util.Collection<OWLOntology> getReferencedOntologies(OWLOntology owlOntology) {
+		java.util.Collection<OWLOntology> result = new LinkedList<OWLOntology>();
+		
+		// (1)
+		Set<OWLOntology> closureOntologies = owlOntologyManager.getImportsClosure(owlOntology);
+		result.addAll(closureOntologies);	
+		
+		Set <OWLClass> classes = owlOntology.getClassesInSignature();
+		for(OWLClass clazz : classes){
+
+			// (2) rdfs:isDefinedBy
+			java.util.Collection<OWLAnnotation> annotations = EntitySearcher.getAnnotations(clazz, owlOntology, 
+					owlOntologyManager.getOWLDataFactory().getRDFSIsDefinedBy());
+			for(OWLAnnotation annotation : annotations){
+				if(annotation.getValue() instanceof IRI){
+					IRI iri = (IRI)annotation.getValue();
+					OWLOntology definedByOwlOntology;
+					try {
+						definedByOwlOntology = owlOntologyManager.loadOntology(iri);
+						result.add(definedByOwlOntology);
+					} catch (OWLOntologyCreationException e) {
+						e.printStackTrace();
+						log(LogLevel.ERROR, "Could not load ontology " + iri.toString() + ". Will give up.");
+					}
+				}
+			}
+			
+			// (3) obo:IAO_0000412
+			annotations = EntitySearcher.getAnnotations(clazz, owlOntology);
+			for(OWLAnnotation annotation : annotations){
+				if(annotation.getValue() instanceof IRI){
+					if(annotation.getProperty().getIRI().equals(IRI.create("http://purl.obolibrary.org/obo/IAO_0000412"))) {
+						if(annotation.getValue() instanceof IRI) {
+							IRI iri = (IRI) annotation.getValue();
+							OWLOntology definedByOwlOntology;
+							try {
+								definedByOwlOntology = owlOntologyManager.loadOntology(iri);
+								result.add(definedByOwlOntology);
+							} catch (OWLOntologyCreationException e) {
+								e.printStackTrace();
+								log(LogLevel.ERROR, "Could not load ontology " + iri.toString() + ". Will give up.");
+							}
+						}
+					}
+				}
+			}
+		}
+		return result;
 	}
 }

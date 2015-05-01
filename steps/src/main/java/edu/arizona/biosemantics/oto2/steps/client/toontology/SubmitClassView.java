@@ -44,6 +44,7 @@ import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClass
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.ClassExistsException;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.IToOntologyService;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.IToOntologyServiceAsync;
+import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.OntologyNotFoundException;
 
 public class SubmitClassView implements IsWidget {
 	
@@ -213,10 +214,17 @@ public class SubmitClassView implements IsWidget {
 				toOntologyService.createClassSubmission(submission, new AsyncCallback<OntologyClassSubmission>() {
 					@Override
 					public void onFailure(Throwable caught) {
-						if(caught instanceof ClassExistsException) {
-							Alerter.failedToSubmitClassExists(caught);
-						} else
-							Alerter.failedToSubmitClass(caught);
+						if(caught.getCause() != null) {
+							if(caught instanceof OntologyNotFoundException) {
+								Alerter.failedToSubmitClassOntologyNotFound(caught.getCause());
+							}
+							if(caught instanceof ClassExistsException) {
+								Alerter.failedToSubmitClassExists(caught.getCause());
+							} else {
+								Alerter.failedToSubmitClass(caught);
+							}
+						}
+						Alerter.failedToSubmitClass(caught);
 					}
 					@Override
 					public void onSuccess(OntologyClassSubmission result) {

@@ -172,7 +172,7 @@ public class OntologyDAO {
 		}
 	}
 
-	public List<Ontology> getOntologiesForCollection(Collection collection) throws QueryException {
+	public List<Ontology> getRelevantOntologiesForCollection(Collection collection) throws QueryException {
 		List<Ontology> ontologies = new LinkedList<Ontology>();
 		try(Query query = new Query("SELECT id FROM otosteps_ontology WHERE collection = ? OR collection = -1")) {
 			query.setParameter(1, collection.getId());
@@ -180,8 +180,10 @@ public class OntologyDAO {
 			while(result.next()) {
 				int id = result.getInt(1);
 				Ontology ontology = get(id);
-				if(ontology != null)
-					ontologies.add(ontology);
+				if(ontology != null) {
+					if(ontology.getTaxonGroups().contains(collection.getTaxonGroup()))
+						ontologies.add(ontology);
+				}
 			}
 		} catch(QueryException | SQLException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
@@ -190,13 +192,12 @@ public class OntologyDAO {
 		return ontologies;
 	}
 
-	public List<Ontology> getRelevantOntologiesForCollection(Collection collection) throws QueryException {
-		List<Ontology> collectionOntologies = this.getOntologiesForCollection(collection);
-		List<Ontology> relevantOntologies = new LinkedList<Ontology>();
-		for(Ontology collectionOntology : collectionOntologies) 
-			if(collectionOntology.getTaxonGroups().contains(collection.getTaxonGroup()))
-				relevantOntologies.add(collectionOntology);
-		return relevantOntologies;
+	public java.util.Collection<Ontology> getAllOntologiesForCollection(Collection collection) throws QueryException {
+		List<Ontology> permanentOntologies = this.getPermanentOntologies();
+		List<Ontology> relevantOntologies = this.getRelevantOntologiesForCollection(collection);
+		Set<Ontology> allOntologies = new HashSet<Ontology>(permanentOntologies);
+		allOntologies.addAll(relevantOntologies);
+		return allOntologies;
 	}
 	
 	public List<Ontology> getPermanentOntologies() throws QueryException {

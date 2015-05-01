@@ -125,12 +125,18 @@ CREATE TABLE IF NOT EXISTS `otosteps_ontologysynonymsubmission_status` (
   UNIQUE KEY `id` (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0 ;
 
-INSERT INTO `otosteps_ontology` (`id`, `iri`, `name`, `acronym`, `browse_url`, `collection`, `created`) VALUES (2, 'http://purl.obolibrary.org/obo/ro.owl', 'The OBO Relations Ontology', 'RO', 'http://www.ontobee.org/browser/index.php?o=RO', -1, '2015-04-09 16:31:00');
-INSERT INTO `otosteps_ontology` (`id`, `iri`, `name`, `acronym`, `browse_url`, `collection`, `created`) VALUES (6, 'http://purl.obolibrary.org/obo/poro.owl', 'Porifera Ontology', 'PORO', 'http://www.ontobee.org/browser/index.php?o=PORO', -1, '2015-04-09 16:33:49');
-INSERT INTO `otosteps_ontology` (`id`, `iri`, `name`, `acronym`, `browse_url`, `collection`, `created`) VALUES (5, 'http://purl.obolibrary.org/obo/po.owl', 'Plant Ontology', 'PO', 'http://www.ontobee.org/browser/index.php?o=PO', -1, '2015-04-09 16:33:10');
 INSERT INTO `otosteps_ontology` (`id`, `iri`, `name`, `acronym`, `browse_url`, `collection`, `created`) VALUES (1, 'http://purl.obolibrary.org/obo/pato.owl', 'Phenotypic Quality Ontology', 'PATO', 'http://www.ontobee.org/browser/index.php?o=PATO', -1, '2015-04-09 16:29:38');
-INSERT INTO `otosteps_ontology` (`id`, `iri`, `name`, `acronym`, `browse_url`, `collection`, `created`) VALUES (4, 'http://purl.obolibrary.org/obo/hao.owl', 'Hymenoptera Anatomy Ontology', 'HAO', 'http://www.ontobee.org/browser/index.php?o=HAO', -1, '2015-04-09 16:32:03');
+INSERT INTO `otosteps_ontology` (`id`, `iri`, `name`, `acronym`, `browse_url`, `collection`, `created`) VALUES (2, 'http://purl.obolibrary.org/obo/ro.owl', 'The OBO Relations Ontology', 'RO', 'http://www.ontobee.org/browser/index.php?o=RO', -1, '2015-04-09 16:31:00');
 INSERT INTO `otosteps_ontology` (`id`, `iri`, `name`, `acronym`, `browse_url`, `collection`, `created`) VALUES (3, 'http://purl.obolibrary.org/obo/bspo.owl', 'Biological Spatial Ontology', 'BSPO', 'http://www.ontobee.org/browser/index.php?o=BSPO', -1, '2015-04-09 16:31:29');
+INSERT INTO `otosteps_ontology` (`id`, `iri`, `name`, `acronym`, `browse_url`, `collection`, `created`) VALUES (4, 'http://purl.obolibrary.org/obo/hao.owl', 'Hymenoptera Anatomy Ontology', 'HAO', 'http://www.ontobee.org/browser/index.php?o=HAO', -1, '2015-04-09 16:32:03');
+INSERT INTO `otosteps_ontology` (`id`, `iri`, `name`, `acronym`, `browse_url`, `collection`, `created`) VALUES (5, 'http://purl.obolibrary.org/obo/po.owl', 'Plant Ontology', 'PO', 'http://www.ontobee.org/browser/index.php?o=PO', -1, '2015-04-09 16:33:10');
+INSERT INTO `otosteps_ontology` (`id`, `iri`, `name`, `acronym`, `browse_url`, `collection`, `created`) VALUES (6, 'http://purl.obolibrary.org/obo/poro.owl', 'Porifera Ontology', 'PORO', 'http://www.ontobee.org/browser/index.php?o=PORO', -1, '2015-04-09 16:33:49');
+INSERT INTO `otosteps_ontology` (`id`, `iri`, `name`, `acronym`, `browse_url`, `collection`, `created`) VALUES (7, 'http://purl.obolibrary.org/obo/uberon.owl', 'Uber Anatomy Ontology', 'UBERON', 'http://www.ontobee.org/browser/index.php?o=UBERON', -1, '2015-04-09 16:31:29');
+INSERT INTO `otosteps_ontology` (`id`, `iri`, `name`, `acronym`, `browse_url`, `collection`, `created`) VALUES (8, 'http://purl.obolibrary.org/obo/caro/src/caro.obo.owl', 'Common Anatomy Reference Ontology', 'CARO', 'http://www.ontobee.org/browser/index.php?o=CARO', -1, '2015-04-09 16:31:29');
+INSERT INTO `otosteps_ontology` (`id`, `iri`, `name`, `acronym`, `browse_url`, `collection`, `created`) VALUES (9, 'http://purl.obolibrary.org/obo/cl.owl', 'Cell Ontology', 'CL', 'http://www.ontobee.org/browser/index.php?o=CL', -1, '2015-04-09 16:31:29');
+INSERT INTO `otosteps_ontology` (`id`, `iri`, `name`, `acronym`, `browse_url`, `collection`, `created`) VALUES (10, 'http://purl.obolibrary.org/obo/envo.owl', 'Environment Ontology', 'ENVO', 'http://www.ontobee.org/browser/index.php?o=ENVO', -1, '2015-04-09 16:31:29');
+INSERT INTO `otosteps_ontology` (`id`, `iri`, `name`, `acronym`, `browse_url`, `collection`, `created`) VALUES (11, 'http://purl.obolibrary.org/obo/go.owl', 'Gene Ontology', 'GO', 'http://www.ontobee.org/browser/index.php?o=GO', -1, '2015-04-09 16:31:29');
+INSERT INTO `otosteps_ontology` (`id`, `iri`, `name`, `acronym`, `browse_url`, `collection`, `created`) VALUES (12, 'http://purl.obolibrary.org/obo/chebi.owl', 'Chemical Entities of Biological Interest Ontology', 'CHEBI', 'http://www.ontobee.org/browser/index.php?o=CHEBI', -1, '2015-04-09 16:31:29');
 
 
 INSERT INTO `otosteps2`.`otosteps_ontology_taxongroup` (`ontology`, `taxongroup`) VALUES (1, 'ALGAE');
@@ -162,10 +168,5 @@ INSERT INTO `otosteps_status` (`id`, `name`, `created`) VALUES (1, 'accepted', '
 INSERT INTO `otosteps_status` (`id`, `name`, `created`) VALUES (2, 'pending', '2015-04-21 10:58:05');
 INSERT INTO `otosteps_status` (`id`, `name`, `created`) VALUES (3, 'rejected', '2015-04-21 10:58:13');
 
-
---INSERT INTO `otosteps_ontology` (`id`, `iri`, `name`, `acronym`, `browse_url`, `collection`, `created`) VALUES (2, 'http://purl.bioontology.org/obo/OBOREL', 'The OBO Relations Ontology', 'RO', 'http://www.ontobee.org/browser/index.php?o=RO', -1, '2015-04-09 16:31:00');
---INSERT INTO `otosteps_ontology` (`id`, `iri`, `name`, `acronym`, `browse_url`, `collection`, `created`) VALUES (6, 'http://purl.bioontology.org/obo/PORO', 'Porifera Ontology', 'PORO', 'http://www.ontobee.org/browser/index.php?o=PORO', -1, '2015-04-09 16:33:49');
---INSERT INTO `otosteps_ontology` (`id`, `iri`, `name`, `acronym`, `browse_url`, `collection`, `created`) VALUES (5, 'http://purl.bioontology.org/obo/PO', 'Plant Ontology', 'PO', 'http://www.ontobee.org/browser/index.php?o=PO', -1, '2015-04-09 16:33:10');
---INSERT INTO `otosteps_ontology` (`id`, `iri`, `name`, `acronym`, `browse_url`, `collection`, `created`) VALUES (1, 'http://purl.bioontology.org/obo/PATO', 'Phenotypic Quality Ontology', 'PATO', 'http://www.ontobee.org/browser/index.php?o=PATO', -1, '2015-04-09 16:29:38');
---INSERT INTO `otosteps_ontology` (`id`, `iri`, `name`, `acronym`, `browse_url`, `collection`, `created`) VALUES (4, 'http://purl.bioontology.org/obo/HAO', 'Hymenoptera Anatomy Ontology', 'HAO', 'http://www.ontobee.org/browser/index.php?o=HAO', -1, '2015-04-09 16:32:03');
---INSERT INTO `otosteps_ontology` (`id`, `iri`, `name`, `acronym`, `browse_url`, `collection`, `created`) VALUES (3, 'http://purl.bioontology.org/obo/BSPO', 'Biological Spatial Ontology', 'BSPO', 'http://www.ontobee.org/browser/index.php?o=BSPO', -1, '2015-04-09 16:31:29');
+--INSERT INTO `otosteps_ontology` (`id`, `iri`, `name`, `acronym`, `browse_url`, `collection`, `created`) VALUES (14, 'http://purl.obolibrary.org/obo/bfo.owl', 'Basic Formal Ontology', 'BFO', 'http://www.ontobee.org/browser/index.php?o=BFO', -1, '2015-04-09 16:31:29');
+--INSERT INTO `otosteps_ontology` (`id`, `iri`, `name`, `acronym`, `browse_url`, `collection`, `created`) VALUES (13, 'http://purl.obolibrary.org/obo/pr.owl', 'Protein Ontology', 'PR', 'http://www.ontobee.org/browser/index.php?o=PR', -1, '2015-04-09 16:31:29');

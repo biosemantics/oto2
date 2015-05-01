@@ -51,7 +51,7 @@ public class OntologyDAO2 {
 
 	private static Map<Ontology, OWLOntology> permanentOntologies = new HashMap<Ontology, OWLOntology>();
 	
-	static {
+	public static void loadPermanentOntologies() {
 		OWLOntologyManager owlOntologyManager = OWLManager.createOWLOntologyManager();
 		try {
 			for(Ontology ontology : new edu.arizona.biosemantics.oto2.steps.server.persist.db.OntologyDAO().getPermanentOntologies()) {
@@ -59,12 +59,6 @@ public class OntologyDAO2 {
 				try {
 					owlOntologyManager.getIRIMappers().add(createMapper(ontology));
 					OWLOntology owlOntology = owlOntologyManager.loadOntologyFromOntologyDocument(file);
-					
-					System.out.println(file.getName());
-					if(file.getName().equals("ro.owl")) {
-						System.out.println(containsOwlClass(owlOntology, owlOntologyManager.getOWLDataFactory().getOWLClass(
-								IRI.create("http://purl.obolibrary.org/obo/CARO_0001001"))));
-					}
 					permanentOntologies.put(ontology, owlOntology);
 				} catch (OWLOntologyCreationException e) {
 					Logger.getLogger(OntologyDAO2.class).error("Could not load ontology", e);
@@ -139,7 +133,7 @@ public class OntologyDAO2 {
 		this.ontologyDBDAO = ontologyDBDAO;
 		this.owlOntologyManager = OWLManager.createOWLOntologyManager();
 		try {
-			for(Ontology ontology : ontologyDBDAO.getRelevantOntologiesForCollection(collection)) {
+			for(Ontology ontology : ontologyDBDAO.getAllOntologiesForCollection(collection)) {
 				if(permanentOntologies.containsKey(ontology)) {
 					owlOntologyManager.getIRIMappers().add(createMapper(ontology));
 					//OWLOntology clonedOwlOntology = owlOntologyManager.createOntology(createOntologyIRI(ontology));
@@ -265,8 +259,7 @@ public class OntologyDAO2 {
 				throw new ClassExistsException("class '"+ submission.getSubmissionTerm() + 
 						"' exists and defined as:" + definition);
 			} catch (OntologyNotFoundException e) {
-				throw new ClassExistsException("class '"+ submission.getSubmissionTerm() + 
-						"' exists.");
+				throw new OntologyFileException(e);
 			}
 		}
 		
