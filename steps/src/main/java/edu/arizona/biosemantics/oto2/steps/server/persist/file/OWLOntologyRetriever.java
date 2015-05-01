@@ -39,6 +39,12 @@ public class OWLOntologyRetriever  {
 	//http://purl.bioontology.org/obo/hao_01234
 	//http://purl.obolibrary.org/obo/hao
 	//http://www.etc-project.org/owl/ontologies/1/my_ontology#term
+	/**
+	 * There are 3 ways an ontology can reference the origin of a class' definition
+	 * (1) By importing the ontology that contains the class definition as a whole using an import declaration
+	 * (2) Using RDFS:defined_by
+	 * (3) Using IAO_0000412
+	 * */
 	public OWLOntology getOWLOntology(Collection collection, OWLClass owlClass) throws OntologyNotFoundException {
 		List<Ontology> relevantOntologies;
 		try {
