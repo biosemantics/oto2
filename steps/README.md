@@ -19,6 +19,10 @@ Please [configure your git](http://git-scm.com/book/en/Customizing-Git-Git-Confi
 * `core.autocrlf` true if you are on Windows 
 * or `core.autocrlf input` if you are on a Unix-type OS
 
+Permanent ontologies reference classes defined elsewhere. In order to 'extract modules' for these classes from their original ontology these ontologies have to be loaded. However, not all of these ontologies are specified with an import declaration. Somtimes a rdfs:defined_by or a obo:IAO_0000412 annotation is used. Even sometimes no indication whatsoever is given. One can still guess the source ontology from the class' IRI. It may be useful/necessary to avoid problems to prescan all permanent ontologies for these cases and add these ontologies to the pre-loaded set 
+Also see edu.arizona.biosemantics.oto2.steps.server.persist.file.OWLOntologyRetriever
+
+
 ### Run Dev Mode
 
 #### Class
