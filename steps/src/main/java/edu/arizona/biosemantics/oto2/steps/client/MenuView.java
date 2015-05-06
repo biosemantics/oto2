@@ -1,11 +1,19 @@
 package edu.arizona.biosemantics.oto2.steps.client;
 
+import java.util.LinkedList;
+import java.util.List;
+
+import com.google.gwt.core.shared.GWT;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.core.client.resources.ThemeStyles;
 import com.sencha.gxt.widget.core.client.Dialog;
+import com.sencha.gxt.widget.core.client.event.BeforeShowEvent;
+import com.sencha.gxt.widget.core.client.event.BeforeShowEvent.BeforeShowHandler;
 import com.sencha.gxt.widget.core.client.menu.HeaderMenuItem;
 import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.Menu;
@@ -13,21 +21,28 @@ import com.sencha.gxt.widget.core.client.menu.MenuBar;
 import com.sencha.gxt.widget.core.client.menu.MenuBarItem;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
+import edu.arizona.biosemantics.oto2.steps.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.steps.client.common.ColorSettingsDialog;
 import edu.arizona.biosemantics.oto2.steps.client.common.ColorsDialog;
 import edu.arizona.biosemantics.oto2.steps.client.common.CommentsDialog;
 import edu.arizona.biosemantics.oto2.steps.client.event.DownloadEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.steps.shared.model.Ontology;
+import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.IToOntologyService;
+import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.IToOntologyServiceAsync;
 
 public class MenuView extends MenuBar {
 
 	private EventBus eventBus;
 	private Collection collection;
+	private IToOntologyServiceAsync toOntologyService = GWT.create(IToOntologyService.class);
+	private List<Ontology> permanentOntologies = new LinkedList<Ontology>();
 
 	public MenuView(EventBus eventBus) {
 		this.eventBus = eventBus;
 		addStyleName(ThemeStyles.get().style().borderBottom());
+		
 		addItems();
 		
 		bindEvents();
@@ -38,6 +53,16 @@ public class MenuView extends MenuBar {
 			@Override
 			public void onLoad(LoadCollectionEvent event) {
 				collection = event.getCollection();
+				toOntologyService.getPermanentOntologies(collection, new AsyncCallback<List<Ontology>>() {
+					@Override
+					public void onFailure(Throwable caught) {
+						
+					}
+					@Override
+					public void onSuccess(List<Ontology> result) {
+						permanentOntologies = result;
+					}
+				});
 			}
 		});
 	}
@@ -45,7 +70,7 @@ public class MenuView extends MenuBar {
 	protected void addItems() {
 		add(createFileItem());
 		//add(createSearchItem());
-		//add(createOntologiesItem());
+		add(createOntologiesItem());
 		add(createAnnotationsItem());
 		//add(createViewItem());
 		add(createQuestionItem());
@@ -54,6 +79,29 @@ public class MenuView extends MenuBar {
 
 	private Widget createOntologiesItem() {
 		Menu sub = new Menu();
+		
+		MenuItem browseOntologies = new MenuItem("Browse Ontologies");
+		sub.add(browseOntologies);
+		final Menu browseSub = new Menu();
+		browseOntologies.setSubMenu(browseSub);
+		
+		browseSub.addBeforeShowHandler(new BeforeShowHandler() {
+			@Override
+			public void onBeforeShow(BeforeShowEvent event) {
+				browseSub.clear();
+				for(final Ontology ontology : permanentOntologies) {
+					MenuItem ontologyItem = new MenuItem(ontology.getAcronym());
+					ontologyItem.addSelectionHandler(new SelectionHandler<Item>() {
+						@Override
+						public void onSelection(SelectionEvent<Item> event) {
+							Window.open(ontology.getBrowseURL(), "_blank", "");
+						}
+					});
+					browseSub.add(ontologyItem);
+				}
+			}
+		});
+		
 		/*MenuItem selectOntologies = new MenuItem("Select Ontologies for Term Information ");
 		selectOntologies.addSelectionHandler(new SelectionHandler<Item>() {
 			@Override

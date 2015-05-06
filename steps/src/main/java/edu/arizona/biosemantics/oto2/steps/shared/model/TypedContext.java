@@ -12,15 +12,20 @@ public class TypedContext implements Serializable, Comparable<TypedContext> {
 	private String text;
 	private String fullText;
 	private Type type;
+	private String highlightedText;
+	private String highlightedFullText;
 	
 	public TypedContext() { }
 	
-	public TypedContext(String id, int collectionId, String source, String text, String fullText, Type type) { 
+	public TypedContext(String id, int collectionId, String source, String text, String fullText, 
+			String highlightedText, String highlightedFullText, Type type) { 
 		this.id = id;
 		this.collectionId = collectionId;
 		this.source = source;
 		this.text = text;
 		this.fullText = fullText;
+		this.highlightedText = highlightedText;
+		this.highlightedFullText = highlightedFullText;
 		this.type = type;
 	}
 	
@@ -50,6 +55,14 @@ public class TypedContext implements Serializable, Comparable<TypedContext> {
 	
 	public String getFullText() {
 		return fullText;
+	}
+	
+	public String getHighlightedText() {
+		return highlightedText;
+	}
+
+	public String getHighlightedFullText() {
+		return highlightedFullText;
 	}
 
 	@Override

@@ -53,9 +53,24 @@ public class OntologyClassSubmissionDAO {
 		boolean quality = result.getBoolean("quality");
 		String user = result.getString("user");
 		
+		List<OntologyClassSubmissionStatus> ontologyClassSubmissionStatuses = ontologyClassSubmissionStatusDAO.getStatusOfOntologyClassSubmission(id);
+		OntologyClassSubmissionStatus mostRecentStatus = ontologyClassSubmissionStatuses.get(ontologyClassSubmissionStatuses.size() - 1);
+		if(mostRecentStatus.getStatus().getName().equals(StatusEnum.ACCEPTED.getDisplayName()) && !classIRI.equals(mostRecentStatus.getIri())) {
+			classIRI = mostRecentStatus.getIri();
+			
+			try(Query query = new Query("UPDATE otosteps_ontologyclasssubmission SET class_iri = ? WHERE id = ?")) {
+				query.setParameter(1, classIRI);
+				query.setParameter(2, id);
+				query.execute();
+			} catch(QueryException e) {
+				log(LogLevel.ERROR, "Query Exception", e);
+				throw e;
+			}
+		}
+		
 		Term term = termDAO.get(termId);
 		Ontology ontology = ontologyDAO.get(ontologyId);
-		List<OntologyClassSubmissionStatus> ontologyClassSubmissionStatuses = ontologyClassSubmissionStatusDAO.getStatusOfOntologyClassSubmission(id);
+		
 		return new OntologyClassSubmission(id, term, submission_term, ontology, classIRI, superClassIRI, definition, synonyms, source, sampleSentence,
 				partOfIRI, entity, quality, user, ontologyClassSubmissionStatuses);
 	}

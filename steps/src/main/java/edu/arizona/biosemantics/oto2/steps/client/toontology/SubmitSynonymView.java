@@ -1,5 +1,6 @@
 package edu.arizona.biosemantics.oto2.steps.client.toontology;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -10,6 +11,7 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.IsWidget;
+import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.cell.core.client.form.ComboBoxCell.TriggerAction;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
@@ -17,12 +19,15 @@ import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
 import com.sencha.gxt.widget.core.client.box.MessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
+import com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
+import com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.HorizontalLayoutData;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.form.CheckBox;
 import com.sencha.gxt.widget.core.client.form.ComboBox;
+import com.sencha.gxt.widget.core.client.form.Field;
 import com.sencha.gxt.widget.core.client.form.FieldLabel;
 import com.sencha.gxt.widget.core.client.form.TextArea;
 import com.sencha.gxt.widget.core.client.form.TextField;
@@ -33,6 +38,9 @@ import edu.arizona.biosemantics.oto2.steps.client.common.CreateOntologyDialog;
 import edu.arizona.biosemantics.oto2.steps.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.OntologySynonymSubmissionSelectEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.CreateOntologySynonymSubmissionEvent;
+import edu.arizona.biosemantics.oto2.steps.client.event.SelectSampleEvent;
+import edu.arizona.biosemantics.oto2.steps.client.event.SelectSourceEvent;
+import edu.arizona.biosemantics.oto2.steps.client.event.SelectSynonymEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.TermSelectEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.UpdateOntologySynonymsSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
@@ -71,6 +79,7 @@ public class SubmitSynonymView implements IsWidget {
 	private VerticalLayoutContainer vlc;
 	private TextButton createOntologyButton = new TextButton("Create New Ontology");
 	private OntologySynonymSubmission selectedSubmission;
+	private VerticalLayoutContainer formContainer;
 	
 	public SubmitSynonymView(EventBus eventBus) {
 		this.eventBus = eventBus;
@@ -83,32 +92,81 @@ public class SubmitSynonymView implements IsWidget {
 	    termComboBox = new ComboBox<Term>(termStore, termProperties.nameLabel());
 	    categoryField.setEnabled(false);
 	    
-	    vlc = new VerticalLayoutContainer();
-	    VerticalLayoutContainer formContainer = new VerticalLayoutContainer();
+	    formContainer = new VerticalLayoutContainer();
 	    formContainer.add(new FieldLabel(termComboBox, "Candiate Term"), new VerticalLayoutData(1, -1));
-	    formContainer.add(new FieldLabel(submissionTermField, "Term"), new VerticalLayoutData(1, -1));
+	    formContainer.add(new FieldLabel(submissionTermField, "Term *"), new VerticalLayoutData(1, -1));
+	    submissionTermField.setAllowBlank(false);
+	    submissionTermField.setAutoValidate(true);
 	    formContainer.add(new FieldLabel(categoryField, "Category"), new VerticalLayoutData(1, -1));
-	    formContainer.add(browseOntologiesButton, new VerticalLayoutData(1, -1));
 	    VerticalLayoutContainer ontologyVlc = new VerticalLayoutContainer();
 	    ontologyVlc.add(createOntologyButton, new VerticalLayoutData(1, -1));
 	    ontologyVlc.add(ontologyComboBox, new VerticalLayoutData(1, -1));
-	    ontologyVlc.add(browseOntologiesButton, new VerticalLayoutData(1, -1));
-	    formContainer.add(new FieldLabel(ontologyVlc, "Ontology"), new VerticalLayoutData(1, -1));
-	    formContainer.add(new FieldLabel(classIRIField, "Class IRI"), new VerticalLayoutData(1, -1));
-	    formContainer.add(new FieldLabel(synonymsField, "Synonyms"), new VerticalLayoutData(1, -1));
-	    formContainer.add(new FieldLabel(sourceField, "Source"), new VerticalLayoutData(1, -1));
-	    formContainer.add(new FieldLabel(sampleArea, "Sample Sentence"), new VerticalLayoutData(1, -1));
+	    ontologyComboBox.setAllowBlank(false);
+	    ontologyComboBox.setAutoValidate(true);
+	    //ontologyVlc.add(browseOntologiesButton, new VerticalLayoutData(1, -1));
+	    formContainer.add(new FieldLabel(ontologyVlc, "Ontology *"), new VerticalLayoutData(1, -1));
+	    formContainer.add(new FieldLabel(classIRIField, "Class IRI *"), new VerticalLayoutData(1, -1));
+	    classIRIField.setAllowBlank(false);
+	    classIRIField.setAutoValidate(true);
 	    formContainer.add(new FieldLabel(isEntityCheckBox, "Is Entity"), new VerticalLayoutData(1, -1));
 	    formContainer.add(new FieldLabel(isQualityCheckBox, "Is Quality"), new VerticalLayoutData(1, -1));
+	    formContainer.add(new FieldLabel(sampleArea, "Sample Sentence"), new VerticalLayoutData(1, -1));
+	    formContainer.add(new FieldLabel(sourceField, "Source"), new VerticalLayoutData(1, -1));
+	    formContainer.add(new FieldLabel(synonymsField, "Synonyms"), new VerticalLayoutData(1, -1));
 	    formContainer.setScrollMode(ScrollMode.AUTO);
 	    formContainer.setAdjustForScroll(true);
+	    
+	    vlc = new VerticalLayoutContainer();
+	    vlc.add(new Label("* marks requried fields"), new VerticalLayoutData(1, -1));
 	    vlc.add(formContainer, new VerticalLayoutData(1, 1));
-	    vlc.add(editButton, new VerticalLayoutData(1,-1));
-	    vlc.add(submitButton, new VerticalLayoutData(1,-1));		
-		bindEvents();		
+	    HorizontalLayoutContainer hlc = new HorizontalLayoutContainer();
+	    hlc.add(editButton, new HorizontalLayoutData(0.5,-1));
+	    hlc.add(submitButton, new HorizontalLayoutData(0.5,-1));
+	    vlc.add(hlc, new VerticalLayoutData(1, 24)); //-1));
+	    
+	    bindEvents();		
+	}
+	
+	private boolean validateForm() {
+		Iterator<Widget> iterator = formContainer.iterator();
+		while(iterator.hasNext()) {
+			Widget widget = iterator.next();
+			if(widget instanceof FieldLabel) {
+				FieldLabel fieldLabel = (FieldLabel)widget;
+				Widget field = fieldLabel.getWidget();
+				if(field instanceof Field) {
+					Field f = (Field)field;
+					boolean result = f.validate();
+					if(!result)
+						return false;
+				}
+			}
+		}
+		return true;
 	}
 
 	private void bindEvents() {
+		eventBus.addHandler(SelectSynonymEvent.TYPE, new SelectSynonymEvent.Handler() {
+			@Override
+			public void onSelect(SelectSynonymEvent event) {
+				setSelectedSubmission(null);
+				clearFields(false);
+				classIRIField.setValue(event.getSubmission().getClassIRI(), false);
+				ontologyComboBox.setValue(event.getSubmission().getOntology());
+			}
+		});
+		eventBus.addHandler(SelectSourceEvent.TYPE, new SelectSourceEvent.Handler() {
+			@Override
+			public void onSelect(SelectSourceEvent event) {
+				sourceField.setValue(event.getSource(), false);
+			}
+		});
+		eventBus.addHandler(SelectSampleEvent.TYPE, new SelectSampleEvent.Handler() {
+			@Override
+			public void onSelect(SelectSampleEvent event) {
+				sampleArea.setValue(event.getSample(), false);
+			}
+		});
 		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
 			@Override
 			public void onLoad(LoadCollectionEvent event) {
@@ -209,37 +267,45 @@ public class SubmitSynonymView implements IsWidget {
 		submitButton.addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
-				final OntologySynonymSubmission submission = getSynonymSubmission();
-				toOntologyService.createSynonymSubmission(submission, new AsyncCallback<OntologySynonymSubmission>() {
-					@Override
-					public void onFailure(Throwable caught) {
-						Alerter.failedToSubmitSynonym(caught);
-					}
-
-					@Override
-					public void onSuccess(OntologySynonymSubmission result) {
-						eventBus.fireEvent(new CreateOntologySynonymSubmissionEvent(result));
-					} 
-				});
+				if(validateForm()) {
+					final OntologySynonymSubmission submission = getSynonymSubmission();
+					toOntologyService.createSynonymSubmission(submission, new AsyncCallback<OntologySynonymSubmission>() {
+						@Override
+						public void onFailure(Throwable caught) {
+							Alerter.failedToSubmitSynonym(caught);
+						}
+	
+						@Override
+						public void onSuccess(OntologySynonymSubmission result) {
+							eventBus.fireEvent(new CreateOntologySynonymSubmissionEvent(result));
+						} 
+					});
+				} else {
+					Alerter.alertInvalidForm();
+				}
 			}
 		});
 		editButton.addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
-				final OntologySynonymSubmission submission = getSynonymSubmission();
-				submission.setId(selectedSubmission.getId());
-				final List<OntologySynonymSubmission> submissions = new LinkedList<OntologySynonymSubmission>();
-				submissions.add(submission);
-				toOntologyService.updateSynonymSubmissions(collection, submissions, new AsyncCallback<Void>() {
-					@Override
-					public void onFailure(Throwable caught) {
-						Alerter.failedToEditClass(caught);
-					}
-					@Override
-					public void onSuccess(Void result) {
-						eventBus.fireEvent(new UpdateOntologySynonymsSubmissionsEvent(submissions));
-					}
-				});
+				if(validateForm()) {
+					final OntologySynonymSubmission submission = getSynonymSubmission();
+					submission.setId(selectedSubmission.getId());
+					final List<OntologySynonymSubmission> submissions = new LinkedList<OntologySynonymSubmission>();
+					submissions.add(submission);
+					toOntologyService.updateSynonymSubmissions(collection, submissions, new AsyncCallback<Void>() {
+						@Override
+						public void onFailure(Throwable caught) {
+							Alerter.failedToEditClass(caught);
+						}
+						@Override
+						public void onSuccess(Void result) {
+							eventBus.fireEvent(new UpdateOntologySynonymsSubmissionsEvent(submissions));
+						}
+					});
+				} else {
+					Alerter.alertInvalidForm();
+				}
 			}
 		});
 	}

@@ -216,5 +216,24 @@ public class OntologyDAO {
 		}
 		return ontologies;
 	}
+
+	public List<Ontology> getPermanentOntologiesForCollection(Collection collection) throws QueryException {
+		List<Ontology> ontologies = new LinkedList<Ontology>();
+		try(Query query = new Query("SELECT id FROM otosteps_ontology WHERE collection = -1")) {
+			ResultSet result = query.execute();
+			while(result.next()) {
+				int id = result.getInt(1);
+				Ontology ontology = get(id);
+				if(ontology != null) {
+					if(ontology.getTaxonGroups().contains(collection.getTaxonGroup()))
+						ontologies.add(ontology);
+				}
+			}
+		} catch(QueryException | SQLException e) {
+			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
+		}
+		return ontologies;
+	}
 	
 }

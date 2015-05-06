@@ -40,4 +40,6 @@ public interface IToOntologyServiceAsync {
 	public void removeSynonymSubmissions(Collection collection, 
 			java.util.Collection<OntologySynonymSubmission> ontologySynonymSubmissions, 
 			AsyncCallback<Void> callbackw);
+
+	public void getPermanentOntologies(Collection collection, AsyncCallback<List<Ontology>> asyncCallback);
 }

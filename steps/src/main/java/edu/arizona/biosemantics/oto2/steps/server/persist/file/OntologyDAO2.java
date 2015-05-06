@@ -12,6 +12,7 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.io.OWLOntologyInputSourceException;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.IRI;
@@ -60,7 +61,7 @@ public class OntologyDAO2 {
 					owlOntologyManager.getIRIMappers().add(createMapper(ontology));
 					OWLOntology owlOntology = owlOntologyManager.loadOntologyFromOntologyDocument(file);
 					permanentOntologies.put(ontology, owlOntology);
-				} catch (OWLOntologyCreationException e) {
+				} catch (OWLOntologyCreationException | OWLOntologyInputSourceException e) {
 					Logger.getLogger(OntologyDAO2.class).error("Could not load ontology", e);
 				}
 			}

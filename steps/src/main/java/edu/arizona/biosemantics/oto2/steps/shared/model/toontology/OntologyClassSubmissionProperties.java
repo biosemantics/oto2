@@ -40,5 +40,7 @@ public interface OntologyClassSubmissionProperties extends PropertyAccess<Ontolo
 	  ValueProvider<OntologyClassSubmission, String> user();
 	  
 	  ValueProvider<OntologyClassSubmission, List<OntologyClassSubmissionStatus>> submissionStatuses();
+
+	  ValueProvider<OntologyClassSubmission, String> classIRI();
 	
 }

@@ -261,13 +261,15 @@ public class ContextDAO {
 		    		startText = 0;
 		    	if(endText > context.getText().length())
 		    		endText = context.getText().length();
-		    	String extractedText = "..." + context.getText().substring(startText, endText) + "...";
+		    	String text = "..." + context.getText().substring(startText, endText) + "...";
+		    	String fullText = context.getText();
 		    	//extractedText = extractedText.replaceAll(pattern.toString(), "<b>" + replaceTerm + "</b>");
-		    	extractedText = extractedText.replaceAll("(?i)" + replaceTerm, "<b>" + replaceTerm + "</b>");
-		    	String fullText = context.getText().replaceAll("(?i)" + replaceTerm, "<b>" + replaceTerm + "</b>").replaceAll("\n", "</br>");
+		    	String highlightedExtractedText = text.replaceAll("(?i)" + replaceTerm, "<b>" + replaceTerm + "</b>");
+		    	String highlightedFullText = fullText.replaceAll("(?i)" + replaceTerm, "<b>" + replaceTerm + "</b>").replaceAll("\n", "</br>");
 		    	
 		    	String idString = String.valueOf(context.getId()) + "-" + type.toString() + "-" + id++;
-		    	TypedContext typedContext = new TypedContext(idString, context.getCollectionId(), context.getSource(), extractedText, fullText, type);
+		    	TypedContext typedContext = new TypedContext(idString, context.getCollectionId(), context.getSource(), 
+		    			text, fullText, highlightedExtractedText, highlightedFullText, type);
 		    	result.add(typedContext);
 		    }
 		}

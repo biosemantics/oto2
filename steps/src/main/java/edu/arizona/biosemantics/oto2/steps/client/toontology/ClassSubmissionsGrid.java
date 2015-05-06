@@ -45,6 +45,9 @@ import edu.arizona.biosemantics.oto2.steps.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.OntologyClassSubmissionSelectEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.OntologySynonymSubmissionSelectEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.RemoveOntologyClassSubmissionsEvent;
+import edu.arizona.biosemantics.oto2.steps.client.event.SelectPartOfEvent;
+import edu.arizona.biosemantics.oto2.steps.client.event.SelectSuperclassEvent;
+import edu.arizona.biosemantics.oto2.steps.client.event.SelectSynonymEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.SetColorEvent;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Color;
@@ -134,6 +137,7 @@ public class ClassSubmissionsGrid implements IsWidget {
 				menu.clear();
 				final List<OntologyClassSubmission> selected = checkBoxSelectionModel.getSelectedItems();
 				if(!selected.isEmpty()) {
+					menu.add(createAddItem(selected));
 					menu.add(createRemoveItem(selected));
 					menu.add(new HeaderMenuItem("Annotation"));
 					menu.add(createCommentItem(selected));
@@ -231,6 +235,39 @@ public class ClassSubmissionsGrid implements IsWidget {
 					}
 				});
 				return comment;
+			}
+			
+
+			private Widget createAddItem(final List<OntologyClassSubmission> selected) {
+				final MenuItem additem = new MenuItem("Add");
+				Menu addMenu = new Menu();
+				MenuItem subclassItem = new MenuItem("Subclass");
+				subclassItem.addSelectionHandler(new SelectionHandler<Item>() {
+					@Override
+					public void onSelection(SelectionEvent<Item> event) {
+						eventBus.fireEvent(new SelectSuperclassEvent(selected.get(0)));
+					}
+				});
+				addMenu.add(subclassItem);
+				MenuItem partOfItem = new MenuItem("Part");
+				partOfItem.addSelectionHandler(new SelectionHandler<Item>() {
+					@Override
+					public void onSelection(SelectionEvent<Item> event) {
+						eventBus.fireEvent(new SelectPartOfEvent(selected.get(0)));
+					}
+				});
+				addMenu.add(partOfItem);
+				MenuItem synonymItem = new MenuItem("Synonym");
+				synonymItem.addSelectionHandler(new SelectionHandler<Item>() {
+					@Override
+					public void onSelection(SelectionEvent<Item> event) {
+						eventBus.fireEvent(new SelectSynonymEvent(selected.get(0)));
+					}
+				});
+				addMenu.add(synonymItem);
+				
+				additem.setSubMenu(addMenu);
+				return additem;
 			}
 
 			private Widget createRemoveItem(final List<OntologyClassSubmission> selected) {
@@ -393,7 +430,8 @@ public class ClassSubmissionsGrid implements IsWidget {
 				}, 200, "Status");
 		statusCol.setCell(colorableCell);
 		final ColumnConfig<OntologyClassSubmission, String> iriCol = new ColumnConfig<OntologyClassSubmission, String>(
-				new ValueProvider<OntologyClassSubmission, String>() {
+				ontologyClassSubmissionProperties.classIRI()
+				/*new ValueProvider<OntologyClassSubmission, String>() {
 					@Override
 					public String getValue(OntologyClassSubmission object) {
 						for(OntologyClassSubmissionStatus ontologyClassSubmissionStatus : object.getSubmissionStatuses()) {
@@ -409,7 +447,7 @@ public class ClassSubmissionsGrid implements IsWidget {
 					public String getPath() {
 						return "status";
 					}
-				}, 200, "IRI");
+				}*/, 200, "IRI");
 		iriCol.setCell(colorableCell);
 		final ColumnConfig<OntologyClassSubmission, String> userCol = new ColumnConfig<OntologyClassSubmission, String>(
 				ontologyClassSubmissionProperties.user(), 200, "User");
@@ -501,19 +539,27 @@ public class ClassSubmissionsGrid implements IsWidget {
 		List<ColumnConfig<OntologyClassSubmission, ?>> columns = new ArrayList<ColumnConfig<OntologyClassSubmission, ?>>();
 		columns.add(checkBoxSelectionModel.getColumn());
 		columns.add(termCol);
+		termCol.setHidden(true);
 		columns.add(submissionTermCol);
 		columns.add(categoryCol);
+		categoryCol.setHidden(true);
 		columns.add(ontologyCol);
-		columns.add(superClassCol);
-		columns.add(definitionCol);
-		columns.add(synonymsCol);
-		columns.add(sourceCol);
-		columns.add(sampleCol);
-		columns.add(partOfCol);
-		columns.add(entityCol);
-		columns.add(qualityCol);
 		columns.add(statusCol);
 		columns.add(iriCol);
+		columns.add(superClassCol);
+		//superClassCol.setHidden(true);
+		columns.add(partOfCol);
+		//partOfCol.setHidden(true);
+		columns.add(entityCol);
+		columns.add(qualityCol);
+		columns.add(definitionCol);
+		definitionCol.setHidden(true);
+		columns.add(sampleCol);
+		sampleCol.setHidden(true);
+		columns.add(sourceCol);
+		sourceCol.setHidden(true);
+		columns.add(synonymsCol);
+		//synonymsCol.setHidden(true);
 		columns.add(userCol);
 
 		ColumnModel<OntologyClassSubmission> cm = new ColumnModel<OntologyClassSubmission>(columns);

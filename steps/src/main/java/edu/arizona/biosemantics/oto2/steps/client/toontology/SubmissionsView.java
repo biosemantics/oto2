@@ -26,6 +26,9 @@ import edu.arizona.biosemantics.oto2.steps.client.event.RemoveOntologyClassSubmi
 import edu.arizona.biosemantics.oto2.steps.client.event.RemoveOntologySynonymSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.CreateOntologyClassSubmissionEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.CreateOntologySynonymSubmissionEvent;
+import edu.arizona.biosemantics.oto2.steps.client.event.SelectPartOfEvent;
+import edu.arizona.biosemantics.oto2.steps.client.event.SelectSuperclassEvent;
+import edu.arizona.biosemantics.oto2.steps.client.event.SelectSynonymEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.UpdateOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.UpdateOntologySynonymsSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;

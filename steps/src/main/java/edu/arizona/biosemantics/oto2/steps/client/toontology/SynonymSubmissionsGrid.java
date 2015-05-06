@@ -469,19 +469,23 @@ public class SynonymSubmissionsGrid implements IsWidget {
 //			}
 //		});
 //		
-		
+				
 		List<ColumnConfig<OntologySynonymSubmission, ?>> columns = new ArrayList<ColumnConfig<OntologySynonymSubmission, ?>>();
 		columns.add(checkBoxSelectionModel.getColumn());
 		columns.add(termCol);
+		termCol.setHidden(true);
 		columns.add(submissionTermCol);
 		columns.add(categoryCol);
+		categoryCol.setHidden(true);
 		columns.add(ontologyCol);
-		columns.add(classCol);
-		columns.add(synonymsCol);
-		columns.add(sourceCol);
-		columns.add(sampleCol);
 		columns.add(statusCol);
 		columns.add(iriCol);
+		columns.add(sampleCol);
+		sampleCol.setHidden(true);
+		columns.add(sourceCol);
+		sourceCol.setHidden(true);
+		columns.add(synonymsCol);
+		//synonymsCol.setHidden(true);
 		columns.add(userCol);
 		
 		ColumnModel<OntologySynonymSubmission> cm = new ColumnModel<OntologySynonymSubmission>(columns);

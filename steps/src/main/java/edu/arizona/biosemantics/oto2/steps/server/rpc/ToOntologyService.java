@@ -48,6 +48,11 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	}
 	
 	@Override
+	public List<Ontology> getPermanentOntologies(Collection collection) throws Exception {
+		return daoManager.getOntologyDBDAO().getPermanentOntologiesForCollection(collection);
+	}
+	
+	@Override
 	public List<OntologyClassSubmission> getClassSubmissions(Collection collection) throws Exception {
 		return daoManager.getOntologyClassSubmissionDAO().get(collection);
 	}
@@ -331,5 +336,7 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	private void setStatus(OntologySubmission submission, StatusEnum status) throws QueryException {
 		this.setStatus(submission, "", status);
 	}
+
+
 
 }

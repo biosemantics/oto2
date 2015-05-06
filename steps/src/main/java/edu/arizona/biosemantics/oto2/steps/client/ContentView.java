@@ -59,7 +59,7 @@ public class ContentView extends BorderLayoutContainer {
 		setWestWidget(cp, d);*/
 
 		ContentPanel cp = new ContentPanel();
-		cp.setHeadingText("Categories and Categorization Results");
+		cp.setHeadingText("OTO Steps");
 		cp.add(tabPanel);
 		BorderLayoutData d = new BorderLayoutData();
 		d.setMargins(new Margins(0, 0, 0, 0));

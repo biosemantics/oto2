@@ -18,5 +18,11 @@ public interface TypedContextProperties extends PropertyAccess<TypedContext> {
 
 	ValueProvider<TypedContext, String> text();
 	
+	ValueProvider<TypedContext, String> fullText();
+	
+	ValueProvider<TypedContext, String> highlightedText();
+	
+	ValueProvider<TypedContext, String> highlightedFullText();
+	
 	ValueProvider<TypedContext, String> typeString();
 }

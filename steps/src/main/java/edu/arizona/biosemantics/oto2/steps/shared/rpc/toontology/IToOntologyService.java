@@ -2,6 +2,7 @@ package edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology;
 
 import java.util.List;
 
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
@@ -39,4 +40,6 @@ public interface IToOntologyService extends RemoteService {
 	
 	public void removeSynonymSubmissions(Collection collection, 
 			java.util.Collection<OntologySynonymSubmission> ontologySynonymSubmissions) throws RemoveSynonymSubmissionException, OntologyBioportalException;
+
+	public List<Ontology> getPermanentOntologies(Collection collection) throws Exception;
 }

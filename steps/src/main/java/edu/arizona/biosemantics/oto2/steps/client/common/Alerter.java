@@ -47,6 +47,10 @@ public class Alerter {
 				"Another term with the same spelling <b>" + newName + "</b> exists already.");
 	}
 	
+	public static MessageBox alertInvalidForm() {
+		return showInfo("Submission incomplete", "Required fields are missing values.");
+	}
+	
 	public static MessageBox failedToSetColors(Throwable caught) {
 		return showAlert("Set Colors failed", "Failed to set colors.");
 	}
@@ -178,6 +182,8 @@ public class Alerter {
 		// TODO Auto-generated method stub
 		
 	}
+
+
 
 
 

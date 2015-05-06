@@ -22,6 +22,7 @@ import com.sencha.gxt.core.client.util.Params;
 import com.sencha.gxt.data.shared.SortDir;
 import com.sencha.gxt.data.shared.Store.StoreSortInfo;
 import com.sencha.gxt.data.shared.TreeStore;
+import com.sencha.gxt.widget.core.client.TabPanel;
 import com.sencha.gxt.widget.core.client.box.MultiLinePromptMessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
@@ -257,6 +258,7 @@ public class TermsView implements IsWidget {
 	private BucketTreeNode removedCharacterTermsNode;
 	protected Collection collection;
 	private VerticalLayoutContainer vertical;
+	private TabPanel tabPanel;
 	
 	public TermsView(EventBus eventBus) {
 		this.eventBus = eventBus;
@@ -301,10 +303,13 @@ public class TermsView implements IsWidget {
 		termTree.setContextMenu(new TermMenu());
 		
 		addDefaultNodes();
-		
+
 		vertical = new VerticalLayoutContainer();
 		vertical.add(termTree, new VerticalLayoutData(1, 1));
 		vertical.add(refreshButton, new VerticalLayoutData(1, -1));
+		
+		tabPanel = new TabPanel();
+		tabPanel.add(vertical, "Terms");
 		
 		bindEvents();
 	}
@@ -444,6 +449,6 @@ public class TermsView implements IsWidget {
 	
 	@Override
 	public Widget asWidget() {
-		return vertical;
+		return tabPanel;
 	}
 }
