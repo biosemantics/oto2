@@ -277,10 +277,12 @@ public class SubmitClassView implements IsWidget {
 			@Override
 			public void onSelect(SelectEvent event) {
 				if(validateForm()) {
+					final MessageBox box = Alerter.startLoading();
 					final OntologyClassSubmission submission = getClassSubmission();
 					toOntologyService.createClassSubmission(submission, new AsyncCallback<OntologyClassSubmission>() {
 						@Override
 						public void onFailure(Throwable caught) {
+							Alerter.stopLoading(box);
 							if(caught.getCause() != null) {
 								if(caught instanceof OntologyNotFoundException) {
 									Alerter.failedToSubmitClassOntologyNotFound(caught.getCause());
@@ -295,6 +297,7 @@ public class SubmitClassView implements IsWidget {
 						}
 						@Override
 						public void onSuccess(OntologyClassSubmission result) {
+							Alerter.stopLoading(box);
 							eventBus.fireEvent(new CreateOntologyClassSubmissionEvent(result));
 						}
 					});
@@ -307,6 +310,7 @@ public class SubmitClassView implements IsWidget {
 			@Override
 			public void onSelect(SelectEvent event) {
 				if(validateForm()) {
+					final MessageBox box = Alerter.startLoading();
 					final OntologyClassSubmission submission = getClassSubmission();
 					submission.setId(selectedSubmission.getId());
 					final List<OntologyClassSubmission> submissions = new LinkedList<OntologyClassSubmission>();
@@ -314,10 +318,12 @@ public class SubmitClassView implements IsWidget {
 					toOntologyService.updateClassSubmissions(collection, submissions, new AsyncCallback<Void>() {
 						@Override
 						public void onFailure(Throwable caught) {
+							Alerter.stopLoading(box);
 							Alerter.failedToEditClass(caught);
 						}
 						@Override
 						public void onSuccess(Void result) {
+							Alerter.stopLoading(box);
 							eventBus.fireEvent(new UpdateOntologyClassSubmissionsEvent(submissions));
 						}
 					});

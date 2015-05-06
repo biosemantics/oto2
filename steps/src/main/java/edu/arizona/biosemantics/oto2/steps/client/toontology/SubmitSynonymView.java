@@ -268,15 +268,18 @@ public class SubmitSynonymView implements IsWidget {
 			@Override
 			public void onSelect(SelectEvent event) {
 				if(validateForm()) {
+					final MessageBox box = Alerter.startLoading();
 					final OntologySynonymSubmission submission = getSynonymSubmission();
 					toOntologyService.createSynonymSubmission(submission, new AsyncCallback<OntologySynonymSubmission>() {
 						@Override
 						public void onFailure(Throwable caught) {
+							Alerter.stopLoading(box);
 							Alerter.failedToSubmitSynonym(caught);
 						}
 	
 						@Override
 						public void onSuccess(OntologySynonymSubmission result) {
+							Alerter.stopLoading(box);
 							eventBus.fireEvent(new CreateOntologySynonymSubmissionEvent(result));
 						} 
 					});
@@ -289,6 +292,7 @@ public class SubmitSynonymView implements IsWidget {
 			@Override
 			public void onSelect(SelectEvent event) {
 				if(validateForm()) {
+					final MessageBox box = Alerter.startLoading();
 					final OntologySynonymSubmission submission = getSynonymSubmission();
 					submission.setId(selectedSubmission.getId());
 					final List<OntologySynonymSubmission> submissions = new LinkedList<OntologySynonymSubmission>();
@@ -296,10 +300,12 @@ public class SubmitSynonymView implements IsWidget {
 					toOntologyService.updateSynonymSubmissions(collection, submissions, new AsyncCallback<Void>() {
 						@Override
 						public void onFailure(Throwable caught) {
+							Alerter.stopLoading(box);
 							Alerter.failedToEditClass(caught);
 						}
 						@Override
 						public void onSuccess(Void result) {
+							Alerter.stopLoading(box);
 							eventBus.fireEvent(new UpdateOntologySynonymsSubmissionsEvent(submissions));
 						}
 					});
