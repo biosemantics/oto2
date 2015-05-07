@@ -168,22 +168,22 @@ public class SubmitClassView implements IsWidget {
 	    formContainer.add(new FieldLabel(classIRIField, "Class IRI"), new VerticalLayoutData(1, -1));
 	    
 	    HorizontalLayoutContainer superclassHorizontal = new HorizontalLayoutContainer();
-	    superclassHorizontal.add(superclassListView, new HorizontalLayoutData(0.5, 100));
+	    superclassHorizontal.add(superclassListView, new HorizontalLayoutData(0.7, 75));
 	    VerticalLayoutContainer superclassVertical = new VerticalLayoutContainer();
-	    superclassHorizontal.add(superclassVertical, new HorizontalLayoutData(0.5, -1));
+	    superclassHorizontal.add(superclassVertical, new HorizontalLayoutData(0.3, -1));
 	    superclassVertical.add(addSuperclassButton, new VerticalLayoutData(1, -1));
 	    superclassVertical.add(removeSuperclassButton, new VerticalLayoutData(1, -1));
 	    superclassVertical.add(clearSuperclassButton, new VerticalLayoutData(1, -1));
-	    formContainer.add(new FieldLabel(superclassHorizontal, "Superclass IRI"), new VerticalLayoutData(1, 100));
+	    formContainer.add(new FieldLabel(superclassHorizontal, "Superclass IRI"), new VerticalLayoutData(1, 75));
 	    
 	    HorizontalLayoutContainer partOfHorizontal = new HorizontalLayoutContainer();
-	    partOfHorizontal.add(partOfListView, new HorizontalLayoutData(0.5, 100));
+	    partOfHorizontal.add(partOfListView, new HorizontalLayoutData(0.7, 75));
 	    VerticalLayoutContainer partOfVertical = new VerticalLayoutContainer();
-	    partOfHorizontal.add(partOfVertical, new HorizontalLayoutData(0.5, -1));
+	    partOfHorizontal.add(partOfVertical, new HorizontalLayoutData(0.3, -1));
 	    partOfVertical.add(addPartOfButton, new VerticalLayoutData(1, -1));
 	    partOfVertical.add(removePartOfButton, new VerticalLayoutData(1, -1));
 	    partOfVertical.add(clearPartOfButton, new VerticalLayoutData(1, -1));
-	    formContainer.add(new FieldLabel(partOfHorizontal, "Part of IRI"), new VerticalLayoutData(1, 100));
+	    formContainer.add(new FieldLabel(partOfHorizontal, "Part of IRI"), new VerticalLayoutData(1, 75));
 	    formContainer.add(new FieldLabel(isEntityCheckBox, "Is Entity"), new VerticalLayoutData(1, -1));
 	    formContainer.add(new FieldLabel(isQualityCheckBox, "Is Quality"), new VerticalLayoutData(1, -1));
 	    formContainer.add(new FieldLabel(definitionArea, "Definition"), new VerticalLayoutData(1, -1));
@@ -191,13 +191,13 @@ public class SubmitClassView implements IsWidget {
 	    formContainer.add(new FieldLabel(sourceField, "Source"), new VerticalLayoutData(1, -1));
 	    
 	    HorizontalLayoutContainer synonymHorizontal = new HorizontalLayoutContainer();
-	    synonymHorizontal.add(synonymsListView, new HorizontalLayoutData(0.5, 100));
+	    synonymHorizontal.add(synonymsListView, new HorizontalLayoutData(0.7, 75));
 	    VerticalLayoutContainer synonymVertical = new VerticalLayoutContainer();
-	    synonymHorizontal.add(synonymVertical, new HorizontalLayoutData(0.5, -1));
+	    synonymHorizontal.add(synonymVertical, new HorizontalLayoutData(0.3, -1));
 	    synonymVertical.add(addSynonymButton, new VerticalLayoutData(1, -1));
 	    synonymVertical.add(removeSynonymButton, new VerticalLayoutData(1, -1));
 	    synonymVertical.add(clearSynonymButton, new VerticalLayoutData(1, -1));
-	    formContainer.add(new FieldLabel(synonymHorizontal, "Synonyms"), new VerticalLayoutData(1, -1));
+	    formContainer.add(new FieldLabel(synonymHorizontal, "Synonyms"), new VerticalLayoutData(1, 75));
 	    formContainer.setScrollMode(ScrollMode.AUTOY);
 	    formContainer.setAdjustForScroll(true);
 	    
@@ -612,12 +612,15 @@ public class SubmitClassView implements IsWidget {
 		if(ontologyClassSubmission.hasOntology())
 			this.ontologyComboBox.setValue(ontologyClassSubmission.getOntology());
 		this.classIRIField.setValue(ontologyClassSubmission.getClassIRI());
-		//this.superclassIRIField.setValue(ontologyClassSubmission.getSuperclassIRI());
+		this.superclassStore.clear();
+		this.superclassStore.addAll(ontologyClassSubmission.getSuperclassIRIs());
 		this.definitionArea.setValue(ontologyClassSubmission.getDefinition());
+		this.synonymsStore.clear();
 		this.synonymsStore.addAll(ontologyClassSubmission.getSynonyms());
 		this.sourceField.setValue(ontologyClassSubmission.getSource());
 		this.sampleArea.setValue(ontologyClassSubmission.getSampleSentence());
-		//this.partOfField.setValue(ontologyClassSubmission.getPartOfIRI());
+		this.partOfStore.clear();
+		this.partOfStore.addAll(ontologyClassSubmission.getPartOfIRIs());
 		this.isEntityCheckBox.setValue(ontologyClassSubmission.isEntity());
 		this.isQualityCheckBox.setValue(ontologyClassSubmission.isQuality());
 	}
@@ -627,8 +630,8 @@ public class SubmitClassView implements IsWidget {
 		boolean quality = isQualityCheckBox.getValue();
 		String user = OtoSteps.user;
 		return new OntologyClassSubmission(termComboBox.getValue(), submissionTermField.getValue(), 
-				ontologyComboBox.getValue(), classIRIField.getValue(), null, //superclassIRIField.getValue(),
-				definitionArea.getValue(), synonymsStore.getAll(), sourceField.getValue(), sampleArea.getValue(), null, //partOfField.getValue(), 
+				ontologyComboBox.getValue(), classIRIField.getValue(), superclassStore.getAll(),
+				definitionArea.getValue(), synonymsStore.getAll(), sourceField.getValue(), sampleArea.getValue(), partOfStore.getAll(), 
 				isEntityCheckBox.getValue(), isQualityCheckBox.getValue(), OtoSteps.user);
 	}
 

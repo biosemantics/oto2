@@ -14,8 +14,11 @@ import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.cell.core.client.form.ComboBoxCell.TriggerAction;
+import com.sencha.gxt.core.client.IdentityValueProvider;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
 import com.sencha.gxt.data.shared.ListStore;
+import com.sencha.gxt.data.shared.ModelKeyProvider;
+import com.sencha.gxt.widget.core.client.ListView;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
 import com.sencha.gxt.widget.core.client.box.MessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
@@ -74,11 +77,17 @@ public class SubmitSynonymView implements IsWidget {
 	private TextButton browseOntologiesButton = new TextButton("Browse Selected Ontology");
 	private ComboBox<Ontology> ontologyComboBox;
 	private TextField classIRIField = new TextField();
-	private TextField synonymsField = new TextField();
 	private TextField sourceField = new TextField();
 	private TextArea sampleArea = new TextArea();
 	private CheckBox isEntityCheckBox = new CheckBox();
 	private CheckBox isQualityCheckBox = new CheckBox();
+	
+	private ListView<String, String> synonymsListView;
+	private ListStore<String> synonymsStore;
+	private TextButton addSynonymButton = new TextButton("Add");
+	private TextButton removeSynonymButton = new TextButton("Remove");
+	private TextButton clearSynonymButton = new TextButton("Clear");
+	
 	private ComboBox<Term> termComboBox;
 	private VerticalLayoutContainer vlc;
 	private TextButton createOntologyButton = new TextButton("Create New Ontology");
@@ -95,6 +104,14 @@ public class SubmitSynonymView implements IsWidget {
 	    
 	    termComboBox = new ComboBox<Term>(termStore, termProperties.nameLabel());
 	    categoryField.setEnabled(false);
+	    
+	    synonymsStore = new ListStore<String>(new ModelKeyProvider<String>() {
+			@Override
+			public String getKey(String item) {
+				return item;
+			}
+	    });
+	    synonymsListView = new ListView<String, String>(synonymsStore, new IdentityValueProvider<String>());
 	    
 	    formContainer = new VerticalLayoutContainer();
 	    formContainer.add(new FieldLabel(termComboBox, "Candiate Term"), new VerticalLayoutData(1, -1));
@@ -116,7 +133,14 @@ public class SubmitSynonymView implements IsWidget {
 	    formContainer.add(new FieldLabel(isQualityCheckBox, "Is Quality"), new VerticalLayoutData(1, -1));
 	    formContainer.add(new FieldLabel(sampleArea, "Sample Sentence"), new VerticalLayoutData(1, -1));
 	    formContainer.add(new FieldLabel(sourceField, "Source"), new VerticalLayoutData(1, -1));
-	    formContainer.add(new FieldLabel(synonymsField, "Synonyms"), new VerticalLayoutData(1, -1));
+	    HorizontalLayoutContainer synonymHorizontal = new HorizontalLayoutContainer();
+	    synonymHorizontal.add(synonymsListView, new HorizontalLayoutData(0.7, 75));
+	    VerticalLayoutContainer synonymVertical = new VerticalLayoutContainer();
+	    synonymHorizontal.add(synonymVertical, new HorizontalLayoutData(0.3, -1));
+	    synonymVertical.add(addSynonymButton, new VerticalLayoutData(1, -1));
+	    synonymVertical.add(removeSynonymButton, new VerticalLayoutData(1, -1));
+	    synonymVertical.add(clearSynonymButton, new VerticalLayoutData(1, -1));
+	    formContainer.add(new FieldLabel(synonymHorizontal, "Synonyms"), new VerticalLayoutData(1, 75));
 	    formContainer.setScrollMode(ScrollMode.AUTO);
 	    formContainer.setAdjustForScroll(true);
 	    
@@ -409,7 +433,7 @@ public class SubmitSynonymView implements IsWidget {
 		this.submissionTermField.setValue("", false); 
 		//this.ontologyComboBox.setValue(null, false);
 		this.classIRIField.setValue("", false);
-		this.synonymsField.setValue("", false);
+		this.synonymsStore.clear();
 		this.sourceField.setValue("", false);
 		this.sampleArea.setValue("", false);
 		this.isEntityCheckBox.setValue(false, false);
@@ -423,7 +447,8 @@ public class SubmitSynonymView implements IsWidget {
 		if(ontologySynonymSubmission.hasOntology())
 			this.ontologyComboBox.setValue(ontologySynonymSubmission.getOntology());
 		this.classIRIField.setValue(ontologySynonymSubmission.getClassIRI());
-		//this.synonymsField.setValue(ontologySynonymSubmission.getSynonyms());
+		this.synonymsStore.clear();
+		this.synonymsStore.addAll(ontologySynonymSubmission.getSynonyms());
 		this.sourceField.setValue(ontologySynonymSubmission.getSource());
 		this.sampleArea.setValue(ontologySynonymSubmission.getSampleSentence());
 		this.isEntityCheckBox.setValue(ontologySynonymSubmission.isEntity());
@@ -433,8 +458,7 @@ public class SubmitSynonymView implements IsWidget {
 	protected OntologySynonymSubmission getSynonymSubmission() {
 		return new OntologySynonymSubmission(termComboBox.getValue(), submissionTermField.getValue(), 
 				ontologyComboBox.getValue(), classIRIField.getValue(),
-				null,
-				//synonymsField.getValue(), 
+				synonymsStore.getAll(),
 				sourceField.getValue(), sampleArea.getValue(), 
 				isEntityCheckBox.getValue(), isQualityCheckBox.getValue(), OtoSteps.user);
 	}
