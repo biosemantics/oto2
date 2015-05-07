@@ -38,6 +38,7 @@ import edu.arizona.biosemantics.oto2.steps.client.common.CreateOntologyDialog;
 import edu.arizona.biosemantics.oto2.steps.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.OntologyClassSubmissionSelectEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.CreateOntologyClassSubmissionEvent;
+import edu.arizona.biosemantics.oto2.steps.client.event.RemoveOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.SelectPartOfEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.SelectSampleEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.SelectSourceEvent;
@@ -65,8 +66,9 @@ public class SubmitClassView implements IsWidget {
 	
 	private ListStore<Ontology> ontologiesStore = new ListStore<Ontology>(ontologyProperties.key());
 	private ListStore<Term> termStore = new ListStore<Term>(termProperties.key());
-	private TextButton editButton = new TextButton("Edit Submission");
-	private TextButton submitButton = new TextButton("Save as New Submission");
+	private TextButton editButton = new TextButton("Edit");
+	private TextButton submitButton = new TextButton("Save as New");
+	private TextButton obsoleteSubmit = new TextButton("Obsolete and Save as New");
 	private TextField submissionTermField = new TextField();
 	private TextField categoryField = new TextField();
 	private TextButton browseOntologiesButton = new TextButton("Browse Selected Ontology");
@@ -126,14 +128,16 @@ public class SubmitClassView implements IsWidget {
 	    vlc.add(new Label("* marks requried fields"), new VerticalLayoutData(1, -1));
 	    vlc.add(formContainer, new VerticalLayoutData(1, 1));
 	    HorizontalLayoutContainer hlc = new HorizontalLayoutContainer();
-	    hlc.add(editButton, new HorizontalLayoutData(0.5, -1));
-	    hlc.add(submitButton, new HorizontalLayoutData(0.5, -1));
+	    hlc.add(editButton, new HorizontalLayoutData(0.33, -1));
+	    hlc.add(submitButton, new HorizontalLayoutData(0.33, -1));
+	    hlc.add(obsoleteSubmit, new HorizontalLayoutData(0.33, -1));
 	    vlc.add(hlc, new VerticalLayoutData(1, 24)); //for some reason won't work: -1));
 	    
 		bindEvents();		
 	}
 	
 	private boolean validateForm() {
+		boolean validateValues = true;
 		Iterator<Widget> iterator = formContainer.iterator();
 		while(iterator.hasNext()) {
 			Widget widget = iterator.next();
@@ -144,9 +148,37 @@ public class SubmitClassView implements IsWidget {
 					Field f = (Field)field;
 					boolean result = f.validate();
 					if(!result)
-						return false;
+						validateValues = false;
 				}
 			}
+		}
+		return validateValues;
+	}
+	
+	private boolean validateEdit() {
+		if(!selectedSubmission.getClassIRI().equals(classIRIField.getValue())) {
+			Alerter.alertCantModify("class IRI");
+			return false;
+		}
+		if(!selectedSubmission.getSubmissionTerm().equals(submissionTermField.getValue())) {
+			Alerter.alertCantModify("submission term");
+			return false;
+		}
+		if(selectedSubmission.isEntity() != isEntityCheckBox.getValue()) {
+			Alerter.alertCantModify("is entity");
+			return false;
+		}
+		if(selectedSubmission.isQuality() != isQualityCheckBox.getValue()) {
+			Alerter.alertCantModify("is quality");
+			return false;
+		}
+		if(!selectedSubmission.getOntology().equals(ontologyComboBox.getValue())) {
+			Alerter.alertCantModify("ontology");
+			return false;
+		}
+		if(!selectedSubmission.getTerm().equals(termComboBox.getValue())) {
+			Alerter.alertCantModify("term");
+			return false;
 		}
 		return true;
 	}
@@ -305,28 +337,78 @@ public class SubmitClassView implements IsWidget {
 					Alerter.alertInvalidForm();
 				}
 			}
+
+		
+		});
+		obsoleteSubmit.addSelectHandler(new SelectHandler() { 
+			@Override
+			public void onSelect(SelectEvent event) {
+				if(validateForm()) {
+					final MessageBox box = Alerter.startLoading();
+					final OntologyClassSubmission newSubmission = getClassSubmission();
+					final List<OntologyClassSubmission> removeSubmissions = new LinkedList<OntologyClassSubmission>();
+					removeSubmissions.add(selectedSubmission);
+					toOntologyService.removeClassSubmissions(collection, removeSubmissions, new AsyncCallback<Void>() {
+						@Override
+						public void onFailure(Throwable caught) {
+							Alerter.failedToRemoveOntologyClassSubmission();
+							Alerter.stopLoading(box);
+						}
+						@Override
+						public void onSuccess(Void result) {
+							eventBus.fireEvent(new RemoveOntologyClassSubmissionsEvent(removeSubmissions));
+							toOntologyService.createClassSubmission(newSubmission, new AsyncCallback<OntologyClassSubmission>() {
+								@Override
+								public void onFailure(Throwable caught) {
+									Alerter.stopLoading(box);
+									if(caught.getCause() != null) {
+										if(caught instanceof OntologyNotFoundException) {
+											Alerter.failedToSubmitClassOntologyNotFound(caught.getCause());
+										}
+										if(caught instanceof ClassExistsException) {
+											Alerter.failedToSubmitClassExists(caught.getCause());
+										} else {
+											Alerter.failedToSubmitClass(caught);
+										}
+									}
+									Alerter.failedToSubmitClass(caught);
+								}
+								@Override
+								public void onSuccess(OntologyClassSubmission result) {
+									Alerter.stopLoading(box);
+									eventBus.fireEvent(new CreateOntologyClassSubmissionEvent(result));
+								}
+							});
+						}
+					});
+				} else {
+					Alerter.alertInvalidForm();
+				}
+			}
 		});
 		editButton.addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
 				if(validateForm()) {
-					final MessageBox box = Alerter.startLoading();
-					final OntologyClassSubmission submission = getClassSubmission();
-					submission.setId(selectedSubmission.getId());
-					final List<OntologyClassSubmission> submissions = new LinkedList<OntologyClassSubmission>();
-					submissions.add(submission);
-					toOntologyService.updateClassSubmissions(collection, submissions, new AsyncCallback<Void>() {
-						@Override
-						public void onFailure(Throwable caught) {
-							Alerter.stopLoading(box);
-							Alerter.failedToEditClass(caught);
-						}
-						@Override
-						public void onSuccess(Void result) {
-							Alerter.stopLoading(box);
-							eventBus.fireEvent(new UpdateOntologyClassSubmissionsEvent(submissions));
-						}
-					});
+					if(validateEdit()) {
+						final MessageBox box = Alerter.startLoading();
+						final OntologyClassSubmission submission = getClassSubmission();
+						submission.setId(selectedSubmission.getId());
+						final List<OntologyClassSubmission> submissions = new LinkedList<OntologyClassSubmission>();
+						submissions.add(submission);
+						toOntologyService.updateClassSubmissions(collection, submissions, new AsyncCallback<Void>() {
+							@Override
+							public void onFailure(Throwable caught) {
+								Alerter.stopLoading(box);
+								Alerter.failedToEditClass(caught);
+							}
+							@Override
+							public void onSuccess(Void result) {
+								Alerter.stopLoading(box);
+								eventBus.fireEvent(new UpdateOntologyClassSubmissionsEvent(submissions));
+							}
+						});
+					} 
 				} else {
 					Alerter.alertInvalidForm();
 				}

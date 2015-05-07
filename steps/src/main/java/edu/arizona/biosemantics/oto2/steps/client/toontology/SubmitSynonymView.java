@@ -38,6 +38,7 @@ import edu.arizona.biosemantics.oto2.steps.client.common.CreateOntologyDialog;
 import edu.arizona.biosemantics.oto2.steps.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.OntologySynonymSubmissionSelectEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.CreateOntologySynonymSubmissionEvent;
+import edu.arizona.biosemantics.oto2.steps.client.event.RemoveOntologySynonymSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.SelectSampleEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.SelectSourceEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.SelectSynonymEvent;
@@ -50,8 +51,10 @@ import edu.arizona.biosemantics.oto2.steps.shared.model.Term;
 import edu.arizona.biosemantics.oto2.steps.shared.model.TermProperties;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynonymSubmission;
+import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.ClassExistsException;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.IToOntologyService;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.IToOntologyServiceAsync;
+import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.OntologyNotFoundException;
 
 public class SubmitSynonymView implements IsWidget {
 	
@@ -63,8 +66,9 @@ public class SubmitSynonymView implements IsWidget {
 	
 	private ListStore<Ontology> ontologiesStore = new ListStore<Ontology>(ontologyProperties.key());
 	private ListStore<Term> termStore = new ListStore<Term>(termProperties.key());
-	private TextButton editButton = new TextButton("Edit Submission");
-	private TextButton submitButton = new TextButton("Save as New Submission");
+	private TextButton editButton = new TextButton("Edit");
+	private TextButton submitButton = new TextButton("Save as New");
+	private TextButton obsoleteSubmitButton = new TextButton("Obsolete and Save as New");
 	private TextField submissionTermField = new TextField();
 	private TextField categoryField = new TextField();
 	private TextButton browseOntologiesButton = new TextButton("Browse Selected Ontology");
@@ -120,14 +124,16 @@ public class SubmitSynonymView implements IsWidget {
 	    vlc.add(new Label("* marks requried fields"), new VerticalLayoutData(1, -1));
 	    vlc.add(formContainer, new VerticalLayoutData(1, 1));
 	    HorizontalLayoutContainer hlc = new HorizontalLayoutContainer();
-	    hlc.add(editButton, new HorizontalLayoutData(0.5,-1));
-	    hlc.add(submitButton, new HorizontalLayoutData(0.5,-1));
+	    hlc.add(editButton, new HorizontalLayoutData(0.33,-1));
+	    hlc.add(submitButton, new HorizontalLayoutData(0.33,-1));
+	    hlc.add(obsoleteSubmitButton, new HorizontalLayoutData(0.33,-1));
 	    vlc.add(hlc, new VerticalLayoutData(1, 24)); //-1));
 	    
 	    bindEvents();		
 	}
 	
 	private boolean validateForm() {
+		boolean validateValues = true;
 		Iterator<Widget> iterator = formContainer.iterator();
 		while(iterator.hasNext()) {
 			Widget widget = iterator.next();
@@ -138,9 +144,37 @@ public class SubmitSynonymView implements IsWidget {
 					Field f = (Field)field;
 					boolean result = f.validate();
 					if(!result)
-						return false;
+						validateValues = false;
 				}
 			}
+		}
+		return validateValues;
+	}
+	
+	private boolean validateEdit() {
+		if(!selectedSubmission.getClassIRI().equals(classIRIField.getValue())) {
+			Alerter.alertCantModify("class IRI");
+			return false;
+		}
+		if(!selectedSubmission.getSubmissionTerm().equals(submissionTermField.getValue())) {
+			Alerter.alertCantModify("submission term");
+			return false;
+		}
+		if(selectedSubmission.isEntity() != isEntityCheckBox.getValue()) {
+			Alerter.alertCantModify("is entity");
+			return false;
+		}
+		if(selectedSubmission.isQuality() != isQualityCheckBox.getValue()) {
+			Alerter.alertCantModify("is quality");
+			return false;
+		}
+		if(!selectedSubmission.getOntology().equals(ontologyComboBox.getValue())) {
+			Alerter.alertCantModify("ontology");
+			return false;
+		}
+		if(!selectedSubmission.getTerm().equals(termComboBox.getValue())) {
+			Alerter.alertCantModify("term");
+			return false;
 		}
 		return true;
 	}
@@ -288,27 +322,66 @@ public class SubmitSynonymView implements IsWidget {
 				}
 			}
 		});
-		editButton.addSelectHandler(new SelectHandler() {
+		obsoleteSubmitButton.addSelectHandler(new SelectHandler() { 
 			@Override
 			public void onSelect(SelectEvent event) {
 				if(validateForm()) {
 					final MessageBox box = Alerter.startLoading();
 					final OntologySynonymSubmission submission = getSynonymSubmission();
-					submission.setId(selectedSubmission.getId());
-					final List<OntologySynonymSubmission> submissions = new LinkedList<OntologySynonymSubmission>();
-					submissions.add(submission);
-					toOntologyService.updateSynonymSubmissions(collection, submissions, new AsyncCallback<Void>() {
+					final List<OntologySynonymSubmission> removeSubmissions = new LinkedList<OntologySynonymSubmission>();
+					removeSubmissions.add(selectedSubmission);
+					toOntologyService.removeSynonymSubmissions(collection, removeSubmissions, new AsyncCallback<Void>() {
 						@Override
 						public void onFailure(Throwable caught) {
+							Alerter.failedToRemoveOntologyClassSubmission();
 							Alerter.stopLoading(box);
-							Alerter.failedToEditClass(caught);
 						}
 						@Override
 						public void onSuccess(Void result) {
-							Alerter.stopLoading(box);
-							eventBus.fireEvent(new UpdateOntologySynonymsSubmissionsEvent(submissions));
+							eventBus.fireEvent(new RemoveOntologySynonymSubmissionsEvent(removeSubmissions));
+							toOntologyService.createSynonymSubmission(submission, new AsyncCallback<OntologySynonymSubmission>() {
+								@Override
+								public void onFailure(Throwable caught) {
+									Alerter.stopLoading(box);
+									Alerter.failedToSubmitSynonym(caught);
+								}
+			
+								@Override
+								public void onSuccess(OntologySynonymSubmission result) {
+									Alerter.stopLoading(box);
+									eventBus.fireEvent(new CreateOntologySynonymSubmissionEvent(result));
+								}
+							});
 						}
 					});
+				} else {
+					Alerter.alertInvalidForm();
+				}
+			}
+		});
+		editButton.addSelectHandler(new SelectHandler() {
+			@Override
+			public void onSelect(SelectEvent event) {
+				if(validateForm()) {
+					if(validateEdit()) {
+						final MessageBox box = Alerter.startLoading();
+						final OntologySynonymSubmission submission = getSynonymSubmission();
+						submission.setId(selectedSubmission.getId());
+						final List<OntologySynonymSubmission> submissions = new LinkedList<OntologySynonymSubmission>();
+						submissions.add(submission);
+						toOntologyService.updateSynonymSubmissions(collection, submissions, new AsyncCallback<Void>() {
+							@Override
+							public void onFailure(Throwable caught) {
+								Alerter.stopLoading(box);
+								Alerter.failedToEditClass(caught);
+							}
+							@Override
+							public void onSuccess(Void result) {
+								Alerter.stopLoading(box);
+								eventBus.fireEvent(new UpdateOntologySynonymsSubmissionsEvent(submissions));
+							}
+						});
+					}
 				} else {
 					Alerter.alertInvalidForm();
 				}

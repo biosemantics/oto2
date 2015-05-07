@@ -37,6 +37,10 @@ public class Alerter {
 		box.hide();
 	}
 	
+	public static MessageBox alertCantModify(String what) {
+		return showInfo("Modification of " + what + " not allowed", "Can't modify " + what);
+	}
+	
 	public static MessageBox warnOntologyUnaivableForCollection() {
 		return showConfirm("Taxon group of dataset not included", "You have not included the taxon group of this dataset. "
 				+ "The created ontology will not be available to use with this dataset. Do you want to create it anyway?");
@@ -182,12 +186,5 @@ public class Alerter {
 		// TODO Auto-generated method stub
 		
 	}
-
-
-
-
-
-
-
 
 }
