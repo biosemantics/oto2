@@ -23,7 +23,7 @@ public interface OntologySynonymSubmissionProperties extends PropertyAccess<Onto
 	  
 	  ValueProvider<OntologySynonymSubmission, String> classIRI();
 	  
-	  ValueProvider<OntologySynonymSubmission, String> synonyms();
+	  ValueProvider<OntologySynonymSubmission, List<Synonym>> synonyms();
 	  
 	  ValueProvider<OntologySynonymSubmission, String> source();
 	  

@@ -423,7 +423,7 @@ public class SubmitSynonymView implements IsWidget {
 		if(ontologySynonymSubmission.hasOntology())
 			this.ontologyComboBox.setValue(ontologySynonymSubmission.getOntology());
 		this.classIRIField.setValue(ontologySynonymSubmission.getClassIRI());
-		this.synonymsField.setValue(ontologySynonymSubmission.getSynonyms());
+		//this.synonymsField.setValue(ontologySynonymSubmission.getSynonyms());
 		this.sourceField.setValue(ontologySynonymSubmission.getSource());
 		this.sampleArea.setValue(ontologySynonymSubmission.getSampleSentence());
 		this.isEntityCheckBox.setValue(ontologySynonymSubmission.isEntity());
@@ -433,7 +433,9 @@ public class SubmitSynonymView implements IsWidget {
 	protected OntologySynonymSubmission getSynonymSubmission() {
 		return new OntologySynonymSubmission(termComboBox.getValue(), submissionTermField.getValue(), 
 				ontologyComboBox.getValue(), classIRIField.getValue(),
-				synonymsField.getValue(), sourceField.getValue(), sampleArea.getValue(), 
+				null,
+				//synonymsField.getValue(), 
+				sourceField.getValue(), sampleArea.getValue(), 
 				isEntityCheckBox.getValue(), isQualityCheckBox.getValue(), OtoSteps.user);
 	}
 

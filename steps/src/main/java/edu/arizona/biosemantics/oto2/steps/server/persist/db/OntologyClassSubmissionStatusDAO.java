@@ -105,5 +105,15 @@ public class OntologyClassSubmissionStatusDAO {
 	public void setStatusDAO(StatusDAO statusDAO) {
 		this.statusDAO = statusDAO;
 	}
+
+	public void update(List<OntologyClassSubmissionStatus> submissionStatuses) throws QueryException {
+		for(OntologyClassSubmissionStatus submissionStatus : submissionStatuses)
+			this.update(submissionStatus);
+	}
+
+	public void remove(List<OntologyClassSubmissionStatus> submissionStatuses) throws QueryException {
+		for(OntologyClassSubmissionStatus submissionStatus : submissionStatuses)
+			this.remove(submissionStatus);
+	}
 	
 }

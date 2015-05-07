@@ -70,16 +70,40 @@ CREATE TABLE IF NOT EXISTS `otosteps_ontologyclasssubmission` (
 	`submission_term` VARCHAR(100) NOT NULL,
 	`ontology` BIGINT(20) UNSIGNED NOT NULL,
 	`class_iri` VARCHAR(100) DEFAULT NULL,
-	`superclass_iri` VARCHAR(100) DEFAULT NULL,
 	`definition` text NULL DEFAULT NULL,
-	`synonyms` text NULL DEFAULT NULL,
   	`source` TEXT NULL DEFAULT NULL,
 	`sample_sentence` TEXT NULL DEFAULT NULL,  
-	`part_of_iri` VARCHAR(100) NULL DEFAULT NULL,
 	`entity` TINYINT(1) NULL DEFAULT '0',
 	`quality` TINYINT(1) NULL DEFAULT '0',
 	`user` VARCHAR(100) NULL DEFAULT NULL,
   	`lastupdated` TIMESTAMP NOT NULL DEFAULT '0000-00-00 00:00:00',
+  	`created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0 ;
+
+CREATE TABLE IF NOT EXISTS `otosteps_ontologyclasssubmission_synonym` (
+	`id` BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+	`ontologyclasssubmission` BIGINT(20) UNSIGNED NOT NULL,
+	`synonym` VARCHAR(100) NOT NULL,
+  	`created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0 ;
+
+CREATE TABLE IF NOT EXISTS `otosteps_ontologyclasssubmission_parto` (
+	`id` BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+	`ontologyclasssubmission` BIGINT(20) UNSIGNED NOT NULL,
+	`partof` VARCHAR(100) NOT NULL,
+  	`created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0 ;
+
+CREATE TABLE IF NOT EXISTS `otosteps_ontologyclasssubmission_superclass` (
+	`id` BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+	`ontologyclasssubmission` BIGINT(20) UNSIGNED NOT NULL,
+	`superclass` VARCHAR(100) NOT NULL,
   	`created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`)
@@ -101,6 +125,15 @@ CREATE TABLE `otosteps_ontologysynonymsubmission` (
 	`created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	PRIMARY KEY (`id`),
 	UNIQUE INDEX `id` (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0 ;
+
+CREATE TABLE IF NOT EXISTS `otosteps_ontologysynonymsubmission_synonym` (
+	`id` BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+	`ontologysynonymsubmission` BIGINT(20) UNSIGNED NOT NULL,
+	`synonym` VARCHAR(100) NOT NULL,
+  	`created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0 ;
 
 CREATE TABLE IF NOT EXISTS `otosteps_ontologyclasssubmission_status` (

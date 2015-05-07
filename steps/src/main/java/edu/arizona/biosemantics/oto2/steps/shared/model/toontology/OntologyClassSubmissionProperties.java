@@ -21,17 +21,17 @@ public interface OntologyClassSubmissionProperties extends PropertyAccess<Ontolo
 	  
 	  ValueProvider<OntologyClassSubmission, Ontology> ontology();
 	  
-	  ValueProvider<OntologyClassSubmission, String> superclassIRI();
+	  ValueProvider<OntologyClassSubmission, List<Superclass>> superclassIRIs();
 	  
 	  ValueProvider<OntologyClassSubmission, String> definition();
 	  
-	  ValueProvider<OntologyClassSubmission, String> synonyms();
+	  ValueProvider<OntologyClassSubmission, List<Synonym>> synonyms();
 	  
 	  ValueProvider<OntologyClassSubmission, String> source();
 	  
 	  ValueProvider<OntologyClassSubmission, String> sampleSentence();
 	  
-	  ValueProvider<OntologyClassSubmission, String> partOfIRI();
+	  ValueProvider<OntologyClassSubmission, List<PartOf>> partOfIRIs();
 
 	  ValueProvider<OntologyClassSubmission, Boolean> entity();
 	  

@@ -19,6 +19,9 @@ public class OntologyClassSubmissionDAO {
 	private TermDAO termDAO;
 	private OntologyDAO ontologyDAO;
 	private OntologyClassSubmissionStatusDAO ontologyClassSubmissionStatusDAO;
+	private OntologyClassSubmissionSynonymDAO ontologyClassSubmissionSynonymDAO;
+	private OntologyClassSubmissionSuperclassDAO ontologyClassSubmissionSuperclassDAO;
+	private OntologyClassSubmissionPartOfDAO ontologyClassSubmissionPartOfDAO;
 	
 	public OntologyClassSubmissionDAO() {} 
 	
@@ -43,12 +46,9 @@ public class OntologyClassSubmissionDAO {
 		String submission_term = result.getString("submission_term");
 		int ontologyId = result.getInt("ontology");
 		String classIRI = result.getString("class_iri");
-		String superClassIRI = result.getString("superclass_iri");
 		String definition = result.getString("definition");
-		String synonyms = result.getString("synonyms");
 		String source = result.getString("source");
 		String sampleSentence = result.getString("sample_sentence");
-		String partOfIRI = result.getString("part_of_iri");
 		boolean entity = result.getBoolean("entity");
 		boolean quality = result.getBoolean("quality");
 		String user = result.getString("user");
@@ -71,35 +71,37 @@ public class OntologyClassSubmissionDAO {
 		Term term = termDAO.get(termId);
 		Ontology ontology = ontologyDAO.get(ontologyId);
 		
-		return new OntologyClassSubmission(id, term, submission_term, ontology, classIRI, superClassIRI, definition, synonyms, source, sampleSentence,
-				partOfIRI, entity, quality, user, ontologyClassSubmissionStatuses);
+		return new OntologyClassSubmission(id, term, submission_term, ontology, classIRI, ontologyClassSubmissionSuperclassDAO.getSuperclasses(id), 
+				definition, ontologyClassSubmissionSynonymDAO.getSynonyms(id), source, sampleSentence,
+				ontologyClassSubmissionPartOfDAO.getPartOfs(id), entity, quality, user, ontologyClassSubmissionStatuses);
 	}
 
 	public OntologyClassSubmission insert(OntologyClassSubmission ontologyClassSubmission) throws QueryException  {
 		if(!ontologyClassSubmission.hasId()) {
 			try(Query insert = new Query("INSERT INTO `otosteps_ontologyclasssubmission` "
-					+ "(`term`, `submission_term`, `ontology`, `class_iri`, `superclass_iri`, `definition`, `synonyms`, `source`, `sample_sentence`, "
-					+ "`part_of_iri`, `entity`, `quality`, `user`)"
-					+ " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+					+ "(`term`, `submission_term`, `ontology`, `class_iri`, `definition`, `source`, `sample_sentence`, "
+					+ "`entity`, `quality`, `user`)"
+					+ " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
 				insert.setParameter(1, ontologyClassSubmission.getTerm().getId());
 				insert.setParameter(2, ontologyClassSubmission.getSubmissionTerm());
 				insert.setParameter(3, ontologyClassSubmission.getOntology().getId());
 				insert.setParameter(4, ontologyClassSubmission.getClassIRI());
-				insert.setParameter(5, ontologyClassSubmission.getSuperclassIRI());
-				insert.setParameter(6, ontologyClassSubmission.getDefinition());
-				insert.setParameter(7, ontologyClassSubmission.getSynonyms());
-				insert.setParameter(8, ontologyClassSubmission.getSource());
-				insert.setParameter(9, ontologyClassSubmission.getSampleSentence());
-				insert.setParameter(10, ontologyClassSubmission.getPartOfIRI());
-				insert.setParameter(11, ontologyClassSubmission.isEntity());
-				insert.setParameter(12, ontologyClassSubmission.isQuality());
-				insert.setParameter(13, ontologyClassSubmission.getUser());
+				insert.setParameter(5, ontologyClassSubmission.getDefinition());
+				insert.setParameter(6, ontologyClassSubmission.getSource());
+				insert.setParameter(7, ontologyClassSubmission.getSampleSentence());
+				insert.setParameter(8, ontologyClassSubmission.isEntity());
+				insert.setParameter(9, ontologyClassSubmission.isQuality());
+				insert.setParameter(10, ontologyClassSubmission.getUser());
 				insert.execute();
 				ResultSet generatedKeys = insert.getGeneratedKeys();
 				generatedKeys.next();
 				int id = generatedKeys.getInt(1);
 				
 				ontologyClassSubmission.setId(id);
+				
+				ontologyClassSubmissionSynonymDAO.insert(id, ontologyClassSubmission.getSynonyms());
+				ontologyClassSubmissionSuperclassDAO.insert(id, ontologyClassSubmission.getSuperclassIRIs());
+				ontologyClassSubmissionPartOfDAO.insert(id, ontologyClassSubmission.getPartOfIRIs());
 			} catch(QueryException | SQLException e) {
 				log(LogLevel.ERROR, "Query Exception", e);
 				throw new QueryException(e);
@@ -110,26 +112,25 @@ public class OntologyClassSubmissionDAO {
 	
 	public void update(OntologyClassSubmission ontologyClassSubmission) throws QueryException  {		
 		try(Query query = new Query("UPDATE otosteps_ontologyclasssubmission SET term = ?, submission_term = ?,"
-				+ " ontology = ?, class_iri = ?, superclass_iri = ?, definition = ?, synonyms = ?, source = ?, sample_sentence = ?, part_of_iri = ?, "
+				+ " ontology = ?, class_iri = ?, definition = ?, source = ?, sample_sentence = ?, "
 				+ "entity = ?, quality = ?, user = ? WHERE id = ?")) {
 			query.setParameter(1, ontologyClassSubmission.getTerm().getId());
 			query.setParameter(2, ontologyClassSubmission.getSubmissionTerm());
 			query.setParameter(3, ontologyClassSubmission.getOntology().getId());
 			query.setParameter(4, ontologyClassSubmission.getClassIRI());
-			query.setParameter(5, ontologyClassSubmission.getSuperclassIRI());
-			query.setParameter(6, ontologyClassSubmission.getDefinition());
-			query.setParameter(7, ontologyClassSubmission.getSynonyms());
-			query.setParameter(8, ontologyClassSubmission.getSource());
-			query.setParameter(9, ontologyClassSubmission.getSampleSentence());
-			query.setParameter(10, ontologyClassSubmission.getPartOfIRI());
-			query.setParameter(11, ontologyClassSubmission.isEntity());
-			query.setParameter(12, ontologyClassSubmission.isQuality());
-			query.setParameter(13, ontologyClassSubmission.getUser());
-			query.setParameter(14, ontologyClassSubmission.getId());
+			query.setParameter(5, ontologyClassSubmission.getDefinition());
+			query.setParameter(6, ontologyClassSubmission.getSource());
+			query.setParameter(7, ontologyClassSubmission.getSampleSentence());
+			query.setParameter(8, ontologyClassSubmission.isEntity());
+			query.setParameter(9, ontologyClassSubmission.isQuality());
+			query.setParameter(10, ontologyClassSubmission.getUser());
+			query.setParameter(11, ontologyClassSubmission.getId());
 			query.execute();
 			
-			for(OntologyClassSubmissionStatus ontologyClassSubmissionStatus : ontologyClassSubmission.getSubmissionStatuses())
-				ontologyClassSubmissionStatusDAO.update(ontologyClassSubmissionStatus);
+			ontologyClassSubmissionStatusDAO.update(ontologyClassSubmission.getSubmissionStatuses());
+			ontologyClassSubmissionSynonymDAO.update(ontologyClassSubmission.getId(), ontologyClassSubmission.getSynonyms());
+			ontologyClassSubmissionSuperclassDAO.update(ontologyClassSubmission.getId(), ontologyClassSubmission.getSuperclassIRIs());
+			ontologyClassSubmissionPartOfDAO.update(ontologyClassSubmission.getId(), ontologyClassSubmission.getPartOfIRIs());
 		} catch(QueryException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
 			throw e;
@@ -141,8 +142,10 @@ public class OntologyClassSubmissionDAO {
 			query.setParameter(1, ontologyClassSubmission.getId());
 			query.execute();
 			
-			for(OntologyClassSubmissionStatus ontologySubmissionStatus : ontologyClassSubmission.getSubmissionStatuses())
-				ontologyClassSubmissionStatusDAO.remove(ontologySubmissionStatus);
+			ontologyClassSubmissionStatusDAO.remove(ontologyClassSubmission.getSubmissionStatuses());
+			ontologyClassSubmissionSynonymDAO.remove(ontologyClassSubmission.getId());
+			ontologyClassSubmissionSuperclassDAO.remove(ontologyClassSubmission.getId());
+			ontologyClassSubmissionPartOfDAO.remove(ontologyClassSubmission.getId());
 		} catch(QueryException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
 			throw e;
@@ -160,6 +163,21 @@ public class OntologyClassSubmissionDAO {
 
 	public void setOntologyDAO(OntologyDAO ontologyDAO) {
 		this.ontologyDAO = ontologyDAO;
+	}
+	
+	public void setOntologyClassSubmissionSynonymDAO(
+			OntologyClassSubmissionSynonymDAO ontologyClassSubmissionSynonymDAO) {
+		this.ontologyClassSubmissionSynonymDAO = ontologyClassSubmissionSynonymDAO;
+	}
+
+	public void setOntologyClassSubmissionSuperclassDAO(
+			OntologyClassSubmissionSuperclassDAO ontologyClassSubmissionSuperclassDAO) {
+		this.ontologyClassSubmissionSuperclassDAO = ontologyClassSubmissionSuperclassDAO;
+	}
+
+	public void setOntologyClassSubmissionPartOfDAO(
+			OntologyClassSubmissionPartOfDAO ontologyClassSubmissionPartOfDAO) {
+		this.ontologyClassSubmissionPartOfDAO = ontologyClassSubmissionPartOfDAO;
 	}
 
 	public List<OntologyClassSubmission> get(Collection collection) throws QueryException {
@@ -196,5 +214,4 @@ public class OntologyClassSubmissionDAO {
 		return result;
 	}	
 
-	
 }

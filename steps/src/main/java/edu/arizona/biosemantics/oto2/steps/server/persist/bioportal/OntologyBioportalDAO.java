@@ -22,6 +22,8 @@ import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClass
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynonymSubmission;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynonymSubmissionStatus;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.StatusEnum;
+import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.Superclass;
+import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.Synonym;
 
 public class OntologyBioportalDAO {
 
@@ -121,7 +123,8 @@ public class OntologyBioportalDAO {
 		ProvisionalClass provisionalClass = new ProvisionalClass();
 		provisionalClass.setLabel(submission.getSubmissionTerm());
 		List<String> synonyms = new LinkedList<String>();
-		synonyms.add(submission.getSynonyms());
+		for(String synonym : submission.getSynonyms())
+			synonyms.add(synonym);
 		provisionalClass.setSynonym(synonyms);
 		List<String> ontologies = new LinkedList<String>();
 		ontologies.add(submission.getOntology().getIri());
@@ -141,9 +144,13 @@ public class OntologyBioportalDAO {
 		List<String> definitions = new LinkedList<String>();
 		definitions.add(definitionToSubmit);
 		provisionalClass.setDefinition(definitions);
-		provisionalClass.setSubclassOf(submission.getSuperclassIRI());
+		
+		//TODO: Does this need upate of bioportal client on our side or do we have to do one submission per superclass or really in one
+		//string with separator?
+		provisionalClass.setSubclassOf(createSingleString(submission.getSuperclassIRIs()));
 		List<String> synonyms = new LinkedList<String>();
-		synonyms.add(submission.getSynonyms());
+		for(String synonym : submission.getSynonyms())
+			synonyms.add(synonym);
 		provisionalClass.setSynonym(synonyms);
 		List<String> ontologies = new LinkedList<String>();
 		ontologies.add(submission.getOntology().getIri());
@@ -152,6 +159,16 @@ public class OntologyBioportalDAO {
 		return provisionalClass;
 	}
 	
+	private String createSingleString(List<String> strings) {
+		String result = "";
+		for(String string : strings) {
+			result += string + ", ";
+		}
+		if(result.length() > 0) 
+			return result.substring(0, result.length() - 2);
+		return result;
+	}
+
 	private void refresh(OntologySynonymSubmission ontologySynonymSubmission) throws QueryException {
 		OntologySynonymSubmissionStatus pendingStatus = getPendingStatus(ontologySynonymSubmission);
 		if(isAccepted(ontologySynonymSubmission)) {

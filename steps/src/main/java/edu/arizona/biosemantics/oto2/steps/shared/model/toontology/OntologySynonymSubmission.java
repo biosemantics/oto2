@@ -17,7 +17,7 @@ public class OntologySynonymSubmission implements Serializable, Colorable, Comme
 	private String submissionTerm = "";
 	private Ontology ontology;
 	private String classIRI = "";
-	private String synonyms = "";
+	private List<String> synonyms = new LinkedList<String>(); 
 	private String source = "";
 	private String sampleSentence = "";
 	private boolean entity;
@@ -28,34 +28,34 @@ public class OntologySynonymSubmission implements Serializable, Colorable, Comme
 	public OntologySynonymSubmission() { }
 	
 	public OntologySynonymSubmission(int id, Term term, String submissionTerm, Ontology ontology, 
-			String classIRI, String synonyms, String source, String sampleSentence, boolean entity, boolean quality, 
+			String classIRI, List<String> synonyms, String source, String sampleSentence, boolean entity, boolean quality, 
 			String user, List<OntologySynonymSubmissionStatus> submissionStatuses) { 
 		this.id = id;
 		this.term = term;
 		this.submissionTerm = submissionTerm == null ? "" : submissionTerm;
 		this.ontology = ontology;
 		this.classIRI = classIRI == null ? "" : classIRI;
-		this.synonyms = synonyms == null ? "" : synonyms;
 		this.source = source == null ? "" : source;
 		this.sampleSentence = sampleSentence == null ? "" : sampleSentence;
 		this.entity = entity;
 		this.quality = quality;
 		this.user = user;
 		this.submissionStatuses = submissionStatuses;
+		this.synonyms = synonyms;
 	}
 	
 	public OntologySynonymSubmission(Term term, String submissionTerm, Ontology ontology, 
-			String classIRI, String synonyms, String source, String sampleSentence, boolean entity, boolean quality, String user) { 
+			String classIRI, List<String> synonyms, String source, String sampleSentence, boolean entity, boolean quality, String user) { 
 		this.term = term;
 		this.submissionTerm = submissionTerm == null ? "" : submissionTerm;
 		this.ontology = ontology;
 		this.classIRI = classIRI == null ? "" : classIRI;
-		this.synonyms = synonyms == null ? "" : synonyms;
 		this.source = source == null ? "" : source;
 		this.sampleSentence = sampleSentence == null ? "" : sampleSentence;
 		this.entity = entity;
 		this.quality = quality;
 		this.user = user;
+		this.synonyms = synonyms;
 	}
 	
 	public boolean hasId() {
@@ -102,14 +102,6 @@ public class OntologySynonymSubmission implements Serializable, Colorable, Comme
 		this.classIRI = classIRI;
 	}
 
-	public String getSynonyms() {
-		return synonyms;
-	}
-
-	public void setSynonyms(String synonyms) {
-		this.synonyms = synonyms;
-	}
-
 	public String getSource() {
 		return source;
 	}
@@ -144,7 +136,7 @@ public class OntologySynonymSubmission implements Serializable, Colorable, Comme
 	}
 
 	public boolean hasSynonyms() {
-		return this.synonyms != null && !this.synonyms.trim().isEmpty();
+		return this.synonyms.isEmpty();
 	}
 
 	public boolean hasClassIRI() {
@@ -155,7 +147,19 @@ public class OntologySynonymSubmission implements Serializable, Colorable, Comme
 	public boolean isEntity() {
 		return this.entity;
 	}
+		
+	public List<String> getSynonyms() {
+		return synonyms;
+	}
 
+	public void addSynonym(String synonym) {
+		this.synonyms.add(synonym);
+	}
+		
+	public void clearSynonyms() {
+		this.synonyms.clear();
+	}
+	
 	@Override
 	public boolean isQuality() {
 		return this.quality;

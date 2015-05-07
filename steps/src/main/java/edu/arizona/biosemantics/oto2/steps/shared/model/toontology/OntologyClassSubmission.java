@@ -17,12 +17,12 @@ public class OntologyClassSubmission implements Serializable, Colorable, Comment
 	private String submissionTerm = "";
 	private Ontology ontology;
 	private String classIRI = "";
-	private String superclassIRI = "";
+	private List<String> superclassIRIs = new LinkedList<String>();
 	private String definition = "";
-	private String synonyms = "";
+	private List<String> synonyms = new LinkedList<String>();
 	private String source = "";
 	private String sampleSentence = "";
-	private String partOfIRI = "";
+	private List<String> partOfIRIs = new LinkedList<String>();
 	private boolean entity;
 	private boolean quality;
 	private String user;
@@ -31,19 +31,19 @@ public class OntologyClassSubmission implements Serializable, Colorable, Comment
 	public OntologyClassSubmission() { }
 	
 	public OntologyClassSubmission(int id, Term term, String submissionTerm, Ontology ontology, String classIRI,
-			String superclassIRI, String definition, String synonyms, String source, String sampleSentence, 
-			String partOfIRI, boolean entity, boolean quality, String user, List<OntologyClassSubmissionStatus> submissionStatuses) { 
+			List<String> superclassIRIs, String definition, List<String> synonyms, String source, String sampleSentence, 
+			List<String> partOfIRIs, boolean entity, boolean quality, String user, List<OntologyClassSubmissionStatus> submissionStatuses) { 
 		this.id = id;
 		this.term = term;
 		this.submissionTerm = submissionTerm == null ? "" : submissionTerm;
 		this.ontology = ontology;
 		this.classIRI = classIRI == null ? "" : classIRI;
-		this.superclassIRI = superclassIRI == null ? "" : superclassIRI;
+		this.superclassIRIs = superclassIRIs;
 		this.definition = definition == null ? "" : definition;
-		this.synonyms = synonyms == null ? "" : synonyms;
+		this.synonyms = synonyms;
 		this.source = source == null ? "" : source;
 		this.sampleSentence = sampleSentence == null ? "" : sampleSentence;
-		this.partOfIRI = partOfIRI == null ? "" : partOfIRI;
+		this.partOfIRIs = partOfIRIs;
 		this.entity = entity;
 		this.quality = quality;
 		this.user = user;
@@ -51,18 +51,18 @@ public class OntologyClassSubmission implements Serializable, Colorable, Comment
 	}
 	
 	public OntologyClassSubmission(Term term, String submissionTerm, Ontology ontology, String classIRI,
-			String superclassIRI, String definition, String synonyms, String source, String sampleSentence, 
-			String partOfIRI, boolean entity, boolean quality, String user) { 
+			List<String> superclassIRIs, String definition, List<String> synonyms, String source, String sampleSentence, 
+			List<String> partOfIRIs, boolean entity, boolean quality, String user) { 
 		this.term = term;
 		this.submissionTerm = submissionTerm == null ? "" : submissionTerm;
 		this.ontology = ontology;
 		this.classIRI = classIRI == null ? "" : classIRI;
-		this.superclassIRI = superclassIRI == null ? "" : superclassIRI;
+		this.superclassIRIs = superclassIRIs;
 		this.definition = definition == null ? "" : definition;
-		this.synonyms = synonyms == null ? "" : synonyms;
+		this.synonyms = synonyms;
 		this.source = source == null ? "" : source;
 		this.sampleSentence = sampleSentence == null ? "" : sampleSentence;
-		this.partOfIRI = partOfIRI == null ? "" : partOfIRI;
+		this.partOfIRIs = partOfIRIs;
 		this.entity = entity;
 		this.quality = quality;
 		this.user = user;
@@ -104,28 +104,12 @@ public class OntologyClassSubmission implements Serializable, Colorable, Comment
 		this.ontology = ontology;
 	}
 
-	public String getSuperclassIRI() {
-		return superclassIRI;
-	}
-
-	public void setSuperclassIRI(String superclassIRI) {
-		this.superclassIRI = superclassIRI;
-	}
-
 	public String getDefinition() {
 		return definition;
 	}
 
 	public void setDefinition(String definition) {
 		this.definition = definition;
-	}
-
-	public String getSynonyms() {
-		return synonyms;
-	}
-
-	public void setSynonyms(String synonyms) {
-		this.synonyms = synonyms;
 	}
 
 	public String getSource() {
@@ -142,14 +126,6 @@ public class OntologyClassSubmission implements Serializable, Colorable, Comment
 
 	public void setSampleSentence(String sampleSentence) {
 		this.sampleSentence = sampleSentence;
-	}
-
-	public String getPartOfIRI() {
-		return partOfIRI;
-	}
-
-	public void setPartOfIRI(String partOfIRI) {
-		this.partOfIRI = partOfIRI;
 	}
 
 	public boolean isEntity() {
@@ -198,17 +174,53 @@ public class OntologyClassSubmission implements Serializable, Colorable, Comment
 	}
 
 	public boolean hasSynonyms() {
-		return this.synonyms != null && !this.synonyms.trim().isEmpty();
+		return this.synonyms.isEmpty();
 	}
 
 	public boolean hasPartOfIRI() {
-		return this.partOfIRI != null && !this.partOfIRI.trim().isEmpty();
+		return this.partOfIRIs.isEmpty();
 	}
 
 	public boolean hasSuperclassIRI() {
-		return this.superclassIRI != null && !this.superclassIRI.trim().isEmpty();
+		return this.superclassIRIs.isEmpty();
+	}
+	
+	public List<String> getSuperclassIRIs() {
+		return superclassIRIs;
 	}
 
+	public List<String> getSynonyms() {
+		return synonyms;
+	}
+
+	public List<String> getPartOfIRIs() {
+		return partOfIRIs;
+	}
+	
+	public void addSynonym(String synonym) {
+		this.synonyms.add(synonym);
+	}
+	
+	public void addPartOfIRI(String partOfIRI) {
+		this.partOfIRIs.add(partOfIRI);
+	}
+	
+	public void addSuperclassIRI(String superclassIRI) {
+		this.superclassIRIs.add(superclassIRI);
+	}
+	
+	public void clearSynonyms() {
+		this.synonyms.clear();
+	}
+	
+	public void clearPartOfIRIs() {
+		this.partOfIRIs.clear();
+	}
+	
+	public void clearSuperclassIRIs() {
+		this.superclassIRIs.clear();
+	}
+	
 	@Override
 	public int compareTo(OntologyClassSubmission o) {
 		return this.getId() - o.getId();

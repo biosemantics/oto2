@@ -52,6 +52,7 @@ import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynon
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynonymSubmissionProperties;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynonymSubmissionStatus;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynonymSubmissionStatusProperties;
+import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.Synonym;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.ICollectionService;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.ICollectionServiceAsync;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.IToOntologyService;
@@ -338,7 +339,25 @@ public class SynonymSubmissionsGrid implements IsWidget {
 				ontologySynonymSubmissionProperties.classIRI(), 200, "Superclass");
 		classCol.setCell(colorableCell);
 		final ColumnConfig<OntologySynonymSubmission, String> synonymsCol = new ColumnConfig<OntologySynonymSubmission, String>(
-				ontologySynonymSubmissionProperties.synonyms(), 200, "Synonyms");
+				new ValueProvider<OntologySynonymSubmission, String>() {
+					@Override
+					public String getValue(OntologySynonymSubmission object) {
+						String result = "";
+						for(String synonym : object.getSynonyms()) {
+							result += synonym + ", ";
+						}
+						if(result.length() > 0)
+							return result.substring(0, result.length() -2);
+						return result;
+					}
+					@Override
+					public void setValue(OntologySynonymSubmission object, String value) {	}
+					@Override
+					public String getPath() {
+						return "synonyms";
+					}
+					
+				}, 200, "Synonyms");
 		synonymsCol.setCell(colorableCell);
 		final ColumnConfig<OntologySynonymSubmission, String> sourceCol = new ColumnConfig<OntologySynonymSubmission, String>(
 				ontologySynonymSubmissionProperties.source(), 200, "Source");

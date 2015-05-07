@@ -14,10 +14,14 @@ import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.cell.core.client.form.ComboBoxCell.TriggerAction;
+import com.sencha.gxt.core.client.IdentityValueProvider;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
 import com.sencha.gxt.data.shared.ListStore;
+import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
+import com.sencha.gxt.widget.core.client.ListView;
 import com.sencha.gxt.widget.core.client.box.MessageBox;
+import com.sencha.gxt.widget.core.client.box.PromptMessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.HorizontalLayoutData;
@@ -51,6 +55,10 @@ import edu.arizona.biosemantics.oto2.steps.shared.model.OntologyProperties;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Term;
 import edu.arizona.biosemantics.oto2.steps.shared.model.TermProperties;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmission;
+import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.PartOfProperties;
+import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.SuperclassProperties;
+import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.Synonym;
+import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.SynonymProperties;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.ClassExistsException;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.IToOntologyService;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.IToOntologyServiceAsync;
@@ -59,6 +67,9 @@ import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.OntologyNotFoun
 public class SubmitClassView implements IsWidget {
 	
 	private OntologyProperties ontologyProperties = GWT.create(OntologyProperties.class);
+	private SynonymProperties synonymProperties = GWT.create(SynonymProperties.class);
+	private PartOfProperties partOfProperties = GWT.create(PartOfProperties.class);
+	private SuperclassProperties superclassProperties = GWT.create(SuperclassProperties.class);
 	private TermProperties termProperties = GWT.create(TermProperties.class);
 	private IToOntologyServiceAsync toOntologyService = GWT.create(IToOntologyService.class);
 	private EventBus eventBus;
@@ -69,24 +80,44 @@ public class SubmitClassView implements IsWidget {
 	private TextButton editButton = new TextButton("Edit");
 	private TextButton submitButton = new TextButton("Save as New");
 	private TextButton obsoleteSubmit = new TextButton("Obsolete and Save as New");
+
+	private ComboBox<Term> termComboBox;
 	private TextField submissionTermField = new TextField();
 	private TextField categoryField = new TextField();
 	private TextButton browseOntologiesButton = new TextButton("Browse Selected Ontology");
+	private TextButton createOntologyButton = new TextButton("Create New Ontology");
 	private ComboBox<Ontology> ontologyComboBox;
 	private TextField classIRIField = new TextField();
-	private TextField superclassIRIField = new TextField();
-	private TextArea definitionArea = new TextArea();
-	private TextField synonymsField = new TextField();
-	private TextField sourceField = new TextField();
-	private TextArea sampleArea = new TextArea();
-	private TextField partOfField = new TextField();
+	
+	private ListView<String, String> superclassListView;
+	private ListStore<String> superclassStore;
+	private TextButton addSuperclassButton = new TextButton("Add");
+	private TextButton removeSuperclassButton = new TextButton("Remove");
+	private TextButton clearSuperclassButton = new TextButton("Clear");
+	
+	private ListView<String, String> partOfListView;
+	private ListStore<String> partOfStore;
+	private TextButton addPartOfButton = new TextButton("Add");
+	private TextButton removePartOfButton = new TextButton("Remove");
+	private TextButton clearPartOfButton = new TextButton("Clear");
+
 	private CheckBox isEntityCheckBox = new CheckBox();
 	private CheckBox isQualityCheckBox = new CheckBox();
-	private ComboBox<Term> termComboBox;
-	private VerticalLayoutContainer vlc;
-	private TextButton createOntologyButton = new TextButton("Create New Ontology");
+
+	private TextArea definitionArea = new TextArea();
+	private TextArea sampleArea = new TextArea();
+	private TextField sourceField = new TextField();
+	
+
+	private ListView<String, String> synonymsListView;
+	private ListStore<String> synonymsStore;
+	private TextButton addSynonymButton = new TextButton("Add");
+	private TextButton removeSynonymButton = new TextButton("Remove");
+	private TextButton clearSynonymButton = new TextButton("Clear");
+	
 	private OntologyClassSubmission selectedSubmission;
 	private VerticalLayoutContainer formContainer;
+	private VerticalLayoutContainer vlc;
 	
 	public SubmitClassView(EventBus eventBus) {
 		this.eventBus = eventBus;
@@ -98,6 +129,28 @@ public class SubmitClassView implements IsWidget {
 
 	    termComboBox = new ComboBox<Term>(termStore, termProperties.nameLabel());
 	    categoryField.setEnabled(false);
+	    
+	    synonymsStore = new ListStore<String>(new ModelKeyProvider<String>() {
+			@Override
+			public String getKey(String item) {
+				return item;
+			}
+	    });
+	    synonymsListView = new ListView<String, String>(synonymsStore, new IdentityValueProvider<String>());
+	    superclassStore = new ListStore<String>(new ModelKeyProvider<String>() {
+			@Override
+			public String getKey(String item) {
+				return item;
+			}
+	    });
+	    superclassListView = new ListView<String, String>(superclassStore, new IdentityValueProvider<String>());
+	    partOfStore = new ListStore<String>(new ModelKeyProvider<String>() {
+			@Override
+			public String getKey(String item) {
+				return item;
+			}
+	    });
+	    partOfListView = new ListView<String, String>(partOfStore, new IdentityValueProvider<String>());
 	    
 	    formContainer = new VerticalLayoutContainer();
 	    formContainer.add(new FieldLabel(termComboBox, "Candiate Term"), new VerticalLayoutData(1, -1));
@@ -113,14 +166,38 @@ public class SubmitClassView implements IsWidget {
 	    ontologyComboBox.setAllowBlank(false);
 	    ontologyComboBox.setAutoValidate(true);
 	    formContainer.add(new FieldLabel(classIRIField, "Class IRI"), new VerticalLayoutData(1, -1));
-	    formContainer.add(new FieldLabel(superclassIRIField, "Superclass IRI"), new VerticalLayoutData(1, -1));
-	    formContainer.add(new FieldLabel(partOfField, "Part of IRI"), new VerticalLayoutData(1, -1));
+	    
+	    HorizontalLayoutContainer superclassHorizontal = new HorizontalLayoutContainer();
+	    superclassHorizontal.add(superclassListView, new HorizontalLayoutData(0.5, 100));
+	    VerticalLayoutContainer superclassVertical = new VerticalLayoutContainer();
+	    superclassHorizontal.add(superclassVertical, new HorizontalLayoutData(0.5, -1));
+	    superclassVertical.add(addSuperclassButton, new VerticalLayoutData(1, -1));
+	    superclassVertical.add(removeSuperclassButton, new VerticalLayoutData(1, -1));
+	    superclassVertical.add(clearSuperclassButton, new VerticalLayoutData(1, -1));
+	    formContainer.add(new FieldLabel(superclassHorizontal, "Superclass IRI"), new VerticalLayoutData(1, 100));
+	    
+	    HorizontalLayoutContainer partOfHorizontal = new HorizontalLayoutContainer();
+	    partOfHorizontal.add(partOfListView, new HorizontalLayoutData(0.5, 100));
+	    VerticalLayoutContainer partOfVertical = new VerticalLayoutContainer();
+	    partOfHorizontal.add(partOfVertical, new HorizontalLayoutData(0.5, -1));
+	    partOfVertical.add(addPartOfButton, new VerticalLayoutData(1, -1));
+	    partOfVertical.add(removePartOfButton, new VerticalLayoutData(1, -1));
+	    partOfVertical.add(clearPartOfButton, new VerticalLayoutData(1, -1));
+	    formContainer.add(new FieldLabel(partOfHorizontal, "Part of IRI"), new VerticalLayoutData(1, 100));
 	    formContainer.add(new FieldLabel(isEntityCheckBox, "Is Entity"), new VerticalLayoutData(1, -1));
 	    formContainer.add(new FieldLabel(isQualityCheckBox, "Is Quality"), new VerticalLayoutData(1, -1));
 	    formContainer.add(new FieldLabel(definitionArea, "Definition"), new VerticalLayoutData(1, -1));
 	    formContainer.add(new FieldLabel(sampleArea, "Sample Sentence"), new VerticalLayoutData(1, 100));
 	    formContainer.add(new FieldLabel(sourceField, "Source"), new VerticalLayoutData(1, -1));
-	    formContainer.add(new FieldLabel(synonymsField, "Synonyms"), new VerticalLayoutData(1, -1));
+	    
+	    HorizontalLayoutContainer synonymHorizontal = new HorizontalLayoutContainer();
+	    synonymHorizontal.add(synonymsListView, new HorizontalLayoutData(0.5, 100));
+	    VerticalLayoutContainer synonymVertical = new VerticalLayoutContainer();
+	    synonymHorizontal.add(synonymVertical, new HorizontalLayoutData(0.5, -1));
+	    synonymVertical.add(addSynonymButton, new VerticalLayoutData(1, -1));
+	    synonymVertical.add(removeSynonymButton, new VerticalLayoutData(1, -1));
+	    synonymVertical.add(clearSynonymButton, new VerticalLayoutData(1, -1));
+	    formContainer.add(new FieldLabel(synonymHorizontal, "Synonyms"), new VerticalLayoutData(1, -1));
 	    formContainer.setScrollMode(ScrollMode.AUTOY);
 	    formContainer.setAdjustForScroll(true);
 	    
@@ -201,7 +278,8 @@ public class SubmitClassView implements IsWidget {
 			public void onSelect(SelectSuperclassEvent event) {
 				setSelectedSubmission(null);
 				clearFields(false);
-				superclassIRIField.setValue(event.getSubmission().getClassIRI());
+				superclassStore.clear();
+				superclassStore.add(event.getSubmission().getClassIRI());
 				ontologyComboBox.setValue(event.getSubmission().getOntology());
 			}
 		});
@@ -210,7 +288,8 @@ public class SubmitClassView implements IsWidget {
 			public void onSelect(SelectPartOfEvent event) {
 				setSelectedSubmission(null);
 				clearFields(false);
-				partOfField.setValue(event.getSubmission().getClassIRI());
+				partOfStore.clear();
+				partOfStore.add(event.getSubmission().getClassIRI());
 				ontologyComboBox.setValue(event.getSubmission().getOntology());
 			}
 		});
@@ -414,6 +493,87 @@ public class SubmitClassView implements IsWidget {
 				}
 			}
 		});
+		
+		addSynonymButton.addSelectHandler(new SelectHandler() {
+			@Override
+			public void onSelect(SelectEvent event) {
+				final PromptMessageBox box = new PromptMessageBox("Add Synonym", "Add Synonym");
+				box.show();
+				box.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
+					@Override
+					public void onSelect(SelectEvent event) {
+						synonymsStore.add(box.getValue());
+					}
+				});
+			}
+		});
+		removeSynonymButton.addSelectHandler(new SelectHandler() {
+			@Override
+			public void onSelect(SelectEvent event) {
+				for(String remove : synonymsListView.getSelectionModel().getSelectedItems())
+					synonymsStore.remove(remove);
+			}
+		});
+		clearSynonymButton.addSelectHandler(new SelectHandler() {
+			@Override
+			public void onSelect(SelectEvent event) {
+				synonymsStore.clear();
+			}
+		});
+		
+		addSuperclassButton.addSelectHandler(new SelectHandler() {
+			@Override
+			public void onSelect(SelectEvent event) {
+				final PromptMessageBox box = new PromptMessageBox("Add Super Class", "Add Super Class");
+				box.show();
+				box.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
+					@Override
+					public void onSelect(SelectEvent event) {
+						superclassStore.add(box.getValue());
+					}
+				});
+			}
+		});
+		removeSuperclassButton.addSelectHandler(new SelectHandler() {
+			@Override
+			public void onSelect(SelectEvent event) {
+				for(String remove : superclassListView.getSelectionModel().getSelectedItems())
+					superclassStore.remove(remove);
+			}
+		});
+		clearSuperclassButton.addSelectHandler(new SelectHandler() {
+			@Override
+			public void onSelect(SelectEvent event) {
+				superclassStore.clear();
+			}
+		});
+		
+		addPartOfButton.addSelectHandler(new SelectHandler() {
+			@Override
+			public void onSelect(SelectEvent event) {
+				final PromptMessageBox box = new PromptMessageBox("Add Part Of", "Add Part Of");
+				box.show();
+				box.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
+					@Override
+					public void onSelect(SelectEvent event) {
+						partOfStore.add(box.getValue());
+					}
+				});
+			}
+		});
+		removePartOfButton.addSelectHandler(new SelectHandler() {
+			@Override
+			public void onSelect(SelectEvent event) {
+				for(String remove : partOfListView.getSelectionModel().getSelectedItems())
+					partOfStore.remove(remove);
+			}
+		});
+		clearPartOfButton.addSelectHandler(new SelectHandler() {
+			@Override
+			public void onSelect(SelectEvent event) {
+				partOfStore.clear();
+			}
+		});
 	}
 
 	protected void setTerm(Term term) {
@@ -435,12 +595,12 @@ public class SubmitClassView implements IsWidget {
 		this.submissionTermField.setValue("", false); 
 		//this.ontologyComboBox.setValue(null, false);
 		this.classIRIField.setValue("", false);
-		this.superclassIRIField.setValue("", false);
+		this.superclassStore.clear();
 		this.definitionArea.setValue("", false);
-		this.synonymsField.setValue("", false);
+		this.synonymsStore.clear();
 		this.sourceField.setValue("", false);
 		this.sampleArea.setValue("", false);
-		this.partOfField.setValue("", false);
+		this.partOfStore.clear();
 		this.isEntityCheckBox.setValue(false, false);
 		this.isQualityCheckBox.setValue(false, false);
 	}
@@ -452,12 +612,12 @@ public class SubmitClassView implements IsWidget {
 		if(ontologyClassSubmission.hasOntology())
 			this.ontologyComboBox.setValue(ontologyClassSubmission.getOntology());
 		this.classIRIField.setValue(ontologyClassSubmission.getClassIRI());
-		this.superclassIRIField.setValue(ontologyClassSubmission.getSuperclassIRI());
+		//this.superclassIRIField.setValue(ontologyClassSubmission.getSuperclassIRI());
 		this.definitionArea.setValue(ontologyClassSubmission.getDefinition());
-		this.synonymsField.setValue(ontologyClassSubmission.getSynonyms());
+		this.synonymsStore.addAll(ontologyClassSubmission.getSynonyms());
 		this.sourceField.setValue(ontologyClassSubmission.getSource());
 		this.sampleArea.setValue(ontologyClassSubmission.getSampleSentence());
-		this.partOfField.setValue(ontologyClassSubmission.getPartOfIRI());
+		//this.partOfField.setValue(ontologyClassSubmission.getPartOfIRI());
 		this.isEntityCheckBox.setValue(ontologyClassSubmission.isEntity());
 		this.isQualityCheckBox.setValue(ontologyClassSubmission.isQuality());
 	}
@@ -467,8 +627,8 @@ public class SubmitClassView implements IsWidget {
 		boolean quality = isQualityCheckBox.getValue();
 		String user = OtoSteps.user;
 		return new OntologyClassSubmission(termComboBox.getValue(), submissionTermField.getValue(), 
-				ontologyComboBox.getValue(), classIRIField.getValue(), superclassIRIField.getValue(),
-				definitionArea.getValue(), synonymsField.getValue(), sourceField.getValue(), sampleArea.getValue(), partOfField.getValue(), 
+				ontologyComboBox.getValue(), classIRIField.getValue(), null, //superclassIRIField.getValue(),
+				definitionArea.getValue(), synonymsStore.getAll(), sourceField.getValue(), sampleArea.getValue(), null, //partOfField.getValue(), 
 				isEntityCheckBox.getValue(), isQualityCheckBox.getValue(), OtoSteps.user);
 	}
 

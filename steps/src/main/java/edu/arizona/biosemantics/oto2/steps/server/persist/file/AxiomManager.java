@@ -25,6 +25,9 @@ import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 import edu.arizona.biosemantics.oto2.steps.client.OtoSteps;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmission;
+import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.PartOf;
+import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.Superclass;
+import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.Synonym;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.OntologyFileException;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.OntologyNotFoundException;
 
@@ -95,8 +98,7 @@ public class AxiomManager  {
 		//if superTerm is an IRI (of known ontologies): 
 		//if superTerm is a term (to local ontology):
 		if(submission.hasSuperclassIRI() && !extractedSuperclassModule){
-			String[] superclassIRIs = submission.getSuperclassIRI().split("\\s*,\\s*");
-			for(String superclass : superclassIRIs){ //IRIs or terms
+			for(String superclass : submission.getSuperclassIRIs()) { //IRIs or terms
 				if(superclass.isEmpty()) 
 					continue;
 				IRI superclassIRI = IRI.create(superclass);
@@ -165,11 +167,10 @@ public class AxiomManager  {
 		owlOntologyManager.applyChange(new AddAxiom(owlOntology, depreceatedAxiom));
 	}
 	
-	public void addSynonymAxioms(OWLOntology owlOntology, OntologyClassSubmission ontologyClassSubmission, OWLClass newOwlClass) {
+	public void addSynonymAxioms(OWLOntology owlOntology, OntologyClassSubmission submission, OWLClass newOwlClass) {
 		//add synonyms
-		if(ontologyClassSubmission.hasSynonyms()) {
-			String[] synonyms =	ontologyClassSubmission.getSynonyms().split("\\s*,\\s*");
-			for(String synonym : synonyms) {
+		if(submission.hasSynonyms()) {
+			for(String synonym : submission.getSynonyms()) {
 				if(synonym.isEmpty())
 					continue;
 				this.addSynonymAxioms(owlOntology, synonym, newOwlClass);
@@ -201,11 +202,9 @@ public class AxiomManager  {
 		if(submission.hasPartOfIRI()) {
 			if(submission.isQuality()) {
 				//result.setMessage(result.getMessage()+" Part Of terms are not allowed for quality terms.");
-			} else {
-				String[] partOfIRIs = submission.getPartOfIRI().split("\\s*,\\s*");
-				
+			} else {				
 				//subclasses of Entity
-				for(String partOf : partOfIRIs) {
+				for(String partOf : submission.getPartOfIRIs()) {
 					//IRIs or terms
 					if(partOf.isEmpty()) 
 						continue;

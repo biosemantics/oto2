@@ -59,6 +59,9 @@ import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClass
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmissionStatus;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmissionStatusProperties;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynonymSubmission;
+import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.PartOf;
+import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.Superclass;
+import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.Synonym;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.ICollectionService;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.ICollectionServiceAsync;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.IToOntologyService;
@@ -375,13 +378,49 @@ public class ClassSubmissionsGrid implements IsWidget {
 			}
 		}); */
 		final ColumnConfig<OntologyClassSubmission, String> superClassCol = new ColumnConfig<OntologyClassSubmission, String>(
-				ontologyClassSubmissionProperties.superclassIRI(), 200, "Superclass");
+				new ValueProvider<OntologyClassSubmission, String>() {
+					@Override
+					public String getValue(OntologyClassSubmission object) {
+						String result = "";
+						for(String superclass : object.getSuperclassIRIs()) {
+							result += superclass + ", ";
+						}
+						if(result.length() > 0)
+							return result.substring(0, result.length() -2);
+						return result;
+					}
+					@Override
+					public void setValue(OntologyClassSubmission object, String value) {	}
+					@Override
+					public String getPath() {
+						return "superclasses";
+					}
+					
+				}, 200, "Superclasses");
 		superClassCol.setCell(colorableCell);
 		final ColumnConfig<OntologyClassSubmission, String> definitionCol = new ColumnConfig<OntologyClassSubmission, String>(
 				ontologyClassSubmissionProperties.definition(), 200, "Defintion");
 		definitionCol.setCell(colorableCell);
 		final ColumnConfig<OntologyClassSubmission, String> synonymsCol = new ColumnConfig<OntologyClassSubmission, String>(
-				ontologyClassSubmissionProperties.synonyms(), 200, "Synonyms");
+				new ValueProvider<OntologyClassSubmission, String>() {
+					@Override
+					public String getValue(OntologyClassSubmission object) {
+						String result = "";
+						for(String synonym : object.getSynonyms()) {
+							result += synonym + ", ";
+						}
+						if(result.length() > 0)
+							return result.substring(0, result.length() -2);
+						return result;
+					}
+					@Override
+					public void setValue(OntologyClassSubmission object, String value) {	}
+					@Override
+					public String getPath() {
+						return "synonyms";
+					}
+					
+				}, 200, "Synonyms");
 		synonymsCol.setCell(colorableCell);
 		final ColumnConfig<OntologyClassSubmission, String> sourceCol = new ColumnConfig<OntologyClassSubmission, String>(
 				ontologyClassSubmissionProperties.source(), 200, "Source");
@@ -390,7 +429,25 @@ public class ClassSubmissionsGrid implements IsWidget {
 				ontologyClassSubmissionProperties.sampleSentence(), 200, "Sample Sentence");
 		sampleCol.setCell(colorableCell);
 		final ColumnConfig<OntologyClassSubmission, String> partOfCol = new ColumnConfig<OntologyClassSubmission, String>(
-				ontologyClassSubmissionProperties.partOfIRI(), 200, "Part Of");
+				new ValueProvider<OntologyClassSubmission, String>() {
+					@Override
+					public String getValue(OntologyClassSubmission object) {
+						String result = "";
+						for(String partOf : object.getPartOfIRIs()) {
+							result += partOf + ", ";
+						}
+						if(result.length() > 0)
+							return result.substring(0, result.length() -2);
+						return result;
+					}
+					@Override
+					public void setValue(OntologyClassSubmission object, String value) {	}
+					@Override
+					public String getPath() {
+						return "partofs";
+					}
+					
+				}, 200, "Part Of");
 		partOfCol.setCell(colorableCell);
 		final ColumnConfig<OntologyClassSubmission, Boolean> entityCol = new ColumnConfig<OntologyClassSubmission, Boolean>(
 				ontologyClassSubmissionProperties.entity(), 200, "Entity");

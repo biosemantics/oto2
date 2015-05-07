@@ -43,6 +43,7 @@ import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.EntityQuality
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySubmission;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynonymSubmission;
+import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.Synonym;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.ClassExistsException;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.OntologyFileException;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.OntologyNotFoundException;
@@ -364,8 +365,7 @@ public class OntologyDAO2 {
 		}
 
 		//add other additional synonyms
-		String [] synonyms = submission.getSynonyms().split("\\s*,\\s*");
-		for(String synonym : synonyms){
+		for(String synonym : submission.getSynonyms()){
 			if(!synonym.isEmpty()) {
 				for(OWLClass affectedClass : affectedClasses){
 					axiomManager.addSynonymAxioms(targetOwlOntology, synonym, affectedClass);
@@ -442,8 +442,7 @@ public class OntologyDAO2 {
 		}
 
 		//add other additional synonyms
-		String [] synonyms = submission.getSynonyms().split("\\s*,\\s*");
-		for(String synonym : synonyms){
+		for(String synonym : submission.getSynonyms()) {
 			if(!synonym.isEmpty()) {
 				for(OWLClass affectedClass : affectedClasses){
 					axiomManager.removeSynonymAxioms(targetOwlOntology, synonym, affectedClass);

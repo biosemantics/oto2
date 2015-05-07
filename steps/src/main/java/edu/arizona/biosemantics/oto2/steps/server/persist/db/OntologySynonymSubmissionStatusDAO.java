@@ -105,5 +105,15 @@ public class OntologySynonymSubmissionStatusDAO {
 	public void setStatusDAO(StatusDAO statusDAO) {
 		this.statusDAO = statusDAO;
 	}
+
+	public void update(List<OntologySynonymSubmissionStatus> submissionStatuses) throws QueryException {
+		for(OntologySynonymSubmissionStatus submissionStatus : submissionStatuses)
+			update(submissionStatus);
+	}
+	
+	public void remove(List<OntologySynonymSubmissionStatus> submissionStatuses) throws QueryException {
+		for(OntologySynonymSubmissionStatus submissionStatus : submissionStatuses)
+			remove(submissionStatus);
+	}
 	
 }
