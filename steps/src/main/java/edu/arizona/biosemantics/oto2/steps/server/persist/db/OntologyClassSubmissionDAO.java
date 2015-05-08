@@ -55,7 +55,8 @@ public class OntologyClassSubmissionDAO {
 		
 		List<OntologyClassSubmissionStatus> ontologyClassSubmissionStatuses = ontologyClassSubmissionStatusDAO.getStatusOfOntologyClassSubmission(id);
 		OntologyClassSubmissionStatus mostRecentStatus = ontologyClassSubmissionStatuses.get(ontologyClassSubmissionStatuses.size() - 1);
-		if(mostRecentStatus.getStatus().getName().equals(StatusEnum.ACCEPTED.getDisplayName()) && !classIRI.equals(mostRecentStatus.getIri())) {
+		if(mostRecentStatus != null && 
+				mostRecentStatus.getStatus().getName().equals(StatusEnum.ACCEPTED.getDisplayName()) && !classIRI.equals(mostRecentStatus.getIri())) {
 			classIRI = mostRecentStatus.getIri();
 			
 			try(Query query = new Query("UPDATE otosteps_ontologyclasssubmission SET class_iri = ? WHERE id = ?")) {

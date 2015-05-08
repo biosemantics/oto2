@@ -4,10 +4,14 @@ import edu.arizona.biosemantics.oto2.steps.server.persist.bioportal.OntologyBiop
 import edu.arizona.biosemantics.oto2.steps.server.persist.db.CollectionDAO;
 import edu.arizona.biosemantics.oto2.steps.server.persist.db.ContextDAO;
 import edu.arizona.biosemantics.oto2.steps.server.persist.db.OntologyClassSubmissionDAO;
+import edu.arizona.biosemantics.oto2.steps.server.persist.db.OntologyClassSubmissionPartOfDAO;
 import edu.arizona.biosemantics.oto2.steps.server.persist.db.OntologyClassSubmissionStatusDAO;
+import edu.arizona.biosemantics.oto2.steps.server.persist.db.OntologyClassSubmissionSuperclassDAO;
+import edu.arizona.biosemantics.oto2.steps.server.persist.db.OntologyClassSubmissionSynonymDAO;
 import edu.arizona.biosemantics.oto2.steps.server.persist.db.OntologyDAO;
 import edu.arizona.biosemantics.oto2.steps.server.persist.db.OntologySynonymSubmissionDAO;
 import edu.arizona.biosemantics.oto2.steps.server.persist.db.OntologySynonymSubmissionStatusDAO;
+import edu.arizona.biosemantics.oto2.steps.server.persist.db.OntologySynonymSubmissionSynonymDAO;
 import edu.arizona.biosemantics.oto2.steps.server.persist.db.StatusDAO;
 import edu.arizona.biosemantics.oto2.steps.server.persist.db.TermDAO;
 import edu.arizona.biosemantics.oto2.steps.server.persist.file.OntologyDAO2;
@@ -26,6 +30,10 @@ public class DAOManager {
 	private ContextDAO contextDAO;
 	private StatusDAO statusDAO;
 	private OntologyBioportalDAO ontologyBioportalDAO;
+	private OntologyClassSubmissionSynonymDAO ontologyClassSubmissionSynonymDAO;
+	private OntologySynonymSubmissionSynonymDAO ontologySynonymSubmissionSynonymDAO;
+	private OntologyClassSubmissionSuperclassDAO ontologyClassSubmissionSuperclassDAO;
+	private OntologyClassSubmissionPartOfDAO ontologyClassSubmissionPartOfDAO;
 	
 	public DAOManager() {
 		collectionDAO = new CollectionDAO();
@@ -35,6 +43,10 @@ public class DAOManager {
 		ontologySynonymSubmissionDAO = new OntologySynonymSubmissionDAO();
 		ontologyClassSubmissionStatusDAO = new OntologyClassSubmissionStatusDAO();
 		ontologySynonymSubmissionStatusDAO = new OntologySynonymSubmissionStatusDAO();
+		ontologyClassSubmissionSynonymDAO = new OntologyClassSubmissionSynonymDAO();
+		ontologySynonymSubmissionSynonymDAO = new OntologySynonymSubmissionSynonymDAO();
+		ontologyClassSubmissionSuperclassDAO = new OntologyClassSubmissionSuperclassDAO();
+		ontologyClassSubmissionPartOfDAO = new OntologyClassSubmissionPartOfDAO();
 		contextDAO = new ContextDAO();
 		statusDAO = new StatusDAO();
 		ontologyBioportalDAO = new OntologyBioportalDAO();
@@ -44,9 +56,13 @@ public class DAOManager {
 		ontologyClassSubmissionDAO.setTermDAO(termDAO);
 		ontologyClassSubmissionDAO.setOntologyDAO(ontologyDBDAO);
 		ontologyClassSubmissionDAO.setOntologyClassSubmissionStatusDAO(ontologyClassSubmissionStatusDAO);
+		ontologyClassSubmissionDAO.setOntologyClassSubmissionSynonymDAO(ontologyClassSubmissionSynonymDAO);
+		ontologyClassSubmissionDAO.setOntologyClassSubmissionPartOfDAO(ontologyClassSubmissionPartOfDAO);
+		ontologyClassSubmissionDAO.setOntologyClassSubmissionSuperclassDAO(ontologyClassSubmissionSuperclassDAO);
 		ontologySynonymSubmissionDAO.setTermDAO(termDAO);
 		ontologySynonymSubmissionDAO.setOntologyDAO(ontologyDBDAO);
 		ontologySynonymSubmissionDAO.setOntologySynonymSubmissionStatusDAO(ontologySynonymSubmissionStatusDAO);
+		ontologySynonymSubmissionDAO.setOntologySynonymSubmissionSynonymDAO(ontologySynonymSubmissionSynonymDAO);
 		ontologySynonymSubmissionStatusDAO.setStatusDAO(statusDAO);
 		ontologyClassSubmissionStatusDAO.setStatusDAO(statusDAO);
 		//ontologyFileDAO.setOntologyDAO(ontologyDBDAO);

@@ -458,7 +458,7 @@ public class SubmitSynonymView implements IsWidget {
 	protected OntologySynonymSubmission getSynonymSubmission() {
 		return new OntologySynonymSubmission(termComboBox.getValue(), submissionTermField.getValue(), 
 				ontologyComboBox.getValue(), classIRIField.getValue(),
-				synonymsStore.getAll(),
+				new LinkedList<String>(synonymsStore.getAll()),
 				sourceField.getValue(), sampleArea.getValue(), 
 				isEntityCheckBox.getValue(), isQualityCheckBox.getValue(), OtoSteps.user);
 	}

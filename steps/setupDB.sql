@@ -91,7 +91,7 @@ CREATE TABLE IF NOT EXISTS `otosteps_ontologyclasssubmission_synonym` (
   UNIQUE KEY `id` (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0 ;
 
-CREATE TABLE IF NOT EXISTS `otosteps_ontologyclasssubmission_parto` (
+CREATE TABLE IF NOT EXISTS `otosteps_ontologyclasssubmission_partof` (
 	`id` BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
 	`ontologyclasssubmission` BIGINT(20) UNSIGNED NOT NULL,
 	`partof` VARCHAR(100) NOT NULL,

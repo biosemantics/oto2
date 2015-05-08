@@ -630,9 +630,10 @@ public class SubmitClassView implements IsWidget {
 		boolean quality = isQualityCheckBox.getValue();
 		String user = OtoSteps.user;
 		return new OntologyClassSubmission(termComboBox.getValue(), submissionTermField.getValue(), 
-				ontologyComboBox.getValue(), classIRIField.getValue(), superclassStore.getAll(),
-				definitionArea.getValue(), synonymsStore.getAll(), sourceField.getValue(), sampleArea.getValue(), partOfStore.getAll(), 
-				isEntityCheckBox.getValue(), isQualityCheckBox.getValue(), OtoSteps.user);
+				ontologyComboBox.getValue(), classIRIField.getValue(), new LinkedList<String>(superclassStore.getAll()),
+				definitionArea.getValue(), new LinkedList<String>(synonymsStore.getAll()), sourceField.getValue(), 
+				sampleArea.getValue(), new LinkedList<String>(partOfStore.getAll()), isEntityCheckBox.getValue(), 
+				isQualityCheckBox.getValue(), OtoSteps.user);
 	}
 
 	protected void initCollection() {
