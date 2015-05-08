@@ -41,5 +41,10 @@ public interface IToOntologyServiceAsync {
 			java.util.Collection<OntologySynonymSubmission> ontologySynonymSubmissions, 
 			AsyncCallback<Void> callbackw);
 
-	public void getPermanentOntologies(Collection collection, AsyncCallback<List<Ontology>> asyncCallback);
+	public void getPermanentOntologies(Collection collection, AsyncCallback<List<Ontology>> callback);
+	
+	public void getLocalOntologies(Collection collection, AsyncCallback<List<Ontology>> callback);
+
+	public void getClassSubmissions(Collection collection, Ontology ontology,
+			AsyncCallback<List<OntologyClassSubmission>> callback);
 }

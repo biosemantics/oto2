@@ -8,6 +8,8 @@ import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.container.BorderLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.BorderLayoutContainer.BorderLayoutData;
 
+import edu.arizona.biosemantics.oto2.steps.client.toontology.submit.CreateSubmissionView;
+
 public class ToOntologyView implements IsWidget {
 
 	private TermsView termsView;

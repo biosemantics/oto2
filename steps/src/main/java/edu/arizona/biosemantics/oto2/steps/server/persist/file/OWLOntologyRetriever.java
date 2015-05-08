@@ -68,7 +68,7 @@ public class OWLOntologyRetriever  {
 
 		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create("http://purl.obolibrary.org/obo/caro.owl"));
 		for(Ontology ontology : ontologies) {
-			owlOntology = owlOntologyManager.getOntology(OntologyDAO2.createOntologyIRI(ontology));
+			owlOntology = owlOntologyManager.getOntology(OntologyFileDAO.createOntologyIRI(ontology));
 			java.util.Collection<OWLOntology> referencedOntologies = owlOntologyManager.getImportsClosure(owlOntology);//getReferencedOntologies(owlOntology);
 			for(OWLOntology referencedOntology : referencedOntologies) {
 				String ontologyIRI = referencedOntology.getOntologyID().getOntologyIRI().get().getShortForm();

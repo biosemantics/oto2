@@ -42,4 +42,8 @@ public interface IToOntologyService extends RemoteService {
 			java.util.Collection<OntologySynonymSubmission> ontologySynonymSubmissions) throws RemoveSynonymSubmissionException, OntologyBioportalException;
 
 	public List<Ontology> getPermanentOntologies(Collection collection) throws Exception;
+
+	public List<Ontology> getLocalOntologies(Collection collection) throws Exception;
+	
+	public List<OntologyClassSubmission> getClassSubmissions(Collection collection, Ontology ontology) throws Exception;
 }

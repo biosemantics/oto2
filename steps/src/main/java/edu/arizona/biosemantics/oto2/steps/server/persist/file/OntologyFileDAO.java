@@ -49,7 +49,7 @@ import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.OntologyFileExc
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.OntologyNotFoundException;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.UnsatisfiableClassesException;
 
-public class OntologyDAO2 {
+public class OntologyFileDAO {
 
 	private static Map<Ontology, OWLOntology> permanentOntologies = new HashMap<Ontology, OWLOntology>();
 	
@@ -63,11 +63,11 @@ public class OntologyDAO2 {
 					OWLOntology owlOntology = owlOntologyManager.loadOntologyFromOntologyDocument(file);
 					permanentOntologies.put(ontology, owlOntology);
 				} catch (OWLOntologyCreationException | OWLOntologyInputSourceException e) {
-					Logger.getLogger(OntologyDAO2.class).error("Could not load ontology", e);
+					Logger.getLogger(OntologyFileDAO.class).error("Could not load ontology", e);
 				}
 			}
 		} catch(QueryException e) {
-			Logger.getLogger(OntologyDAO2.class).error("Could not get permanent ontologies", e);
+			Logger.getLogger(OntologyFileDAO.class).error("Could not get permanent ontologies", e);
 		}
 	}
 		
@@ -130,7 +130,7 @@ public class OntologyDAO2 {
 	private OWLAnnotationProperty labelProperty;
 	private OWLAnnotationProperty definitionProperty;
 
-	public OntologyDAO2(Collection collection, OntologyDAO ontologyDBDAO) throws OntologyFileException {
+	public OntologyFileDAO(Collection collection, OntologyDAO ontologyDBDAO) throws OntologyFileException {
 		this.collection = collection;
 		this.ontologyDBDAO = ontologyDBDAO;
 		this.owlOntologyManager = OWLManager.createOWLOntologyManager();
@@ -160,7 +160,7 @@ public class OntologyDAO2 {
 		owlOntologyRetriever = new OWLOntologyRetriever(owlOntologyManager, ontologyDBDAO);
 		annotationsManager = new AnnotationsManager(owlOntologyRetriever);
 		moduleCreator = new ModuleCreator(owlOntologyManager, owlOntologyRetriever, annotationsManager);
-		axiomManager = new AxiomManager(owlOntologyManager, moduleCreator, ontologyReasoner);
+		axiomManager = new AxiomManager(owlOntologyManager, moduleCreator, ontologyReasoner, annotationsManager);
 	}
 
 	//according to http://answers.semanticweb.com/questions/25651/how-to-clone-a-loaded-owl-ontology
@@ -267,7 +267,11 @@ public class OntologyDAO2 {
 		
 		axiomManager.addSuperClassModuleAxioms(targetOwlOntology, submission, newOwlClass);
 		axiomManager.addSynonymAxioms(targetOwlOntology, submission, newOwlClass);
-		axiomManager.addSuperclassAxioms(collection, submission, newOwlClass);
+		try {
+			axiomManager.addSuperclassAxioms(collection, submission, newOwlClass);
+		} catch (OntologyNotFoundException e) {
+			throw new OntologyFileException(e);
+		}
 		axiomManager.addPartOfAxioms(collection, submission, newOwlClass);
 		
 		try {

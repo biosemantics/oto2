@@ -136,7 +136,7 @@ public class OntologySynonymSubmission implements Serializable, Colorable, Comme
 	}
 
 	public boolean hasSynonyms() {
-		return this.synonyms.isEmpty();
+		return !this.synonyms.isEmpty();
 	}
 
 	public boolean hasClassIRI() {

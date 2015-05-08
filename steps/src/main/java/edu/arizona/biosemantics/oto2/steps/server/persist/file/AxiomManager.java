@@ -50,11 +50,14 @@ public class AxiomManager  {
 	private OWLAnnotationProperty broadSynonymProperty;
 	private DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
 	private OntologyReasoner ontologyReasoner;
+	private AnnotationsManager annotationsManager;
 
-	public AxiomManager(OWLOntologyManager owlOntologyManager, ModuleCreator moduleCreator, OntologyReasoner ontologyReasoner) {
+	public AxiomManager(OWLOntologyManager owlOntologyManager, ModuleCreator moduleCreator, OntologyReasoner ontologyReasoner, 
+			AnnotationsManager annotationsManager) {
 		this.owlOntologyManager = owlOntologyManager;
 		this.moduleCreator = moduleCreator;
 		this.ontologyReasoner = ontologyReasoner;
+		this.annotationsManager = annotationsManager;
 		
 		entityClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create("http://purl.obolibrary.org/obo/CARO_0000006")); //material anatomical entity
 		qualityClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create("http://purl.obolibrary.org/obo/PATO_0000001")); //quality
@@ -90,7 +93,8 @@ public class AxiomManager  {
 		}
 	}
 	
-	public void addSuperclassAxioms(Collection collection, OntologyClassSubmission submission,	OWLClass owlClass) throws OntologyFileException {
+	public void addSuperclassAxioms(Collection collection, OntologyClassSubmission submission,	OWLClass owlClass) throws OntologyFileException, OntologyNotFoundException {
+		//String owlClassLabel = annotationsManager.get(collection, owlClass, labelProperty);
 		boolean extractedSuperclassModule = submission.hasClassIRI();
 		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(submission.getOntology().getIri()));
 		
@@ -135,12 +139,13 @@ public class AxiomManager  {
 				//make all added class subclass of quality/entity
 				if(submission.isQuality()) {
 					if(ontologyReasoner.isSubclass(owlOntology, superOwlClass, entityClass)) {
-						//result.setMessage(result.getMessage()+" Can not add the quality term '"+newTerm+"' as a child to entity term '"+superclassIRI+"'.");
+						throw new OntologyFileException("Can not add the quality term '" + submission.getSubmissionTerm() + 
+								"' as a child to entity term '" + superclass + "'.");
 					} else {
 						OWLAxiom subclassAxiom = owlOntologyManager.getOWLDataFactory().getOWLSubClassOfAxiom(owlClass, superOwlClass);
 						owlOntologyManager.addAxiom(owlOntology, subclassAxiom);
 						for(OWLClass introducedClass : introducedClasses){
-							subclassAxiom = owlOntologyManager.getOWLDataFactory().getOWLSubClassOfAxiom(introducedClass, entityClass);
+							subclassAxiom = owlOntologyManager.getOWLDataFactory().getOWLSubClassOfAxiom(introducedClass, qualityClass);
 							owlOntologyManager.addAxiom(owlOntology, subclassAxiom);
 						}
 					}
@@ -148,12 +153,13 @@ public class AxiomManager  {
 				
 				if(submission.isEntity()) {
 					if(ontologyReasoner.isSubclass(owlOntology, superOwlClass, qualityClass)) {
-						//result.setMessage(result.getMessage()+" Can not add the entity term '"+newTerm+"' as a child to quality term '"+superclassIRI+"'.");
+						throw new OntologyFileException("Can not add the entity term '" + submission.getSubmissionTerm() + 
+								"' as a child to quality term '" + superclass + "'.");
 					} else {
 						OWLAxiom subclassAxiom = owlOntologyManager.getOWLDataFactory().getOWLSubClassOfAxiom(owlClass, superOwlClass);
 						owlOntologyManager.addAxiom(owlOntology, subclassAxiom);  
 						for(OWLClass introducedClass : introducedClasses){
-							subclassAxiom = owlOntologyManager.getOWLDataFactory().getOWLSubClassOfAxiom(introducedClass, qualityClass);
+							subclassAxiom = owlOntologyManager.getOWLDataFactory().getOWLSubClassOfAxiom(introducedClass, entityClass);
 							owlOntologyManager.addAxiom(owlOntology, subclassAxiom);
 						}
 					}

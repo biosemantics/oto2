@@ -174,15 +174,15 @@ public class OntologyClassSubmission implements Serializable, Colorable, Comment
 	}
 
 	public boolean hasSynonyms() {
-		return this.synonyms.isEmpty();
+		return !this.synonyms.isEmpty();
 	}
 
 	public boolean hasPartOfIRI() {
-		return this.partOfIRIs.isEmpty();
+		return !this.partOfIRIs.isEmpty();
 	}
 
 	public boolean hasSuperclassIRI() {
-		return this.superclassIRIs.isEmpty();
+		return !this.superclassIRIs.isEmpty();
 	}
 	
 	public List<String> getSuperclassIRIs() {

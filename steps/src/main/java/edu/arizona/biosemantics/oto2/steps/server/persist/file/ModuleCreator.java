@@ -33,17 +33,17 @@ public class ModuleCreator  {
 	
 	private OWLOntologyManager owlOntologyManager;
 	private OWLOntologyRetriever owlOntologyRetriever;
-	private AnnotationsManager annotationsReader;
+	private AnnotationsManager annotationsManager;
 	private StructuralReasonerFactory owlReasonerFactory;
 	private ConsoleProgressMonitor progressMonitor;
 	private SimpleConfiguration owlReasonerConfig;
 	private OWLAnnotationProperty labelProperty;
 
 	public ModuleCreator(OWLOntologyManager owlOntologyManager, OWLOntologyRetriever owlOntologyRetriever, 
-			AnnotationsManager annotationsReader) {
+			AnnotationsManager annotationsManager) {
 		this.owlOntologyManager = owlOntologyManager;
 		this.owlOntologyRetriever = owlOntologyRetriever;
-		this.annotationsReader = annotationsReader;
+		this.annotationsManager = annotationsManager;
 		owlReasonerFactory = new StructuralReasonerFactory();
 		progressMonitor = new ConsoleProgressMonitor();
 		owlReasonerConfig = new SimpleConfiguration(progressMonitor);
@@ -52,12 +52,12 @@ public class ModuleCreator  {
 	
 	public OWLOntology createModuleFromOwlClass(Collection collection, OntologySubmission submission, OWLClass owlClass) throws OntologyNotFoundException, OWLOntologyCreationException, OWLOntologyStorageException {
 		OWLOntology owlClassOntology = owlOntologyRetriever.getOWLOntology(collection, owlClass);
-		OWLOntology targetOwlOntology = owlOntologyManager.getOntology(OntologyDAO2.createOntologyIRI(submission));
+		OWLOntology targetOwlOntology = owlOntologyManager.getOntology(OntologyFileDAO.createOntologyIRI(submission));
 		Set<OWLEntity> seeds = new HashSet<OWLEntity>();
 		seeds.add(owlClass);
 		
-		File moduleFile = new File(OntologyDAO2.getCollectionOntologyDirectory(submission.getOntology()), 
-				"module." + annotationsReader.get(collection, owlClass, labelProperty) + "." + owlClass.getIRI().getShortForm() + ".owl");
+		File moduleFile = new File(OntologyFileDAO.getCollectionOntologyDirectory(submission.getOntology()), 
+				"module." + annotationsManager.get(collection, owlClass, labelProperty) + "." + owlClass.getIRI().getShortForm() + ".owl");
 		IRI moduleIRI = IRI.create(moduleFile);
 		
 		// remove the existing module -- in effect replace the old module with the new one.

@@ -53,8 +53,18 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	}
 	
 	@Override
+	public List<Ontology> getLocalOntologies(Collection collection) throws Exception {
+		return daoManager.getOntologyDBDAO().getLocalOntologiesForCollection(collection);
+	}
+	
+	@Override
 	public List<OntologyClassSubmission> getClassSubmissions(Collection collection) throws Exception {
 		return daoManager.getOntologyClassSubmissionDAO().get(collection);
+	}
+	
+	@Override
+	public List<OntologyClassSubmission> getClassSubmissions(Collection collection, Ontology ontology) throws Exception {
+		return daoManager.getOntologyClassSubmissionDAO().get(collection, ontology);
 	}
 
 	@Override
@@ -336,6 +346,8 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	private void setStatus(OntologySubmission submission, StatusEnum status) throws QueryException {
 		this.setStatus(submission, "", status);
 	}
+
+
 
 
 

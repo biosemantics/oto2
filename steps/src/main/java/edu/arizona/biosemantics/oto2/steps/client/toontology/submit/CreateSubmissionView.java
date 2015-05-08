@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto2.steps.client.toontology;
+package edu.arizona.biosemantics.oto2.steps.client.toontology.submit;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
@@ -14,8 +14,8 @@ import edu.arizona.biosemantics.oto2.steps.client.event.SelectSynonymEvent;
 
 public class CreateSubmissionView implements IsWidget {
 
-	private SubmitClassView submitClassView;
-	private SubmitSynonymView submitSynonymView;
+	private SubmitLocalView submitLocalView;
+	private SubmitBioportalView submitBioportalView;
 	private TabPanel tabPanel;
 	private EventBus eventBus;
 
@@ -24,11 +24,11 @@ public class CreateSubmissionView implements IsWidget {
 		//tabPanel = new TabPanel(GWT.<TabPanelAppearance> create(TabPanelBottomAppearance.class));
 		tabPanel = new TabPanel();
 		
-		submitClassView = new SubmitClassView(eventBus);
-		submitSynonymView = new SubmitSynonymView(eventBus);
+		submitLocalView = new SubmitLocalView(eventBus);
+		submitBioportalView = new SubmitBioportalView(eventBus);
 		
-		tabPanel.add(submitClassView, "Class");
-		tabPanel.add(submitSynonymView, "Synonym");
+		tabPanel.add(submitLocalView, "Local");
+		tabPanel.add(submitBioportalView, "Bioportal");
 		
 		bindEvents();
 	}
@@ -37,19 +37,27 @@ public class CreateSubmissionView implements IsWidget {
 		eventBus.addHandler(SelectSynonymEvent.TYPE, new SelectSynonymEvent.Handler() {
 			@Override
 			public void onSelect(SelectSynonymEvent event) {
-				tabPanel.setActiveWidget(submitSynonymView);
+				if(event.getSubmission().getOntology().getCollectionId() == -1) {
+					tabPanel.setActiveWidget(submitBioportalView);
+				} else {
+					tabPanel.setActiveWidget(submitLocalView);
+				}
 			}
 		});
 		eventBus.addHandler(SelectPartOfEvent.TYPE, new SelectPartOfEvent.Handler() {
 			@Override
 			public void onSelect(SelectPartOfEvent event) {
-				tabPanel.setActiveWidget(submitClassView);
+				tabPanel.setActiveWidget(submitLocalView);
 			}
 		});
 		eventBus.addHandler(SelectSuperclassEvent.TYPE, new SelectSuperclassEvent.Handler() {
 			@Override
 			public void onSelect(SelectSuperclassEvent event) {
-				tabPanel.setActiveWidget(submitClassView);
+				if(event.getSubmission().getOntology().getCollectionId() == -1) {
+					tabPanel.setActiveWidget(submitBioportalView);
+				} else {
+					tabPanel.setActiveWidget(submitLocalView);
+				}
 			}
 		});
 	}

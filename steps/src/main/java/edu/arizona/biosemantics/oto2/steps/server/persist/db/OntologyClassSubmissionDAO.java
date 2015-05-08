@@ -196,6 +196,23 @@ public class OntologyClassSubmissionDAO {
 		return result;
 	}
 	
+	public List<OntologyClassSubmission> get(Collection collection,	Ontology ontology) throws QueryException {
+		List<OntologyClassSubmission> result = new LinkedList<OntologyClassSubmission>();
+		try(Query query = new Query("SELECT * FROM otosteps_ontologyclasssubmission s, otosteps_term t WHERE s.term = t.id AND t.collection = ? "
+				+ "AND s.ontology = ?")) {
+			query.setParameter(1, collection.getId());
+			query.setParameter(2, ontology.getId());
+			ResultSet resultSet = query.execute();
+			while(resultSet.next()) {
+				result.add(createClassSubmission(resultSet));
+			}
+		} catch(QueryException | SQLException e) {
+			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
+		}
+		return result;
+	}	
+	
 	public List<OntologyClassSubmission> get(Collection collection, StatusEnum status) throws QueryException {
 		List<OntologyClassSubmission> result = new LinkedList<OntologyClassSubmission>();
 		try(Query query = new Query("SELECT * FROM otosteps_ontologyclasssubmission s, "
@@ -213,6 +230,8 @@ public class OntologyClassSubmissionDAO {
 			throw new QueryException(e);
 		}
 		return result;
-	}	
+	}
+
+
 
 }

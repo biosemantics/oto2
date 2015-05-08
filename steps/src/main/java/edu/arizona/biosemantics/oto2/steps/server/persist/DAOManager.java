@@ -14,7 +14,7 @@ import edu.arizona.biosemantics.oto2.steps.server.persist.db.OntologySynonymSubm
 import edu.arizona.biosemantics.oto2.steps.server.persist.db.OntologySynonymSubmissionSynonymDAO;
 import edu.arizona.biosemantics.oto2.steps.server.persist.db.StatusDAO;
 import edu.arizona.biosemantics.oto2.steps.server.persist.db.TermDAO;
-import edu.arizona.biosemantics.oto2.steps.server.persist.file.OntologyDAO2;
+import edu.arizona.biosemantics.oto2.steps.server.persist.file.OntologyFileDAO;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.OntologyFileException;
 
@@ -83,8 +83,8 @@ public class DAOManager {
 		return ontologyDBDAO;
 	}
 	
-	public OntologyDAO2 getOntologyFileDAO(Collection collection) throws OntologyFileException {
-		return new OntologyDAO2(collection, ontologyDBDAO);
+	public OntologyFileDAO getOntologyFileDAO(Collection collection) throws OntologyFileException {
+		return new OntologyFileDAO(collection, ontologyDBDAO);
 	}
 
 	public OntologyClassSubmissionDAO getOntologyClassSubmissionDAO() {
