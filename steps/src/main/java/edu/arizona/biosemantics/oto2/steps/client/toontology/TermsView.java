@@ -11,6 +11,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.client.rpc.AsyncCallback;
@@ -19,6 +20,7 @@ import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.core.client.IdentityValueProvider;
 import com.sencha.gxt.core.client.util.Format;
 import com.sencha.gxt.core.client.util.Params;
+import com.sencha.gxt.data.shared.IconProvider;
 import com.sencha.gxt.data.shared.SortDir;
 import com.sencha.gxt.data.shared.Store.StoreSortInfo;
 import com.sencha.gxt.data.shared.TreeStore;
@@ -277,30 +279,21 @@ public class TermsView implements IsWidget {
 			}
 		}, SortDir.ASC));
 		termTree = new Tree<TextTreeNode, TextTreeNode>(treeStore, new IdentityValueProvider<TextTreeNode>());
+		termTree.setIconProvider(new TermTreeNodeIconProvider(eventBus));
 		termTree.setCell(new AbstractCell<TextTreeNode>() {
 			@Override
 			public void render(com.google.gwt.cell.client.Cell.Context context,	TextTreeNode textTreeNode, SafeHtmlBuilder sb) {
 					if(textTreeNode instanceof TermTreeNode) {
 						TermTreeNode termTreeNode = (TermTreeNode)textTreeNode;
 						Term term = termTreeNode.getTerm();
-						if(collection.isUsed(term)) {
-							sb.append(SafeHtmlUtils.fromTrustedString("<div style='padding-left:5px; padding-right:5px; background-color:green; " +
-									"color:white'>" + 
-									textTreeNode.getText() + "</div>"));	
-						} else if(term.isRemoved()) {
-							sb.append(SafeHtmlUtils.fromTrustedString("<div style='padding-left:5px; padding-right:5px; background-color:gray; " +
-									"color:white'>" + 
+						if(collection.hasColorization(term)) {
+							String colorHex = collection.getColorization(term).getHex();
+							sb.append(SafeHtmlUtils.fromTrustedString("<div style='padding-left:5px; padding-right:5px; background-color:#" + colorHex + 
+									"'>" + 
 									textTreeNode.getText() + "</div>"));
 						} else {
-							if(collection.hasColorization(term)) {
-								String colorHex = collection.getColorization(term).getHex();
-								sb.append(SafeHtmlUtils.fromTrustedString("<div style='padding-left:5px; padding-right:5px; background-color:#" + colorHex + 
-										"'>" + 
-										textTreeNode.getText() + "</div>"));
-							} else {
-								sb.append(SafeHtmlUtils.fromTrustedString("<div style='padding-left:5px; padding-right:5px'>" + textTreeNode.getText() +
-										"</div>"));
-							}
+							sb.append(SafeHtmlUtils.fromTrustedString("<div style='padding-left:5px; padding-right:5px'>" + textTreeNode.getText() +
+									"</div>"));
 						}
 					} else {
 						sb.append(SafeHtmlUtils.fromTrustedString("<div style='padding-left:5px; padding-right:5px'>" + textTreeNode.getText() +
