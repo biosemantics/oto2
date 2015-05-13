@@ -44,18 +44,24 @@ import edu.arizona.biosemantics.oto2.steps.client.OtoSteps;
 import edu.arizona.biosemantics.oto2.steps.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.steps.client.common.AllowSurpressSelectEventsTreeSelectionModel;
 import edu.arizona.biosemantics.oto2.steps.client.event.AddCommentEvent;
+import edu.arizona.biosemantics.oto2.steps.client.event.CreateOntologyClassSubmissionEvent;
+import edu.arizona.biosemantics.oto2.steps.client.event.CreateOntologySynonymSubmissionEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.LoadCollectionEvent;
+import edu.arizona.biosemantics.oto2.steps.client.event.RefreshOntologyClassSubmissionsEvent;
+import edu.arizona.biosemantics.oto2.steps.client.event.RefreshOntologySynonymSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.RefreshSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.SetColorEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.TermMarkUselessEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.TermSelectEvent;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Color;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Comment;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Term;
 import edu.arizona.biosemantics.oto2.steps.shared.model.TermProperties;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.Bucket;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.BucketTreeNode;
+import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynonymSubmission;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.TermTreeNode;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.TextTreeNode;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.TextTreeNodeProperties;
@@ -277,7 +283,11 @@ public class TermsView implements IsWidget {
 					if(textTreeNode instanceof TermTreeNode) {
 						TermTreeNode termTreeNode = (TermTreeNode)textTreeNode;
 						Term term = termTreeNode.getTerm();
-						if(term.isRemoved()) {
+						if(collection.isUsed(term)) {
+							sb.append(SafeHtmlUtils.fromTrustedString("<div style='padding-left:5px; padding-right:5px; background-color:green; " +
+									"color:white'>" + 
+									textTreeNode.getText() + "</div>"));	
+						} else if(term.isRemoved()) {
 							sb.append(SafeHtmlUtils.fromTrustedString("<div style='padding-left:5px; padding-right:5px; background-color:gray; " +
 									"color:white'>" + 
 									textTreeNode.getText() + "</div>"));
@@ -421,10 +431,7 @@ public class TermsView implements IsWidget {
 			public void onSet(SetColorEvent event) {
 				for(Object object : event.getObjects()) {
 					if(object instanceof Term) {
-						Term term = (Term)object;
-						List<TextTreeNode> treeStoreContent = treeStore.getAll();
-						if(termTermTreeNodeMap.get(term) != null && treeStoreContent.contains(termTermTreeNodeMap.get(term))) 
-							treeStore.update(termTermTreeNodeMap.get(term));
+						update((Term)object);
 					}
 				}
 			}
@@ -440,6 +447,23 @@ public class TermsView implements IsWidget {
 				}
 			}
 		});
+		
+		eventBus.addHandler(CreateOntologyClassSubmissionEvent.TYPE, 
+				new CreateOntologyClassSubmissionEvent.Handler() {
+					@Override
+					public void onSubmission(CreateOntologyClassSubmissionEvent event) {
+						if(event.getClassSubmission().hasTerm())
+							update(event.getClassSubmission().getTerm());
+					}
+		});
+		eventBus.addHandler(CreateOntologySynonymSubmissionEvent.TYPE, 
+				new CreateOntologySynonymSubmissionEvent.Handler() {
+					@Override
+					public void onSubmission(CreateOntologySynonymSubmissionEvent event) {
+						if(event.getSynonymSubmission().hasTerm())
+							update(event.getSynonymSubmission().getTerm());
+					}
+		});
 	}	
 	
 	protected void addTermTreeNode(BucketTreeNode bucketNode, TermTreeNode termTreeNode) {
@@ -450,5 +474,12 @@ public class TermsView implements IsWidget {
 	@Override
 	public Widget asWidget() {
 		return tabPanel;
+	}
+	
+	private void update(Term term) {
+		List<TextTreeNode> treeStoreContent = treeStore.getAll();
+		if(termTermTreeNodeMap.get(term) != null && treeStoreContent.contains(termTermTreeNodeMap.get(term))) 
+			treeStore.update(termTermTreeNodeMap.get(term));
+	
 	}
 }

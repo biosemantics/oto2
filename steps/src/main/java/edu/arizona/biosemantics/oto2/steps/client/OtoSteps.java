@@ -20,6 +20,7 @@ public class OtoSteps implements EntryPoint {
 	@Override
 	public void onModuleLoad() {
 		final EventBus eventBus = new SimpleEventBus();
+		ModelControler modelControler = new ModelControler(eventBus);
 		RootLayoutPanel.get().add(new OtoStepsView(eventBus));
 		
 		int id = 1;

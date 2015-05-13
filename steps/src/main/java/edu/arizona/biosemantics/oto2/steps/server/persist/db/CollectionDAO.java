@@ -31,10 +31,14 @@ import edu.arizona.biosemantics.oto2.steps.shared.model.Colorable;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Comment;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Commentable;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Term;
+import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmission;
+import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynonymSubmission;
 
 public class CollectionDAO {
 		
 	private TermDAO termDAO;
+	private OntologyClassSubmissionDAO ontologyClassSubmissionDAO;
+	private OntologySynonymSubmissionDAO ontologySynonymSubmissionDAO;
 
 	public CollectionDAO() {} 
 	
@@ -79,7 +83,7 @@ public class CollectionDAO {
 		return collection;
 	}
 	
-	private Collection createCollection(ResultSet result) throws SQLException, IOException {
+	private Collection createCollection(ResultSet result) throws SQLException, IOException, QueryException {
 		int id = result.getInt("id");
 		String name = result.getString("name");
 		String taxonGroupString = result.getString("taxongroup");
@@ -100,7 +104,26 @@ public class CollectionDAO {
 			colorizations = deserializedCollection.getColorizations();
 			colors = deserializedCollection.getColors();
 		}
-		return new Collection(id, name, taxonGroup, secret, terms, comments, colorizations, colors);
+		
+		Map<Term, Set<Object>> usedTerms = new HashMap<Term, Set<Object>>();
+		List<OntologyClassSubmission> classSubmissions = ontologyClassSubmissionDAO.getByCollectionId(id);
+		for(OntologyClassSubmission submission : classSubmissions) {
+			if(submission.hasTerm()) {
+				if(!usedTerms.containsKey(submission.getTerm()))
+					usedTerms.put(submission.getTerm(), new HashSet<Object>());
+				usedTerms.get(submission.getTerm()).add(submission);
+			}
+		}
+		List<OntologySynonymSubmission> synonymSubmissions = ontologySynonymSubmissionDAO.getByCollectionId(id);
+		for(OntologySynonymSubmission submission : synonymSubmissions) {
+			if(submission.hasTerm()) {
+				if(!usedTerms.containsKey(submission.getTerm()))
+					usedTerms.put(submission.getTerm(), new HashSet<Object>());
+				usedTerms.get(submission.getTerm()).add(submission);
+			}
+		}
+		
+		return new Collection(id, name, taxonGroup, secret, terms, comments, colorizations, colors, usedTerms);
 	}
 
 	public Collection insert(Collection collection) throws QueryException, IOException  {
@@ -219,5 +242,17 @@ public class CollectionDAO {
 
 	public void setTermDAO(TermDAO termDAO) {
 		this.termDAO = termDAO;
+	}
+
+	public void setOntologyClassSubmissionDAO(
+			OntologyClassSubmissionDAO ontologyClassSubmissionDAO) {
+		this.ontologyClassSubmissionDAO = ontologyClassSubmissionDAO;
+	}
+
+	public void setOntologySynonymSubmissionDAO(
+			OntologySynonymSubmissionDAO ontologySynonymSubmissionDAO) {
+		this.ontologySynonymSubmissionDAO = ontologySynonymSubmissionDAO;
 	}	
+	
+	
 }

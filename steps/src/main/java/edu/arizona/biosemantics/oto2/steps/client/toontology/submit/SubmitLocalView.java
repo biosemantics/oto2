@@ -21,8 +21,8 @@ public class SubmitLocalView implements IsWidget {
 
 	public SubmitLocalView(EventBus eventBus) {
 		this.eventBus = eventBus;
-		tabPanel = new TabPanel(GWT.<TabPanelAppearance> create(TabPanelBottomAppearance.class));
-		//tabPanel = new TabPanel();
+		//tabPanel = new TabPanel(GWT.<TabPanelAppearance> create(TabPanelBottomAppearance.class));
+		tabPanel = new TabPanel();
 		
 		submitLocalClassView = new SubmitLocalClassView(eventBus);
 		submitLocalSynonymView = new SubmitLocalSynonymView(eventBus);

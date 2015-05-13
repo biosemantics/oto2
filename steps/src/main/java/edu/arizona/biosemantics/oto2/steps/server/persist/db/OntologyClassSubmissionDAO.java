@@ -42,7 +42,11 @@ public class OntologyClassSubmissionDAO {
 	
 	private OntologyClassSubmission createClassSubmission(ResultSet result) throws QueryException, SQLException {
 		int id = result.getInt("id");
+		int collectionId = result.getInt("collection");
 		int termId = result.getInt("term");
+		Term term = null;
+		if(!result.wasNull())
+			term = termDAO.get(termId);
 		String submission_term = result.getString("submission_term");
 		int ontologyId = result.getInt("ontology");
 		String classIRI = result.getString("class_iri");
@@ -69,10 +73,9 @@ public class OntologyClassSubmissionDAO {
 			}
 		}
 		
-		Term term = termDAO.get(termId);
 		Ontology ontology = ontologyDAO.get(ontologyId);
-		
-		return new OntologyClassSubmission(id, term, submission_term, ontology, classIRI, ontologyClassSubmissionSuperclassDAO.getSuperclasses(id), 
+		return new OntologyClassSubmission(id, collectionId, 
+				term, submission_term, ontology, classIRI, ontologyClassSubmissionSuperclassDAO.getSuperclasses(id), 
 				definition, ontologyClassSubmissionSynonymDAO.getSynonyms(id), source, sampleSentence,
 				ontologyClassSubmissionPartOfDAO.getPartOfs(id), entity, quality, user, ontologyClassSubmissionStatuses);
 	}
@@ -80,19 +83,23 @@ public class OntologyClassSubmissionDAO {
 	public OntologyClassSubmission insert(OntologyClassSubmission ontologyClassSubmission) throws QueryException  {
 		if(!ontologyClassSubmission.hasId()) {
 			try(Query insert = new Query("INSERT INTO `otosteps_ontologyclasssubmission` "
-					+ "(`term`, `submission_term`, `ontology`, `class_iri`, `definition`, `source`, `sample_sentence`, "
+					+ "(`collection`, `term`, `submission_term`, `ontology`, `class_iri`, `definition`, `source`, `sample_sentence`, "
 					+ "`entity`, `quality`, `user`)"
-					+ " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
-				insert.setParameter(1, ontologyClassSubmission.getTerm().getId());
-				insert.setParameter(2, ontologyClassSubmission.getSubmissionTerm());
-				insert.setParameter(3, ontologyClassSubmission.getOntology().getId());
-				insert.setParameter(4, ontologyClassSubmission.getClassIRI());
-				insert.setParameter(5, ontologyClassSubmission.getDefinition());
-				insert.setParameter(6, ontologyClassSubmission.getSource());
-				insert.setParameter(7, ontologyClassSubmission.getSampleSentence());
-				insert.setParameter(8, ontologyClassSubmission.isEntity());
-				insert.setParameter(9, ontologyClassSubmission.isQuality());
-				insert.setParameter(10, ontologyClassSubmission.getUser());
+					+ " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+				insert.setParameter(1, ontologyClassSubmission.getCollectionId());
+				if(ontologyClassSubmission.getTerm() == null)
+					insert.setParameterNull(2, java.sql.Types.BIGINT);
+				else
+					insert.setParameter(2, ontologyClassSubmission.getTerm().getId());
+				insert.setParameter(3, ontologyClassSubmission.getSubmissionTerm());
+				insert.setParameter(4, ontologyClassSubmission.getOntology().getId());
+				insert.setParameter(5, ontologyClassSubmission.getClassIRI());
+				insert.setParameter(6, ontologyClassSubmission.getDefinition());
+				insert.setParameter(7, ontologyClassSubmission.getSource());
+				insert.setParameter(8, ontologyClassSubmission.getSampleSentence());
+				insert.setParameter(9, ontologyClassSubmission.isEntity());
+				insert.setParameter(10, ontologyClassSubmission.isQuality());
+				insert.setParameter(11, ontologyClassSubmission.getUser());
 				insert.execute();
 				ResultSet generatedKeys = insert.getGeneratedKeys();
 				generatedKeys.next();
@@ -112,20 +119,25 @@ public class OntologyClassSubmissionDAO {
 	}
 	
 	public void update(OntologyClassSubmission ontologyClassSubmission) throws QueryException  {		
-		try(Query query = new Query("UPDATE otosteps_ontologyclasssubmission SET term = ?, submission_term = ?,"
+		try(Query query = new Query("UPDATE otosteps_ontologyclasssubmission SET collection = ?,"
+				+ " term = ?, submission_term = ?,"
 				+ " ontology = ?, class_iri = ?, definition = ?, source = ?, sample_sentence = ?, "
 				+ "entity = ?, quality = ?, user = ? WHERE id = ?")) {
-			query.setParameter(1, ontologyClassSubmission.getTerm().getId());
-			query.setParameter(2, ontologyClassSubmission.getSubmissionTerm());
-			query.setParameter(3, ontologyClassSubmission.getOntology().getId());
-			query.setParameter(4, ontologyClassSubmission.getClassIRI());
-			query.setParameter(5, ontologyClassSubmission.getDefinition());
-			query.setParameter(6, ontologyClassSubmission.getSource());
-			query.setParameter(7, ontologyClassSubmission.getSampleSentence());
-			query.setParameter(8, ontologyClassSubmission.isEntity());
-			query.setParameter(9, ontologyClassSubmission.isQuality());
-			query.setParameter(10, ontologyClassSubmission.getUser());
-			query.setParameter(11, ontologyClassSubmission.getId());
+			query.setParameter(1, ontologyClassSubmission.getCollectionId());
+			if(ontologyClassSubmission.getTerm() == null)
+				query.setParameterNull(2, java.sql.Types.BIGINT);
+			else
+				query.setParameter(2, ontologyClassSubmission.getTerm().getId());
+			query.setParameter(3, ontologyClassSubmission.getSubmissionTerm());
+			query.setParameter(4, ontologyClassSubmission.getOntology().getId());
+			query.setParameter(5, ontologyClassSubmission.getClassIRI());
+			query.setParameter(6, ontologyClassSubmission.getDefinition());
+			query.setParameter(7, ontologyClassSubmission.getSource());
+			query.setParameter(8, ontologyClassSubmission.getSampleSentence());
+			query.setParameter(9, ontologyClassSubmission.isEntity());
+			query.setParameter(10, ontologyClassSubmission.isQuality());
+			query.setParameter(11, ontologyClassSubmission.getUser());
+			query.setParameter(12, ontologyClassSubmission.getId());
 			query.execute();
 			
 			ontologyClassSubmissionStatusDAO.update(ontologyClassSubmission.getSubmissionStatuses());
@@ -182,9 +194,13 @@ public class OntologyClassSubmissionDAO {
 	}
 
 	public List<OntologyClassSubmission> get(Collection collection) throws QueryException {
+		return this.getByCollectionId(collection.getId());
+	}
+	
+	public List<OntologyClassSubmission> getByCollectionId(int collectionId) throws QueryException {
 		List<OntologyClassSubmission> result = new LinkedList<OntologyClassSubmission>();
-		try(Query query = new Query("SELECT * FROM otosteps_ontologyclasssubmission s, otosteps_term t WHERE s.term = t.id AND t.collection = ?")) {
-			query.setParameter(1, collection.getId());
+		try(Query query = new Query("SELECT * FROM otosteps_ontologyclasssubmission WHERE collection = ?")) {
+			query.setParameter(1, collectionId);
 			ResultSet resultSet = query.execute();
 			while(resultSet.next()) {
 				result.add(createClassSubmission(resultSet));
@@ -198,8 +214,7 @@ public class OntologyClassSubmissionDAO {
 	
 	public List<OntologyClassSubmission> get(Collection collection,	Ontology ontology) throws QueryException {
 		List<OntologyClassSubmission> result = new LinkedList<OntologyClassSubmission>();
-		try(Query query = new Query("SELECT * FROM otosteps_ontologyclasssubmission s, otosteps_term t WHERE s.term = t.id AND t.collection = ? "
-				+ "AND s.ontology = ?")) {
+		try(Query query = new Query("SELECT * FROM otosteps_ontologyclasssubmission WHERE collection = ? AND ontology = ?")) {
 			query.setParameter(1, collection.getId());
 			query.setParameter(2, ontology.getId());
 			ResultSet resultSet = query.execute();
@@ -216,8 +231,8 @@ public class OntologyClassSubmissionDAO {
 	public List<OntologyClassSubmission> get(Collection collection, StatusEnum status) throws QueryException {
 		List<OntologyClassSubmission> result = new LinkedList<OntologyClassSubmission>();
 		try(Query query = new Query("SELECT * FROM otosteps_ontologyclasssubmission s, "
-				+ "otosteps_ontologyclasssubmission_status ss, otosteps_status st,"
-				+ " otosteps_term t WHERE s.term = t.id AND t.collection = ? AND ss.ontologyclasssubmission = s.id AND ss.status = st.id AND"
+				+ "otosteps_ontologyclasssubmission_status ss, otosteps_status st"
+				+ " WHERE s.collection = ? AND ss.ontologyclasssubmission = s.id AND ss.status = st.id AND"
 				+ " st.name = ?")) {
 			query.setParameter(1, collection.getId());
 			query.setParameter(2, status.getDisplayName());
@@ -231,7 +246,5 @@ public class OntologyClassSubmissionDAO {
 		}
 		return result;
 	}
-
-
 
 }

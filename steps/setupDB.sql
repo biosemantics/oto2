@@ -66,7 +66,8 @@ CREATE TABLE IF NOT EXISTS `otosteps_status` (
 
 CREATE TABLE IF NOT EXISTS `otosteps_ontologyclasssubmission` (
 	`id` BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-	`term` BIGINT(20) UNSIGNED NOT NULL,
+    `collection` bigint(20) unsigned NOT NULL,
+	`term` BIGINT(20) UNSIGNED DEFAULT NULL,
 	`submission_term` VARCHAR(100) NOT NULL,
 	`ontology` BIGINT(20) UNSIGNED NOT NULL,
 	`class_iri` VARCHAR(100) DEFAULT NULL,
@@ -111,7 +112,8 @@ CREATE TABLE IF NOT EXISTS `otosteps_ontologyclasssubmission_superclass` (
 
 CREATE TABLE `otosteps_ontologysynonymsubmission` (
 	`id` BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-	`term` BIGINT(20) UNSIGNED NOT NULL,
+	`collection` bigint(20) unsigned NOT NULL,
+	`term` BIGINT(20) UNSIGNED DEFAULT NULL,
 	`submission_term` VARCHAR(100) NOT NULL,
 	`ontology` BIGINT(20) UNSIGNED NOT NULL,
 	`class_iri` VARCHAR(100) NOT NULL,

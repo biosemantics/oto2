@@ -17,9 +17,9 @@ public interface IToOntologyService extends RemoteService {
 	
 	public List<Ontology> getOntologies(Collection collection) throws Exception;
 	
-	public OntologyClassSubmission createClassSubmission(OntologyClassSubmission submission) throws CreateClassSubmissionException, OntologyBioportalException, OntologyFileException, ClassExistsException;
+	public OntologyClassSubmission createClassSubmission(Collection collection, OntologyClassSubmission submission) throws CreateClassSubmissionException, OntologyBioportalException, OntologyFileException, ClassExistsException;
 
-	public OntologySynonymSubmission createSynonymSubmission(OntologySynonymSubmission submission) throws CreateSynonymSubmissionException, OntologyFileException, OntologyBioportalException;
+	public OntologySynonymSubmission createSynonymSubmission(Collection collection, OntologySynonymSubmission submission) throws CreateSynonymSubmissionException, OntologyFileException, OntologyBioportalException;
 	
 	public List<OntologyClassSubmission> getClassSubmissions(Collection collection) throws  Exception;
 

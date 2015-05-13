@@ -343,11 +343,8 @@ public class OntologyFileDAO {
 		OWLOntology targetOwlOntology = owlOntologyManager.getOntology(IRI.create(submission.getOntology().getIri()));
 		List<OWLClass> affectedClasses = new ArrayList<OWLClass>();
 		if(submission.hasClassIRI()) {
-			String[] classIRIs = submission.getClassIRI().split("\\s*,\\s*");
-			for(String classIRI : classIRIs){ //add syn to each of the classes in current ontology class signature
-				if(classIRI.isEmpty()) 
-					continue;
-				
+			String classIRI = submission.getClassIRI();
+			if(!classIRI.isEmpty()) {
 				try {
 					OWLClass owlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(classIRI));
 					boolean isContained = containsOwlClass(targetOwlOntology, owlClass);
@@ -364,7 +361,7 @@ public class OntologyFileDAO {
 					}
 				} catch(OntologyNotFoundException | OWLOntologyCreationException | OWLOntologyStorageException e) {
 					throw new OntologyFileException(e);
-				} 
+				}
 			}
 		}
 
@@ -420,11 +417,8 @@ public class OntologyFileDAO {
 		OWLOntology targetOwlOntology = owlOntologyManager.getOntology(IRI.create(submission.getOntology().getIri()));
 		List<OWLClass> affectedClasses = new ArrayList<OWLClass>();
 		if(submission.hasClassIRI()) {
-			String[] classIRIs = submission.getClassIRI().split("\\s*,\\s*");
-			for(String classIRI : classIRIs){ //add syn to each of the classes in current ontology class signature
-				if(classIRI.isEmpty()) 
-					continue;
-				
+			String classIRI = submission.getClassIRI();
+			if(!classIRI.isEmpty()) {
 				try {
 					OWLClass owlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(classIRI));
 					boolean isContained = containsOwlClass(targetOwlOntology, owlClass);
@@ -441,7 +435,7 @@ public class OntologyFileDAO {
 					}
 				} catch(OntologyNotFoundException e) {
 					throw new OntologyFileException(e);
-				} 
+				}
 			}
 		}
 

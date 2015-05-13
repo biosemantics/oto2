@@ -210,7 +210,8 @@ public class SubmitBioportalClassView implements IsWidget {
 			Alerter.alertCantModify("ontology");
 			return false;
 		}
-		if(!selectedSubmission.getTerm().equals(termComboBox.getValue())) {
+		if((!selectedSubmission.hasTerm() && termComboBox.getValue() != null) ||
+				!selectedSubmission.getTerm().equals(termComboBox.getValue())) {
 			Alerter.alertCantModify("term");
 			return false;
 		}
@@ -279,7 +280,7 @@ public class SubmitBioportalClassView implements IsWidget {
 				if(validateForm()) {
 					final MessageBox box = Alerter.startLoading();
 					final OntologyClassSubmission submission = getClassSubmission();
-					toOntologyService.createClassSubmission(submission, new AsyncCallback<OntologyClassSubmission>() {
+					toOntologyService.createClassSubmission(collection, submission, new AsyncCallback<OntologyClassSubmission>() {
 						@Override
 						public void onFailure(Throwable caught) {
 							Alerter.stopLoading(box);
@@ -325,7 +326,7 @@ public class SubmitBioportalClassView implements IsWidget {
 						@Override
 						public void onSuccess(Void result) {
 							eventBus.fireEvent(new RemoveOntologyClassSubmissionsEvent(removeSubmissions));
-							toOntologyService.createClassSubmission(newSubmission, new AsyncCallback<OntologyClassSubmission>() {
+							toOntologyService.createClassSubmission(collection, newSubmission, new AsyncCallback<OntologyClassSubmission>() {
 								@Override
 								public void onFailure(Throwable caught) {
 									Alerter.stopLoading(box);
@@ -479,7 +480,7 @@ public class SubmitBioportalClassView implements IsWidget {
 	}
 	
 	protected OntologyClassSubmission getClassSubmission() {
-		return new OntologyClassSubmission(termComboBox.getValue(), submissionTermField.getValue(), 
+		return new OntologyClassSubmission(collection.getId(), termComboBox.getValue(), submissionTermField.getValue(), 
 				ontologyComboBox.getValue(), "", new LinkedList<String>(superclassStore.getAll()),
 				definitionArea.getValue(), new LinkedList<String>(synonymsStore.getAll()), sourceField.getValue(), 
 				sampleArea.getValue(), new LinkedList<String>(), false, false, OtoSteps.user);

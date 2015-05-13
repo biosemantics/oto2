@@ -13,6 +13,7 @@ public class OntologyClassSubmission implements Serializable, Colorable, Comment
 		EntityQualityClass, OntologySubmission, Comparable<OntologyClassSubmission> {
 	
 	private int id = -1;
+	private int collectionId;
 	private Term term;
 	private String submissionTerm = "";
 	private Ontology ontology;
@@ -30,10 +31,11 @@ public class OntologyClassSubmission implements Serializable, Colorable, Comment
 	
 	public OntologyClassSubmission() { }
 	
-	public OntologyClassSubmission(int id, Term term, String submissionTerm, Ontology ontology, String classIRI,
+	public OntologyClassSubmission(int id, int collectionId, Term term, String submissionTerm, Ontology ontology, String classIRI,
 			List<String> superclassIRIs, String definition, List<String> synonyms, String source, String sampleSentence, 
 			List<String> partOfIRIs, boolean entity, boolean quality, String user, List<OntologyClassSubmissionStatus> submissionStatuses) { 
 		this.id = id;
+		this.collectionId = collectionId;
 		this.term = term;
 		this.submissionTerm = submissionTerm == null ? "" : submissionTerm;
 		this.ontology = ontology;
@@ -50,9 +52,10 @@ public class OntologyClassSubmission implements Serializable, Colorable, Comment
 		this.submissionStatuses = submissionStatuses;
 	}
 	
-	public OntologyClassSubmission(Term term, String submissionTerm, Ontology ontology, String classIRI,
+	public OntologyClassSubmission(int collectionId, Term term, String submissionTerm, Ontology ontology, String classIRI,
 			List<String> superclassIRIs, String definition, List<String> synonyms, String source, String sampleSentence, 
 			List<String> partOfIRIs, boolean entity, boolean quality, String user) { 
+		this.collectionId = collectionId;
 		this.term = term;
 		this.submissionTerm = submissionTerm == null ? "" : submissionTerm;
 		this.ontology = ontology;
@@ -220,7 +223,15 @@ public class OntologyClassSubmission implements Serializable, Colorable, Comment
 	public void clearSuperclassIRIs() {
 		this.superclassIRIs.clear();
 	}
-	
+		
+	public int getCollectionId() {
+		return collectionId;
+	}
+
+	public void setCollectionId(int collectionId) {
+		this.collectionId = collectionId;
+	}
+
 	@Override
 	public int compareTo(OntologyClassSubmission o) {
 		return this.getId() - o.getId();
@@ -258,6 +269,10 @@ public class OntologyClassSubmission implements Serializable, Colorable, Comment
 
 	public boolean hasOntology() {
 		return ontology != null;
+	}
+
+	public boolean hasTerm() {
+		return term != null;
 	}	
 
 }

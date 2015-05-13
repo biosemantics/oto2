@@ -105,11 +105,10 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	}
 
 	@Override
-	public OntologyClassSubmission createClassSubmission(OntologyClassSubmission submission) throws CreateClassSubmissionException, OntologyBioportalException, 
+	public OntologyClassSubmission createClassSubmission(Collection collection, OntologyClassSubmission submission) throws CreateClassSubmissionException, OntologyBioportalException, 
 			OntologyFileException, ClassExistsException {
-		Collection collection;
 		try {
-			collection = daoManager.getCollectionDAO().get(submission.getTerm().getCollectionId());
+			collection = daoManager.getCollectionDAO().get(collection.getId());
 		} catch (QueryException | IOException e) {
 			throw new CreateClassSubmissionException(e);
 		}
@@ -153,10 +152,9 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	}
 
 	@Override
-	public OntologySynonymSubmission createSynonymSubmission(OntologySynonymSubmission submission) throws OntologyFileException, OntologyBioportalException, CreateSynonymSubmissionException {
-		Collection collection;
+	public OntologySynonymSubmission createSynonymSubmission(Collection collection, OntologySynonymSubmission submission) throws OntologyFileException, OntologyBioportalException, CreateSynonymSubmissionException {
 		try {
-			collection = daoManager.getCollectionDAO().get(submission.getTerm().getCollectionId());
+			collection = daoManager.getCollectionDAO().get(collection.getId());
 		} catch (QueryException | IOException e) {
 			throw new CreateSynonymSubmissionException(e);
 		}

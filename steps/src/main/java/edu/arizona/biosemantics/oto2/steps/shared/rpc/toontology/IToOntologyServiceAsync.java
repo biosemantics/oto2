@@ -13,9 +13,9 @@ public interface IToOntologyServiceAsync {
 
 	public void getOntologies(Collection collection, AsyncCallback<List<Ontology>> callback);
 
-	public void createClassSubmission(OntologyClassSubmission submission, AsyncCallback<OntologyClassSubmission> callback);
+	public void createClassSubmission(Collection collection, OntologyClassSubmission submission, AsyncCallback<OntologyClassSubmission> callback);
 
-	public void createSynonymSubmission(OntologySynonymSubmission submission, AsyncCallback<OntologySynonymSubmission> callback);
+	public void createSynonymSubmission(Collection collection, OntologySynonymSubmission submission, AsyncCallback<OntologySynonymSubmission> callback);
 
 	public void getClassSubmissions(Collection collection, AsyncCallback<List<OntologyClassSubmission>> callback);
 

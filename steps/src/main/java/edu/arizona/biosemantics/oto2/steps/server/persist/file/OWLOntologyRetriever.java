@@ -59,24 +59,28 @@ public class OWLOntologyRetriever  {
 			throw new OntologyNotFoundException("Could not find ontology for class " + owlClass.getIRI().toString(), e);
 		}
 		
-		String owlClassIRI = owlClass.getIRI().getShortForm().toLowerCase();
+		String owlClassIRI = owlClass.getIRI().toString().toLowerCase();
 		String hackyOwlClassIdentifier = owlClassIRI;
 		if(hackyOwlClassIdentifier.contains("_"))
 			hackyOwlClassIdentifier = hackyOwlClassIdentifier.substring(0, hackyOwlClassIdentifier.indexOf("_"));
 		else if(hackyOwlClassIdentifier.contains("#"))
 			hackyOwlClassIdentifier = hackyOwlClassIdentifier.substring(0, hackyOwlClassIdentifier.indexOf("#"));
 
-		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create("http://purl.obolibrary.org/obo/caro.owl"));
 		for(Ontology ontology : ontologies) {
-			owlOntology = owlOntologyManager.getOntology(OntologyFileDAO.createOntologyIRI(ontology));
+			OWLOntology owlOntology = owlOntologyManager.getOntology(OntologyFileDAO.createOntologyIRI(ontology));
 			java.util.Collection<OWLOntology> referencedOntologies = owlOntologyManager.getImportsClosure(owlOntology);//getReferencedOntologies(owlOntology);
 			for(OWLOntology referencedOntology : referencedOntologies) {
-				String ontologyIRI = referencedOntology.getOntologyID().getOntologyIRI().get().getShortForm();
+				String ontologyIRI = referencedOntology.getOntologyID().getOntologyIRI().get().toString();
 				String hackyOntologyIdentifier = ontologyIRI;
 				
-				//caro ontology iri is ..../caro.obo.owl, references are /caro_0000XYZ
-				if(hackyOntologyIdentifier.contains("."))
-					hackyOntologyIdentifier = hackyOntologyIdentifier.substring(0, hackyOntologyIdentifier.indexOf("."));
+				//caro ontology iri is http://purl.obolibrary.org/obo/caro/src/caro.owl, 
+				//while classes would have hacky id http://purl.obolibrary.org/obo/caro
+				// use startswith as sufficient indicator?
+				if(hackyOntologyIdentifier.equals("http://purl.obolibrary.org/obo/caro/src/caro.obo.owl") && 
+						hackyOwlClassIdentifier.equals("http://purl.obolibrary.org/obo/caro"))
+					return referencedOntology;
+				if(hackyOntologyIdentifier.endsWith(".owl"))
+					hackyOntologyIdentifier = hackyOntologyIdentifier.replace(".owl", "");
 				if(hackyOntologyIdentifier.equals(hackyOwlClassIdentifier))
 					return referencedOntology;
 			}

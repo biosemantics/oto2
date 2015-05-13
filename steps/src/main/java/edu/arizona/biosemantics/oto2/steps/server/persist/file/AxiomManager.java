@@ -94,47 +94,36 @@ public class AxiomManager  {
 	}
 	
 	public void addSuperclassAxioms(Collection collection, OntologyClassSubmission submission,	OWLClass owlClass) throws OntologyFileException, OntologyNotFoundException {
-		//String owlClassLabel = annotationsManager.get(collection, owlClass, labelProperty);
 		boolean extractedSuperclassModule = submission.hasClassIRI();
 		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(submission.getOntology().getIri()));
 		
-		//add subclass axioms
-		//if superTerm is an IRI (of known ontologies): 
-		//if superTerm is a term (to local ontology):
+		if(submission.isQuality()) {
+			OWLAxiom subclassAxiom = owlOntologyManager.getOWLDataFactory().getOWLSubClassOfAxiom(owlClass, qualityClass);
+			owlOntologyManager.addAxiom(owlOntology, subclassAxiom);  
+		}
+		if(submission.isEntity()) {
+			OWLAxiom subclassAxiom = owlOntologyManager.getOWLDataFactory().getOWLSubClassOfAxiom(owlClass, entityClass);
+			owlOntologyManager.addAxiom(owlOntology, subclassAxiom);  
+		}
+		
 		if(submission.hasSuperclassIRI() && !extractedSuperclassModule){
 			for(String superclass : submission.getSuperclassIRIs()) { //IRIs or terms
 				if(superclass.isEmpty()) 
 					continue;
 				IRI superclassIRI = IRI.create(superclass);
-				
-				//to hold all classes related to the superClass
 				Set<OWLClass> introducedClasses = new HashSet<OWLClass> ();
 				
-				OWLClass superOwlClass = null;
-				if(superclassIRI.getScheme().equals("http")) {
-					
-					//extract mireot module related to superClass
-					superOwlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(superclassIRI); 
-					OWLOntology moduleOntology;
-					try {
-						moduleOntology = moduleCreator.createModuleFromOwlClass(collection, submission, superOwlClass);
-					} catch (OWLOntologyCreationException
-							| OWLOntologyStorageException
-							| OntologyNotFoundException e) {
-						throw new OntologyFileException(e);
-					}
-					introducedClasses.addAll(moduleOntology.getClassesInSignature());
-				
-				} /*else {
-					//allow to create a new superClass in local ontology, which will be a subclass of entity/quality
-					superOwlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(":" + superclass.replaceAll("\\s+", "_"), prefixManager); //use ID here.
-					introducedClasses.add(superOwlClass);
-					
-					this.addLabelAxiom(owlOntology, superOwlClass, owlOntologyManager.getOWLDataFactory().getOWLLiteral(superclass, "en"));
-					this.addCreatedByAxiom(owlOntology, superOwlClass);
-					this.addCreationDateAxiom(owlOntology, superOwlClass);
-					//what about definition for superClass?
-				}*/
+				//extract mireot module related to superClass
+				OWLClass superOwlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(superclassIRI); 
+				OWLOntology moduleOntology;
+				try {
+					moduleOntology = moduleCreator.createModuleFromOwlClass(collection, submission, superOwlClass);
+				} catch (OWLOntologyCreationException
+						| OWLOntologyStorageException
+						| OntologyNotFoundException e) {
+					throw new OntologyFileException(e);
+				}
+				introducedClasses.addAll(moduleOntology.getClassesInSignature());
 				
 				//make all added class subclass of quality/entity
 				if(submission.isQuality()) {

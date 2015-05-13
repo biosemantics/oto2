@@ -61,6 +61,14 @@ public class Query implements AutoCloseable {
 		}
 	}
 
+	public void setParameterNull(int index, int sqlType) throws QueryException {
+		try {
+			preparedStatement.setNull(index, sqlType);
+		} catch(Exception e) {
+			throw new QueryException(e.getMessage(), e.getCause());
+		}
+	}
+	
 	public void setParameter(int index, int parameter) throws QueryException {
 		try {
 			preparedStatement.setInt(index, parameter);

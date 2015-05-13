@@ -319,6 +319,8 @@ public class ClassSubmissionsGrid implements IsWidget {
 		ValueProvider<OntologyClassSubmission, String> termValueProvider = new ValueProvider<OntologyClassSubmission, String>() {
 			@Override
 			public String getValue(OntologyClassSubmission object) {
+				if(!object.hasTerm())
+					return "";
 				return object.getTerm().getTerm();
 			}
 			@Override
@@ -340,6 +342,8 @@ public class ClassSubmissionsGrid implements IsWidget {
 		ValueProvider<OntologyClassSubmission, String> categoryValueProvider = new ValueProvider<OntologyClassSubmission, String>() {
 			@Override
 			public String getValue(OntologyClassSubmission object) {
+				if(!object.hasTerm())
+					return "";
 				return object.getTerm().getCategory();
 			}
 			@Override

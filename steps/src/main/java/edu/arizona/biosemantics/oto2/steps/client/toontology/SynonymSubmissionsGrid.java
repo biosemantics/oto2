@@ -277,6 +277,8 @@ public class SynonymSubmissionsGrid implements IsWidget {
 		ValueProvider<OntologySynonymSubmission, String> termValueProvider = new ValueProvider<OntologySynonymSubmission, String>() {
 			@Override
 			public String getValue(OntologySynonymSubmission object) {
+				if(!object.hasTerm()) 
+					return "";
 				return object.getTerm().getTerm();
 			}
 			@Override
@@ -298,6 +300,8 @@ public class SynonymSubmissionsGrid implements IsWidget {
 		ValueProvider<OntologySynonymSubmission, String> categoryValueProvider = new ValueProvider<OntologySynonymSubmission, String>() {
 			@Override
 			public String getValue(OntologySynonymSubmission object) {
+				if(!object.hasTerm())
+					return "";
 				return object.getTerm().getCategory();
 			}
 			@Override

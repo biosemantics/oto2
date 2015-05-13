@@ -52,6 +52,8 @@ public class DAOManager {
 		ontologyBioportalDAO = new OntologyBioportalDAO();
 		
 		collectionDAO.setTermDAO(termDAO);
+		collectionDAO.setOntologyClassSubmissionDAO(ontologyClassSubmissionDAO);
+		collectionDAO.setOntologySynonymSubmissionDAO(ontologySynonymSubmissionDAO);
 		
 		ontologyClassSubmissionDAO.setTermDAO(termDAO);
 		ontologyClassSubmissionDAO.setOntologyDAO(ontologyDBDAO);

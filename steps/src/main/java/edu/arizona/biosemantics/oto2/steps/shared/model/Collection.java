@@ -3,9 +3,11 @@ package edu.arizona.biosemantics.oto2.steps.shared.model;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 
@@ -13,6 +15,7 @@ import edu.arizona.biosemantics.common.biology.TaxonGroup;
 
 public class Collection implements Serializable, Comparable<Collection> {
 
+	private static final long serialVersionUID = 1L;
 	private int id = -1;
 	private String name = "";
 	private TaxonGroup taxonGroup;
@@ -23,6 +26,8 @@ public class Collection implements Serializable, Comparable<Collection> {
 	@JsonIgnore
 	private Map<Colorable, Color> colorizations = new HashMap<Colorable, Color>();	
 	private List<Color> colors = new ArrayList<Color>();
+	@JsonIgnore
+	private Map<Term, Set<Object>> usedTerms = new HashMap<Term, Set<Object>>();
 	
 	public Collection() { }
 	
@@ -34,7 +39,8 @@ public class Collection implements Serializable, Comparable<Collection> {
 	}
 	
 	public Collection(int id, String name, TaxonGroup taxonGroup, String secret, List<Term> terms, 
-			Map<Commentable, List<Comment>> comments, Map<Colorable, Color> colorizations, List<Color> colors) {
+			Map<Commentable, List<Comment>> comments, Map<Colorable, Color> colorizations, List<Color> colors, 
+			Map<Term, Set<Object>> usedTerms) {
 		super();
 		this.id = id;
 		this.name = name;
@@ -44,6 +50,7 @@ public class Collection implements Serializable, Comparable<Collection> {
 		this.comments = comments;
 		this.colorizations = colorizations;
 		this.colors = colors;
+		this.usedTerms = usedTerms;
 	}
 
 	public int getId() {
@@ -182,6 +189,26 @@ public class Collection implements Serializable, Comparable<Collection> {
 	
 	public boolean hasComments(Commentable commentable) {
 		return this.comments.get(commentable) != null && !comments.get(commentable).isEmpty();
+	}
+	
+	public Map<Term, Set<Object>> getUsedTerms() {
+		return usedTerms;
+	}
+	
+	public void addUsedTerm(Term term, Object usage) {
+		if(!usedTerms.containsKey(term))
+			usedTerms.put(term, new HashSet<Object>());
+		usedTerms.get(term).add(usage);
+	}
+	
+	public void removeUsedTerm(Term term, Object usage) {
+		usedTerms.get(term).remove(usage);
+		if(usedTerms.get(term).isEmpty())
+			usedTerms.remove(term);
+	}
+
+	public boolean isUsed(Term term) {
+		return usedTerms.containsKey(term) && !usedTerms.get(term).isEmpty();
 	}
 	
 }

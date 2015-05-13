@@ -13,6 +13,7 @@ public class OntologySynonymSubmission implements Serializable, Colorable, Comme
 		OntologySubmission, EntityQualityClass, Comparable<OntologySynonymSubmission> {
 	
 	private int id = -1;
+	private int collectionId;
 	private Term term;
 	private String submissionTerm = "";
 	private Ontology ontology;
@@ -27,10 +28,11 @@ public class OntologySynonymSubmission implements Serializable, Colorable, Comme
 
 	public OntologySynonymSubmission() { }
 	
-	public OntologySynonymSubmission(int id, Term term, String submissionTerm, Ontology ontology, 
+	public OntologySynonymSubmission(int id, int collectionId, Term term, String submissionTerm, Ontology ontology, 
 			String classIRI, List<String> synonyms, String source, String sampleSentence, boolean entity, boolean quality, 
 			String user, List<OntologySynonymSubmissionStatus> submissionStatuses) { 
 		this.id = id;
+		this.collectionId = collectionId;
 		this.term = term;
 		this.submissionTerm = submissionTerm == null ? "" : submissionTerm;
 		this.ontology = ontology;
@@ -44,8 +46,9 @@ public class OntologySynonymSubmission implements Serializable, Colorable, Comme
 		this.synonyms = synonyms;
 	}
 	
-	public OntologySynonymSubmission(Term term, String submissionTerm, Ontology ontology, 
+	public OntologySynonymSubmission(int collectionId, Term term, String submissionTerm, Ontology ontology, 
 			String classIRI, List<String> synonyms, String source, String sampleSentence, boolean entity, boolean quality, String user) { 
+		this.collectionId = collectionId;
 		this.term = term;
 		this.submissionTerm = submissionTerm == null ? "" : submissionTerm;
 		this.ontology = ontology;
@@ -58,6 +61,14 @@ public class OntologySynonymSubmission implements Serializable, Colorable, Comme
 		this.synonyms = synonyms;
 	}
 	
+	public int getCollectionId() {
+		return collectionId;
+	}
+
+	public void setCollectionId(int collectionId) {
+		this.collectionId = collectionId;
+	}
+
 	public boolean hasId() {
 		return id != -1;
 	}
@@ -210,6 +221,10 @@ public class OntologySynonymSubmission implements Serializable, Colorable, Comme
 	
 	public boolean hasOntology() {
 		return ontology != null;
+	}
+
+	public boolean hasTerm() {
+		return term != null;
 	}	
 		
 	

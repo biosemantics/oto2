@@ -184,7 +184,8 @@ public class SubmitBioportalSynonymView implements IsWidget {
 			Alerter.alertCantModify("ontology");
 			return false;
 		}
-		if(!selectedSubmission.getTerm().equals(termComboBox.getValue())) {
+		if((!selectedSubmission.hasTerm() && termComboBox.getValue() != null) || 
+			!selectedSubmission.getTerm().equals(termComboBox.getValue())) {
 			Alerter.alertCantModify("term");
 			return false;
 		}
@@ -250,7 +251,7 @@ public class SubmitBioportalSynonymView implements IsWidget {
 				if(validateForm()) {
 					final MessageBox box = Alerter.startLoading();
 					final OntologySynonymSubmission submission = getSynonymSubmission();
-					toOntologyService.createSynonymSubmission(submission, new AsyncCallback<OntologySynonymSubmission>() {
+					toOntologyService.createSynonymSubmission(collection, submission, new AsyncCallback<OntologySynonymSubmission>() {
 						@Override
 						public void onFailure(Throwable caught) {
 							Alerter.stopLoading(box);
@@ -285,7 +286,7 @@ public class SubmitBioportalSynonymView implements IsWidget {
 						@Override
 						public void onSuccess(Void result) {
 							eventBus.fireEvent(new RemoveOntologySynonymSubmissionsEvent(removeSubmissions));
-							toOntologyService.createSynonymSubmission(submission, new AsyncCallback<OntologySynonymSubmission>() {
+							toOntologyService.createSynonymSubmission(collection, submission, new AsyncCallback<OntologySynonymSubmission>() {
 								@Override
 								public void onFailure(Throwable caught) {
 									Alerter.stopLoading(box);
@@ -374,7 +375,7 @@ public class SubmitBioportalSynonymView implements IsWidget {
 	}
 
 	protected OntologySynonymSubmission getSynonymSubmission() {
-		return new OntologySynonymSubmission(termComboBox.getValue(), submissionTermField.getValue(), 
+		return new OntologySynonymSubmission(collection.getId(), termComboBox.getValue(), submissionTermField.getValue(), 
 				ontologyComboBox.getValue(), classIRIField.getValue(),
 				new LinkedList<String>(synonymsStore.getAll()),
 				sourceField.getValue(), sampleArea.getValue(), 

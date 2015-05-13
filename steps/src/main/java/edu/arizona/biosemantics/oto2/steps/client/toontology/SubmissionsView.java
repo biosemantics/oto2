@@ -21,6 +21,8 @@ import edu.arizona.biosemantics.oto2.steps.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.steps.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.OntologyClassSubmissionSelectEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.OntologySynonymSubmissionSelectEvent;
+import edu.arizona.biosemantics.oto2.steps.client.event.RefreshOntologyClassSubmissionsEvent;
+import edu.arizona.biosemantics.oto2.steps.client.event.RefreshOntologySynonymSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.RefreshSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.RemoveOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.RemoveOntologySynonymSubmissionsEvent;
@@ -138,6 +140,7 @@ public class SubmissionsView implements IsWidget {
 			}
 			@Override
 			public void onSuccess(List<OntologyClassSubmission> result) {
+				eventBus.fireEvent(new RefreshOntologyClassSubmissionsEvent(result));
 				classSubmissionStore.clear();
 				classSubmissionStore.addAll(result);
 				Alerter.stopLoading(loadingBox);
@@ -155,9 +158,10 @@ public class SubmissionsView implements IsWidget {
 			}
 			@Override
 			public void onSuccess(List<OntologySynonymSubmission> result) {
+				Alerter.stopLoading(loadingBox);
+				eventBus.fireEvent(new RefreshOntologySynonymSubmissionsEvent(result));
 				synonymSubmissionStore.clear();
 				synonymSubmissionStore.addAll(result);
-				Alerter.stopLoading(loadingBox);
 			}
 		});
 	}
