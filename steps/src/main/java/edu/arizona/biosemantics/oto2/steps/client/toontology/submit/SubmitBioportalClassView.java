@@ -10,6 +10,7 @@ import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.google.gwt.user.client.ui.HasWidgets;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
@@ -111,7 +112,8 @@ public class SubmitBioportalClassView implements IsWidget {
 		this.eventBus = eventBus;
 		
 	    ontologyComboBox = new ComboBox<Ontology>(ontologiesStore, ontologyProperties.prefixLabel());
-	    ontologyComboBox.setAllowBlank(true);
+	    ontologyComboBox.setAllowBlank(false);
+	    ontologyComboBox.setAutoValidate(true);
 	    ontologyComboBox.setForceSelection(false);
 	    ontologyComboBox.setTriggerAction(TriggerAction.ALL);
 
@@ -182,6 +184,7 @@ public class SubmitBioportalClassView implements IsWidget {
 		bindEvents();		
 	}
 	
+	
 	private boolean validateForm() {
 		boolean validateValues = true;
 		Iterator<Widget> iterator = formContainer.iterator();
@@ -189,16 +192,30 @@ public class SubmitBioportalClassView implements IsWidget {
 			Widget widget = iterator.next();
 			if(widget instanceof FieldLabel) {
 				FieldLabel fieldLabel = (FieldLabel)widget;
-				Widget field = fieldLabel.getWidget();
-				if(field instanceof Field) {
-					Field f = (Field)field;
-					boolean result = f.validate();
-					if(!result)
-						validateValues = false;
-				}
+				Widget fieldWidget = fieldLabel.getWidget();
+				boolean result = validate(fieldWidget);
+				if(!result)
+					return false;
 			}
 		}
 		return validateValues;
+	}
+	
+	private boolean validate(Widget widget) {
+		if(widget instanceof Field) {
+			Field field = (Field)widget;
+			boolean result = field.validate();
+			if(!result)
+				return false;
+		}
+		if(widget instanceof HasWidgets) {
+			HasWidgets hasWidgets = (HasWidgets)widget;
+			Iterator<Widget> it = hasWidgets.iterator();
+			while(it.hasNext()) {
+				return validate(it.next());
+			}
+		}
+		return true;
 	}
 	
 	private boolean validateEdit() {
