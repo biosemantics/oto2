@@ -4,15 +4,15 @@
   stroke-width: 1.5px;
 }
 
-#licensing {
+#partof {
   fill: green;
 }
 
-.link.licensing {
+.link.partof {
   stroke: green;
 }
 
-.link.resolved {
+.link.synonym {
   stroke-dasharray: 0,2 1;
 }
 

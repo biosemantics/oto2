@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -243,9 +244,6 @@ public class OntologyFileDAO {
 		if(submission.hasClassIRI()) {
 			try {
 				OWLOntology ontology = owlOntologyManager.getOntology(createOntologyIRI(submission));
-				System.out.println(containsOwlClass(ontology, 
-						owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(
-						"http://purl.obolibrary.org/obo/CARO_0001001"))));
 				newOwlClass = addModuleOfClass(collection, submission, submission);
 			} catch (OWLOntologyCreationException | OWLOntologyStorageException	| OntologyNotFoundException e) {
 				throw new OntologyFileException(e);
@@ -294,7 +292,27 @@ public class OntologyFileDAO {
 		this.insertClassSubmission(submission);
 	}
 	
-	public void removeClassSubmission(OntologyClassSubmission submission) throws OntologyFileException {
+	private void removeClassSubmission(OntologyClassSubmission submission) throws OntologyFileException {
+		OWLClass owlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(submission.getClassIRI()));
+		OWLOntology owlOntology = owlOntologyManager.getOntology(createOntologyIRI(submission));
+		
+		Set<OWLAxiom> axiomsToRemove = new HashSet<OWLAxiom>();
+        for (OWLAxiom axiom : owlOntology.getAxioms())
+            if (axiom.getSignature().contains(owlClass)) 
+                axiomsToRemove.add(axiom);
+        
+		owlOntologyManager.removeAxioms(owlOntology, axiomsToRemove);
+		createClassIRI(submission);
+		
+		try {
+			owlOntologyManager.saveOntology(owlOntology, getLocalOntologyIRI(submission.getOntology()));
+		} catch (OWLOntologyStorageException e) {
+			log(LogLevel.ERROR, "Couldn't save ontology", e);
+			throw new OntologyFileException(e);
+		}
+	}
+
+	public void depcreceateClassSubmission(OntologyClassSubmission submission) throws OntologyFileException {
 		OWLOntology owlOntology = owlOntologyManager.getOntology(createOntologyIRI(submission));
 		this.setDepreceated(createClassIRI(submission), owlOntology);
 		try {

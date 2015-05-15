@@ -55,6 +55,8 @@ function force_directed_graph(div, nodes, links) {
 
 	var node = gnodes.append("circle").attr("class", "node").attr("r", 20)
 			.style("fill", function(d) {
+				//alert(d.group);
+				//alert(color(d.group));
 				return color(d.group);
 			}).call(force.drag);
 
@@ -79,14 +81,19 @@ function force_directed_graph(div, nodes, links) {
 
 
 function force_directed_graph2(div, nodes, links) {
+	//alert(JSON.stringify(nodes, null, 2));
+	//alert(JSON.stringify(links, null, 2));
+	
 	// Compute the distinct nodes from the links.
 	links.forEach(function(link) {
 	  link.source = nodes[link.source] || (nodes[link.source] = {name: link.source});
 	  link.target = nodes[link.target] || (nodes[link.target] = {name: link.target});
 	});
+	
+	var color = d3.scale.category20();
 
-	var width = 200,
-	   height = 200;
+	var width = 400,
+	   height = 300;
 
 	var force = d3.layout.force()
 	    .nodes(d3.values(nodes))
@@ -103,7 +110,7 @@ function force_directed_graph2(div, nodes, links) {
 
 	// Per-type markers, as they don't inherit styles.
 	svg.append("defs").selectAll("marker")
-	    .data(["suit", "licensing", "resolved"])
+	    .data(["superclass", "partof", "synonym"])
 	  .enter().append("marker")
 	    .attr("id", function(d) { return d; })
 	    .attr("viewBox", "0 -5 10 10")
@@ -125,6 +132,9 @@ function force_directed_graph2(div, nodes, links) {
 	    .data(force.nodes())
 	  .enter().append("circle")
 	    .attr("r", 6)
+	    .style("fill", function(d) {
+	    	return color(d.group);
+	    })
 	    .call(force.drag);
 
 	var text = svg.append("g").selectAll("text")
