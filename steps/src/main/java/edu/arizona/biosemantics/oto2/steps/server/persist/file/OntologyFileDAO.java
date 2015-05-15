@@ -39,9 +39,9 @@ import edu.arizona.biosemantics.oto2.steps.server.persist.db.OntologyDAO;
 import edu.arizona.biosemantics.oto2.steps.server.persist.db.Query.QueryException;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Ontology;
-import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.EntityQualityClass;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySubmission;
+import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySubmission.Type;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynonymSubmission;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.Synonym;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.ClassExistsException;
@@ -305,12 +305,12 @@ public class OntologyFileDAO {
 		}
 	}
 	
-	private OWLClass addModuleOfClass(Collection collection, OntologySubmission submission, EntityQualityClass isEntityQuality) throws OWLOntologyCreationException, OWLOntologyStorageException, OntologyNotFoundException {
-		OWLClass newOwlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(isEntityQuality.getClassIRI()));
+	private OWLClass addModuleOfClass(Collection collection, OntologySubmission submission, OntologySubmission ontologySubmission) throws OWLOntologyCreationException, OWLOntologyStorageException, OntologyNotFoundException {
+		OWLClass newOwlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(ontologySubmission.getClassIRI()));
 		OWLOntology targetOwlOntology = owlOntologyManager.getOntology(createOntologyIRI(submission));
 		OWLOntology moduleOwlOntology = moduleCreator.createModuleFromOwlClass(collection, submission, newOwlClass);
 		//make all added class subclass of quality/entity
-		if (isEntityQuality.isEntity()) {
+		if (ontologySubmission.getType().equals(Type.ENTITY)) {
 			if (ontologyReasoner.isSubclass(targetOwlOntology, newOwlClass, entityClass)) {
 				//result.setMessage(result.getMessage()
 				//		+ " Can not add the quality term '" + newTerm
@@ -321,7 +321,7 @@ public class OntologyFileDAO {
 				}
 			}
 		}
-		if (isEntityQuality.isQuality()) {
+		if (ontologySubmission.getType().equals(Type.QUALITY)) {
 			if (ontologyReasoner.isSubclass(targetOwlOntology, newOwlClass, qualityClass)) {
 				//result.setMessage(result.getMessage()
 				//		+ " Can not add the entity term '" + newTerm

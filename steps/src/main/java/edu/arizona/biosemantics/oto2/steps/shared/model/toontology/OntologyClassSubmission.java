@@ -10,7 +10,7 @@ import edu.arizona.biosemantics.oto2.steps.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Term;
 
 public class OntologyClassSubmission implements Serializable, Colorable, Commentable, 
-		EntityQualityClass, OntologySubmission, Comparable<OntologyClassSubmission> {
+		OntologySubmission, Comparable<OntologyClassSubmission> {
 	
 	private int id = -1;
 	private int collectionId;
@@ -24,8 +24,7 @@ public class OntologyClassSubmission implements Serializable, Colorable, Comment
 	private String source = "";
 	private String sampleSentence = "";
 	private List<String> partOfIRIs = new LinkedList<String>();
-	private boolean entity;
-	private boolean quality;
+	private Type type;
 	private String user;
 	private List<OntologyClassSubmissionStatus> submissionStatuses = new LinkedList<OntologyClassSubmissionStatus>();
 	
@@ -33,7 +32,7 @@ public class OntologyClassSubmission implements Serializable, Colorable, Comment
 	
 	public OntologyClassSubmission(int id, int collectionId, Term term, String submissionTerm, Ontology ontology, String classIRI,
 			List<String> superclassIRIs, String definition, List<String> synonyms, String source, String sampleSentence, 
-			List<String> partOfIRIs, boolean entity, boolean quality, String user, List<OntologyClassSubmissionStatus> submissionStatuses) { 
+			List<String> partOfIRIs, Type type, String user, List<OntologyClassSubmissionStatus> submissionStatuses) { 
 		this.id = id;
 		this.collectionId = collectionId;
 		this.term = term;
@@ -46,15 +45,14 @@ public class OntologyClassSubmission implements Serializable, Colorable, Comment
 		this.source = source == null ? "" : source;
 		this.sampleSentence = sampleSentence == null ? "" : sampleSentence;
 		this.partOfIRIs = partOfIRIs;
-		this.entity = entity;
-		this.quality = quality;
+		this.type = type;
 		this.user = user;
 		this.submissionStatuses = submissionStatuses;
 	}
 	
 	public OntologyClassSubmission(int collectionId, Term term, String submissionTerm, Ontology ontology, String classIRI,
 			List<String> superclassIRIs, String definition, List<String> synonyms, String source, String sampleSentence, 
-			List<String> partOfIRIs, boolean entity, boolean quality, String user) { 
+			List<String> partOfIRIs, Type type, String user) { 
 		this.collectionId = collectionId;
 		this.term = term;
 		this.submissionTerm = submissionTerm == null ? "" : submissionTerm;
@@ -66,8 +64,7 @@ public class OntologyClassSubmission implements Serializable, Colorable, Comment
 		this.source = source == null ? "" : source;
 		this.sampleSentence = sampleSentence == null ? "" : sampleSentence;
 		this.partOfIRIs = partOfIRIs;
-		this.entity = entity;
-		this.quality = quality;
+		this.type = type;
 		this.user = user;
 	}
 
@@ -131,20 +128,12 @@ public class OntologyClassSubmission implements Serializable, Colorable, Comment
 		this.sampleSentence = sampleSentence;
 	}
 
-	public boolean isEntity() {
-		return entity;
+	public Type getType() {
+		return type;
 	}
 
-	public void setEntity(boolean entity) {
-		this.entity = entity;
-	}
-
-	public boolean isQuality() {
-		return quality;
-	}
-
-	public void setQuality(boolean quality) {
-		this.quality = quality;
+	public void setType(Type type) {
+		this.type = type;
 	}
 
 	public List<OntologyClassSubmissionStatus> getSubmissionStatuses() {

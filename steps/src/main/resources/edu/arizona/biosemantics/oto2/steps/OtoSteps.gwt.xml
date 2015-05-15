@@ -22,6 +22,7 @@
  <!-- <inherits name='com.sencha.gxt.theme.gray.Gray' /> -->
  <inherits name='edu.arizona.biosemantics.common.log.Log'/>
  <inherits name='edu.arizona.biosemantics.common.biology.Biology'/>
+ <inherits name='com.github.gwtd3.D3' />
 
   <!-- Specify the app entry point class.                         -->
   <entry-point class='edu.arizona.biosemantics.oto2.steps.client.OtoSteps'/>

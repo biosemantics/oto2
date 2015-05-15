@@ -9,6 +9,7 @@ import com.sencha.gxt.data.shared.PropertyAccess;
 
 import edu.arizona.biosemantics.oto2.steps.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Term;
+import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySubmission.Type;
 
 public interface OntologyClassSubmissionProperties extends PropertyAccess<OntologyClassSubmission> {
 
@@ -42,5 +43,7 @@ public interface OntologyClassSubmissionProperties extends PropertyAccess<Ontolo
 	  ValueProvider<OntologyClassSubmission, List<OntologyClassSubmissionStatus>> submissionStatuses();
 
 	  ValueProvider<OntologyClassSubmission, String> classIRI();
+
+	  ValueProvider<OntologyClassSubmission, Type> type();
 	
 }

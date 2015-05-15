@@ -43,10 +43,12 @@ import com.sencha.gxt.widget.core.client.form.TextField;
 import edu.arizona.biosemantics.oto2.steps.client.OtoSteps;
 import edu.arizona.biosemantics.oto2.steps.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.steps.client.common.CreateOntologyDialog;
+import edu.arizona.biosemantics.oto2.steps.client.event.CreateOntologyEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.OntologyClassSubmissionSelectEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.CreateOntologyClassSubmissionEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.RemoveOntologyClassSubmissionsEvent;
+import edu.arizona.biosemantics.oto2.steps.client.event.SelectOntologyEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.SelectPartOfEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.SelectSampleEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.SelectSourceEvent;
@@ -63,6 +65,7 @@ import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.PartOfPropert
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.SuperclassProperties;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.Synonym;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.SynonymProperties;
+import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySubmission.Type;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.ClassExistsException;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.IToOntologyService;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.IToOntologyServiceAsync;
@@ -165,8 +168,6 @@ public class SubmitLocalClassView implements IsWidget {
 	    ontologyVlc.add(ontologyComboBox, new VerticalLayoutData(1, -1));
 	    //ontologyVlc.add(browseOntologiesButton, new VerticalLayoutData(1, -1));
 	    formContainer.add(new FieldLabel(ontologyVlc, "Ontology *"), new VerticalLayoutData(1, -1));
-	    ontologyComboBox.setAllowBlank(false);
-	    ontologyComboBox.setAutoValidate(true);
 	    formContainer.add(new FieldLabel(classIRIField, "Class IRI"), new VerticalLayoutData(1, -1));
 	    
 	    isEntityRadio.setBoxLabel("Is Entity");
@@ -271,11 +272,11 @@ public class SubmitLocalClassView implements IsWidget {
 			Alerter.alertCantModify("submission term");
 			return false;
 		}
-		if(selectedSubmission.isEntity() != isEntityRadio.getValue()) {
+		if(selectedSubmission.getType().equals(Type.ENTITY) && !isEntityRadio.getValue()) {
 			Alerter.alertCantModify("is entity");
 			return false;
 		}
-		if(selectedSubmission.isQuality() != isQualityRadio.getValue()) {
+		if(selectedSubmission.getType().equals(Type.QUALITY) && !isQualityRadio.getValue()) {
 			Alerter.alertCantModify("is quality");
 			return false;
 		}
@@ -398,6 +399,7 @@ public class SubmitLocalClassView implements IsWidget {
 							}
 							@Override
 							public void onSuccess(Ontology result) {
+								eventBus.fireEvent(new CreateOntologyEvent(result));
 								Alerter.succesfulCreatedOntology();
 								refreshOntologies(result);
 								Alerter.stopLoading(box);
@@ -603,6 +605,13 @@ public class SubmitLocalClassView implements IsWidget {
 				partOfStore.clear();
 			}
 		});
+		
+		ontologyComboBox.addValueChangeHandler(new ValueChangeHandler<Ontology>() {
+			@Override
+			public void onValueChange(ValueChangeEvent<Ontology> event) {
+				eventBus.fireEvent(new SelectOntologyEvent(event.getValue()));
+			}
+		});
 	}
 
 	protected void setTerm(Term term) {
@@ -650,19 +659,19 @@ public class SubmitLocalClassView implements IsWidget {
 		this.sampleArea.setValue(ontologyClassSubmission.getSampleSentence());
 		this.partOfStore.clear();
 		this.partOfStore.addAll(ontologyClassSubmission.getPartOfIRIs());
-		this.isEntityRadio.setValue(ontologyClassSubmission.isEntity());
-		this.isQualityRadio.setValue(ontologyClassSubmission.isQuality());
+		this.isEntityRadio.setValue(ontologyClassSubmission.getType().equals(Type.ENTITY));
+		this.isQualityRadio.setValue(ontologyClassSubmission.getType().equals(Type.QUALITY));
 	}
 	
 	protected OntologyClassSubmission getClassSubmission() {
 		LinkedList<String> partOfs = new LinkedList<String>(partOfStore.getAll());
 		if(isQualityRadio.getValue()) 
 			partOfs = new LinkedList<String>();
+		Type type = isEntityRadio.getValue() ? Type.ENTITY : Type.QUALITY;
 		return new OntologyClassSubmission(collection.getId(), termComboBox.getValue(), submissionTermField.getValue(), 
 				ontologyComboBox.getValue(), classIRIField.getValue(), new LinkedList<String>(superclassStore.getAll()),
 				definitionArea.getValue(), new LinkedList<String>(synonymsStore.getAll()), sourceField.getValue(), 
-				sampleArea.getValue(), partOfs, isEntityRadio.getValue(), 
-				isQualityRadio.getValue(), OtoSteps.user);
+				sampleArea.getValue(), partOfs, type, OtoSteps.user);
 	}
 
 	protected void initCollection() {
@@ -676,7 +685,7 @@ public class SubmitLocalClassView implements IsWidget {
 	}
 
 	private void refreshOntologies(final Ontology ontologyToSelect) {
-		toOntologyService.getOntologies(collection, new AsyncCallback<List<Ontology>>() {
+		toOntologyService.getLocalOntologies(collection, new AsyncCallback<List<Ontology>>() {
 			@Override
 			public void onFailure(Throwable caught) {
 				Alerter.getOntologiesFailed(caught);

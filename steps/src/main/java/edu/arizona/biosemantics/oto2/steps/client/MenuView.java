@@ -25,6 +25,7 @@ import edu.arizona.biosemantics.oto2.steps.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.steps.client.common.ColorSettingsDialog;
 import edu.arizona.biosemantics.oto2.steps.client.common.ColorsDialog;
 import edu.arizona.biosemantics.oto2.steps.client.common.CommentsDialog;
+import edu.arizona.biosemantics.oto2.steps.client.event.CreateOntologyEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.DownloadEvent;
 import edu.arizona.biosemantics.oto2.steps.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
@@ -38,6 +39,7 @@ public class MenuView extends MenuBar {
 	private Collection collection;
 	private IToOntologyServiceAsync toOntologyService = GWT.create(IToOntologyService.class);
 	private List<Ontology> permanentOntologies = new LinkedList<Ontology>();
+	private List<Ontology> localOntologies = new LinkedList<Ontology>();
 
 	public MenuView(EventBus eventBus) {
 		this.eventBus = eventBus;
@@ -63,6 +65,22 @@ public class MenuView extends MenuBar {
 						permanentOntologies = result;
 					}
 				});
+				toOntologyService.getLocalOntologies(collection, new AsyncCallback<List<Ontology>>() {
+					@Override
+					public void onFailure(Throwable caught) {
+						
+					}
+					@Override
+					public void onSuccess(List<Ontology> result) {
+						localOntologies = result;
+					}
+				});
+			}
+		});
+		eventBus.addHandler(CreateOntologyEvent.TYPE, new CreateOntologyEvent.Handler() {
+			@Override
+			public void onCreate(CreateOntologyEvent event) {
+				localOntologies.add(event.getOntology());
 			}
 		});
 	}
@@ -140,9 +158,32 @@ public class MenuView extends MenuBar {
 		return questionsItem;
 	}
 
-	private Widget createViewItem() {
-		return null;
-	}
+	/*private Widget createViewItem() {
+		Menu sub = new Menu();
+		MenuItem viewOntologies = new MenuItem("Ontologies");
+		sub.add(viewOntologies);
+		final Menu viewOntologiesSub = new Menu();
+		viewOntologies.setSubMenu(viewOntologiesSub);
+		
+		viewOntologiesSub.addBeforeShowHandler(new BeforeShowHandler() {
+			@Override
+			public void onBeforeShow(BeforeShowEvent event) {
+				viewOntologiesSub.clear();
+				for(final Ontology ontology : permanentOntologies) {
+					MenuItem ontologyItem = new MenuItem(ontology.getAcronym());
+					ontologyItem.addSelectionHandler(new SelectionHandler<Item>() {
+						@Override
+						public void onSelection(SelectionEvent<Item> event) {
+							
+						}
+					});
+					viewOntologiesSub.add(ontologyItem);
+				}
+			}
+		});
+		MenuBarItem item = new MenuBarItem("View", sub);
+		return item;
+	}*/
 
 	private Widget createAnnotationsItem() {
 		Menu sub = new Menu();

@@ -25,6 +25,7 @@ import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 import edu.arizona.biosemantics.oto2.steps.client.OtoSteps;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmission;
+import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySubmission.Type;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.PartOf;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.Superclass;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.Synonym;
@@ -97,11 +98,11 @@ public class AxiomManager  {
 		boolean extractedSuperclassModule = submission.hasClassIRI();
 		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(submission.getOntology().getIri()));
 		
-		if(submission.isQuality()) {
+		if(submission.getType().equals(Type.QUALITY)) {
 			OWLAxiom subclassAxiom = owlOntologyManager.getOWLDataFactory().getOWLSubClassOfAxiom(owlClass, qualityClass);
 			owlOntologyManager.addAxiom(owlOntology, subclassAxiom);  
 		}
-		if(submission.isEntity()) {
+		if(submission.getType().equals(Type.ENTITY)) {
 			OWLAxiom subclassAxiom = owlOntologyManager.getOWLDataFactory().getOWLSubClassOfAxiom(owlClass, entityClass);
 			owlOntologyManager.addAxiom(owlOntology, subclassAxiom);  
 		}
@@ -126,7 +127,7 @@ public class AxiomManager  {
 				introducedClasses.addAll(moduleOntology.getClassesInSignature());
 				
 				//make all added class subclass of quality/entity
-				if(submission.isQuality()) {
+				if(submission.getType().equals(Type.QUALITY)) {
 					if(ontologyReasoner.isSubclass(owlOntology, superOwlClass, entityClass)) {
 						throw new OntologyFileException("Can not add the quality term '" + submission.getSubmissionTerm() + 
 								"' as a child to entity term '" + superclass + "'.");
@@ -140,7 +141,7 @@ public class AxiomManager  {
 					}
 				}
 				
-				if(submission.isEntity()) {
+				if(submission.getType().equals(Type.ENTITY)) {
 					if(ontologyReasoner.isSubclass(owlOntology, superOwlClass, qualityClass)) {
 						throw new OntologyFileException("Can not add the entity term '" + submission.getSubmissionTerm() + 
 								"' as a child to quality term '" + superclass + "'.");
@@ -195,9 +196,9 @@ public class AxiomManager  {
 		
 		//add part_of restrictions
 		if(submission.hasPartOfIRI()) {
-			if(submission.isQuality()) {
+			if(submission.getType().equals(Type.QUALITY)) {
 				//result.setMessage(result.getMessage()+" Part Of terms are not allowed for quality terms.");
-			} else {				
+			} else {
 				//subclasses of Entity
 				for(String partOf : submission.getPartOfIRIs()) {
 					//IRIs or terms

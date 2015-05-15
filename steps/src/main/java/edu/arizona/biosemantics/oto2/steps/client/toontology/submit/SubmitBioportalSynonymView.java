@@ -396,7 +396,7 @@ public class SubmitBioportalSynonymView implements IsWidget {
 				ontologyComboBox.getValue(), classIRIField.getValue(),
 				new LinkedList<String>(synonymsStore.getAll()),
 				sourceField.getValue(), sampleArea.getValue(), 
-				false, false, OtoSteps.user);
+				null, OtoSteps.user);
 	}
 
 	protected void initCollection() {

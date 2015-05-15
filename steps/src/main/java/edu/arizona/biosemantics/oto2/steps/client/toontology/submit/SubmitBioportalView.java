@@ -21,8 +21,8 @@ public class SubmitBioportalView implements IsWidget {
 
 	public SubmitBioportalView(EventBus eventBus) {
 		this.eventBus = eventBus;
-		tabPanel = new TabPanel(GWT.<TabPanelAppearance> create(TabPanelBottomAppearance.class));
-		//tabPanel = new TabPanel();
+		//tabPanel = new TabPanel(GWT.<TabPanelAppearance> create(TabPanelBottomAppearance.class));
+		tabPanel = new TabPanel();
 		
 		submitBioportalClassView = new SubmitBioportalClassView(eventBus);
 		submitBioportalSynonymView = new SubmitBioportalSynonymView(eventBus);

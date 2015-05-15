@@ -58,6 +58,7 @@ import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClass
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmissionProperties;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmissionStatus;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmissionStatusProperties;
+import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySubmission.Type;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynonymSubmission;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.PartOf;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.Superclass;
@@ -453,9 +454,14 @@ public class ClassSubmissionsGrid implements IsWidget {
 					
 				}, 200, "Part Of");
 		partOfCol.setCell(colorableCell);
-		final ColumnConfig<OntologyClassSubmission, Boolean> entityCol = new ColumnConfig<OntologyClassSubmission, Boolean>(
+		
+		final ColumnConfig<OntologyClassSubmission, Type> typeCol = new ColumnConfig<OntologyClassSubmission, Type>(
+				ontologyClassSubmissionProperties.type(), 200, "Type");
+		
+		/*final ColumnConfig<OntologyClassSubmission, Boolean> entityCol = new ColumnConfig<OntologyClassSubmission, Boolean>(
 				ontologyClassSubmissionProperties.entity(), 200, "Entity");
 		ColorableCheckBoxCell colorableCheckBoxCell = new ColorableCheckBoxCell(eventBus, collection);
+		colorableCheckBoxCell.disable(null);
 		colorableCheckBoxCell.setCommentColorizableObjectsStore((ListStore)classSubmissionStore, new CommentableColorableProvider() {
 			@Override
 			public Colorable provideColorable(Object source) {
@@ -469,7 +475,9 @@ public class ClassSubmissionsGrid implements IsWidget {
 		entityCol.setCell(colorableCheckBoxCell);
 		final ColumnConfig<OntologyClassSubmission, Boolean> qualityCol = new ColumnConfig<OntologyClassSubmission, Boolean>(
 				ontologyClassSubmissionProperties.quality(), 200, "Quality");
-		qualityCol.setCell(colorableCheckBoxCell);
+		qualityCol.setCell(colorableCheckBoxCell);*/
+		
+		
 		final ColumnConfig<OntologyClassSubmission, String> statusCol = new ColumnConfig<OntologyClassSubmission, String>(
 				new ValueProvider<OntologyClassSubmission, String>() {
 					@Override
@@ -611,8 +619,9 @@ public class ClassSubmissionsGrid implements IsWidget {
 		//superClassCol.setHidden(true);
 		columns.add(partOfCol);
 		//partOfCol.setHidden(true);
-		columns.add(entityCol);
-		columns.add(qualityCol);
+		//columns.add(entityCol);
+		//columns.add(qualityCol);
+		columns.add(typeCol);
 		columns.add(definitionCol);
 		definitionCol.setHidden(true);
 		columns.add(sampleCol);

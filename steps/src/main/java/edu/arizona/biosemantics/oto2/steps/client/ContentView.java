@@ -9,6 +9,7 @@ import com.sencha.gxt.widget.core.client.container.BorderLayoutContainer;
 
 import edu.arizona.biosemantics.oto2.steps.client.hierarchy.HierarchyView;
 import edu.arizona.biosemantics.oto2.steps.client.info.TermInfoView;
+import edu.arizona.biosemantics.oto2.steps.client.ontologyview.OntologyView;
 import edu.arizona.biosemantics.oto2.steps.client.order.OrderView;
 import edu.arizona.biosemantics.oto2.steps.client.toontology.ToOntologyView;
 
@@ -41,6 +42,9 @@ public class ContentView extends BorderLayoutContainer {
 		TabItemConfig orderConfig = new TabItemConfig("Orders");
 		orderConfig.setEnabled(false);
 		tabPanel.add(new OrderView(eventBus), orderConfig);*/
+		TabItemConfig ontologyViewConfig = new TabItemConfig("Ontology View");
+		ontologyViewConfig.setEnabled(true);
+		tabPanel.add(new OntologyView(eventBus), ontologyViewConfig);
 	
 		this.setWidget(tabPanel);
 		

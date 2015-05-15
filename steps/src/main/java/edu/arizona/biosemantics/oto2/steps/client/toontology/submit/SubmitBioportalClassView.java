@@ -500,7 +500,7 @@ public class SubmitBioportalClassView implements IsWidget {
 		return new OntologyClassSubmission(collection.getId(), termComboBox.getValue(), submissionTermField.getValue(), 
 				ontologyComboBox.getValue(), "", new LinkedList<String>(superclassStore.getAll()),
 				definitionArea.getValue(), new LinkedList<String>(synonymsStore.getAll()), sourceField.getValue(), 
-				sampleArea.getValue(), new LinkedList<String>(), false, false, OtoSteps.user);
+				sampleArea.getValue(), new LinkedList<String>(), null, OtoSteps.user);
 	}
 
 	protected void initCollection() {

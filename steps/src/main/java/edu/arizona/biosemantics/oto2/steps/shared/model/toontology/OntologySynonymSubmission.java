@@ -10,7 +10,7 @@ import edu.arizona.biosemantics.oto2.steps.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Term;
 
 public class OntologySynonymSubmission implements Serializable, Colorable, Commentable, 
-		OntologySubmission, EntityQualityClass, Comparable<OntologySynonymSubmission> {
+		OntologySubmission, Comparable<OntologySynonymSubmission> {
 	
 	private int id = -1;
 	private int collectionId;
@@ -21,15 +21,14 @@ public class OntologySynonymSubmission implements Serializable, Colorable, Comme
 	private List<String> synonyms = new LinkedList<String>(); 
 	private String source = "";
 	private String sampleSentence = "";
-	private boolean entity;
-	private boolean quality;
+	private Type type;
 	private String user;
 	private List<OntologySynonymSubmissionStatus> submissionStatuses = new LinkedList<OntologySynonymSubmissionStatus>();
 
 	public OntologySynonymSubmission() { }
 	
 	public OntologySynonymSubmission(int id, int collectionId, Term term, String submissionTerm, Ontology ontology, 
-			String classIRI, List<String> synonyms, String source, String sampleSentence, boolean entity, boolean quality, 
+			String classIRI, List<String> synonyms, String source, String sampleSentence, Type type, 
 			String user, List<OntologySynonymSubmissionStatus> submissionStatuses) { 
 		this.id = id;
 		this.collectionId = collectionId;
@@ -39,15 +38,14 @@ public class OntologySynonymSubmission implements Serializable, Colorable, Comme
 		this.classIRI = classIRI == null ? "" : classIRI;
 		this.source = source == null ? "" : source;
 		this.sampleSentence = sampleSentence == null ? "" : sampleSentence;
-		this.entity = entity;
-		this.quality = quality;
+		this.type = type;
 		this.user = user;
 		this.submissionStatuses = submissionStatuses;
 		this.synonyms = synonyms;
 	}
 	
 	public OntologySynonymSubmission(int collectionId, Term term, String submissionTerm, Ontology ontology, 
-			String classIRI, List<String> synonyms, String source, String sampleSentence, boolean entity, boolean quality, String user) { 
+			String classIRI, List<String> synonyms, String source, String sampleSentence, Type type, String user) { 
 		this.collectionId = collectionId;
 		this.term = term;
 		this.submissionTerm = submissionTerm == null ? "" : submissionTerm;
@@ -55,8 +53,7 @@ public class OntologySynonymSubmission implements Serializable, Colorable, Comme
 		this.classIRI = classIRI == null ? "" : classIRI;
 		this.source = source == null ? "" : source;
 		this.sampleSentence = sampleSentence == null ? "" : sampleSentence;
-		this.entity = entity;
-		this.quality = quality;
+		this.type = type;
 		this.user = user;
 		this.synonyms = synonyms;
 	}
@@ -153,11 +150,6 @@ public class OntologySynonymSubmission implements Serializable, Colorable, Comme
 	public boolean hasClassIRI() {
 		return this.classIRI != null && !this.getClassIRI().trim().isEmpty();
 	}
-
-	@Override
-	public boolean isEntity() {
-		return this.entity;
-	}
 		
 	public List<String> getSynonyms() {
 		return synonyms;
@@ -171,17 +163,12 @@ public class OntologySynonymSubmission implements Serializable, Colorable, Comme
 		this.synonyms.clear();
 	}
 	
-	@Override
-	public boolean isQuality() {
-		return this.quality;
+	public Type getType() {
+		return type;
 	}
 
-	public void setEntity(boolean entity) {
-		this.entity = entity;
-	}
-
-	public void setQuality(boolean quality) {
-		this.quality = quality;
+	public void setType(Type type) {
+		this.type = type;
 	}
 
 	@Override

@@ -60,6 +60,7 @@ import edu.arizona.biosemantics.oto2.steps.shared.model.Term;
 import edu.arizona.biosemantics.oto2.steps.shared.model.TermProperties;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySynonymSubmission;
+import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySubmission.Type;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.ClassExistsException;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.IToOntologyService;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.IToOntologyServiceAsync;
@@ -222,11 +223,11 @@ public class SubmitLocalSynonymView implements IsWidget {
 			Alerter.alertCantModify("submission term");
 			return false;
 		}
-		if(selectedSubmission.isEntity() != isEntityRadio.getValue()) {
+		if(selectedSubmission.getType().equals(Type.ENTITY) && !isEntityRadio.getValue()) {
 			Alerter.alertCantModify("is entity");
 			return false;
 		}
-		if(selectedSubmission.isQuality() != isQualityRadio.getValue()) {
+		if(selectedSubmission.getType().equals(Type.QUALITY) && !isQualityRadio.getValue()) {
 			Alerter.alertCantModify("is quality");
 			return false;
 		}
@@ -497,16 +498,17 @@ public class SubmitLocalSynonymView implements IsWidget {
 		this.synonymsStore.addAll(ontologySynonymSubmission.getSynonyms());
 		this.sourceField.setValue(ontologySynonymSubmission.getSource());
 		this.sampleArea.setValue(ontologySynonymSubmission.getSampleSentence());
-		this.isEntityRadio.setValue(ontologySynonymSubmission.isEntity());
-		this.isQualityRadio.setValue(ontologySynonymSubmission.isQuality());
+		this.isEntityRadio.setValue(ontologySynonymSubmission.getType().equals(Type.ENTITY));
+		this.isQualityRadio.setValue(ontologySynonymSubmission.getType().equals(Type.QUALITY));
 	}
 
 	protected OntologySynonymSubmission getSynonymSubmission() {
+		Type type = isEntityRadio.getValue() ? Type.ENTITY : Type.QUALITY;
 		return new OntologySynonymSubmission(collection.getId(), termComboBox.getValue(), submissionTermField.getValue(), 
 				ontologyComboBox.getValue(), classIRICheckBox.getValue(),
 				new LinkedList<String>(synonymsStore.getAll()),
 				sourceField.getValue(), sampleArea.getValue(), 
-				isEntityRadio.getValue(), isQualityRadio.getValue(), OtoSteps.user);
+				type, OtoSteps.user);
 	}
 
 	protected void initCollection() {
@@ -520,7 +522,7 @@ public class SubmitLocalSynonymView implements IsWidget {
 	}
 
 	private void refreshOntologies(final Ontology ontologyToSelect) {
-		toOntologyService.getOntologies(collection, new AsyncCallback<List<Ontology>>() {
+		toOntologyService.getLocalOntologies(collection, new AsyncCallback<List<Ontology>>() {
 			@Override
 			public void onFailure(Throwable caught) {
 				Alerter.getOntologiesFailed(caught);
