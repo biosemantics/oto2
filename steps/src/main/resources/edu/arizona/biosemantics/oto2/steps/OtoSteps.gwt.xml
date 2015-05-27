@@ -5,7 +5,7 @@
 -->
 <!DOCTYPE module PUBLIC "-//Google Inc.//DTD Google Web Toolkit 2.6.0//EN"
   "http://google-web-toolkit.googlecode.com/svn/tags/2.6.0/distro-source/core/src/gwt-module.dtd">
-<module rename-to='steps'>
+<module rename-to='ontologize'>
   <!-- Inherit the core Web Toolkit stuff.                        -->
   <inherits name='com.google.gwt.user.User'/>
 
@@ -25,7 +25,7 @@
  <inherits name='com.github.gwtd3.D3' />
 
   <!-- Specify the app entry point class.                         -->
-  <entry-point class='edu.arizona.biosemantics.oto2.steps.client.OtoSteps'/>
+  <entry-point class='edu.arizona.biosemantics.oto2.ontologize.client.StandAlone'/>
 
   <!-- Specify the paths for translatable code                    -->
   <source path='client'/>

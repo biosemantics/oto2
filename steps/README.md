@@ -1,4 +1,4 @@
-steps
+ontologize
 ============
 
 Contribution
@@ -20,7 +20,7 @@ Please [configure your git](http://git-scm.com/book/en/Customizing-Git-Git-Confi
 * or `core.autocrlf input` if you are on a Unix-type OS
 
 Permanent ontologies reference classes defined elsewhere. In order to 'extract modules' for these classes from their original ontology these ontologies have to be loaded. However, not all of these ontologies are specified with an import declaration. Somtimes a rdfs:defined_by or a obo:IAO_0000412 annotation is used. Even sometimes no indication whatsoever is given. One can still guess the source ontology from the class' IRI. It may be useful/necessary to avoid problems to prescan all permanent ontologies for these cases and add these ontologies to the pre-loaded set 
-Also see edu.arizona.biosemantics.oto2.steps.server.persist.file.OWLOntologyRetriever
+Also see edu.arizona.biosemantics.oto2.ontologize.server.persist.file.OWLOntologyRetriever
 
 
 ### Run Dev Mode
@@ -29,4 +29,4 @@ Also see edu.arizona.biosemantics.oto2.steps.server.persist.file.OWLOntologyRetr
 `com.google.gwt.dev.DevMode`
 
 #### Arguments
-`-remoteUI "${gwt_remote_ui_server_port}:${unique_id}" -startupUrl index.html -logLevel INFO -port auto -codeServerPort auto -war **full_path_to_your_git_dir**\oto2\steps\target\steps-0.0.1-SNAPSHOT edu.arizona.biosemantics.oto2.steps.OtoSteps`
+`-remoteUI "${gwt_remote_ui_server_port}:${unique_id}" -startupUrl index.html -logLevel INFO -port auto -codeServerPort auto -war **full_path_to_your_git_dir**\oto2\ontologize\target\ontologize-0.0.1-SNAPSHOT edu.arizona.biosemantics.oto2.ontologize.Ontologize`
