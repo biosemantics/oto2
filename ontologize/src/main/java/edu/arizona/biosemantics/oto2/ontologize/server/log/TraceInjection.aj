@@ -13,7 +13,7 @@ public class TraceInjection {
 
 	@Before("within(edu.arizona.biosemantics.oto2.ontologize.server..*) && "
 			+ "!within(edu.arizona.biosemantics.oto2.ontologize.server.log..*) && "
-			+ "!within(edu.arizona.biosemantics.oto2.ontologize.server.db.Query) && "
+			+ "!within(edu.arizona.biosemantics.oto2.ontologize.server.persist.db.Query) && "
 			+ "execution(public * *(..))")
 	public void trace(JoinPoint joinPoint) {
 		Signature sig = joinPoint.getSignature();
