@@ -1,9 +1,6 @@
 package edu.arizona.biosemantics.oto2.steps.server.persist.file;
 
-import java.io.Serializable;
-import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
 
 import org.semanticweb.owlapi.model.IRI;
@@ -15,7 +12,6 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.search.EntitySearcher;
 
 import edu.arizona.biosemantics.common.log.LogLevel;
-import edu.arizona.biosemantics.oto2.steps.server.persist.DAOManager;
 import edu.arizona.biosemantics.oto2.steps.server.persist.db.OntologyDAO;
 import edu.arizona.biosemantics.oto2.steps.server.persist.db.Query.QueryException;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;

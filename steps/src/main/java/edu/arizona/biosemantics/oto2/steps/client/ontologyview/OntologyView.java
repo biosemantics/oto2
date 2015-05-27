@@ -244,22 +244,22 @@ public class OntologyView implements IsWidget {
 		JsArray<Link> links = JavaScriptObject.createArray().cast();
 		
 		createNodesAndLinks(ontology, nodes, links);
+		//TODO make responsive, e.g. http://stackoverflow.com/questions/9400615/whats-the-best-way-to-make-a-d3-js-visualisation-layout-responsive
 		createForceDirectedGraph(visualizationContainer.getElement(), nodes, links);
 	}
 
 	private void createNodesAndLinks(Ontology ontology, JsArray<Node> nodes, JsArray<Link> links) {
-		Map<String, OntologySubmission> iriNodeIds = new HashMap<String, OntologySubmission>();
-		Map<Object, Integer> nodeIds = new HashMap<Object, Integer>();
-		createNodesOfSubmissions(ontology, nodeIds, iriNodeIds, nodes);
+		Map<String, Integer> nodeIds = new HashMap<String, Integer>();
+		createNodesOfSubmissions(ontology, nodeIds, nodes);
 		if(superClassCheckBox.getValue())
-			createSuperclassLinks(ontology, nodeIds, iriNodeIds, links);
+			createSuperclassLinks(ontology, nodeIds, links);
 		if(partOfCheckBox.getValue())
-			createPartOfLinks(ontology, nodeIds, iriNodeIds, links);
+			createPartOfLinks(ontology, nodeIds, links);
 		if(synonymCheckBox.getValue())
-			createSynonymLinks(ontology, nodeIds, iriNodeIds, links);
+			createSynonymLinks(ontology, nodeIds, links);
 	}
 
-	private void createNodesOfSubmissions(Ontology ontology, Map<Object, Integer> nodeIds,	Map<String, OntologySubmission> iriNodeIds, JsArray<Node> nodes) {
+	private void createNodesOfSubmissions(Ontology ontology, Map<String, Integer> nodeIds, JsArray<Node> nodes) {
 		for(OntologyClassSubmission submission : classSubmissions) {
 			if(submission.getOntology().equals(ontology)) {
 				Node node = Node.createObject().cast();
@@ -268,10 +268,27 @@ public class OntologyView implements IsWidget {
 					node.group(0);
 				if(submission.getType().equals(Type.QUALITY))
 					node.group(6);
-				nodes.push(node);
 				
-				nodeIds.put(submission, nodes.length() - 1);
-				iriNodeIds.put(submission.getClassIRI(), submission);
+				addNode(submission.getClassIRI(), node, nodeIds, nodes);
+
+				for(String superclassIRI : submission.getSuperclassIRIs()) {
+					node = Node.createObject().cast();
+					node.name(superclassIRI);
+					//node.group(0);
+					addNode(superclassIRI, node, nodeIds, nodes);
+				}
+				for(String partOfIRI : submission.getPartOfIRIs()) {
+					node = Node.createObject().cast();
+					node.name(partOfIRI);
+					//node.group(0);
+					addNode(partOfIRI, node, nodeIds, nodes);
+				}
+				for(String synonymIRI : submission.getSynonyms()) {
+					node = Node.createObject().cast();
+					node.name(synonymIRI);
+					//node.group(0);
+					addNode(synonymIRI, node, nodeIds, nodes);
+				}
 			}
 		}
 		
@@ -283,23 +300,32 @@ public class OntologyView implements IsWidget {
 					node.group(0);
 				if(submission.getType().equals(Type.QUALITY))
 					node.group(2);
+				addNode(submission.getClassIRI(), node, nodeIds, nodes);
 				
-				nodes.push(node);
-				nodeIds.put(submission, nodes.length() - 1);
+				for(String synonymIRI : submission.getSynonyms()) {
+					node = Node.createObject().cast();
+					node.name(synonymIRI);
+					addNode(synonymIRI, node, nodeIds, nodes);
+				}
 			}
 		}
 	}
 
-	private void createPartOfLinks(Ontology ontology, Map<Object, Integer> nodeIds, Map<String, OntologySubmission> iriNodeIds, JsArray<Link> links) {
+	private void addNode(String iri, Node node, Map<String, Integer> nodeIds, JsArray<Node> nodes) {
+		if(!nodeIds.containsKey(iri)) {
+			nodes.push(node);
+			nodeIds.put(iri, nodes.length() - 1);
+		}
+	}
+
+	private void createPartOfLinks(Ontology ontology, Map<String, Integer> nodeIds, JsArray<Link> links) {
 		for(OntologyClassSubmission submission : classSubmissions) {
 			if(submission.getOntology().equals(ontology)) {
 				for(String iri : submission.getPartOfIRIs()) {
-					if(iriNodeIds.containsKey(iri)) {
-						OntologySubmission partOf = iriNodeIds.get(iri);
-						
+					if(nodeIds.containsKey(iri)) {
 						Link link = Link.createObject().cast();
-						link.source(nodeIds.get(submission));
-						link.target(nodeIds.get(partOf));
+						link.source(nodeIds.get(submission.getClassIRI()));
+						link.target(nodeIds.get(iri));
 						link.type("partof");
 						links.push(link);
 					}
@@ -308,26 +334,28 @@ public class OntologyView implements IsWidget {
 		}
 	}
 
-	private void createSynonymLinks(Ontology ontology, Map<Object, Integer> nodeIds, Map<String, OntologySubmission> iriNodeIds, JsArray<Link> links) {
+	private void createSynonymLinks(Ontology ontology, Map<String, Integer> nodeIds, JsArray<Link> links) {
 		for(OntologySynonymSubmission submission : synonymSubmissions) {
 			if(submission.getOntology().equals(ontology)) {
-				Link link = Link.createObject().cast();
-				link.source(nodeIds.get(submission));
-				link.target(nodeIds.get(iriNodeIds.get(submission.getClassIRI())));
-				link.type("synonym");
-				links.push(link);
+				for(String synonymIRI : submission.getSynonyms()) {
+					Link link = Link.createObject().cast();
+					link.source(nodeIds.get(submission.getClassIRI()));
+					link.target(nodeIds.get(synonymIRI));
+					link.type("synonym");
+					links.push(link);
+				}
 			}
 		}
 	}
 
-	private void createSuperclassLinks(Ontology ontology, Map<Object, Integer> nodeIds, Map<String, OntologySubmission> iriNodeIds, JsArray<Link> links) {				
+	private void createSuperclassLinks(Ontology ontology, Map<String, Integer> nodeIds, JsArray<Link> links) {				
 		for(OntologyClassSubmission submission : classSubmissions) {
 			if(submission.getOntology().equals(ontology)) {
 				if(submission.hasSuperclassIRI()) {
 					for(String superclassIRI : submission.getSuperclassIRIs()) {
 						Link link = Link.createObject().cast();
-						link.source(nodeIds.get(submission));
-						link.target(nodeIds.get(iriNodeIds.get(superclassIRI)));
+						link.source(nodeIds.get(submission.getClassIRI()));
+						link.target(nodeIds.get(superclassIRI));
 						link.type("superclass");
 						links.push(link);
 					}

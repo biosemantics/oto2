@@ -26,6 +26,7 @@ import uk.ac.manchester.cs.owlapi.modularity.ModuleType;
 import uk.ac.manchester.cs.owlapi.modularity.SyntacticLocalityModuleExtractor;
 import edu.arizona.biosemantics.oto2.steps.server.Configuration;
 import edu.arizona.biosemantics.oto2.steps.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.steps.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.steps.shared.model.toontology.OntologySubmission;
 import edu.arizona.biosemantics.oto2.steps.shared.rpc.toontology.OntologyNotFoundException;
 
@@ -50,13 +51,13 @@ public class ModuleCreator  {
 		labelProperty = owlOntologyManager.getOWLDataFactory().getOWLAnnotationProperty(OWLRDFVocabulary.RDFS_LABEL.getIRI());
 	}
 	
-	public OWLOntology createModuleFromOwlClass(Collection collection, OntologySubmission submission, OWLClass owlClass) throws OntologyNotFoundException, OWLOntologyCreationException, OWLOntologyStorageException {
+	public OWLOntology createModuleFromOwlClass(Collection collection, OWLClass owlClass, Ontology targetOntology) throws OntologyNotFoundException, OWLOntologyCreationException, OWLOntologyStorageException {
 		OWLOntology owlClassOntology = owlOntologyRetriever.getOWLOntology(collection, owlClass);
-		OWLOntology targetOwlOntology = owlOntologyManager.getOntology(OntologyFileDAO.createOntologyIRI(submission));
+		OWLOntology targetOwlOntology = owlOntologyManager.getOntology(OntologyFileDAO.createOntologyIRI(targetOntology));
 		Set<OWLEntity> seeds = new HashSet<OWLEntity>();
 		seeds.add(owlClass);
 		
-		File moduleFile = new File(OntologyFileDAO.getCollectionOntologyDirectory(submission.getOntology()), 
+		File moduleFile = new File(OntologyFileDAO.getCollectionOntologyDirectory(targetOntology), 
 				"module." + annotationsManager.get(collection, owlClass, labelProperty) + "." + owlClass.getIRI().getShortForm() + ".owl");
 		IRI moduleIRI = IRI.create(moduleFile);
 		
@@ -76,9 +77,4 @@ public class ModuleCreator  {
 		owlOntologyManager.loadOntology(moduleIRI);
 		return moduleOntology;
 	}
-	
-	/*private IRI createModuleIRI(Collection collection, OntologySubmission ontologySubmission, OWLClass owlClass) throws OntologyNotFoundException {
-		return IRI.create(Configuration.etcOntologyBaseIRI + collection.getId() + "/" + ontologySubmission.getOntology().getAcronym() + "/" + 
-				"module." + annotationsReader.get(collection, owlClass, labelProperty) + ".owl");
-	}*/
 }

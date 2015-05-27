@@ -137,7 +137,7 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 				setPending(submission);
 		} catch (QueryException e) {
 			if(submission.getOntology().hasCollectionId()) {
-				daoManager.getOntologyFileDAO(collection).depcreceateClassSubmission(submission);
+				daoManager.getOntologyFileDAO(collection).depcrecateClassSubmission(submission);
 			} else {
 				try {
 					daoManager.getOntologyBioportalDAO().removeClassSubmission(submission);
@@ -207,7 +207,7 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 			if(submission.getOntology().hasCollectionId()) {
 				try {
 					daoManager.getOntologyFileDAO(collection).updateClassSubmission(submission);
-				} catch (ClassExistsException | OntologyFileException e) {
+				} catch (OntologyFileException e) {
 					log(LogLevel.ERROR, "Couldn't update ontology file", e);
 					throw new UpdateClassSubmissionException(e);
 				}
@@ -260,7 +260,7 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 		for(OntologyClassSubmission submission : submissions) {
 			if(submission.getOntology().hasCollectionId()) {
 				try {
-					daoManager.getOntologyFileDAO(collection).depcreceateClassSubmission(submission);
+					daoManager.getOntologyFileDAO(collection).depcrecateClassSubmission(submission);
 				} catch (OntologyFileException e) {
 					log(LogLevel.ERROR, "Couldn't remove at file", e);
 					throw new RemoveClassSubmissionException(e);

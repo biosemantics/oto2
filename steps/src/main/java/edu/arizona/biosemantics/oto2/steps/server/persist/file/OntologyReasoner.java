@@ -1,7 +1,5 @@
 package edu.arizona.biosemantics.oto2.steps.server.persist.file;
 
-import java.io.IOException;
-import java.io.Serializable;
 import java.util.Set;
 
 import org.semanticweb.owlapi.model.OWLClass;
@@ -29,9 +27,6 @@ public class OntologyReasoner {
 	
 	public boolean isSubclass(OWLOntology owlOntology, OWLClass subclass, OWLClass superclass) {
 		return EntitySearcher.getSubClasses(superclass, owlOntology).contains(subclass);
-	    /*OWLReasoner reasoner = owlReasonerFactory.createReasoner(owlOntology, owlReasonerConfig);
-	    reasoner.precomputeInferences();
-	    return reasoner.getSuperClasses(subclass, false).containsEntity(superclass); //false: retrieval all ancestors.*/
 	}
 	
 	public void checkConsistency(OWLOntology owlOntology) throws UnsatisfiableClassesException {

@@ -263,7 +263,7 @@ public class SubmitLocalClassView implements IsWidget {
 		return true;
 	}
 	
-	private boolean validateEdit() {
+	private boolean validateEdit() {		
 		if(!selectedSubmission.getClassIRI().equals(classIRIField.getValue())) {
 			Alerter.alertCantModify("class IRI");
 			return false;
@@ -285,7 +285,7 @@ public class SubmitLocalClassView implements IsWidget {
 			return false;
 		}
 		if((!selectedSubmission.hasTerm() && termComboBox.getValue() != null) ||
-				!selectedSubmission.getTerm().equals(termComboBox.getValue())) {
+				(selectedSubmission.hasTerm() && !selectedSubmission.getTerm().equals(termComboBox.getValue()))) {
 			Alerter.alertCantModify("term");
 			return false;
 		}

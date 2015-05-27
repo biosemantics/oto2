@@ -92,8 +92,10 @@ function force_directed_graph2(div, nodes, links) {
 	
 	var color = d3.scale.category20();
 
-	var width = 400,
-	   height = 300;
+	var width = div.offsetWidth - 50,
+	   height = div.offsetHeight - 50;
+	//alert(width);
+	//alert(height);
 
 	var force = d3.layout.force()
 	    .nodes(d3.values(nodes))
@@ -104,9 +106,7 @@ function force_directed_graph2(div, nodes, links) {
 	    .on("tick", tick)
 	    .start();
 
-	var svg = d3.select(div).append("svg");
-	    //.attr("width", width)
-	    //.attr("height", height);
+	var svg = d3.select(div).append("svg").attr("width", width).attr("height", height);
 
 	// Per-type markers, as they don't inherit styles.
 	svg.append("defs").selectAll("marker")
@@ -161,4 +161,12 @@ function force_directed_graph2(div, nodes, links) {
 	function transform(d) {
 	  return "translate(" + d.x + "," + d.y + ")";
 	}
+	
+	
+	//d3.select(window).on('resize', resize); 
+
+	//function resize() {
+	//	alert("resize");
+		// do the actual resize...
+	//}
 }
