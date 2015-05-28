@@ -286,13 +286,16 @@ public class TermsView implements IsWidget {
 					if(textTreeNode instanceof TermTreeNode) {
 						TermTreeNode termTreeNode = (TermTreeNode)textTreeNode;
 						Term term = termTreeNode.getTerm();
+						String text = term.getTerm();
+						if(term.hasIri())
+							text += " (" + term.getIri() + ")";
 						if(collection.hasColorization(term)) {
 							String colorHex = collection.getColorization(term).getHex();
 							sb.append(SafeHtmlUtils.fromTrustedString("<div style='padding-left:5px; padding-right:5px; background-color:#" + colorHex + 
 									"'>" + 
-									textTreeNode.getText() + "</div>"));
+									text + "</div>"));
 						} else {
-							sb.append(SafeHtmlUtils.fromTrustedString("<div style='padding-left:5px; padding-right:5px'>" + textTreeNode.getText() +
+							sb.append(SafeHtmlUtils.fromTrustedString("<div style='padding-left:5px; padding-right:5px'>" + text +
 									"</div>"));
 						}
 					} else {
@@ -304,8 +307,6 @@ public class TermsView implements IsWidget {
 		termTree.setSelectionModel(termTreeSelectionModel);
 		termTree.getElement().setAttribute("source", "termsview");
 		termTree.setContextMenu(new TermMenu());
-		
-		addDefaultNodes();
 
 		vertical = new VerticalLayoutContainer();
 		vertical.add(termTree, new VerticalLayoutData(1, 1));
@@ -317,24 +318,6 @@ public class TermsView implements IsWidget {
 		bindEvents();
 	}
 	
-	private void addDefaultNodes() {
-		//availableTermsNode = new BucketTreeNode(new Bucket("Available Terms"));
-		//removedTermsNode = new BucketTreeNode(new Bucket("Removed Terms"));
-		availableStructureTermsNode = new BucketTreeNode(new Bucket("Structures"));
-		//removedStructureTermsNode = new BucketTreeNode(new Bucket("Structures"));
-		availableCharacterTermsNode = new BucketTreeNode(new Bucket("Characters"));
-		//removedCharacterTermsNode = new BucketTreeNode(new Bucket("Characters"));
-		
-		//treeStore.add(availableTermsNode);
-		//treeStore.add(availableTermsNode, availableStructureTermsNode);
-		//treeStore.add(availableTermsNode, availableCharacterTermsNode);
-		//treeStore.add(removedTermsNode);
-		//treeStore.add(removedTermsNode, removedStructureTermsNode);
-		//treeStore.add(removedTermsNode, removedCharacterTermsNode);
-		treeStore.add(availableStructureTermsNode);
-		treeStore.add(availableCharacterTermsNode);
-	}
-
 	private void bindEvents() {
 		refreshButton.addSelectHandler(new SelectHandler() {
 			@Override
@@ -380,15 +363,12 @@ public class TermsView implements IsWidget {
 						break;
 					}
 				}*/
+				
+				Map<String, BucketTreeNode> bucketTreeNodes = new HashMap<String, BucketTreeNode>();				
 				for(Term term : event.getCollection().getTerms()) {
-					switch(term.getCategory().toLowerCase()) {
-						case "character":
-							addTermTreeNode(availableCharacterTermsNode, new TermTreeNode(term));
-							break;
-						case "structure":
-							addTermTreeNode(availableStructureTermsNode, new TermTreeNode(term));
-							break;
-					}
+					String bucketsPath = term.getBuckets();
+					createBucketNodes(bucketTreeNodes, bucketsPath);
+					addTermTreeNode(bucketTreeNodes.get(bucketsPath), new TermTreeNode(term));
 				}
 				
 				termTree.expandAll();
@@ -459,6 +439,26 @@ public class TermsView implements IsWidget {
 		});
 	}	
 	
+	protected void createBucketNodes(Map<String, BucketTreeNode> bucketsMap, String bucketsPath) {
+		String[] buckets = bucketsPath.split("/");
+		String cumulativePath = "";
+		String parentPath = "";
+		for(String bucket : buckets) {
+			if(!bucket.isEmpty()) {
+				cumulativePath += "/" + bucket;
+				if(!bucketsMap.containsKey(cumulativePath)) {
+					BucketTreeNode bucketTreeNode = new BucketTreeNode(new Bucket(bucket));
+					if(parentPath.isEmpty())
+						treeStore.add(bucketTreeNode);
+					else
+						treeStore.add(bucketsMap.get(parentPath), bucketTreeNode);
+					bucketsMap.put(cumulativePath, bucketTreeNode);
+				}
+				parentPath = cumulativePath;
+			}
+		}
+	}
+
 	protected void addTermTreeNode(BucketTreeNode bucketNode, TermTreeNode termTreeNode) {
 		this.termTermTreeNodeMap.put(termTreeNode.getTerm(), termTreeNode);
 		this.treeStore.add(bucketNode, termTreeNode);

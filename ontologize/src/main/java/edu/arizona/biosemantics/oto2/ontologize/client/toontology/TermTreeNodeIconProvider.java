@@ -37,7 +37,7 @@ public class TermTreeNodeIconProvider implements IconProvider<TextTreeNode> {
 			if(collection != null && collection.isUsed(termTreeNode.getTerm())) {
 				return termStatusImages.green();
 			} else if(termTreeNode.getTerm().isRemoved()) {
-				return termStatusImages.yellow();
+				return termStatusImages.gray();
 			}
 			return null;
 		}

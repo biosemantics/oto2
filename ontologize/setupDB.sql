@@ -13,6 +13,8 @@ CREATE TABLE IF NOT EXISTS `ontologize_term` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `term` varchar(100) NOT NULL,
   `original_term` varchar(100) NOT NULL,
+  `iri` varchar(100) NULL DEFAULT NULL,
+  `buckets` varchar(100) NOT NULL,
   `category` varchar(100) NOT NULL,
   `removed` tinyint(1) unsigned NOT NULL DEFAULT 0,
   `collection` bigint(20) unsigned NOT NULL,

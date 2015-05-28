@@ -14,5 +14,8 @@ public interface TermStatusImages extends ClientBundle {
 	
 	@Source("orange.png")
 	ImageResource orange();
+
+	@Source("gray.png")
+	ImageResource gray();
 	
 }

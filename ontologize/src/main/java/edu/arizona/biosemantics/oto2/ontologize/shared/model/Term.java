@@ -7,33 +7,41 @@ public class Term implements Serializable, Comparable<Term>, Colorable, Commenta
 	private int id = -1;
 	private String term;
 	private String originalTerm;
+	private String iri;
+	private String buckets;
 	private String category;
 	private boolean removed = false;
 	private int collectionId;
 	
 	public Term() { }
 
-	public Term(int id, String term, String originalTerm, String category, boolean removed, int collectionId) {
+	public Term(int id, String term, String originalTerm, String iri, String buckets, String category, boolean removed, int collectionId) {
 		this.id = id;
 		this.term = term;
 		this.originalTerm = originalTerm;
+		this.iri = iri;
+		this.buckets = buckets;
 		this.category = category;
 		this.removed = removed;
 		this.collectionId = collectionId;
 	}
 	
-	public Term(int id, String term, String category) {
+	public Term(int id, String term, String iri, String buckets, String category) {
 		super();
 		this.id = id;
 		this.term = term;
 		this.originalTerm = term;
+		this.iri = iri;
+		this.buckets = buckets;
 		this.category = category;
 	}
 
-	public Term(String term, String category) {
+	public Term(String term, String iri, String buckets, String category) {
 		super();
 		this.term = term;
 		this.originalTerm = term;
+		this.iri = iri;
+		this.buckets = buckets;
 		this.category = category;
 	}
 
@@ -92,6 +100,22 @@ public class Term implements Serializable, Comparable<Term>, Colorable, Commenta
 	public void setRemoved(boolean removed) {
 		this.removed = removed;
 	}
+	
+	public String getBuckets() {
+		return buckets;
+	}
+
+	public void setBuckets(String buckets) {
+		this.buckets = buckets;
+	}
+	
+	public String getIri() {
+		return iri;
+	}
+
+	public void setIri(String iri) {
+		this.iri = iri;
+	}
 
 	@Override
 	public int compareTo(Term o) {
@@ -118,6 +142,10 @@ public class Term implements Serializable, Comparable<Term>, Colorable, Commenta
 		if (id != other.id)
 			return false;
 		return true;
+	}
+
+	public boolean hasIri() {
+		return this.iri != null && !iri.isEmpty();
 	}
 		
 }

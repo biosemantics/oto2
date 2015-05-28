@@ -88,7 +88,7 @@ public class SubmitLocalSynonymView implements IsWidget {
 	private TextField submissionTermField = new TextField();
 	private TextField categoryField = new TextField();
 	private ComboBox<Ontology> ontologyComboBox;
-	private ComboBox<String> classIRICheckBox;
+	private ComboBox<String> classIRIComboBox;
 	private TextField sourceField = new TextField();
 	private TextArea sampleArea = new TextArea();
 	private Radio isEntityRadio = new Radio();
@@ -109,7 +109,7 @@ public class SubmitLocalSynonymView implements IsWidget {
 	public SubmitLocalSynonymView(EventBus eventBus) {
 		this.eventBus = eventBus;
 		
-		classIRICheckBox = new ComboBox<String>(classIRIStore, new StringLabelProvider<String>());
+		classIRIComboBox = new ComboBox<String>(classIRIStore, new StringLabelProvider<String>());
 		
 	    ontologyComboBox = new ComboBox<Ontology>(ontologiesStore, ontologyProperties.prefixLabel());
 	    ontologyComboBox.setAllowBlank(false);
@@ -141,9 +141,9 @@ public class SubmitLocalSynonymView implements IsWidget {
 	    ontologyComboBox.setAutoValidate(true);
 	    //ontologyVlc.add(browseOntologiesButton, new VerticalLayoutData(1, -1));
 	    formContainer.add(new FieldLabel(ontologyVlc, "Ontology *"), new VerticalLayoutData(1, -1));
-	    formContainer.add(new FieldLabel(classIRICheckBox, "Class IRI *"), new VerticalLayoutData(1, -1));
-	    classIRICheckBox.setAllowBlank(false);
-	    classIRICheckBox.setAutoValidate(true);
+	    formContainer.add(new FieldLabel(classIRIComboBox, "Class IRI *"), new VerticalLayoutData(1, -1));
+	    classIRIComboBox.setAllowBlank(false);
+	    classIRIComboBox.setAutoValidate(true);
 	    
 	    isEntityRadio.setBoxLabel("Is Entity");
 	    isEntityRadio.setValue(true);
@@ -215,7 +215,7 @@ public class SubmitLocalSynonymView implements IsWidget {
 	}
 
 	private boolean validateEdit() {
-		if(!selectedSubmission.getClassIRI().equals(classIRICheckBox.getValue())) {
+		if(!selectedSubmission.getClassIRI().equals(classIRIComboBox.getValue())) {
 			Alerter.alertCantModify("class IRI");
 			return false;
 		}
@@ -249,7 +249,7 @@ public class SubmitLocalSynonymView implements IsWidget {
 			public void onSelect(SelectSynonymEvent event) {
 				setSelectedSubmission(null);
 				clearFields(false);
-				classIRICheckBox.setValue(event.getSubmission().getClassIRI(), false);
+				classIRIComboBox.setValue(event.getSubmission().getClassIRI(), false);
 				ontologyComboBox.setValue(event.getSubmission().getOntology());
 			}
 		});
@@ -464,6 +464,8 @@ public class SubmitLocalSynonymView implements IsWidget {
 		termComboBox.setValue(term);
 		categoryField.setValue(termComboBox.getValue().getCategory());
 		submissionTermField.setValue(termComboBox.getValue().getTerm());
+		if(term.hasIri())
+			classIRIComboBox.setValue(term.getIri());
 	}
 
 
@@ -479,7 +481,7 @@ public class SubmitLocalSynonymView implements IsWidget {
 		this.termComboBox.setValue(null, false);
 		this.submissionTermField.setValue("", false); 
 		//this.ontologyComboBox.setValue(null, false);
-		this.classIRICheckBox.setValue("", false);
+		this.classIRIComboBox.setValue("", false);
 		this.synonymsStore.clear();
 		this.sourceField.setValue("", false);
 		this.sampleArea.setValue("", false);
@@ -493,7 +495,7 @@ public class SubmitLocalSynonymView implements IsWidget {
 		this.submissionTermField.setValue(ontologySynonymSubmission.getSubmissionTerm()); 
 		if(ontologySynonymSubmission.hasOntology())
 			this.ontologyComboBox.setValue(ontologySynonymSubmission.getOntology());
-		this.classIRICheckBox.setValue(ontologySynonymSubmission.getClassIRI());
+		this.classIRIComboBox.setValue(ontologySynonymSubmission.getClassIRI());
 		this.synonymsStore.clear();
 		this.synonymsStore.addAll(ontologySynonymSubmission.getSynonyms());
 		this.sourceField.setValue(ontologySynonymSubmission.getSource());
@@ -505,7 +507,7 @@ public class SubmitLocalSynonymView implements IsWidget {
 	protected OntologySynonymSubmission getSynonymSubmission() {
 		Type type = isEntityRadio.getValue() ? Type.ENTITY : Type.QUALITY;
 		return new OntologySynonymSubmission(collection.getId(), termComboBox.getValue(), submissionTermField.getValue(), 
-				ontologyComboBox.getValue(), classIRICheckBox.getValue(),
+				ontologyComboBox.getValue(), classIRIComboBox.getValue(),
 				new LinkedList<String>(synonymsStore.getAll()),
 				sourceField.getValue(), sampleArea.getValue(), 
 				type, Ontologize.user);

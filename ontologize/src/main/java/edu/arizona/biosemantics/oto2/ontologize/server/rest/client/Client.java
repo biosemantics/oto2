@@ -92,14 +92,14 @@ public class Client implements AutoCloseable {
 	 * @throws InterruptedException 
 	 */
 	public static void main(String[] args) throws InterruptedException, ExecutionException {
-		Client client = new Client("http://127.0.0.1:53524/");	
+		Client client = new Client("http://127.0.0.1:64757/");	
 		client.open();
 		
 		List<Term> terms = new LinkedList<Term>();
-		terms.add(new Term("leaf", "structure"));
-		terms.add(new Term("stem", "structure"));
-		terms.add(new Term("red", "character"));
-		terms.add(new Term("blue", "character"));
+		terms.add(new Term("leaf", null, "/structure", "structure"));
+		terms.add(new Term("stem", null, "/structure", "structure"));
+		terms.add(new Term("red", null, "/character/coloration", "coloration"));
+		terms.add(new Term("blue", "http://something/123", "/character/coloration", "coloration"));
 		Collection collection = new Collection("name", TaxonGroup.PLANT, "my secret", terms);
 		Future<Collection> col = client.post(collection);
 		int id = col.get().getId();

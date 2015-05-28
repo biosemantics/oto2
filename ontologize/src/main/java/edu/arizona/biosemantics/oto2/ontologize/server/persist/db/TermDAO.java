@@ -31,19 +31,23 @@ public class TermDAO {
 		int id = result.getInt("id");
 		String term = result.getString("term");
 		String originalTerm = result.getString("original_term");
+		String iri = result.getString("iri");
+		String buckets = result.getString("buckets");
 		String category = result.getString("category");
 		boolean removed = result.getBoolean("removed");
 		int collectionId = result.getInt("collection");
-		return new Term(id, term, originalTerm, category, removed, collectionId);
+		return new Term(id, term, originalTerm, iri, buckets, category, removed, collectionId);
 	}
 
 	public Term insert(Term term, int collectionId)  {
 		if(!term.hasId()) {
-			try(Query insert = new Query("INSERT INTO `ontologize_term` (`term`, `original_term`, `category`, `collection`) VALUES(?, ?, ?, ?)")) {
+			try(Query insert = new Query("INSERT INTO `ontologize_term` (`term`, `original_term`, `iri`, `buckets`, `category`, `collection`) VALUES(?, ?, ?, ?, ?, ?)")) {
 				insert.setParameter(1, term.getTerm());
 				insert.setParameter(2, term.getOriginalTerm());
-				insert.setParameter(3, term.getCategory());
-				insert.setParameter(4, collectionId);
+				insert.setParameter(3, term.getIri());
+				insert.setParameter(4, term.getBuckets());
+				insert.setParameter(5, term.getCategory());
+				insert.setParameter(6, collectionId);
 				insert.execute();
 				ResultSet generatedKeys = insert.getGeneratedKeys();
 				generatedKeys.next();
@@ -58,14 +62,16 @@ public class TermDAO {
 	}
 	
 	public void update(Term term, int collectionId)  {		
-		try(Query query = new Query("UPDATE ontologize_term SET term = ?, original_term = ?, category = ?, removed = ?, "
+		try(Query query = new Query("UPDATE ontologize_term SET term = ?, original_term = ?, iri = ?, buckets = ?, category = ?, removed = ?, "
 				+ "collection = ? WHERE id = ?")) {
 			query.setParameter(1, term.getTerm());
 			query.setParameter(2, term.getOriginalTerm());
-			query.setParameter(3, term.getCategory());
-			query.setParameter(4, term.isRemoved());
-			query.setParameter(5, collectionId);
-			query.setParameter(6, term.getId());
+			query.setParameter(3, term.getIri());
+			query.setParameter(4, term.getBuckets());
+			query.setParameter(5, term.getCategory());
+			query.setParameter(6, term.isRemoved());
+			query.setParameter(7, collectionId);
+			query.setParameter(8, term.getId());
 			query.execute();
 		} catch(QueryException e) {
 			log(LogLevel.ERROR, "Query Exception", e);

@@ -618,6 +618,8 @@ public class SubmitLocalClassView implements IsWidget {
 		termComboBox.setValue(term);
 		categoryField.setValue(termComboBox.getValue().getCategory());
 		submissionTermField.setValue(termComboBox.getValue().getTerm());
+		if(term.hasIri())
+			classIRIField.setValue(term.getIri());
 	}
 
 	protected void setSelectedSubmission(OntologyClassSubmission ontologyClassSubmission) {
