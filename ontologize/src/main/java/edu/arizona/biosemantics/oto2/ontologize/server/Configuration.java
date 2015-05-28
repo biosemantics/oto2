@@ -27,16 +27,10 @@ public class Configuration {
 	public static String databaseHost;
 	public static String databasePort;
 	
-	/** Temporary Storage **/
-	public static String files;
-	
 	/** Bioportal **/
 	public static String bioportalUrl;
 	public static String bioportalApiKey;
-	
-	/** OTO **/
-	public static String otoClientUrl;
-	
+		
 	private static Properties properties;
 
 
@@ -58,12 +52,8 @@ public class Configuration {
 			databaseHost = properties.getProperty("databaseHost");
 			databasePort = properties.getProperty("databasePort");
 			
-			files = properties.getProperty("files");
-			
 			bioportalUrl = properties.getProperty("bioportalUrl");
 			bioportalApiKey = properties.getProperty("bioportalApiKey");
-			
-			otoClientUrl = properties.getProperty("otoClientUrl");
 		} catch(Exception e) {
 			logger.error("Couldn't read configuration", e);
 		}
