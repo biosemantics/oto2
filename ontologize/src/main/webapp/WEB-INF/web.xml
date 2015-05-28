@@ -12,7 +12,7 @@
 
 	<servlet-mapping>
 		<servlet-name>collectionServlet</servlet-name>
-		<url-pattern>/ontologize/collection</url-pattern>
+		<url-pattern>/ontologize/ontologize_collection</url-pattern>
 	</servlet-mapping>
 	
 	<servlet>
@@ -22,7 +22,7 @@
 
 	<servlet-mapping>
 		<servlet-name>toOntologyServlet</servlet-name>
-		<url-pattern>/ontologize/toOntology</url-pattern>
+		<url-pattern>/ontologize/ontologize_toOntology</url-pattern>
 	</servlet-mapping>
 	
 	<servlet>
@@ -32,7 +32,7 @@
 
 	<servlet-mapping>
 		<servlet-name>contextServlet</servlet-name>
-		<url-pattern>/ontologize/context</url-pattern>
+		<url-pattern>/ontologize/ontologize_context</url-pattern>
 	</servlet-mapping>
 
 	<servlet>

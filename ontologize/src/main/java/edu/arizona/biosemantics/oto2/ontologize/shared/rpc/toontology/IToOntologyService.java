@@ -12,7 +12,7 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySynonymSubmission;
 
-@RemoteServiceRelativePath("toOntology")
+@RemoteServiceRelativePath("ontologize_toOntology")
 public interface IToOntologyService extends RemoteService {
 	
 	public List<Ontology> getOntologies(Collection collection) throws Exception;

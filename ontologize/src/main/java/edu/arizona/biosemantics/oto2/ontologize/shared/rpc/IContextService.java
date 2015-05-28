@@ -16,7 +16,7 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.TypedContext;
 /**
  * The client side stub for the RPC service.
  */
-@RemoteServiceRelativePath("context")
+@RemoteServiceRelativePath("ontologize_context")
 public interface IContextService extends RemoteService {
 		
 	public List<TypedContext> getContexts(Collection collection, Term term) throws Exception;

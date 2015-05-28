@@ -11,7 +11,7 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 /**
  * The client side stub for the RPC service.
  */
-@RemoteServiceRelativePath("collection")
+@RemoteServiceRelativePath("ontologize_collection")
 public interface ICollectionService extends RemoteService {
 	
 	public Collection insert(Collection collection) throws Exception;;
