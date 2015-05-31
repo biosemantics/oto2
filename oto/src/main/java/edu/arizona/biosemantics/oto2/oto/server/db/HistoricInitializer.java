@@ -10,9 +10,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import edu.arizona.biosemantics.oto.client.oto.OTOClient;
-import edu.arizona.biosemantics.oto.common.model.GlossaryDownload;
-import edu.arizona.biosemantics.oto.common.model.TermCategory;
-import edu.arizona.biosemantics.oto.common.model.TermSynonym;
+import edu.arizona.biosemantics.oto.model.GlossaryDownload;
+import edu.arizona.biosemantics.oto.model.TermCategory;
+import edu.arizona.biosemantics.oto.model.TermSynonym;
 import edu.arizona.biosemantics.oto2.oto.server.Configuration;
 import edu.arizona.biosemantics.oto2.oto.server.db.CommunityDAO.LabelCount;
 import edu.arizona.biosemantics.common.log.LogLevel;
