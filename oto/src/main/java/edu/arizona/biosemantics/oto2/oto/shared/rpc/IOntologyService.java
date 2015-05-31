@@ -14,7 +14,7 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 /**
  * The client side stub for the RPC service.
  */
-@RemoteServiceRelativePath("ontology")
+@RemoteServiceRelativePath("oto_ontology")
 public interface IOntologyService extends RemoteService {
 	
 	public List<OntologyEntry> getOntologyEntries(Term term);

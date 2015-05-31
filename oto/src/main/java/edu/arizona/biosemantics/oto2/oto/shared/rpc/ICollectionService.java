@@ -20,7 +20,7 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.TypedContext;
 /**
  * The client side stub for the RPC service.
  */
-@RemoteServiceRelativePath("collection")
+@RemoteServiceRelativePath("oto_collection")
 public interface ICollectionService extends RemoteService {
 	
 	public Collection get(Collection collection);

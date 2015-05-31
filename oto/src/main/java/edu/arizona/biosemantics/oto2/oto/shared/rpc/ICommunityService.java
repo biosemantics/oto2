@@ -10,7 +10,7 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.community.CommunityCollect
 /**
  * The client side stub for the RPC service.
  */
-@RemoteServiceRelativePath("community")
+@RemoteServiceRelativePath("oto_community")
 public interface ICommunityService extends RemoteService {
 	
 	public CommunityCollection get(String type) throws Exception;

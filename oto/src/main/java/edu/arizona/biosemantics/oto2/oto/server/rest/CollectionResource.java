@@ -24,7 +24,7 @@ import edu.arizona.biosemantics.common.log.LogLevel;
  * Just a REST-like wrapper around the RPC service
  * @author thomas
  */
-@Path("/collection")
+@Path("/oto/collection")
 public class CollectionResource {
 
 	@Context

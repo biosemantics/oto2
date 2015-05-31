@@ -26,7 +26,7 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.community.CommunityCollect
  * Just a REST-like wrapper around the RPC service
  * @author thomas
  */
-@Path("/community")
+@Path("/oto/community")
 public class CommunityResource {
 
 	@Context
