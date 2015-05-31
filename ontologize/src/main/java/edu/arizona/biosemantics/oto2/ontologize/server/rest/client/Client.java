@@ -74,16 +74,16 @@ public class Client implements AutoCloseable {
 	}
 	
 	private AsyncInvoker getCollectionPostInvoker() {
-		return target.path("rest").path("collection").request(MediaType.APPLICATION_JSON).async();
+		return target.path("rest").path("ontologize").path("collection").request(MediaType.APPLICATION_JSON).async();
 	}
 	
 	private AsyncInvoker getCollectionGetInvoker(int id, String secret) {
-		return target.path("rest").path("collection").path(String.valueOf(id))
+		return target.path("rest").path("ontologize").path("collection").path(String.valueOf(id))
 				.queryParam("secret", secret).request(MediaType.APPLICATION_JSON).async();
 	}
 	
 	private AsyncInvoker getPostContextsInvoker(int collectionId, String secret) {
-		return target.path("rest").path("context").path(String.valueOf(collectionId)).queryParam("secret", secret).request(MediaType.APPLICATION_JSON).async();
+		return target.path("rest").path("ontologize").path("context").path(String.valueOf(collectionId)).queryParam("secret", secret).request(MediaType.APPLICATION_JSON).async();
 	}
 	
 	/**

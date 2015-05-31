@@ -20,7 +20,7 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.Context;
  * Just a REST-like wrapper around the RPC service
  * @author thomas
  */
-@Path("/context")
+@Path("/ontologize/context")
 public class ContextResource {
 
 	@javax.ws.rs.core.Context

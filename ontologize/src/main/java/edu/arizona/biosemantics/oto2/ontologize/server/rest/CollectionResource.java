@@ -20,7 +20,7 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
  * Just a REST-like wrapper around the RPC service
  * @author thomas
  */
-@Path("/collection")
+@Path("/ontologize/collection")
 public class CollectionResource {
 
 	@Context
