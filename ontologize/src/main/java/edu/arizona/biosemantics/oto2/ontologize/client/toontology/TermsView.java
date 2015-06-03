@@ -371,7 +371,17 @@ public class TermsView implements IsWidget {
 					addTermTreeNode(bucketTreeNodes.get(bucketsPath), new TermTreeNode(term));
 				}
 				
-				termTree.expandAll();
+				initializeCollapsing(bucketTreeNodes);
+			}
+
+			private void initializeCollapsing(Map<String, BucketTreeNode> bucketTreeNodes) {
+				for(BucketTreeNode node : bucketTreeNodes.values()) {
+					if(treeStore.getChildren(node).get(0) instanceof TermTreeNode) {
+						termTree.setExpanded(node, false);
+					} else {
+						termTree.setExpanded(node, true);
+					}
+				}
 			}
 		});
 		

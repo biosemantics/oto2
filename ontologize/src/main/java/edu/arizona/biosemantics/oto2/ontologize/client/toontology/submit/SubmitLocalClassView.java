@@ -641,8 +641,6 @@ public class SubmitLocalClassView implements IsWidget {
 		this.sourceField.setValue("", false);
 		this.sampleArea.setValue("", false);
 		this.partOfStore.clear();
-		this.isEntityRadio.setValue(true, false);
-		this.isQualityRadio.setValue(false, false);
 	}
 
 	protected void setOntologyClassSubmission(OntologyClassSubmission ontologyClassSubmission) {
