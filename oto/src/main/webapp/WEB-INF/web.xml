@@ -12,7 +12,7 @@
 
 	<servlet-mapping>
 		<servlet-name>collectionServlet</servlet-name>
-		<url-pattern>/oto/collection</url-pattern>
+		<url-pattern>/oto/oto_collection</url-pattern>
 	</servlet-mapping>
 
 	<servlet>
@@ -22,7 +22,7 @@
 
 	<servlet-mapping>
 		<servlet-name>communityServlet</servlet-name>
-		<url-pattern>/oto/community</url-pattern>
+		<url-pattern>/oto/oto_community</url-pattern>
 	</servlet-mapping>
 
 	<servlet>
@@ -32,7 +32,7 @@
 
 	<servlet-mapping>
 		<servlet-name>contextServlet</servlet-name>
-		<url-pattern>/oto/context</url-pattern>
+		<url-pattern>/oto/oto_context</url-pattern>
 	</servlet-mapping>
 	<servlet>
 		<servlet-name>ontologyServlet</servlet-name>
@@ -41,7 +41,7 @@
 
 	<servlet-mapping>
 		<servlet-name>ontologyServlet</servlet-name>
-		<url-pattern>/oto/ontology</url-pattern>
+		<url-pattern>/oto/oto_ontology</url-pattern>
 	</servlet-mapping>
 
 	<servlet>
