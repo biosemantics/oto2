@@ -17,7 +17,7 @@ public interface IToOntologyServiceAsync {
 
 	public void createSynonymSubmission(Collection collection, OntologySynonymSubmission submission, AsyncCallback<OntologySynonymSubmission> callback);
 
-	public void getClassSubmissions(Collection collection, AsyncCallback<List<OntologyClassSubmission>> callback);
+	public void getClassSubmissions(Collection collection, boolean includeLinkedCollections, AsyncCallback<List<OntologyClassSubmission>> callback);
 
 	public void getSynonymSubmissions(Collection collection, AsyncCallback<List<OntologySynonymSubmission>> callback);
 
@@ -45,6 +45,8 @@ public interface IToOntologyServiceAsync {
 	
 	public void getLocalOntologies(Collection collection, AsyncCallback<List<Ontology>> callback);
 
-	public void getClassSubmissions(Collection collection, Ontology ontology,
+	public void getClassSubmissions(Collection collection, Ontology ontology, boolean includeLinkedCollections,
 			AsyncCallback<List<OntologyClassSubmission>> callback);
+
+	public void getClassSubmissions(Collection collection, java.util.Collection<Ontology> ontologies, boolean includeLinkedCollections, AsyncCallback<List<OntologyClassSubmission>> callback);
 }

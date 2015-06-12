@@ -181,12 +181,34 @@ public class OntologySynonymSubmissionDAO {
 
 	public List<OntologySynonymSubmission> get(Collection collection, StatusEnum status) throws QueryException {
 		List<OntologySynonymSubmission> result = new LinkedList<OntologySynonymSubmission>();
-		try(Query query = new Query("SELECT * FROM ontologize_ontologyclasssubmission s, "
-				+ "ontologize_ontologyclasssubmission_status ss, ontologize_status st"
-				+ " WHERE s.collection = ? AND ss.ontologyclasssubmission = s.id AND ss.status = st.id AND"
+		try(Query query = new Query("SELECT * FROM ontologize_ontologysynonymsubmission s, "
+				+ "ontologize_ontologysynonymsubmission_status ss, ontologize_status st"
+				+ " WHERE s.collection = ? AND ss.ontologysynonymsubmission = s.id AND ss.status = st.id AND"
 				+ " st.name = ?")) {
 			query.setParameter(1, collection.getId());
 			query.setParameter(2, status.getDisplayName());
+			ResultSet resultSet = query.execute();
+			while(resultSet.next()) {
+				result.add(createSynonymSubmission(resultSet));
+			}
+		} catch(QueryException | SQLException e) {
+			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
+		}
+		return result;
+	}
+
+	public List<OntologySynonymSubmission> get(Collection collection, StatusEnum status, String term) throws QueryException {
+		List<OntologySynonymSubmission> result = new LinkedList<OntologySynonymSubmission>();
+		try(Query query = new Query("SELECT * FROM ontologize_ontologysynonymsubmission s, "
+				+ "ontologize_ontologysynonymsubmission_status ss, ontologize_status st, ontologize_ontologysynonymsubmission_synonym ssy"
+				+ " WHERE "
+				+ "s.collection = ? AND ss.ontologysynonymsubmission = s.id AND ss.status = st.id AND st.name = ? AND ssy.ontologysynonymsubmission = s.id"
+				+ " AND (s.submission_term = ? OR ssy.synonym = ?)")) {
+			query.setParameter(1, collection.getId());
+			query.setParameter(2, status.getDisplayName());
+			query.setParameter(3, term);
+			query.setParameter(4, term);
 			ResultSet resultSet = query.execute();
 			while(resultSet.next()) {
 				result.add(createSynonymSubmission(resultSet));

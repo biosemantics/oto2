@@ -228,7 +228,15 @@ public class OntologyClassSubmissionDAO {
 			throw new QueryException(e);
 		}
 		return result;
-	}	
+	}
+	
+	public List<OntologyClassSubmission> get(Collection collection,	java.util.Collection<Ontology> ontologies) throws QueryException {
+		List<OntologyClassSubmission> result = new LinkedList<OntologyClassSubmission>();
+		for(Ontology ontology : ontologies) {
+			result.addAll(get(collection, ontology));
+		}
+		return result;
+	}
 	
 	public List<OntologyClassSubmission> get(Collection collection, StatusEnum status) throws QueryException {
 		List<OntologyClassSubmission> result = new LinkedList<OntologyClassSubmission>();
@@ -248,5 +256,29 @@ public class OntologyClassSubmissionDAO {
 		}
 		return result;
 	}
+
+	public List<OntologyClassSubmission> get(Collection collection, StatusEnum status, String term) throws QueryException {
+		List<OntologyClassSubmission> result = new LinkedList<OntologyClassSubmission>();
+		try(Query query = new Query("SELECT * FROM ontologize_ontologyclasssubmission s, "
+				+ "ontologize_ontologyclasssubmission_status ss, ontologize_status st, ontologize_ontologyclasssubmission_synonym ssy"
+				+ " WHERE "
+				+ "s.collection = ? AND ss.ontologyclasssubmission = s.id AND ss.status = st.id AND st.name = ? AND ssy.ontologyclasssubmission = s.id"
+				+ " AND (s.submission_term = ? OR ssy.synonym = ?)")) {
+			query.setParameter(1, collection.getId());
+			query.setParameter(2, status.getDisplayName());
+			query.setParameter(3, term);
+			query.setParameter(4, term);
+			ResultSet resultSet = query.execute();
+			while(resultSet.next()) {
+				result.add(createClassSubmission(resultSet));
+			}
+		} catch(QueryException | SQLException e) {
+			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
+		}
+		return result;
+	}
+
+
 
 }

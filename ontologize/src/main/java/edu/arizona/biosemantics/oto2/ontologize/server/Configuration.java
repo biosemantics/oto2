@@ -33,6 +33,8 @@ public class Configuration {
 		
 	private static Properties properties;
 
+	public static String wordNetSource;
+
 
 	static {
 		try {
@@ -54,6 +56,8 @@ public class Configuration {
 			
 			bioportalUrl = properties.getProperty("bioportalUrl");
 			bioportalApiKey = properties.getProperty("bioportalApiKey");
+			
+			wordNetSource = properties.getProperty("wordNetSource");
 		} catch(Exception e) {
 			logger.error("Couldn't read configuration", e);
 		}

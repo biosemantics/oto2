@@ -58,7 +58,7 @@ public class OntologyFileDAO {
 	public static void loadPermanentOntologies() {
 		OWLOntologyManager owlOntologyManager = OWLManager.createOWLOntologyManager();
 		try {
-			for(Ontology ontology : new edu.arizona.biosemantics.oto2.ontologize.server.persist.db.OntologyDAO().getPermanentOntologies()) {
+			for(Ontology ontology : new edu.arizona.biosemantics.oto2.ontologize.server.persist.db.OntologyDAO().getBioportalOntologies()) {
 				File file = getPermanentOntologyFile(ontology);
 				Logger.getLogger(OntologyFileDAO.class).info("Loading " + file.getAbsolutePath() + " ...");
 				try {
@@ -75,14 +75,14 @@ public class OntologyFileDAO {
 	}
 		
 	static OWLOntologyIRIMapper createMapper(Ontology ontology) {
-		if(ontology.hasCollectionId())
+		if(!ontology.isBioportalOntology())
 			return new SimpleIRIMapper(createOntologyIRI(ontology), getLocalOntologyIRI(ontology));
 		else
 			return new SimpleIRIMapper(createOntologyIRI(ontology), getLocalOntologyIRI(ontology));
 	}
 
 	static IRI createClassIRI(OntologyClassSubmission submission) {
-		return IRI.create(Configuration.etcOntologyBaseIRI + submission.getOntology().getCollectionId() + "/" +  
+		return IRI.create(Configuration.etcOntologyBaseIRI + submission.getOntology().getCreatedInCollectionId() + "/" +  
 				submission.getOntology().getAcronym() + "#" + submission.getSubmissionTerm());
 	}
 	
@@ -95,7 +95,7 @@ public class OntologyFileDAO {
 	}
 		
 	static IRI getLocalOntologyIRI(Ontology ontology) {
-		if(ontology.hasCollectionId()) {
+		if(!ontology.isBioportalOntology()) {
 			return IRI.create(getCollectionOntologyFile(ontology));
 		} else 
 			return IRI.create(getPermanentOntologyFile(ontology));
@@ -110,7 +110,7 @@ public class OntologyFileDAO {
 	}
 	
 	static File getCollectionOntologyDirectory(Ontology ontology) {
-		return new File(Configuration.collectionOntologyDirectory + File.separator + ontology.getCollectionId() + File.separator + ontology.getAcronym());
+		return new File(Configuration.collectionOntologyDirectory + File.separator + ontology.getCreatedInCollectionId() + File.separator + ontology.getAcronym());
 	}	
 	
 	static boolean containsOwlClass(OWLOntology owlOntology, OWLClass owlClass) {

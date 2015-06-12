@@ -192,4 +192,9 @@ public class Alerter {
 		alert.show();
 	}
 
+	public static void failedToGetOntologies() {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

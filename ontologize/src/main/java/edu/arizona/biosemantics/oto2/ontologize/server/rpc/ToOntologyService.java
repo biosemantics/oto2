@@ -1,5 +1,6 @@
 package edu.arizona.biosemantics.oto2.ontologize.server.rpc;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
@@ -49,7 +50,7 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	
 	@Override
 	public List<Ontology> getPermanentOntologies(Collection collection) throws Exception {
-		return daoManager.getOntologyDBDAO().getPermanentOntologiesForCollection(collection);
+		return daoManager.getOntologyDBDAO().getBioportalOntologiesForCollection(collection);
 	}
 	
 	@Override
@@ -58,13 +59,45 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	}
 	
 	@Override
-	public List<OntologyClassSubmission> getClassSubmissions(Collection collection) throws Exception {
-		return daoManager.getOntologyClassSubmissionDAO().get(collection);
+	public List<OntologyClassSubmission> getClassSubmissions(Collection collection, boolean includeLinkedCollections) throws Exception {
+		List<OntologyClassSubmission> result = daoManager.getOntologyClassSubmissionDAO().get(collection);
+		if(includeLinkedCollections) {
+			for(Collection linkedCollection : getLinkedCollectionsRecursively(collection)) {
+				result.addAll(daoManager.getOntologyClassSubmissionDAO().get(linkedCollection));
+			}
+		}
+		return result;
+	}
+	
+	private List<Collection> getLinkedCollectionsRecursively(Collection collection) {
+		List<Collection> result = new LinkedList<Collection>();
+		for(Collection linkedCollection : collection.getLinkedCollections()) {
+			result.add(linkedCollection);
+			result.addAll(getLinkedCollectionsRecursively(linkedCollection));
+		}
+		return result;
+	}
+
+	@Override
+	public List<OntologyClassSubmission> getClassSubmissions(Collection collection, Ontology ontology, boolean includeLinkedCollections) throws Exception {
+		List<OntologyClassSubmission> result =  daoManager.getOntologyClassSubmissionDAO().get(collection, ontology);
+		if(includeLinkedCollections) {
+			for(Collection linkedCollection : getLinkedCollectionsRecursively(collection)) {
+				result.addAll(daoManager.getOntologyClassSubmissionDAO().get(linkedCollection, ontology));
+			}
+		}
+		return result;
 	}
 	
 	@Override
-	public List<OntologyClassSubmission> getClassSubmissions(Collection collection, Ontology ontology) throws Exception {
-		return daoManager.getOntologyClassSubmissionDAO().get(collection, ontology);
+	public List<OntologyClassSubmission> getClassSubmissions(Collection collection, java.util.Collection<Ontology> ontologies, boolean includeLinkedCollections) throws Exception {
+		List<OntologyClassSubmission> result =  daoManager.getOntologyClassSubmissionDAO().get(collection, ontologies);
+		if(includeLinkedCollections) {
+			for(Collection linkedCollection : getLinkedCollectionsRecursively(collection)) {
+				result.addAll(daoManager.getOntologyClassSubmissionDAO().get(linkedCollection, ontologies));
+			}
+		}
+		return result;
 	}
 
 	@Override
@@ -114,7 +147,7 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 		}
 		
 		String classIRI = null;
-		if(submission.getOntology().hasCollectionId()) {
+		if(!submission.getOntology().isBioportalOntology()) {
 			classIRI = daoManager.getOntologyFileDAO(collection).insertClassSubmission(submission);
 		} else {
 			try {
@@ -136,7 +169,7 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 			else 
 				setPending(submission);
 		} catch (QueryException e) {
-			if(submission.getOntology().hasCollectionId()) {
+			if(!submission.getOntology().isBioportalOntology()) {
 				daoManager.getOntologyFileDAO(collection).depcrecateClassSubmission(submission);
 			} else {
 				try {
@@ -159,7 +192,7 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 			throw new CreateSynonymSubmissionException(e);
 		}
 		String classIRI = null;
-		if(submission.getOntology().hasCollectionId()) {
+		if(!submission.getOntology().isBioportalOntology()) {
 			classIRI = daoManager.getOntologyFileDAO(collection).insertSynonymSubmission(submission);
 		} else {
 			try {
@@ -181,7 +214,7 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 			else 
 				setPending(submission);
 		} catch (QueryException e) {
-			if(submission.getOntology().hasCollectionId()) {
+			if(!submission.getOntology().isBioportalOntology()) {
 				daoManager.getOntologyFileDAO(collection).removeSynonymSubmission(submission);
 			} else {
 				try {
@@ -204,7 +237,7 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	public void updateClassSubmissions(Collection collection, 
 			java.util.Collection<OntologyClassSubmission> submissions) throws OntologyBioportalException, UpdateClassSubmissionException {
 		for(OntologyClassSubmission submission : submissions) {
-			if(submission.getOntology().hasCollectionId()) {
+			if(!submission.getOntology().isBioportalOntology()) {
 				try {
 					daoManager.getOntologyFileDAO(collection).updateClassSubmission(submission);
 				} catch (OntologyFileException e) {
@@ -231,7 +264,7 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	public void updateSynonymSubmissions(Collection collection, 
 			java.util.Collection<OntologySynonymSubmission> submissions) throws OntologyBioportalException, UpdateSynonymSubmissionException {
 		for(OntologySynonymSubmission submission : submissions) { 
-			if(submission.getOntology().hasCollectionId()) {
+			if(!submission.getOntology().isBioportalOntology()) {
 				try {
 					daoManager.getOntologyFileDAO(collection).updateSynonymSubmission(submission);
 				} catch (OntologyFileException e) {
@@ -258,7 +291,7 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	public void removeClassSubmissions(Collection collection, 
 			java.util.Collection<OntologyClassSubmission> submissions) throws OntologyBioportalException, RemoveClassSubmissionException {
 		for(OntologyClassSubmission submission : submissions) {
-			if(submission.getOntology().hasCollectionId()) {
+			if(!submission.getOntology().isBioportalOntology()) {
 				try {
 					daoManager.getOntologyFileDAO(collection).depcrecateClassSubmission(submission);
 				} catch (OntologyFileException e) {
@@ -285,7 +318,7 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	public void removeSynonymSubmissions(Collection collection, 
 			java.util.Collection<OntologySynonymSubmission> submissions) throws OntologyBioportalException, RemoveSynonymSubmissionException {
 		for(OntologySynonymSubmission submission : submissions) {
-			if(submission.getOntology().hasCollectionId()) {
+			if(!submission.getOntology().isBioportalOntology()) {
 				try {
 					daoManager.getOntologyFileDAO(collection).removeSynonymSubmission(submission);
 				} catch (OntologyFileException e) {
@@ -344,9 +377,4 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	private void setStatus(OntologySubmission submission, StatusEnum status) throws QueryException {
 		this.setStatus(submission, "", status);
 	}
-
-
-
-
-
 }

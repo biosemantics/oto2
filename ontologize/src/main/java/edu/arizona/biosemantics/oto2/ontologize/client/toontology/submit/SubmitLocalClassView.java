@@ -375,7 +375,7 @@ public class SubmitLocalClassView implements IsWidget {
 						ontology.setName(dialog.getName());
 						ontology.setAcronym(dialog.getAcronym());
 						ontology.setTaxonGroups(dialog.getTaxonGroups());
-						ontology.setCollectionId(collection.getId());
+						ontology.setCreatedInCollectionId(collection.getId());
 						if(!dialog.getTaxonGroups().contains(collection.getTaxonGroup())) {
 							MessageBox box = Alerter.warnOntologyUnaivableForCollection();
 							box.getButton(PredefinedButton.YES).addSelectHandler(new SelectHandler() {

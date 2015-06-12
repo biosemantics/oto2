@@ -14,12 +14,13 @@ public class Ontology implements Serializable, Comparable<Ontology> {
 	private String acronym;
 	private Set<TaxonGroup> taxonGroups = new HashSet<TaxonGroup>();
 	private String browseURL;
-	private int collectionId = -1;
+	private boolean bioportalOntology = false;
+	private int createdInCollectionId; 
 	
 	public Ontology() { }
 	
 	public Ontology(int id, String iri, String name, String acronym,
-			Set<TaxonGroup> taxonGroups, String browseURL, int collectionId) {
+			Set<TaxonGroup> taxonGroups, String browseURL, boolean bioportalOntology, int createdInCollectionId) {
 		super();
 		this.id = id;
 		this.iri = iri;
@@ -27,7 +28,8 @@ public class Ontology implements Serializable, Comparable<Ontology> {
 		this.acronym = acronym;
 		this.taxonGroups = taxonGroups;
 		this.browseURL = browseURL;
-		this.collectionId = collectionId;
+		this.bioportalOntology = bioportalOntology;
+		this.createdInCollectionId = createdInCollectionId;
 	}
 
 	public int getId() {
@@ -69,19 +71,15 @@ public class Ontology implements Serializable, Comparable<Ontology> {
 	public void setTaxonGroups(Set<TaxonGroup> taxonGroups) {
 		this.taxonGroups = taxonGroups;
 	}
-
-	public int getCollectionId() {
-		return collectionId;
-	}
-
-	public void setCollectionId(int collectionId) {
-		this.collectionId = collectionId;
-	}
 	
-	public boolean hasCollectionId() {
-		return collectionId != -1;
+	public boolean isBioportalOntology() {
+		return bioportalOntology;
 	}
-	
+
+	public void setBioportalOntology(boolean bioportalOntology) {
+		this.bioportalOntology = bioportalOntology;
+	}
+
 	public boolean hasId() {
 		return id != -1;
 	}
@@ -92,6 +90,14 @@ public class Ontology implements Serializable, Comparable<Ontology> {
 
 	public String getBrowseURL() {
 		return browseURL;
+	}
+	
+	public int getCreatedInCollectionId() {
+		return createdInCollectionId;
+	}
+
+	public void setCreatedInCollectionId(int createdInCollectionId) {
+		this.createdInCollectionId = createdInCollectionId;
 	}
 
 	@Override

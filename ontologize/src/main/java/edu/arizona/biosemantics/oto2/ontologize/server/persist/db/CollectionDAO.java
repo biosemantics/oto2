@@ -23,6 +23,12 @@ import java.util.Set;
 
 import edu.arizona.biosemantics.common.biology.TaxonGroup;
 import edu.arizona.biosemantics.common.log.LogLevel;
+import edu.arizona.biosemantics.common.ontology.search.FileSearcher;
+import edu.arizona.biosemantics.common.ontology.search.Searcher;
+import edu.arizona.biosemantics.common.ontology.search.TaxonGroupOntology;
+import edu.arizona.biosemantics.common.ontology.search.model.Ontology;
+import edu.arizona.biosemantics.common.ontology.search.model.OntologyEntry;
+import edu.arizona.biosemantics.common.ontology.search.model.OntologyEntry.Type;
 import edu.arizona.biosemantics.oto2.ontologize.server.Configuration;
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.db.Query.QueryException;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
@@ -33,6 +39,8 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.Commentable;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Term;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySynonymSubmission;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Status;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.StatusEnum;
 
 public class CollectionDAO {
 		
@@ -123,7 +131,24 @@ public class CollectionDAO {
 			}
 		}
 		
-		return new Collection(id, name, taxonGroup, secret, terms, comments, colorizations, colors, usedTerms);
+		List<Collection> linkedCollections = getLinkedCollections(id);
+		return new Collection(id, name, taxonGroup, secret, terms, comments, colorizations, colors, usedTerms, linkedCollections);
+	}
+
+	private List<Collection> getLinkedCollections(int id) throws QueryException, IOException {
+		List<Collection> linkedCollections = new LinkedList<Collection>();
+		try(Query query = new Query("SELECT linked_ontology FROM ontologize_collection_linked_collection WHERE collection = ?")) {
+			query.setParameter(1, id);
+			ResultSet result = query.execute();
+			while(result.next()) {
+				int linkedCollection = result.getInt(1);
+				linkedCollections.add(get(linkedCollection));
+			}
+		} catch(QueryException | SQLException e) {
+			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
+		}
+		return linkedCollections;
 	}
 
 	public Collection insert(Collection collection) throws QueryException, IOException  {
@@ -252,7 +277,19 @@ public class CollectionDAO {
 	public void setOntologySynonymSubmissionDAO(
 			OntologySynonymSubmissionDAO ontologySynonymSubmissionDAO) {
 		this.ontologySynonymSubmissionDAO = ontologySynonymSubmissionDAO;
-	}	
-	
+	}
+
+	public void insertLinkedCollection(Collection collection, int linkedId) throws QueryException {
+		if(!collection.hasId()) {
+			try(Query insert = new Query("INSERT INTO `ontologize_collection_linked_collection` (`collection`, `linked_collection`) VALUES(?, ?)")) {
+				insert.setParameter(1, collection.getId());
+				insert.setParameter(2, linkedId);
+				insert.execute();
+			} catch(QueryException e) {
+				log(LogLevel.ERROR, "Query Exception", e);
+				throw e;
+			}
+		}
+	}
 	
 }

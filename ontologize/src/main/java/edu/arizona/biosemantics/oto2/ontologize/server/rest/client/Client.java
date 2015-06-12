@@ -92,7 +92,7 @@ public class Client implements AutoCloseable {
 	 * @throws InterruptedException 
 	 */
 	public static void main(String[] args) throws InterruptedException, ExecutionException {
-		Client client = new Client("http://127.0.0.1:64757/");	
+		Client client = new Client("http://127.0.0.1:61584/");	
 		client.open();
 		
 		List<Term> terms = new LinkedList<Term>();

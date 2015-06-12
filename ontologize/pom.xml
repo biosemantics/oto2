@@ -7,7 +7,7 @@
 	<groupId>edu.arizona.biosemantics.oto2</groupId>
 	<artifactId>ontologize</artifactId>
 	<packaging>war</packaging>
-	<version>0.0.7-SNAPSHOT</version>
+	<version>0.0.8-SNAPSHOT</version>
 
 	<properties>
 		<gwtVersion>2.6.1</gwtVersion>
@@ -42,6 +42,54 @@
 
 	<!-- Created from archetype -->
 	<dependencies>
+		<dependency>
+		  <groupId>edu.arizona.biosemantics.common.ontology</groupId>
+		  <artifactId>search</artifactId>
+		  <version>0.0.23-SNAPSHOT</version>
+		  <!-- Not used! And it can cause conflicts in other projects because it uses owlapi3 where we use owlapi4 in other projects -->
+			<exclusions>
+				<exclusion>
+					<artifactId>elk-owlapi</artifactId>
+					<groupId>org.semanticweb.elk</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>elk-owl-model</artifactId>
+					<groupId>org.semanticweb.elk</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>elk-util-hashing</artifactId>
+					<groupId>org.semanticweb.elk</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>elk-reasoner</artifactId>
+					<groupId>org.semanticweb.elk</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>elk-owl-implementation</artifactId>
+					<groupId>org.semanticweb.elk</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>elk-util-logging</artifactId>
+					<groupId>org.semanticweb.elk</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>elk-util-collections</artifactId>
+					<groupId>org.semanticweb.elk</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>elk-util-concurrent</artifactId>
+					<groupId>org.semanticweb.elk</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>elk-util-common</artifactId>
+					<groupId>org.semanticweb.elk</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>elk-util-io</artifactId>
+					<groupId>org.semanticweb.elk</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
 		<dependency>
 			<groupId>com.github.gwtd3</groupId>
 			<artifactId>gwt-d3-api</artifactId>

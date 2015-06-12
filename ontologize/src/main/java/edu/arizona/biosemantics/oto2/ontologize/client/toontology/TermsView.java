@@ -287,8 +287,15 @@ public class TermsView implements IsWidget {
 						TermTreeNode termTreeNode = (TermTreeNode)textTreeNode;
 						Term term = termTreeNode.getTerm();
 						String text = term.getTerm();
-						if(term.hasIri())
-							text += " (" + term.getIri() + ")";
+						
+						String iris = "";
+						for(String iri : collection.getExistingIRIs(term)) {
+							iris += iri + ", ";
+						}
+						if(!iris.isEmpty())
+							iris = iris.substring(0, iris.length() - 2);
+						if(!iris.isEmpty())
+							text += " (" + iris + ")";
 						if(collection.hasColorization(term)) {
 							String colorHex = collection.getColorization(term).getHex();
 							sb.append(SafeHtmlUtils.fromTrustedString("<div style='padding-left:5px; padding-right:5px; background-color:#" + colorHex + 

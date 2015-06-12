@@ -37,7 +37,7 @@ public class CreateSubmissionView implements IsWidget {
 		eventBus.addHandler(SelectSynonymEvent.TYPE, new SelectSynonymEvent.Handler() {
 			@Override
 			public void onSelect(SelectSynonymEvent event) {
-				if(event.getSubmission().getOntology().getCollectionId() == -1) {
+				if(event.getSubmission().getOntology().isBioportalOntology()) {
 					tabPanel.setActiveWidget(submitBioportalView);
 				} else {
 					tabPanel.setActiveWidget(submitLocalView);
@@ -53,7 +53,7 @@ public class CreateSubmissionView implements IsWidget {
 		eventBus.addHandler(SelectSuperclassEvent.TYPE, new SelectSuperclassEvent.Handler() {
 			@Override
 			public void onSelect(SelectSuperclassEvent event) {
-				if(event.getSubmission().getOntology().getCollectionId() == -1) {
+				if(event.getSubmission().getOntology().isBioportalOntology()) {
 					tabPanel.setActiveWidget(submitBioportalView);
 				} else {
 					tabPanel.setActiveWidget(submitLocalView);

@@ -38,10 +38,11 @@ public class OntologyDAO {
 		String name = result.getString("name");
 		String prefix = result.getString("acronym");
 		String browseURL = result.getString("browse_url");
-		int collectionId = result.getInt("collection");
+		boolean bioportalOntology = result.getBoolean("bioportal_ontology");
+		int createdInCollectionId = result.getInt("created_in_collection");
 
 		Set<TaxonGroup> taxonGroups = getTaxonGroups(id);
-		return new Ontology(id, externalId, name, prefix, taxonGroups, browseURL, collectionId);
+		return new Ontology(id, externalId, name, prefix, taxonGroups, browseURL, bioportalOntology, createdInCollectionId);
 	}
 
 	private Set<TaxonGroup> getTaxonGroups(int id) throws QueryException {
@@ -66,12 +67,13 @@ public class OntologyDAO {
 	public Ontology insert(Ontology ontology) throws QueryException  {
 		if(!ontology.hasId()) {
 			try(Query insert = new Query("INSERT INTO `ontologize_ontology` (`iri`, `name`, `acronym`, "
-					+ "`browse_url`, `collection`) VALUES(?, ?, ?, ?, ?)")) {
+					+ "`browse_url`, `bioportal_ontology`, `created_in_collection`) VALUES(?, ?, ?, ?, ?, ?)")) {
 				insert.setParameter(1, ontology.getIri());
 				insert.setParameter(2, ontology.getName());
 				insert.setParameter(3, ontology.getAcronym());
 				insert.setParameter(4, ontology.getBrowseURL());
-				insert.setParameter(5, ontology.getCollectionId());
+				insert.setParameter(5, ontology.isBioportalOntology());
+				insert.setParameter(6, ontology.getCreatedInCollectionId());
 				insert.execute();
 				
 				ResultSet generatedKeys = insert.getGeneratedKeys();
@@ -84,10 +86,12 @@ public class OntologyDAO {
 				log(LogLevel.ERROR, "Query Exception", e);
 				throw new QueryException(e);
 			}
+			insertLocalOntologiesForCollection(ontology.getCreatedInCollectionId(), ontology);
 		}
 		return ontology;
 	}
-	
+
+
 	private void addTaxonGroups(Ontology ontology) throws QueryException {
 		for(TaxonGroup taxonGroup : ontology.getTaxonGroups()) {
 			try(Query query = new Query("INSERT INTO `ontologize_ontology_taxongroup` (`ontology`, `taxongroup`) "
@@ -104,13 +108,14 @@ public class OntologyDAO {
 
 	public void update(Ontology ontology) throws QueryException  {		
 		try(Query query = new Query("UPDATE ontologize_ontology SET iri = ?, name = ?, acronym = ?, "
-				+ "browse_url = ?, collection = ? WHERE id = ?")) {
+				+ "browse_url = ?, bioportal_ontology = ?, created_in_ontology = ? WHERE id = ?")) {
 			query.setParameter(1, ontology.getIri());
 			query.setParameter(2, ontology.getName());
 			query.setParameter(3, ontology.getAcronym());
 			query.setParameter(4, ontology.getBrowseURL());
-			query.setParameter(5, ontology.getCollectionId());
-			query.setParameter(6, ontology.getId());
+			query.setParameter(5, ontology.isBioportalOntology());
+			query.setParameter(6, ontology.getCreatedInCollectionId());
+			query.setParameter(7, ontology.getId());
 			query.execute();
 			
 			ensureTaxonGroups(ontology);
@@ -174,7 +179,9 @@ public class OntologyDAO {
 
 	public List<Ontology> getRelevantOntologiesForCollection(Collection collection) throws QueryException {
 		List<Ontology> ontologies = new LinkedList<Ontology>();
-		try(Query query = new Query("SELECT id FROM ontologize_ontology WHERE collection = ? OR collection = -1")) {
+		try(Query query = new Query("SELECT o.id FROM ontologize_ontology o WHERE o.bioportal_ontology = 1 "
+				+ "UNION " 
+				+ " SELECT o.id FROM ontologize_ontology o, ontologize_collection_ontology co WHERE co.collection = ? AND o.id = co.ontology")) {
 			query.setParameter(1, collection.getId());
 			ResultSet result = query.execute();
 			while(result.next()) {
@@ -193,16 +200,16 @@ public class OntologyDAO {
 	}
 
 	public java.util.Collection<Ontology> getAllOntologiesForCollection(Collection collection) throws QueryException {
-		List<Ontology> permanentOntologies = this.getPermanentOntologies();
+		List<Ontology> bioportalOntologies = this.getBioportalOntologies();
 		List<Ontology> relevantOntologies = this.getRelevantOntologiesForCollection(collection);
-		Set<Ontology> allOntologies = new HashSet<Ontology>(permanentOntologies);
+		Set<Ontology> allOntologies = new HashSet<Ontology>(bioportalOntologies);
 		allOntologies.addAll(relevantOntologies);
 		return allOntologies;
 	}
 	
-	public List<Ontology> getPermanentOntologies() throws QueryException {
+	public List<Ontology> getBioportalOntologies() throws QueryException {
 		List<Ontology> ontologies = new LinkedList<Ontology>();
-		try(Query query = new Query("SELECT id FROM ontologize_ontology WHERE collection = -1")) {
+		try(Query query = new Query("SELECT id FROM ontologize_ontology WHERE bioportal_ontology = 1")) {
 			ResultSet result = query.execute();
 			while(result.next()) {
 				int id = result.getInt(1);
@@ -217,9 +224,9 @@ public class OntologyDAO {
 		return ontologies;
 	}
 
-	public List<Ontology> getPermanentOntologiesForCollection(Collection collection) throws QueryException {
+	public List<Ontology> getBioportalOntologiesForCollection(Collection collection) throws QueryException {
 		List<Ontology> ontologies = new LinkedList<Ontology>();
-		try(Query query = new Query("SELECT id FROM ontologize_ontology WHERE collection = -1")) {
+		try(Query query = new Query("SELECT id FROM ontologize_ontology WHERE bioportal_ontology = 1")) {
 			ResultSet result = query.execute();
 			while(result.next()) {
 				int id = result.getInt(1);
@@ -238,7 +245,7 @@ public class OntologyDAO {
 
 	public List<Ontology> getLocalOntologiesForCollection(Collection collection) throws QueryException {
 		List<Ontology> ontologies = new LinkedList<Ontology>();
-		try(Query query = new Query("SELECT id FROM ontologize_ontology WHERE collection = ?")) {
+		try(Query query = new Query("SELECT o.id FROM ontologize_ontology o, ontologize_collection_ontology co WHERE co.collection = ? AND o.id = co.ontology")) {
 			query.setParameter(1, collection.getId());
 			ResultSet result = query.execute();
 			while(result.next()) {
@@ -254,6 +261,36 @@ public class OntologyDAO {
 			throw new QueryException(e);
 		}
 		return ontologies;
+	}
+	
+	public boolean isLocalOntologyForCollection(int collectionId, Ontology ontology) {
+		try(Query select = new Query("SELECT * FROM `ontologize_collection_ontology` WHERE collection = ? AND ontology = ?")) {
+			select.setParameter(1, collectionId);
+			select.setParameter(2, ontology.getId());
+			ResultSet resultSet = select.execute();
+			if(resultSet.next())
+				return true;
+		} catch(QueryException | SQLException e) {
+			log(LogLevel.ERROR, "Query Exception", e);
+		}
+		return false;
+	}
+
+	public void insertLocalOntologiesForCollection(int collectionId, List<Ontology> ontologies) throws QueryException {
+		for(Ontology ontology : ontologies) {
+			insertLocalOntologiesForCollection(collectionId, ontology);
+		}
+	}
+	
+	
+	public void insertLocalOntologiesForCollection(int collectionId, Ontology ontology) throws QueryException {
+		if(!isLocalOntologyForCollection(collectionId, ontology)) {
+			try(Query insert = new Query("INSERT INTO `ontologize_collection_ontology` (`collection`, `ontology`) VALUES(?, ?)")) {
+				insert.setParameter(1, collectionId);
+				insert.setParameter(2, ontology.getId());
+				insert.execute();
+			}
+		}
 	}
 	
 }

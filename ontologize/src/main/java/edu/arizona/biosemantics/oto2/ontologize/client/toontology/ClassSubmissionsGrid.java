@@ -1,26 +1,36 @@
 package edu.arizona.biosemantics.oto2.ontologize.client.toontology;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
+import com.google.gwt.event.logical.shared.ValueChangeEvent;
+import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.core.client.IdentityValueProvider;
 import com.sencha.gxt.core.client.Style.SelectionMode;
+import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
 import com.sencha.gxt.core.client.util.Format;
 import com.sencha.gxt.core.client.util.Params;
 import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.box.MultiLinePromptMessageBox;
+import com.sencha.gxt.widget.core.client.button.TextButton;
+import com.sencha.gxt.widget.core.client.container.FlowLayoutContainer;
+import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.event.BeforeShowEvent;
 import com.sencha.gxt.widget.core.client.event.HideEvent;
 import com.sencha.gxt.widget.core.client.event.BeforeShowEvent.BeforeShowHandler;
 import com.sencha.gxt.widget.core.client.event.HideEvent.HideHandler;
+import com.sencha.gxt.widget.core.client.event.SelectEvent;
+import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
+import com.sencha.gxt.widget.core.client.form.CheckBox;
 import com.sencha.gxt.widget.core.client.grid.CheckBoxSelectionModel;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
@@ -41,9 +51,10 @@ import edu.arizona.biosemantics.oto2.ontologize.client.common.ColorableCell;
 import edu.arizona.biosemantics.oto2.ontologize.client.common.ColorableCheckBoxCell;
 import edu.arizona.biosemantics.oto2.ontologize.client.common.ColorableCheckBoxCell.CommentableColorableProvider;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.AddCommentEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.CreateOntologyEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.OntologyClassSubmissionSelectEvent;
-import edu.arizona.biosemantics.oto2.ontologize.client.event.OntologySynonymSubmissionSelectEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.RefreshOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.RemoveOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.SelectPartOfEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.SelectSuperclassEvent;
@@ -54,6 +65,7 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.Color;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Colorable;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Comment;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Commentable;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmissionProperties;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmissionStatus;
@@ -80,9 +92,12 @@ public class ClassSubmissionsGrid implements IsWidget {
 	private EventBus eventBus;
 	protected Collection collection;
 	private Grid<OntologyClassSubmission> grid;
+	private ListStore<OntologyClassSubmission> classSubmissionStore;
+	//private List<Ontology> ontologies;
 	
 	public ClassSubmissionsGrid(EventBus eventBus, ListStore<OntologyClassSubmission> classSubmissionStore) {		
 		this.eventBus = eventBus;
+		this.classSubmissionStore = classSubmissionStore;
 		grid = new Grid<OntologyClassSubmission>(classSubmissionStore, createColumnModel(classSubmissionStore));
 		
 		final GroupingView<OntologyClassSubmission> groupingView = new GroupingView<OntologyClassSubmission>();
@@ -109,6 +124,16 @@ public class ClassSubmissionsGrid implements IsWidget {
 			@Override
 			public void onLoad(LoadCollectionEvent event) {
 				ClassSubmissionsGrid.this.collection = event.getCollection();
+				/*toOntologyService.getOntologies(collection, new AsyncCallback<List<Ontology>>() {
+					@Override
+					public void onFailure(Throwable caught) {
+						Alerter.failedToGetOntologies();
+					}
+					@Override
+					public void onSuccess(List<Ontology> result) {
+						ontologies = new LinkedList<Ontology>(result);
+					}
+				});*/
 			}
 		});
 		
@@ -124,6 +149,12 @@ public class ClassSubmissionsGrid implements IsWidget {
 				}
 			}
 		});
+		/*eventBus.addHandler(CreateOntologyEvent.TYPE, new CreateOntologyEvent.Handler() {
+			@Override
+			public void onCreate(CreateOntologyEvent event) {
+				ontologies.add(event.getOntology());
+			}
+		});*/
 		getSelectionModel().addSelectionHandler(new SelectionHandler<OntologyClassSubmission>() {
 			@Override
 			public void onSelection(SelectionEvent<OntologyClassSubmission> event) {
@@ -148,7 +179,8 @@ public class ClassSubmissionsGrid implements IsWidget {
 					if(!collection.getColors().isEmpty()) {
 						menu.add(createColorizeItem(selected));
 					} 
-				}
+				} 
+				//menu.add(createViewItem());
 				event.setCancelled(menu.getWidgetCount() == 0);
 			}
 
@@ -273,6 +305,60 @@ public class ClassSubmissionsGrid implements IsWidget {
 				additem.setSubMenu(addMenu);
 				return additem;
 			}
+			
+			/*private Widget createViewItem() {
+				MenuItem viewItem = new MenuItem("View Submissions");
+				final Menu viewMenu = new Menu();
+				viewItem.setSubMenu(viewMenu);
+				
+				VerticalLayoutContainer verticalLayoutContainer = new VerticalLayoutContainer();
+				final TextButton viewButton = new TextButton("View");
+				viewButton.setEnabled(false);
+				
+				FlowLayoutContainer flowLayoutContainer = new FlowLayoutContainer();
+				VerticalLayoutContainer checkBoxPanel = new VerticalLayoutContainer();
+				flowLayoutContainer.add(checkBoxPanel);
+				flowLayoutContainer.setScrollMode(ScrollMode.AUTOY);
+				flowLayoutContainer.getElement().getStyle().setProperty("maxHeight", "150px");
+				
+				final List<Ontology> selectedOntologies = new LinkedList<Ontology>();
+				for(final Ontology ontology : ontologies) {
+					CheckBox checkBox = new CheckBox();
+					checkBox.setBoxLabel(ontology.getAcronym());
+					checkBox.setValue(false);
+					checkBox.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
+						@Override
+						public void onValueChange(ValueChangeEvent<Boolean> event) {
+							if(event.getValue())
+								selectedOntologies.add(ontology);
+							else
+								selectedOntologies.remove(ontology);
+							viewButton.setEnabled(!selectedOntologies.isEmpty());
+						}
+					});
+					checkBoxPanel.add(checkBox);
+				}
+				verticalLayoutContainer.add(flowLayoutContainer);
+				viewButton.addSelectHandler(new SelectHandler() {
+					@Override
+					public void onSelect(SelectEvent event) {
+						classSubmissionStore.clear();
+						toOntologyService.getClassSubmissions(collection, selectedOntologies, true, new AsyncCallback<List<OntologyClassSubmission>>() {
+							@Override
+							public void onFailure(Throwable caught) {
+								
+							}
+							@Override
+							public void onSuccess(List<OntologyClassSubmission> result) {
+								classSubmissionStore.addAll(result);
+							}
+						});
+					}
+				});
+				verticalLayoutContainer.add(viewButton);
+				viewMenu.add(verticalLayoutContainer);	
+				return viewItem;
+			}*/
 
 			private Widget createRemoveItem(final List<OntologyClassSubmission> selected) {
 				MenuItem deleteItem = new MenuItem("Remove");

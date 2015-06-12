@@ -21,6 +21,8 @@ public class Collection implements Serializable, Comparable<Collection> {
 	private TaxonGroup taxonGroup;
 	private String secret = "";
 	private List<Term> terms = new LinkedList<Term>();
+	private Map<Term, List<String>> termExistingIRIMap = new HashMap<Term, List<String>>();
+	
 	@JsonIgnore
 	private Map<Commentable, List<Comment>> comments = new HashMap<Commentable, List<Comment>>();
 	@JsonIgnore
@@ -28,6 +30,7 @@ public class Collection implements Serializable, Comparable<Collection> {
 	private List<Color> colors = new ArrayList<Color>();
 	@JsonIgnore
 	private Map<Term, Set<Object>> usedTerms = new HashMap<Term, Set<Object>>();
+	private List<Collection> linkedCollections = new LinkedList<Collection>();
 	
 	public Collection() { }
 	
@@ -40,7 +43,7 @@ public class Collection implements Serializable, Comparable<Collection> {
 	
 	public Collection(int id, String name, TaxonGroup taxonGroup, String secret, List<Term> terms, 
 			Map<Commentable, List<Comment>> comments, Map<Colorable, Color> colorizations, List<Color> colors, 
-			Map<Term, Set<Object>> usedTerms) {
+			Map<Term, Set<Object>> usedTerms, List<Collection> linkedCollections) {
 		super();
 		this.id = id;
 		this.name = name;
@@ -51,6 +54,7 @@ public class Collection implements Serializable, Comparable<Collection> {
 		this.colorizations = colorizations;
 		this.colors = colors;
 		this.usedTerms = usedTerms;
+		this.linkedCollections = linkedCollections;
 	}
 
 	public int getId() {
@@ -210,5 +214,28 @@ public class Collection implements Serializable, Comparable<Collection> {
 	public boolean isUsed(Term term) {
 		return usedTerms.containsKey(term) && !usedTerms.get(term).isEmpty();
 	}
-	
+
+	public List<Collection> getLinkedCollections() {
+		return linkedCollections;
+	}
+
+	public void setLinkedCollections(List<Collection> linkedCollections) {
+		this.linkedCollections = linkedCollections;
+	}
+
+	public Map<Term, List<String>> getTermExistingIRIMap() {
+		return termExistingIRIMap;
+	}
+
+	public void setTermExistingIRIMap(Map<Term, List<String>> termExistingIRIMap) {
+		this.termExistingIRIMap = termExistingIRIMap;
+	}
+
+	public boolean hasExistingIRI(Term term) {
+		return termExistingIRIMap.get(term) != null && !termExistingIRIMap.get(term).isEmpty();
+	}
+
+	public List<String> getExistingIRIs(Term term) {
+		return termExistingIRIMap.get(term);
+	}		
 }
