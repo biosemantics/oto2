@@ -21,8 +21,8 @@ public class Collection implements Serializable, Comparable<Collection> {
 	private TaxonGroup taxonGroup;
 	private String secret = "";
 	private List<Term> terms = new LinkedList<Term>();
+	@JsonIgnore
 	private Map<Term, List<String>> termExistingIRIMap = new HashMap<Term, List<String>>();
-	
 	@JsonIgnore
 	private Map<Commentable, List<Comment>> comments = new HashMap<Commentable, List<Comment>>();
 	@JsonIgnore
@@ -223,6 +223,7 @@ public class Collection implements Serializable, Comparable<Collection> {
 		this.linkedCollections = linkedCollections;
 	}
 
+	@JsonIgnore
 	public Map<Term, List<String>> getTermExistingIRIMap() {
 		return termExistingIRIMap;
 	}

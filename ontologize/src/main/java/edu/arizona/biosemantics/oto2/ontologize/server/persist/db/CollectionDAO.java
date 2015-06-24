@@ -137,7 +137,7 @@ public class CollectionDAO {
 
 	private List<Collection> getLinkedCollections(int id) throws QueryException, IOException {
 		List<Collection> linkedCollections = new LinkedList<Collection>();
-		try(Query query = new Query("SELECT linked_ontology FROM ontologize_collection_linked_collection WHERE collection = ?")) {
+		try(Query query = new Query("SELECT linked_collection FROM ontologize_collection_linked_collection WHERE collection = ?")) {
 			query.setParameter(1, id);
 			ResultSet result = query.execute();
 			while(result.next()) {

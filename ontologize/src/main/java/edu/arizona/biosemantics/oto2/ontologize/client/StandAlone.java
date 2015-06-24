@@ -8,7 +8,7 @@ import com.sencha.gxt.widget.core.client.container.Viewport;
 public class StandAlone implements EntryPoint {
 
 	public void onModuleLoad() {
-		int collectionId = 1;
+		int collectionId = 2;
 		String secret = "my secret";
 		Ontologize ontologize = new Ontologize();
 		Viewport v = new Viewport();

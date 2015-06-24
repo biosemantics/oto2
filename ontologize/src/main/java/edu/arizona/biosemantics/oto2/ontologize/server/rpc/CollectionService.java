@@ -55,11 +55,14 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	private Map<Term, List<String>> getExistingIRI(List<Term> terms) throws QueryException, IOException {
 		Map<Term, List<String>> existingIRIs = new HashMap<Term, List<String>>();
 		for(Term term : terms) {
-			if(existingIRIs.containsKey(term))
+			if(!existingIRIs.containsKey(term))
 				existingIRIs.put(term, new LinkedList<String>());
 			Collection collection = daoManager.getCollectionDAO().get(term.getCollectionId());
+						
+			//if(term.getTerm().equals("absent")) {
 			existingIRIs.get(term).addAll(getPermanentOntologyIRIs(term, collection));
 			existingIRIs.get(term).addAll(getBioportalAndLocalOntologyIRIs(term, collection));
+			//}
 		}
 		return existingIRIs;
 	}
@@ -89,7 +92,13 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 			permanentOntologySearchers.add(new FileSearcher(ontology, Configuration.permanentOntologyDirectory, Configuration.wordNetSource));
 		
 		for(Searcher searcher : permanentOntologySearchers) {
-			List<OntologyEntry> ontologyEntries = searcher.getEntries(term.getTerm(), Type.ENTITY);
+			Type type = Type.QUALITY;
+			if(term.getBuckets().contains("structure"))
+				type = Type.ENTITY;
+			if(term.getBuckets().contains("character"))
+				type = Type.QUALITY;
+						
+			List<OntologyEntry> ontologyEntries = searcher.getEntries(term.getTerm(), type);
 			if(!ontologyEntries.isEmpty()) {
 				log(LogLevel.DEBUG, "Highest scored ontology entity" + ontologyEntries.get(0).getScore());
 				if(ontologyEntries.get(0).getScore() == 1.0) {
