@@ -1,5 +1,7 @@
 package edu.arizona.biosemantics.oto2.oto.client.uncategorize;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -129,7 +131,9 @@ public class TermsView extends TabPanel {
 					flowLayoutContainer.add(checkBoxPanel);
 					flowLayoutContainer.setScrollMode(ScrollMode.AUTOY);
 					flowLayoutContainer.getElement().getStyle().setProperty("maxHeight", "150px");
-					for(final Label collectionLabel : collection.getLabels()) {
+					List<Label> labels = new ArrayList<Label>(collection.getLabels());
+					Collections.sort(labels);
+					for(final Label collectionLabel : labels) {
 						CheckBox checkBox = new CheckBox();
 						checkBox.setBoxLabel(collectionLabel.getName());
 						checkBox.setValue(false);
