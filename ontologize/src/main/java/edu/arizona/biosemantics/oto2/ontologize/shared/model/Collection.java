@@ -30,7 +30,6 @@ public class Collection implements Serializable, Comparable<Collection> {
 	private List<Color> colors = new ArrayList<Color>();
 	@JsonIgnore
 	private Map<Term, Set<Object>> usedTerms = new HashMap<Term, Set<Object>>();
-	private List<Collection> linkedCollections = new LinkedList<Collection>();
 	
 	public Collection() { }
 	
@@ -43,7 +42,7 @@ public class Collection implements Serializable, Comparable<Collection> {
 	
 	public Collection(int id, String name, TaxonGroup taxonGroup, String secret, List<Term> terms, 
 			Map<Commentable, List<Comment>> comments, Map<Colorable, Color> colorizations, List<Color> colors, 
-			Map<Term, Set<Object>> usedTerms, List<Collection> linkedCollections) {
+			Map<Term, Set<Object>> usedTerms) {
 		super();
 		this.id = id;
 		this.name = name;
@@ -54,7 +53,6 @@ public class Collection implements Serializable, Comparable<Collection> {
 		this.colorizations = colorizations;
 		this.colors = colors;
 		this.usedTerms = usedTerms;
-		this.linkedCollections = linkedCollections;
 	}
 
 	public int getId() {
@@ -213,14 +211,6 @@ public class Collection implements Serializable, Comparable<Collection> {
 
 	public boolean isUsed(Term term) {
 		return usedTerms.containsKey(term) && !usedTerms.get(term).isEmpty();
-	}
-
-	public List<Collection> getLinkedCollections() {
-		return linkedCollections;
-	}
-
-	public void setLinkedCollections(List<Collection> linkedCollections) {
-		this.linkedCollections = linkedCollections;
 	}
 
 	@JsonIgnore

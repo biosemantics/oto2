@@ -22,7 +22,4 @@ public interface ICollectionService extends RemoteService {
 	
 	public void update(Collection collection) throws Exception;
 
-	public void insertLinkedCollections(edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection collection,
-			List<edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection> collections) throws Exception;
-
 }

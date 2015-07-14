@@ -21,7 +21,7 @@ public interface IToOntologyService extends RemoteService {
 
 	public OntologySynonymSubmission createSynonymSubmission(Collection collection, OntologySynonymSubmission submission) throws CreateSynonymSubmissionException, OntologyFileException, OntologyBioportalException;
 	
-	public List<OntologyClassSubmission> getClassSubmissions(Collection collection, boolean includeLinkedCollections) throws  Exception;
+	public List<OntologyClassSubmission> getClassSubmissions(Collection collection) throws  Exception;
 
 	public List<OntologySynonymSubmission> getSynonymSubmissions(Collection collection) throws Exception;
 	
@@ -45,7 +45,7 @@ public interface IToOntologyService extends RemoteService {
 
 	public List<Ontology> getLocalOntologies(Collection collection) throws Exception;
 	
-	public List<OntologyClassSubmission> getClassSubmissions(Collection collection, Ontology ontology, boolean includeLinkedCollections) throws Exception;
+	public List<OntologyClassSubmission> getClassSubmissions(Collection collection, Ontology ontology) throws Exception;
 	
-	public List<OntologyClassSubmission> getClassSubmissions(Collection collection, java.util.Collection<Ontology> ontologies, boolean includeLinkedCollections) throws Exception;
+	public List<OntologyClassSubmission> getClassSubmissions(Collection collection, java.util.Collection<Ontology> ontologies) throws Exception;
 }

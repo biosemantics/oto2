@@ -443,7 +443,7 @@ public class SubmitLocalSynonymView implements IsWidget {
 			@Override
 			public void onValueChange(ValueChangeEvent<Ontology> event) {
 				final MessageBox box = Alerter.startLoading();
-				toOntologyService.getClassSubmissions(collection, event.getValue(), true, new AsyncCallback<List<OntologyClassSubmission>>() {
+				toOntologyService.getClassSubmissions(collection, event.getValue(), new AsyncCallback<List<OntologyClassSubmission>>() {
 					@Override
 					public void onFailure(Throwable caught) {
 						Alerter.stopLoading(box);

@@ -132,7 +132,7 @@ public class SubmissionsView implements IsWidget {
 
 	protected void refreshClassSubmissions() {
 		final MessageBox loadingBox = Alerter.startLoading();
-		toOntologyService.getClassSubmissions(collection, true, new AsyncCallback<List<OntologyClassSubmission>>() {
+		toOntologyService.getClassSubmissions(collection, new AsyncCallback<List<OntologyClassSubmission>>() {
 			@Override
 			public void onFailure(Throwable caught) {
 				Alerter.stopLoading(loadingBox);

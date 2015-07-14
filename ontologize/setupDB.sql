@@ -9,16 +9,6 @@ CREATE TABLE IF NOT EXISTS `ontologize_collection` (
   UNIQUE KEY `id` (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
-CREATE TABLE IF NOT EXISTS `ontologize_collection_linked_collection` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `collection` bigint(20) unsigned NOT NULL,
-  `linked_collection` bigint(20) unsigned NOT NULL,
-  `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `id` (`id`),
-  UNIQUE KEY `collection_linked_collection` (`collection`, `linked_collection`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0 ;
-
 CREATE TABLE IF NOT EXISTS `ontologize_term` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `term` varchar(100) NOT NULL,

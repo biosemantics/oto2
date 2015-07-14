@@ -59,45 +59,18 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	}
 	
 	@Override
-	public List<OntologyClassSubmission> getClassSubmissions(Collection collection, boolean includeLinkedCollections) throws Exception {
-		List<OntologyClassSubmission> result = daoManager.getOntologyClassSubmissionDAO().get(collection);
-		if(includeLinkedCollections) {
-			for(Collection linkedCollection : getLinkedCollectionsRecursively(collection)) {
-				result.addAll(daoManager.getOntologyClassSubmissionDAO().get(linkedCollection));
-			}
-		}
-		return result;
-	}
-	
-	private List<Collection> getLinkedCollectionsRecursively(Collection collection) {
-		List<Collection> result = new LinkedList<Collection>();
-		for(Collection linkedCollection : collection.getLinkedCollections()) {
-			result.add(linkedCollection);
-			result.addAll(getLinkedCollectionsRecursively(linkedCollection));
-		}
-		return result;
+	public List<OntologyClassSubmission> getClassSubmissions(Collection collection) throws Exception {
+		return daoManager.getOntologyClassSubmissionDAO().get(collection);
 	}
 
 	@Override
-	public List<OntologyClassSubmission> getClassSubmissions(Collection collection, Ontology ontology, boolean includeLinkedCollections) throws Exception {
-		List<OntologyClassSubmission> result =  daoManager.getOntologyClassSubmissionDAO().get(collection, ontology);
-		if(includeLinkedCollections) {
-			for(Collection linkedCollection : getLinkedCollectionsRecursively(collection)) {
-				result.addAll(daoManager.getOntologyClassSubmissionDAO().get(linkedCollection, ontology));
-			}
-		}
-		return result;
+	public List<OntologyClassSubmission> getClassSubmissions(Collection collection, Ontology ontology) throws Exception {
+		return daoManager.getOntologyClassSubmissionDAO().get(collection, ontology);
 	}
 	
 	@Override
-	public List<OntologyClassSubmission> getClassSubmissions(Collection collection, java.util.Collection<Ontology> ontologies, boolean includeLinkedCollections) throws Exception {
-		List<OntologyClassSubmission> result =  daoManager.getOntologyClassSubmissionDAO().get(collection, ontologies);
-		if(includeLinkedCollections) {
-			for(Collection linkedCollection : getLinkedCollectionsRecursively(collection)) {
-				result.addAll(daoManager.getOntologyClassSubmissionDAO().get(linkedCollection, ontologies));
-			}
-		}
-		return result;
+	public List<OntologyClassSubmission> getClassSubmissions(Collection collection, java.util.Collection<Ontology> ontologies) throws Exception {
+		return daoManager.getOntologyClassSubmissionDAO().get(collection, ontologies);
 	}
 
 	@Override

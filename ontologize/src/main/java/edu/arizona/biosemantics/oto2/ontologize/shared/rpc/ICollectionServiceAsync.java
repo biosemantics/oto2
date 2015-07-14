@@ -17,8 +17,6 @@ public interface ICollectionServiceAsync {
 	public void get(int id, String secret, AsyncCallback<Collection> callback);
 	
 	public void update(Collection collection, AsyncCallback<Void> callback);
-		
-	public void insertLinkedCollections(edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection collection,
-			List<edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection> collections, AsyncCallback<Void> callback);
+	
 		
 }

@@ -127,18 +127,4 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 		daoManager.getOntologyDBDAO().insertLocalOntologiesForCollection(collectionId, ontologies);
 	}
 
-	@Override
-	public void insertLinkedCollections(Collection collection, List<Collection> linkedCollections) throws Exception {
-		for(Collection linkCollection : linkedCollections) {
-			if(daoManager.getCollectionDAO().isValidSecret(collection.getId(), collection.getSecret()) && 
-					daoManager.getCollectionDAO().isValidSecret(linkCollection.getId(), linkCollection.getSecret())) {
-				daoManager.getCollectionDAO().insertLinkedCollection(collection, linkCollection.getId());
-				List<Ontology> localOntologies = this.getLocalOntologiesForCollection(linkCollection.getId(), linkCollection.getSecret());
-				this.insertLocalOntologiesForCollection(collection.getId(), collection.getSecret(), localOntologies);
-			} else {
-				throw new IllegalArgumentException();
-			}
-		}
-	}
-
 }

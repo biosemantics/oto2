@@ -131,24 +131,7 @@ public class CollectionDAO {
 			}
 		}
 		
-		List<Collection> linkedCollections = getLinkedCollections(id);
-		return new Collection(id, name, taxonGroup, secret, terms, comments, colorizations, colors, usedTerms, linkedCollections);
-	}
-
-	private List<Collection> getLinkedCollections(int id) throws QueryException, IOException {
-		List<Collection> linkedCollections = new LinkedList<Collection>();
-		try(Query query = new Query("SELECT linked_collection FROM ontologize_collection_linked_collection WHERE collection = ?")) {
-			query.setParameter(1, id);
-			ResultSet result = query.execute();
-			while(result.next()) {
-				int linkedCollection = result.getInt(1);
-				linkedCollections.add(get(linkedCollection));
-			}
-		} catch(QueryException | SQLException e) {
-			log(LogLevel.ERROR, "Query Exception", e);
-			throw new QueryException(e);
-		}
-		return linkedCollections;
+		return new Collection(id, name, taxonGroup, secret, terms, comments, colorizations, colors, usedTerms);
 	}
 
 	public Collection insert(Collection collection) throws QueryException, IOException  {
@@ -277,19 +260,6 @@ public class CollectionDAO {
 	public void setOntologySynonymSubmissionDAO(
 			OntologySynonymSubmissionDAO ontologySynonymSubmissionDAO) {
 		this.ontologySynonymSubmissionDAO = ontologySynonymSubmissionDAO;
-	}
-
-	public void insertLinkedCollection(Collection collection, int linkedId) throws QueryException {
-		if(!collection.hasId()) {
-			try(Query insert = new Query("INSERT INTO `ontologize_collection_linked_collection` (`collection`, `linked_collection`) VALUES(?, ?)")) {
-				insert.setParameter(1, collection.getId());
-				insert.setParameter(2, linkedId);
-				insert.execute();
-			} catch(QueryException e) {
-				log(LogLevel.ERROR, "Query Exception", e);
-				throw e;
-			}
-		}
 	}
 	
 }

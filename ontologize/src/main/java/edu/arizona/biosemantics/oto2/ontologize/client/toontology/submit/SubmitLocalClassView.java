@@ -88,7 +88,7 @@ public class SubmitLocalClassView implements IsWidget {
 	private ComboBox<Term> termComboBox;
 	private TextField submissionTermField = new TextField();
 	private TextField categoryField = new TextField();
-	private TextButton createOntologyButton = new TextButton("Create New Ontology");
+	//private TextButton createOntologyButton = new TextButton("Create New Ontology");
 	private ComboBox<Ontology> ontologyComboBox;
 	private TextField classIRIField = new TextField();
 	
@@ -164,7 +164,7 @@ public class SubmitLocalClassView implements IsWidget {
 	    submissionTermField.setAutoValidate(true);
 	    formContainer.add(new FieldLabel(categoryField, "Category"), new VerticalLayoutData(1, -1));
 	    VerticalLayoutContainer ontologyVlc = new VerticalLayoutContainer();
-	    ontologyVlc.add(createOntologyButton, new VerticalLayoutData(1, -1));
+	  //  ontologyVlc.add(createOntologyButton, new VerticalLayoutData(1, -1));
 	    ontologyVlc.add(ontologyComboBox, new VerticalLayoutData(1, -1));
 	    //ontologyVlc.add(browseOntologiesButton, new VerticalLayoutData(1, -1));
 	    formContainer.add(new FieldLabel(ontologyVlc, "Ontology *"), new VerticalLayoutData(1, -1));
@@ -364,7 +364,7 @@ public class SubmitLocalClassView implements IsWidget {
 				eventBus.fireEventFromSource(new TermSelectEvent(event.getValue()), SubmitLocalClassView.this);
 			}
 		});
-		createOntologyButton.addSelectHandler(new SelectHandler() {
+		/*createOntologyButton.addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
 				final CreateOntologyDialog dialog = new CreateOntologyDialog();
@@ -413,7 +413,7 @@ public class SubmitLocalClassView implements IsWidget {
 				});
 				dialog.show();
 			}
-		});
+		});*/
 		
 		submitButton.addSelectHandler(new SelectHandler() {
 			@Override
