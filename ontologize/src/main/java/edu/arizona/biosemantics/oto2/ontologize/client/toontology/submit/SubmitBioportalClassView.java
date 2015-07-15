@@ -520,7 +520,7 @@ public class SubmitBioportalClassView implements IsWidget {
 				ontologiesStore.addAll(result);
 				if(select == null && ontologiesStore.size() == 1)
 					select = ontologiesStore.get(0);
-				if(ontologyToSelect != null)
+				if(select != null)
 					ontologyComboBox.setValue(select);
 			}
 		});
