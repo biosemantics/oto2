@@ -329,7 +329,6 @@ public class SubmitLocalClassView implements IsWidget {
 			@Override
 			public void onLoad(LoadCollectionEvent event) {
 				SubmitLocalClassView.this.collection = event.getCollection();
-				
 				initCollection();
 			}
 		});
@@ -693,10 +692,13 @@ public class SubmitLocalClassView implements IsWidget {
 
 			@Override
 			public void onSuccess(List<Ontology> result) {
+				Ontology select = ontologyToSelect;
 				ontologiesStore.clear();
 				ontologiesStore.addAll(result);
+				if(select == null && ontologiesStore.size() == 1)
+					select = ontologiesStore.get(0);
 				if(ontologyToSelect != null)
-					ontologyComboBox.setValue(ontologyToSelect);
+					ontologyComboBox.setValue(select);
 			}
 		});
 	}
