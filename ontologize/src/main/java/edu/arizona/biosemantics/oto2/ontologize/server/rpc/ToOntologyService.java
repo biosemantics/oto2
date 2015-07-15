@@ -80,6 +80,7 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	
 	@Override
 	public Ontology createOntology(Collection collection, Ontology ontology) throws CreateOntologyException {
+		ontology.setCreatedInCollectionId(collection.getId());
 		ontology.setIri(Configuration.etcOntologyBaseIRI +collection.getId() + "/" + ontology.getAcronym());
 		try {
 			daoManager.getOntologyFileDAO(collection).insertOntology(ontology);

@@ -182,6 +182,8 @@ public class OntologyView implements IsWidget {
 					public void onSuccess(List<Ontology> result) {
 						ontologyStore.clear();
 						ontologyStore.addAll(result);
+						if(result.size() == 1)
+							ontologyComboBox.setValue(result.get(0));
 					}
 				});
 			}
