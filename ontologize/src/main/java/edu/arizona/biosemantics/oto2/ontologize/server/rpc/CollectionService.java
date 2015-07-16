@@ -43,7 +43,9 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 		try {
 			if(daoManager.getCollectionDAO().isValidSecret(id, secret)) {
 				Collection collection = daoManager.getCollectionDAO().get(id);
-				collection.setTermExistingIRIMap(getExistingIRI(collection.getTerms()));
+				
+				//TODO: IS SLOW
+				//collection.setTermExistingIRIMap(getExistingIRI(collection.getTerms()));
 				return collection;
 			}
 			return null;
