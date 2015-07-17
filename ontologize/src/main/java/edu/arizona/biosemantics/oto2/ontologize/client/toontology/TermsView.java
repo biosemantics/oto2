@@ -345,31 +345,7 @@ public class TermsView implements IsWidget {
 			@Override
 			public void onLoad(LoadCollectionEvent event) {
 				TermsView.this.collection = event.getCollection();
-				/*treeStore.removeChildren(availableStructureTermsNode);
-				treeStore.removeChildren(availableCharacterTermsNode);
-				treeStore.removeChildren(removedStructureTermsNode);
-				treeStore.removeChildren(removedCharacterTermsNode);
-				
-				for(Term term : event.getCollection().getTerms()) {
-					switch(term.getCategory().toLowerCase()) {
-					case "character":
-						if(term.isRemoved()) {
-							addTermTreeNode(removedCharacterTermsNode, new TermTreeNode(term));
-							
-						} else {
-							addTermTreeNode(availableCharacterTermsNode, new TermTreeNode(term));
-						}
-						break;
-					case "structure":
-						if(term.isRemoved()) {
-							addTermTreeNode(removedStructureTermsNode, new TermTreeNode(term));
-							treeStore.add(removedStructureTermsNode, new TermTreeNode(term));
-						} else {
-							addTermTreeNode(availableStructureTermsNode, new TermTreeNode(term));
-						}
-						break;
-					}
-				}*/
+				treeStore.clear();
 				
 				Map<String, BucketTreeNode> bucketTreeNodes = new HashMap<String, BucketTreeNode>();				
 				for(Term term : event.getCollection().getTerms()) {
