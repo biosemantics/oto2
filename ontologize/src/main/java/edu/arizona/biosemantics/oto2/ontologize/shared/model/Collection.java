@@ -227,6 +227,8 @@ public class Collection implements Serializable, Comparable<Collection> {
 	}
 
 	public List<String> getExistingIRIs(Term term) {
-		return termExistingIRIMap.get(term);
+		if(termExistingIRIMap.containsKey(term))
+			return termExistingIRIMap.get(term);
+		return new LinkedList<String>();
 	}		
 }
