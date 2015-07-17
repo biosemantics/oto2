@@ -21,7 +21,7 @@ public interface IToOntologyServiceAsync {
 
 	public void getSynonymSubmissions(Collection collection, AsyncCallback<List<OntologySynonymSubmission>> callback);
 
-	public void createOntology(Collection collection, Ontology ontology, AsyncCallback<Ontology> callback);
+	public void createOntology(Collection collection, Ontology ontology, boolean createFile, AsyncCallback<Ontology> callback);
 	
 	public void refreshSubmissionStatuses(Collection collection, AsyncCallback<Void> callback);
 	
@@ -50,4 +50,5 @@ public interface IToOntologyServiceAsync {
 
 	public void getClassSubmissions(Collection collection, java.util.Collection<Ontology> ontologies, 
 			AsyncCallback<List<OntologyClassSubmission>> callback);
+
 }

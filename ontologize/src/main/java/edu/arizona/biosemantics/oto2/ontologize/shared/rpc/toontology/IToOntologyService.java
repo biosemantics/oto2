@@ -25,7 +25,7 @@ public interface IToOntologyService extends RemoteService {
 
 	public List<OntologySynonymSubmission> getSynonymSubmissions(Collection collection) throws Exception;
 	
-	public Ontology createOntology(Collection collection, Ontology ontology) throws CreateOntologyException;
+	public Ontology createOntology(Collection collection, Ontology ontology, boolean createFile) throws CreateOntologyException;
 	
 	public void refreshSubmissionStatuses(Collection collection) throws Exception;
 	
@@ -48,4 +48,5 @@ public interface IToOntologyService extends RemoteService {
 	public List<OntologyClassSubmission> getClassSubmissions(Collection collection, Ontology ontology) throws Exception;
 	
 	public List<OntologyClassSubmission> getClassSubmissions(Collection collection, java.util.Collection<Ontology> ontologies) throws Exception;
+
 }

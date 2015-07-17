@@ -1,6 +1,8 @@
 package edu.arizona.biosemantics.oto2.ontologize.server.persist.file;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -12,6 +14,13 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.JDOMException;
+import org.jdom2.Namespace;
+import org.jdom2.input.SAXBuilder;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.OWLOntologyInputSourceException;
 import org.semanticweb.owlapi.model.AddAxiom;
@@ -186,22 +195,43 @@ public class OntologyFileDAO {
 		
 	}
 
-	public void insertOntology(Ontology ontology) throws OntologyFileException {	
-		OWLOntology owlOntology = null;
-		try {
-			owlOntology = owlOntologyManager.createOntology(IRI.create(ontology.getIri()));
-		} catch (OWLOntologyCreationException e) {
-			log(LogLevel.ERROR, "Couldn't create ontology", e);
-			throw new OntologyFileException(e);
-		}
-		addDefaultImportOntologies(collection, owlOntology);
-		axiomManager.initializeOntology(owlOntology);
-		
-		try {
-			owlOntologyManager.saveOntology(owlOntology, getLocalOntologyIRI(ontology));
-		} catch (OWLOntologyStorageException e) {
-			log(LogLevel.ERROR, "Couldn't save ontology", e);
-			throw new OntologyFileException(e);
+	public void insertOntology(Ontology ontology, boolean createFile) throws OntologyFileException {	
+		if(createFile) {
+			OWLOntology owlOntology = null;
+			try {
+				owlOntology = owlOntologyManager.createOntology(IRI.create(ontology.getIri()));
+			} catch (OWLOntologyCreationException e) {
+				log(LogLevel.ERROR, "Couldn't create ontology", e);
+				throw new OntologyFileException(e);
+			}
+			addDefaultImportOntologies(collection, owlOntology);
+			axiomManager.initializeOntology(owlOntology);
+			
+			try {
+				owlOntologyManager.saveOntology(owlOntology, getLocalOntologyIRI(ontology));
+			} catch (OWLOntologyStorageException e) {
+				log(LogLevel.ERROR, "Couldn't save ontology", e);
+				throw new OntologyFileException(e);
+			}
+			
+		//file already exists, update IRI and load to ontologymanager
+		} else {
+			File file = getCollectionOntologyFile(ontology);
+			try {
+				updateOwlOntologyIRI(file, ontology, collection);
+			} catch (JDOMException | IOException e) {
+				log(LogLevel.ERROR, "Couldn't update owl ontology IRI", e);
+				throw new OntologyFileException(e);
+			}
+			
+			log(LogLevel.INFO, "Loading " + file.getAbsolutePath() + " ...");
+			try {
+				owlOntologyManager.getIRIMappers().add(createMapper(ontology));
+				OWLOntology owlOntology = owlOntologyManager.loadOntologyFromOntologyDocument(file);
+			} catch (OWLOntologyCreationException | OWLOntologyInputSourceException | UnloadableImportException e) {
+				Logger.getLogger(OntologyFileDAO.class).error("Could not load ontology", e);
+				throw new OntologyFileException(e);
+			}
 		}
 	}
 	
@@ -602,5 +632,29 @@ public class OntologyFileDAO {
 	
 	public Collection getCollection() {
 		return collection;
+	}
+	
+	private void updateOwlOntologyIRI(File file, Ontology ontology, Collection collection) throws JDOMException, IOException {
+		SAXBuilder sax = new SAXBuilder();
+		Document doc = sax.build(file);
+		Element root = doc.getRootElement();
+		Namespace namespace = Namespace.getNamespace("http://www.etc-project.org/owl/ontologies/36/as#");
+		Namespace xmlNamespace = Namespace.getNamespace("xml", "http://www.w3.org/XML/1998/namespace");
+		Namespace owlNamespace = Namespace.getNamespace("owl", "http://www.w3.org/2002/07/owl#");
+		Namespace rdfNamespace = Namespace.getNamespace("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
+			  
+		String newURL = "http://www.etc-project.org/owl/ontologies/" + collection.getId() + "/" + 
+				ontology.getAcronym() + "#";
+		root.removeNamespaceDeclaration(namespace);
+		Namespace newNamespace = Namespace.getNamespace(newURL);
+		root.addNamespaceDeclaration(newNamespace);
+			  
+		root.getAttribute("base", xmlNamespace).setValue(newURL);
+			  
+		Element ontologyElement = root.getChild("Ontology", owlNamespace);
+		ontologyElement.getAttribute("about", rdfNamespace).setValue(newURL);
+			    
+		XMLOutputter xout = new XMLOutputter(Format.getPrettyFormat());
+		xout.output(doc, new FileOutputStream(file));
 	}
 }

@@ -79,16 +79,16 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	}
 	
 	@Override
-	public Ontology createOntology(Collection collection, Ontology ontology) throws CreateOntologyException {
+	public Ontology createOntology(Collection collection, Ontology ontology, boolean createFile) throws CreateOntologyException {
 		ontology.setCreatedInCollectionId(collection.getId());
 		ontology.setIri(Configuration.etcOntologyBaseIRI +collection.getId() + "/" + ontology.getAcronym());
 		try {
-			daoManager.getOntologyFileDAO(collection).insertOntology(ontology);
+			daoManager.getOntologyFileDAO(collection).insertOntology(ontology, createFile);
 		} catch (OntologyFileException e) {
 			try {
 				daoManager.getOntologyFileDAO(collection).removeOntology(ontology);
 			} catch (OntologyFileException e1) {
-				log(LogLevel.ERROR, "Couldn't remove ontology from file where creation of ontology overall failed!", e);
+				log(LogLevel.ERROR, "Couldn't remove ontology from file where creation of ontology overall failed!", e1);
 			}
 			throw new CreateOntologyException(e);
 		}
@@ -99,12 +99,12 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 			try {
 				daoManager.getOntologyDBDAO().remove(ontology);
 			} catch (QueryException re) {
-				log(LogLevel.ERROR, "Couldn't remove ontology from DB where creation of ontology overall failed!", e);
+				log(LogLevel.ERROR, "Couldn't remove ontology from DB where creation of ontology overall failed!", re);
 			}
 			try {
 				daoManager.getOntologyFileDAO(collection).removeOntology(ontology);
 			} catch (OntologyFileException e1) {
-				log(LogLevel.ERROR, "Couldn't remove ontology from file where creation of ontology overall failed!", e);
+				log(LogLevel.ERROR, "Couldn't remove ontology from file where creation of ontology overall failed!", e1);
 			}
 			throw new CreateOntologyException(e);
 		}
