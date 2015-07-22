@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.jdom2.Attribute;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
@@ -638,11 +639,13 @@ public class OntologyFileDAO {
 		SAXBuilder sax = new SAXBuilder();
 		Document doc = sax.build(file);
 		Element root = doc.getRootElement();
-		Namespace namespace = Namespace.getNamespace("http://www.etc-project.org/owl/ontologies/36/as#");
+		
 		Namespace xmlNamespace = Namespace.getNamespace("xml", "http://www.w3.org/XML/1998/namespace");
 		Namespace owlNamespace = Namespace.getNamespace("owl", "http://www.w3.org/2002/07/owl#");
 		Namespace rdfNamespace = Namespace.getNamespace("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
-			  
+		Attribute baseAttribute = root.getAttribute("base", xmlNamespace);
+		Namespace namespace = Namespace.getNamespace(baseAttribute.getValue());
+		
 		String newURL = "http://www.etc-project.org/owl/ontologies/" + collection.getId() + "/" + 
 				ontology.getAcronym() + "#";
 		root.removeNamespaceDeclaration(namespace);
