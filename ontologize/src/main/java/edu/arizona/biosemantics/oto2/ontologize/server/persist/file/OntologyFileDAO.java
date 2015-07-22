@@ -635,6 +635,16 @@ public class OntologyFileDAO {
 		return collection;
 	}
 	
+	/*public static void main(String[] args) throws JDOMException, IOException {
+		File file = new File("input/asdf.owl");
+		Ontology ontology = new Ontology();
+		ontology.setAcronym("muh");
+		Collection collection = new Collection();
+		collection.setId(333);
+		updateOwlOntologyIRI(file, ontology, collection);
+		
+	}*/
+	
 	private void updateOwlOntologyIRI(File file, Ontology ontology, Collection collection) throws JDOMException, IOException {
 		SAXBuilder sax = new SAXBuilder();
 		Document doc = sax.build(file);
@@ -643,20 +653,27 @@ public class OntologyFileDAO {
 		Namespace xmlNamespace = Namespace.getNamespace("xml", "http://www.w3.org/XML/1998/namespace");
 		Namespace owlNamespace = Namespace.getNamespace("owl", "http://www.w3.org/2002/07/owl#");
 		Namespace rdfNamespace = Namespace.getNamespace("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
-		Attribute baseAttribute = root.getAttribute("base", xmlNamespace);
-		Namespace namespace = Namespace.getNamespace(baseAttribute.getValue());
+		List<Namespace> toRemove = new LinkedList<Namespace>();
+		for(Namespace namespace : root.getAdditionalNamespaces()) 
+			if(namespace.getURI().startsWith("http://www.etc-project.org/owl/ontologies/"))
+				toRemove.add(namespace);
+		for(Namespace remove : toRemove)
+			root.removeNamespaceDeclaration(remove);
 		
-		String newURL = "http://www.etc-project.org/owl/ontologies/" + collection.getId() + "/" + 
+		String newNamespaceUrl = "http://www.etc-project.org/owl/ontologies/" + collection.getId() + "/" + 
 				ontology.getAcronym() + "#";
-		root.removeNamespaceDeclaration(namespace);
-		Namespace newNamespace = Namespace.getNamespace(newURL);
+		Namespace newNamespace = Namespace.getNamespace(newNamespaceUrl);
 		root.addNamespaceDeclaration(newNamespace);
-			  
-		root.getAttribute("base", xmlNamespace).setValue(newURL);
-			  
+		root.getAttribute("base", xmlNamespace).setValue(newNamespaceUrl);
 		Element ontologyElement = root.getChild("Ontology", owlNamespace);
-		ontologyElement.getAttribute("about", rdfNamespace).setValue(newURL);
-			    
+		ontologyElement.getAttribute("about", rdfNamespace).setValue(newNamespaceUrl);
+		List<Element> classElements = root.getChildren("Class", owlNamespace);
+		for(Element classElement : classElements) {
+			Element labelElement = classElement.getChild("label", rdfNamespace);
+			String label = labelElement.getValue();
+			classElement.getAttribute("about", rdfNamespace).setValue(newNamespaceUrl + "#" + label);
+		}
+		
 		XMLOutputter xout = new XMLOutputter(Format.getPrettyFormat());
 		xout.output(doc, new FileOutputStream(file));
 	}
