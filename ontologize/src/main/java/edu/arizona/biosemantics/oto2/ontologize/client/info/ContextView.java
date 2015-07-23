@@ -173,7 +173,7 @@ public class ContextView implements IsWidget {
 			}		
 
 			private Widget createAddItem(final TypedContext selected) {
-				final MenuItem additem = new MenuItem("Add");
+				final MenuItem additem = new MenuItem("Add to");
 				Menu addMenu = new Menu();
 				MenuItem sampleItem = new MenuItem("Sample");
 				MenuItem sourceItem = new MenuItem("Source");
