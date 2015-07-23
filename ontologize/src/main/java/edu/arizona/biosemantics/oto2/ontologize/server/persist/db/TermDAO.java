@@ -61,20 +61,24 @@ public class TermDAO {
 		return term;
 	}
 	
-	public void update(Term term, int collectionId)  {		
-		try(Query query = new Query("UPDATE ontologize_term SET term = ?, original_term = ?, iri = ?, buckets = ?, category = ?, removed = ?, "
-				+ "collection = ? WHERE id = ?")) {
-			query.setParameter(1, term.getTerm());
-			query.setParameter(2, term.getOriginalTerm());
-			query.setParameter(3, term.getIri());
-			query.setParameter(4, term.getBuckets());
-			query.setParameter(5, term.getCategory());
-			query.setParameter(6, term.isRemoved());
-			query.setParameter(7, collectionId);
-			query.setParameter(8, term.getId());
-			query.execute();
-		} catch(QueryException e) {
-			log(LogLevel.ERROR, "Query Exception", e);
+	public void update(Term term, int collectionId)  {
+		if(term.hasId()) {
+			try(Query query = new Query("UPDATE ontologize_term SET term = ?, original_term = ?, iri = ?, buckets = ?, category = ?, removed = ?, "
+					+ "collection = ? WHERE id = ?")) {
+				query.setParameter(1, term.getTerm());
+				query.setParameter(2, term.getOriginalTerm());
+				query.setParameter(3, term.getIri());
+				query.setParameter(4, term.getBuckets());
+				query.setParameter(5, term.getCategory());
+				query.setParameter(6, term.isRemoved());
+				query.setParameter(7, collectionId);
+				query.setParameter(8, term.getId());
+				query.execute();
+			} catch(QueryException e) {
+				log(LogLevel.ERROR, "Query Exception", e);
+			}
+		} else {
+			this.insert(term, collectionId);
 		}
 	}
 	

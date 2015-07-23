@@ -231,4 +231,10 @@ public class Collection implements Serializable, Comparable<Collection> {
 			return termExistingIRIMap.get(term);
 		return new LinkedList<String>();
 	}		
+	
+	public void addTerms(List<Term> terms) { 
+		this.terms.addAll(terms);
+		for(Term term : terms)
+			term.setCollectionId(id);
+	}
 }
