@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS `ontologize_term` (
 CREATE TABLE IF NOT EXISTS `ontologize_context` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `collection` bigint(20) unsigned NOT NULL,
-  `source` varchar(100) NOT NULL,
+  `source` varchar(300) NOT NULL,
   `text` text NOT NULL,
   `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
