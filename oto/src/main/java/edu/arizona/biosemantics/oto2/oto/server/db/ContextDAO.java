@@ -10,7 +10,11 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import edu.arizona.biosemantics.oto2.oto.server.Configuration;
 import edu.arizona.biosemantics.oto2.oto.server.db.Query.QueryException;
+import edu.arizona.biosemantics.common.ling.know.SingularPluralProvider;
+import edu.arizona.biosemantics.common.ling.know.lib.WordNetPOSKnowledgeBase;
+import edu.arizona.biosemantics.common.ling.transform.lib.SomeInflector;
 import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Context;
@@ -66,7 +70,15 @@ public class ContextDAO {
 
 	}
 	
-	protected ContextDAO() {} 
+	private SingularPluralProvider singularPluralProvider;
+	private WordNetPOSKnowledgeBase posKnowledgeBase;
+	private SomeInflector inflector;
+	
+	public ContextDAO() throws IOException {
+		singularPluralProvider = new SingularPluralProvider();
+		posKnowledgeBase = new WordNetPOSKnowledgeBase(Configuration.wordNetSource, false);
+		inflector = new SomeInflector(posKnowledgeBase, singularPluralProvider.getSingulars(), singularPluralProvider.getPlurals());
+	} 
 	
 	public Context get(int id)  {
 		Context context = null;
@@ -161,33 +173,49 @@ public class ContextDAO {
 		List<Context> contexts = new LinkedList<Context>();
 		Set<Search> searches = new HashSet<Search>();
 
+		String searchTerm = term.getTerm().trim();
+		String singularSearchTerm = searchTerm;
+		String pluralSearchTerm = searchTerm;
+		if(inflector.isPlural(searchTerm)) {
+			singularSearchTerm = inflector.getSingular(searchTerm);
+		} else { 
+			pluralSearchTerm = inflector.getPlural(searchTerm);
+		}
+		String originalSearchTerm = term.getOriginalTerm().trim();
+		String singularOriginalSearchTerm = originalSearchTerm;
+		String pluralOriginalSearchTerm = originalSearchTerm;
+		if(inflector.isPlural(originalSearchTerm)) {
+			singularOriginalSearchTerm = inflector.getSingular(originalSearchTerm);
+		} else { 
+			pluralOriginalSearchTerm = inflector.getPlural(originalSearchTerm);
+		}		
 		if(term.hasChangedSpelling()) {
-			String searchTerm = term.getTerm().trim();
-			searches.add(new Search(searchTerm, Type.updated));
-			searches.add(new Search(searchTerm.replaceAll(" ", "-"), Type.updated));
-			searches.add(new Search(searchTerm.replaceAll(" ", "_"), Type.updated));
-			searches.add(new Search(searchTerm.replaceAll("_", "-"), Type.updated));
-			searches.add(new Search(searchTerm.replaceAll("_", " "), Type.updated));
-			searches.add(new Search(searchTerm.replaceAll("-", " "), Type.updated));
-			searches.add(new Search(searchTerm.replaceAll("-", "_"), Type.updated));
-			
-			searchTerm = term.getOriginalTerm().trim();
-			searches.add(new Search(searchTerm, Type.original));
-			searches.add(new Search(searchTerm.replaceAll(" ", "-"), Type.original));
-			searches.add(new Search(searchTerm.replaceAll(" ", "_"), Type.original));
-			searches.add(new Search(searchTerm.replaceAll("_", "-"), Type.original));
-			searches.add(new Search(searchTerm.replaceAll("_", " "), Type.original));
-			searches.add(new Search(searchTerm.replaceAll("-", " "), Type.original));
-			searches.add(new Search(searchTerm.replaceAll("-", "_"), Type.original));
+			searches.add(new Search(singularSearchTerm, Type.updated));
+			searches.add(new Search(pluralSearchTerm, Type.updated));
+			searches.add(new Search(singularSearchTerm.replaceAll(" ", "-"), Type.updated));
+			searches.add(new Search(singularSearchTerm.replaceAll(" ", "_"), Type.updated));
+			searches.add(new Search(singularSearchTerm.replaceAll("_", "-"), Type.updated));
+			searches.add(new Search(pluralSearchTerm.replaceAll(" ", "-"), Type.updated));
+			searches.add(new Search(pluralSearchTerm.replaceAll(" ", "_"), Type.updated));
+			searches.add(new Search(pluralSearchTerm.replaceAll("_", "-"), Type.updated));
+
+			searches.add(new Search(singularOriginalSearchTerm, Type.original));
+			searches.add(new Search(pluralOriginalSearchTerm, Type.original));
+			searches.add(new Search(singularOriginalSearchTerm.replaceAll(" ", "-"), Type.original));
+			searches.add(new Search(singularOriginalSearchTerm.replaceAll(" ", "_"), Type.original));
+			searches.add(new Search(singularOriginalSearchTerm.replaceAll("_", "-"), Type.original));
+			searches.add(new Search(pluralOriginalSearchTerm.replaceAll(" ", "-"), Type.original));
+			searches.add(new Search(pluralOriginalSearchTerm.replaceAll(" ", "_"), Type.original));
+			searches.add(new Search(pluralOriginalSearchTerm.replaceAll("_", "-"), Type.original));
 		} else {
-			String searchTerm = term.getTerm().trim();
-			searches.add(new Search(searchTerm, Type.original));
-			searches.add(new Search(searchTerm.replaceAll(" ", "-"), Type.original));
-			searches.add(new Search(searchTerm.replaceAll(" ", "_"), Type.original));
-			searches.add(new Search(searchTerm.replaceAll("_", "-"), Type.original));
-			searches.add(new Search(searchTerm.replaceAll("_", " "), Type.original));
-			searches.add(new Search(searchTerm.replaceAll("-", " "), Type.original));
-			searches.add(new Search(searchTerm.replaceAll("-", "_"), Type.original));
+			searches.add(new Search(singularSearchTerm, Type.original));
+			searches.add(new Search(pluralSearchTerm, Type.original));
+			searches.add(new Search(singularSearchTerm.replaceAll(" ", "-"), Type.original));
+			searches.add(new Search(singularSearchTerm.replaceAll(" ", "_"), Type.original));
+			searches.add(new Search(singularSearchTerm.replaceAll("_", "-"), Type.original));
+			searches.add(new Search(pluralSearchTerm.replaceAll(" ", "-"), Type.original));
+			searches.add(new Search(pluralSearchTerm.replaceAll(" ", "_"), Type.original));
+			searches.add(new Search(pluralSearchTerm.replaceAll("_", "-"), Type.original));
 		}
 		/* Method utilizing sql natural language search
 		 * Advantage: Faster than regular expression search for all context entries

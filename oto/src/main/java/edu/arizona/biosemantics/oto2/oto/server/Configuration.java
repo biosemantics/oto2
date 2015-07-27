@@ -45,6 +45,8 @@ public class Configuration {
 	/** OTO **/
 	public static String otoClientUrl;
 	
+	public static String wordNetSource;
+	
 	/** Default Categories **/
 	private static List<Label> defaultCategories = new LinkedList<Label>();
 	private static Properties properties;
@@ -68,6 +70,7 @@ public class Configuration {
 			bioportalApiKey = properties.getProperty("bioportalApiKey");
 			
 			otoClientUrl = properties.getProperty("otoClientUrl");
+			wordNetSource = properties.getProperty("wordNetSource");
 			
 			try(CSVReader reader = new CSVReader(new InputStreamReader(loader.getResourceAsStream("" +
 					"edu/arizona/biosemantics/oto2/oto/defaultCategories.csv")))) {
