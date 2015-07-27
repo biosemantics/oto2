@@ -77,10 +77,14 @@ public class ContextDAO {
 	private SomeInflector inflector;
 	
 	
-	public ContextDAO() throws IOException {
+	public ContextDAO() {
 		singularPluralProvider = new SingularPluralProvider();
-		posKnowledgeBase = new WordNetPOSKnowledgeBase(Configuration.wordNetSource, false);
-		inflector = new SomeInflector(posKnowledgeBase, singularPluralProvider.getSingulars(), singularPluralProvider.getPlurals());
+		try {
+			posKnowledgeBase = new WordNetPOSKnowledgeBase(Configuration.wordNetSource, false);
+			inflector = new SomeInflector(posKnowledgeBase, singularPluralProvider.getSingulars(), singularPluralProvider.getPlurals());
+		} catch (IOException e) {
+			log(LogLevel.ERROR, "Could not load wordnet, thus instantiate inflector", e);
+		}
 	} 
 	
 	public Context get(int id)  {
@@ -179,19 +183,23 @@ public class ContextDAO {
 		String searchTerm = term.getTerm().trim();
 		String singularSearchTerm = searchTerm;
 		String pluralSearchTerm = searchTerm;
-		if(inflector.isPlural(searchTerm)) {
-			singularSearchTerm = inflector.getSingular(searchTerm);
-		} else { 
-			pluralSearchTerm = inflector.getPlural(searchTerm);
+		if(inflector != null) {
+			if(inflector.isPlural(searchTerm)) {
+				singularSearchTerm = inflector.getSingular(searchTerm);
+			} else { 
+				pluralSearchTerm = inflector.getPlural(searchTerm);
+			}
 		}
 		String originalSearchTerm = term.getOriginalTerm().trim();
 		String singularOriginalSearchTerm = originalSearchTerm;
 		String pluralOriginalSearchTerm = originalSearchTerm;
-		if(inflector.isPlural(originalSearchTerm)) {
-			singularOriginalSearchTerm = inflector.getSingular(originalSearchTerm);
-		} else { 
-			pluralOriginalSearchTerm = inflector.getPlural(originalSearchTerm);
-		}		
+		if(inflector != null) {
+			if(inflector.isPlural(originalSearchTerm)) {
+				singularOriginalSearchTerm = inflector.getSingular(originalSearchTerm);
+			} else { 
+				pluralOriginalSearchTerm = inflector.getPlural(originalSearchTerm);
+			}		
+		}
 		if(term.hasChangedSpelling()) {
 			searches.add(new Search(singularSearchTerm, Type.updated));
 			searches.add(new Search(pluralSearchTerm, Type.updated));
