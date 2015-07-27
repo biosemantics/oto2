@@ -1,5 +1,6 @@
 package edu.arizona.biosemantics.oto2.oto.server.db;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
@@ -15,7 +16,7 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.TrashLabel;
 
 public class FilllSample {
 	
-	public static void main(String[] args) throws ClassNotFoundException, SQLException  {
+	public static void main(String[] args) throws ClassNotFoundException, SQLException, IOException  {
 		ConnectionPool connectionPool = new ConnectionPool();
 		Query.connectionPool = connectionPool;
 		

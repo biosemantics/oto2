@@ -1,5 +1,7 @@
 package edu.arizona.biosemantics.oto2.oto.server.db;
 
+import java.io.IOException;
+
 public class DAOManager {
 
 	private BucketDAO bucketDAO;
