@@ -29,9 +29,9 @@ public class ConnectionPool {
 		config.setJdbcUrl(jdbcUrl); // jdbc url specific to your database, eg jdbc:mysql://127.0.0.1/yourdb
 		config.setUsername(Configuration.databaseUser); 
 		config.setPassword(Configuration.databasePassword);
-		config.setMinConnectionsPerPartition(10);
-		config.setMaxConnectionsPerPartition(20);
-		config.setPartitionCount(2);
+		config.setMinConnectionsPerPartition(Configuration.database_minConnectionsPerPartition);
+		config.setMaxConnectionsPerPartition(Configuration.database_maxConnectionsPerPartition);
+		config.setPartitionCount(Configuration.database_partitionCount);
 		config.setPoolName("otoPool");
 		config.setDisableJMX(true);
 		

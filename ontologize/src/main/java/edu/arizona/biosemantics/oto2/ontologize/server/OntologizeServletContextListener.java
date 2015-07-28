@@ -17,7 +17,7 @@ public class OntologizeServletContextListener implements ServletContextListener 
 	public void contextDestroyed(ServletContextEvent event) {
 		log(LogLevel.INFO, "Destroy oto context " + event.getServletContext().getContextPath());
 		try {
-			log(LogLevel.INFO, "Shutting down conntection pool");
+			log(LogLevel.INFO, "Shutting down connection pool");
 			connectionPool.shutdown();
 			log(LogLevel.INFO, "Closing bioportal client");
 			//OntologyDAO.bioportalClient.close();

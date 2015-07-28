@@ -26,6 +26,9 @@ public class Configuration {
 	public static String databasePassword;
 	public static String databaseHost;
 	public static String databasePort;
+	public static int database_minConnectionsPerPartition;
+	public static int database_maxConnectionsPerPartition;
+	public static int database_partitionCount;
 	
 	/** Bioportal **/
 	public static String bioportalUrl;
@@ -53,6 +56,9 @@ public class Configuration {
 			databasePassword = properties.getProperty("databasePassword");
 			databaseHost = properties.getProperty("databaseHost");
 			databasePort = properties.getProperty("databasePort");
+			database_minConnectionsPerPartition = Integer.valueOf(properties.getProperty("database_minConnectionsPerPartition"));
+			database_maxConnectionsPerPartition = Integer.valueOf(properties.getProperty("database_maxConnectionsPerPartition"));
+			database_partitionCount = Integer.valueOf(properties.getProperty("database_partitionCount"));
 			
 			bioportalUrl = properties.getProperty("bioportalUrl");
 			bioportalApiKey = properties.getProperty("bioportalApiKey");
