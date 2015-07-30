@@ -197,4 +197,10 @@ public class Alerter {
 		
 	}
 
+	public static MessageBox cannotRemoveEntityOrQualitySuperclass() {
+		InfoMessageBox alert = new InfoMessageBox("Entity or Quality superclass required", "Cannot remove entity or quality superclass.");
+		alert.show();
+		return alert;
+	}
+
 }

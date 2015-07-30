@@ -13,28 +13,13 @@ public class OntologySynonymSubmissionSynonymDAO {
 	
 	public OntologySynonymSubmissionSynonymDAO() {} 
 	
-	public Synonym get(int id) throws QueryException  {
-		Synonym synonym = null;
-		try(Query query = new Query("SELECT * FROM ontologize_ontologysynonymsubmission_synonym WHERE id = ?")) {
-			query.setParameter(1, id);
-			ResultSet result = query.execute();
-			while(result.next()) {
-				synonym = createSynonym(result);
-			}
-		} catch(QueryException | SQLException e) {
-			log(LogLevel.ERROR, "Query Exception", e);
-			throw new QueryException(e);
-		}
-		return synonym;
-	}
-	
-	public List<String> getSynonyms(int id) throws QueryException {
-		List<String> synonyms = new LinkedList<String>();
+	public List<Synonym> getSynonyms(int id) throws QueryException {
+		List<Synonym> synonyms = new LinkedList<Synonym>();
 		try(Query query = new Query("SELECT * FROM ontologize_ontologysynonymsubmission_synonym WHERE ontologysynonymsubmission = ?")) {
 			query.setParameter(1, id);
 			ResultSet result = query.execute();
 			while(result.next()) {
-				synonyms.add(result.getString("synonym"));
+				synonyms.add(createSynonym(result));
 			}
 		} catch(QueryException | SQLException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
@@ -67,10 +52,10 @@ public class OntologySynonymSubmissionSynonymDAO {
 		return synonym;
 	}
 	
-	public void insert(int ontologySynonymSubmissionId, List<String> synonyms) throws QueryException {
+	public void insert(int ontologySynonymSubmissionId, List<Synonym> synonyms) throws QueryException {
 		List<Synonym> result = new LinkedList<Synonym>();
-		for(String synonym : synonyms)
-			result.add(insert(new Synonym(ontologySynonymSubmissionId, synonym)));
+		for(Synonym synonym : synonyms)
+			result.add(insert(synonym));
 	}
 	
 	public void update(Synonym synonym) throws QueryException  {		
@@ -85,10 +70,10 @@ public class OntologySynonymSubmissionSynonymDAO {
 		}
 	}
 	
-	public void update(int ontologySynonymSubmissionId, List<String> synonyms) throws QueryException {
+	public void update(int ontologySynonymSubmissionId, List<Synonym> synonyms) throws QueryException {
 		remove(ontologySynonymSubmissionId);
-		for(String synonym : synonyms)
-			insert(new Synonym(ontologySynonymSubmissionId, synonym));
+		for(Synonym synonym : synonyms)
+			insert(synonym);
 	}
 	
 	public void remove(int ontologySynonymSubmissionId) throws QueryException {

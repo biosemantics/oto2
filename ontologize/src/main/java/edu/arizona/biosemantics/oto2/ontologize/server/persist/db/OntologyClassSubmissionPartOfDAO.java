@@ -8,35 +8,18 @@ import java.util.List;
 import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.db.Query.QueryException;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.PartOf;
-import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Superclass;
-import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Synonym;
 
 public class OntologyClassSubmissionPartOfDAO {
 	
 	public OntologyClassSubmissionPartOfDAO() {} 
 	
-	public PartOf get(int id) throws QueryException  {
-		PartOf partOf = null;
-		try(Query query = new Query("SELECT * FROM ontologize_ontologyclasssubmission_partof WHERE id = ?")) {
-			query.setParameter(1, id);
-			ResultSet result = query.execute();
-			while(result.next()) {
-				partOf = createPartOf(result);
-			}
-		} catch(QueryException | SQLException e) {
-			log(LogLevel.ERROR, "Query Exception", e);
-			throw new QueryException(e);
-		}
-		return partOf;
-	}
-	
-	public List<String> getPartOfs(int ontologyClassSubmissionId) throws QueryException {
-		List<String> partOfs = new LinkedList<String>();
+	public List<PartOf> getPartOfs(int ontologyClassSubmissionId) throws QueryException {
+		List<PartOf> partOfs = new LinkedList<PartOf>();
 		try(Query query = new Query("SELECT * FROM ontologize_ontologyclasssubmission_partof WHERE ontologyclasssubmission = ?")) {
 			query.setParameter(1, ontologyClassSubmissionId);
 			ResultSet result = query.execute();
 			while(result.next()) {
-				partOfs.add(result.getString("partof"));
+				partOfs.add(createPartOf(result));
 			}
 		} catch(QueryException | SQLException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
@@ -93,17 +76,17 @@ public class OntologyClassSubmissionPartOfDAO {
 		}
 	}
 
-	public List<PartOf> insert(int ontologyClassSubmissionId, List<String> partOfs) throws QueryException {
+	public List<PartOf> insert(List<PartOf> partOfs) throws QueryException {
 		List<PartOf> result = new LinkedList<PartOf>();
-		for(String partOf : partOfs)
-			result.add(insert(new PartOf(ontologyClassSubmissionId, partOf)));
+		for(PartOf partOf : partOfs)
+			result.add(insert(partOf));
 		return result;
 	}
 	
-	public void update(int ontologyClassSubmissionId, List<String> partofs) throws QueryException {
+	public void update(int ontologyClassSubmissionId, List<PartOf> partofs) throws QueryException {
 		remove(ontologyClassSubmissionId);
-		for(String partof : partofs)
-			insert(new PartOf(ontologyClassSubmissionId, partof));
+		for(PartOf partof : partofs)
+			insert(partof);
 	}
 	
 	public void remove(int ontologyClassSubmissionId) throws QueryException {

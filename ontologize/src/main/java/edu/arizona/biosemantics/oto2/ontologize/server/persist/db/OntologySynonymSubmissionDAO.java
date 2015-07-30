@@ -46,7 +46,7 @@ public class OntologySynonymSubmissionDAO {
 		Term term = null;
 		if(!result.wasNull())
 			term = termDAO.get(termId);
-		String submission_term = result.getString("submission_term");
+		String submissionTerm = result.getString("submission_term");
 		int ontologyId = result.getInt("ontology");
 		String classIRI = result.getString("class_iri");
 		String source = result.getString("source");
@@ -60,7 +60,7 @@ public class OntologySynonymSubmissionDAO {
 		
 		Ontology ontology = ontologyDAO.get(ontologyId);
 		List<OntologySynonymSubmissionStatus> ontologysynonymSubmissionStatuses = ontologySynonymSubmissionStatusDAO.getStatusOfOntologySynonymSubmission(id);
-		return new OntologySynonymSubmission(id, collectionId, term, submission_term, ontology, classIRI, 
+		return new OntologySynonymSubmission(id, collectionId, term, submissionTerm, ontology, classIRI, 
 				ontologySynonymSubmissionSynonymDAO.getSynonyms(id), 
 				source, sampleSentence, type,
 				user, ontologysynonymSubmissionStatuses);

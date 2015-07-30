@@ -347,8 +347,8 @@ public class SynonymSubmissionsGrid implements IsWidget {
 					@Override
 					public String getValue(OntologySynonymSubmission object) {
 						String result = "";
-						for(String synonym : object.getSynonyms()) {
-							result += synonym + ", ";
+						for(Synonym synonym : object.getSynonyms()) {
+							result += synonym.getSynonym() + ", ";
 						}
 						if(result.length() > 0)
 							return result.substring(0, result.length() -2);

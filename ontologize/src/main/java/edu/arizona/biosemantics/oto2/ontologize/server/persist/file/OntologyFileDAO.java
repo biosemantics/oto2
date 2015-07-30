@@ -54,6 +54,7 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySynonymSubmission;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Superclass;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Synonym;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySubmission.Type;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.ClassExistsException;
@@ -314,7 +315,7 @@ public class OntologyFileDAO {
 		}
 		axiomManager.addSynonyms(owlOntology, owlClass, submission.getSynonyms());
 		try {
-			axiomManager.addPartOfs(collection, owlOntology, submission.getOntology(), owlClass, submission.getPartOfIRIs());
+			axiomManager.addPartOfs(collection, owlOntology, submission.getOntology(), owlClass, submission.getPartOfs());
 		} catch (Exception e) {
 			throw new OntologyFileException(e);
 		}
@@ -338,30 +339,19 @@ public class OntologyFileDAO {
 		boolean extractedSuperclassModule = submission.hasClassIRI();
 		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(submission.getOntology().getIri()));
 		
-		if(submission.hasSuperclassIRI() && !extractedSuperclassModule){
+		if(submission.hasSuperclasses() && !extractedSuperclassModule){
 			checkConsistentSuperclassHierarchyWithQualityEntity(submission, owlOntology);
 			
-			List<String> superclassIRIs = new LinkedList<String>(submission.getSuperclassIRIs());
-			switch(submission.getType()) {
-				case ENTITY:
-					superclassIRIs.add(entityClass.getIRI().toString());
-					break;
-				case QUALITY:
-					superclassIRIs.add(qualityClass.getIRI().toString());
-					break;
-				default:
-					break;
-			}
-			
-			axiomManager.addSuperclasses(collection, owlOntology, submission.getOntology(), owlClass, superclassIRIs,
+			List<Superclass> superclasses = new LinkedList<Superclass>(submission.getSuperclasses());			
+			axiomManager.addSuperclasses(collection, owlOntology, submission.getOntology(), owlClass, superclasses,
 					submission.getType());
 		}
 	}
 
 	private void checkConsistentSuperclassHierarchyWithQualityEntity(OntologyClassSubmission submission, OWLOntology owlOntology) throws OntologyFileException {
-		List<String> superclasses = submission.getSuperclassIRIs();
-		for(String superclass : superclasses) {
-			OWLClass superOwlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(superclass)); 
+		List<Superclass> superclasses = submission.getSuperclasses();
+		for(Superclass superclass : superclasses) {
+			OWLClass superOwlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(superclass.getSuperclass())); 
 			if(submission.getType().equals(Type.QUALITY)) 
 				if(ontologyReasoner.isSubclass(owlOntology, superOwlClass, entityClass)) 
 					throw new OntologyFileException("Can not add the quality term '" + submission.getSubmissionTerm() + 
@@ -414,7 +404,7 @@ public class OntologyFileDAO {
 		axiomManager.removePartOfs(targetOwlOntology, owlClass);
 		if(submission.getType().equals(Type.ENTITY)) 
 			try {
-				axiomManager.addPartOfs(collection, targetOwlOntology, submission.getOntology(), owlClass, submission.getPartOfIRIs());
+				axiomManager.addPartOfs(collection, targetOwlOntology, submission.getOntology(), owlClass, submission.getPartOfs());
 			} catch (Exception e) {
 				throw new OntologyFileException(e);
 			}
@@ -422,17 +412,7 @@ public class OntologyFileDAO {
 
 	private void updateSuperclasses(OWLOntology targetOwlOntology, OntologyClassSubmission submission, OWLClass owlClass) throws OntologyFileException, OntologyNotFoundException {
 		axiomManager.removeSuperclasses(targetOwlOntology, owlClass);
-		List<String> superclassIRIs = submission.getSuperclassIRIs();
-		switch(submission.getType()) {
-			case ENTITY:
-				superclassIRIs.add(entityClass.getIRI().toString());
-				break;
-			case QUALITY:
-				superclassIRIs.add(qualityClass.getIRI().toString());
-				break;
-			default:
-				break;
-		}
+		List<Superclass> superclassIRIs = new LinkedList<Superclass>(submission.getSuperclasses());
 		axiomManager.addSuperclasses(collection, targetOwlOntology, submission.getOntology(), owlClass, superclassIRIs, submission.getType());
 	}
 
@@ -513,11 +493,11 @@ public class OntologyFileDAO {
 					//class exists in current/imported ontology => add syn
 					affectedClasses.add(owlClass);
 					
-					axiomManager.addSynonym(targetOwlOntology, owlClass, submission.getSubmissionTerm());
+					axiomManager.addSynonym(targetOwlOntology, owlClass, new Synonym(submission.getSubmissionTerm()));
 				} else if(!isContained){
 					//an external class does not exist => add class, then add syn	
 					owlClass = createModuleForSubmissionsClass(collection, submission);  
-					axiomManager.addSynonym(targetOwlOntology, owlClass, submission.getSubmissionTerm());
+					axiomManager.addSynonym(targetOwlOntology, owlClass, new Synonym(submission.getSubmissionTerm()));
 				}
 			} catch(Exception e) {
 				throw new OntologyFileException(e);
@@ -525,7 +505,7 @@ public class OntologyFileDAO {
 		}
 
 		//add other additional synonyms
-		for(String synonym : submission.getSynonyms()){
+		for(Synonym synonym : submission.getSynonyms()){
 			for(OWLClass affectedClass : affectedClasses){
 				axiomManager.addSynonym(targetOwlOntology, affectedClass, synonym);
 			}
@@ -584,11 +564,11 @@ public class OntologyFileDAO {
 						//class exists in current/imported ontology => add syn
 						affectedClasses.add(owlClass);
 						
-						axiomManager.removeSynonym(targetOwlOntology, owlClass, submission.getSubmissionTerm());
+						axiomManager.removeSynonym(targetOwlOntology, owlClass, new Synonym(submission.getSubmissionTerm()));
 					} else if(!isContained){
 						//an external class does not exist => add class, then add syn	
 						removeModuleOfClass(collection, submission, submission);  
-						axiomManager.removeSynonym(targetOwlOntology, owlClass, submission.getSubmissionTerm());
+						axiomManager.removeSynonym(targetOwlOntology, owlClass, new Synonym(submission.getSubmissionTerm()));
 					}
 				} catch(OntologyNotFoundException e) {
 					throw new OntologyFileException(e);
@@ -597,8 +577,8 @@ public class OntologyFileDAO {
 		}
 
 		//add other additional synonyms
-		for(String synonym : submission.getSynonyms()) {
-			if(!synonym.isEmpty()) {
+		for(Synonym synonym : submission.getSynonyms()) {
+			if(!synonym.getSynonym().isEmpty()) {
 				for(OWLClass affectedClass : affectedClasses){
 					axiomManager.removeSynonym(targetOwlOntology, affectedClass, synonym);
 				}

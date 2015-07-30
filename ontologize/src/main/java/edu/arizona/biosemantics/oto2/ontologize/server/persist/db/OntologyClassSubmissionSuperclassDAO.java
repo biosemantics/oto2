@@ -29,13 +29,13 @@ public class OntologyClassSubmissionSuperclassDAO {
 		return superclass;
 	}
 	
-	public List<String> getSuperclasses(int ontologyClassSubmissionId) throws QueryException {
-		List<String> superclasses = new LinkedList<String>();
+	public List<Superclass> getSuperclasses(int ontologyClassSubmissionId) throws QueryException {
+		List<Superclass> superclasses = new LinkedList<Superclass>();
 		try(Query query = new Query("SELECT * FROM ontologize_ontologyclasssubmission_superclass WHERE ontologyclasssubmission = ?")) {
 			query.setParameter(1, ontologyClassSubmissionId);
 			ResultSet result = query.execute();
 			while(result.next()) {
-				superclasses.add(result.getString("superclass"));
+				superclasses.add(createSuperclass(result));
 			}
 		} catch(QueryException | SQLException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
@@ -92,17 +92,17 @@ public class OntologyClassSubmissionSuperclassDAO {
 		}
 	}
 
-	public List<Superclass> insert(int ontologyClassSubmissionId, List<String> superclasses) throws QueryException {
+	public List<Superclass> insert(List<Superclass> superclasses) throws QueryException {
 		List<Superclass> result = new LinkedList<Superclass>();
-		for(String superclass : superclasses)
-			result.add(insert(new Superclass(ontologyClassSubmissionId, superclass)));
+		for(Superclass superclass : superclasses)
+			result.add(insert(superclass));
 		return result;
 	}
 
-	public void update(int ontologyClassSubmissionId, List<String> superclasses) throws QueryException {
+	public void update(int ontologyClassSubmissionId, List<Superclass> superclasses) throws QueryException {
 		remove(ontologyClassSubmissionId);
-		for(String superclass : superclasses)
-			insert(new Superclass(ontologyClassSubmissionId, superclass));
+		for(Superclass superclass : superclasses)
+			insert(superclass);
 	}
 	
 	public void remove(int ontologyClassSubmissionId) throws QueryException {

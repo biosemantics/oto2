@@ -12,7 +12,10 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Term;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmissionStatus;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.PartOf;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.StatusEnum;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Superclass;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Synonym;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySubmission.Type;
 
 public class OntologyClassSubmissionDAO {
@@ -110,9 +113,16 @@ public class OntologyClassSubmissionDAO {
 				
 				ontologyClassSubmission.setId(id);
 				
-				ontologyClassSubmissionSynonymDAO.insert(id, ontologyClassSubmission.getSynonyms());
-				ontologyClassSubmissionSuperclassDAO.insert(id, ontologyClassSubmission.getSuperclassIRIs());
-				ontologyClassSubmissionPartOfDAO.insert(id, ontologyClassSubmission.getPartOfIRIs());
+				for(Synonym synonym : ontologyClassSubmission.getSynonyms())
+					synonym.setSubmission(id);
+				for(Superclass superclass : ontologyClassSubmission.getSuperclasses())
+					superclass.setOntologyClassSubmission(id);
+				for(PartOf partOf : ontologyClassSubmission.getPartOfs())
+					partOf.setOntologyClassSubmission(id);
+				
+				ontologyClassSubmissionSynonymDAO.insert(ontologyClassSubmission.getSynonyms());
+				ontologyClassSubmissionSuperclassDAO.insert(ontologyClassSubmission.getSuperclasses());
+				ontologyClassSubmissionPartOfDAO.insert(ontologyClassSubmission.getPartOfs());
 			} catch(QueryException | SQLException e) {
 				log(LogLevel.ERROR, "Query Exception", e);
 				throw new QueryException(e);
@@ -143,9 +153,16 @@ public class OntologyClassSubmissionDAO {
 			query.execute();
 			
 			ontologyClassSubmissionStatusDAO.update(ontologyClassSubmission.getSubmissionStatuses());
+			
+			for(Synonym synonym : ontologyClassSubmission.getSynonyms())
+				synonym.setSubmission(ontologyClassSubmission.getId());
+			for(Superclass superclass : ontologyClassSubmission.getSuperclasses())
+				superclass.setOntologyClassSubmission(ontologyClassSubmission.getId());
+			for(PartOf partOf : ontologyClassSubmission.getPartOfs())
+				partOf.setOntologyClassSubmission(ontologyClassSubmission.getId());
 			ontologyClassSubmissionSynonymDAO.update(ontologyClassSubmission.getId(), ontologyClassSubmission.getSynonyms());
-			ontologyClassSubmissionSuperclassDAO.update(ontologyClassSubmission.getId(), ontologyClassSubmission.getSuperclassIRIs());
-			ontologyClassSubmissionPartOfDAO.update(ontologyClassSubmission.getId(), ontologyClassSubmission.getPartOfIRIs());
+			ontologyClassSubmissionSuperclassDAO.update(ontologyClassSubmission.getId(), ontologyClassSubmission.getSuperclasses());
+			ontologyClassSubmissionPartOfDAO.update(ontologyClassSubmission.getId(), ontologyClassSubmission.getPartOfs());
 		} catch(QueryException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
 			throw e;

@@ -18,7 +18,7 @@ public class OntologySynonymSubmission implements Serializable, Colorable, Comme
 	private String submissionTerm = "";
 	private Ontology ontology;
 	private String classIRI = "";
-	private List<String> synonyms = new LinkedList<String>(); 
+	private List<Synonym> synonyms = new LinkedList<Synonym>(); 
 	private String source = "";
 	private String sampleSentence = "";
 	private Type type;
@@ -28,7 +28,7 @@ public class OntologySynonymSubmission implements Serializable, Colorable, Comme
 	public OntologySynonymSubmission() { }
 	
 	public OntologySynonymSubmission(int id, int collectionId, Term term, String submissionTerm, Ontology ontology, 
-			String classIRI, List<String> synonyms, String source, String sampleSentence, Type type, 
+			String classIRI, List<Synonym> synonyms, String source, String sampleSentence, Type type, 
 			String user, List<OntologySynonymSubmissionStatus> submissionStatuses) { 
 		this.id = id;
 		this.collectionId = collectionId;
@@ -45,7 +45,7 @@ public class OntologySynonymSubmission implements Serializable, Colorable, Comme
 	}
 	
 	public OntologySynonymSubmission(int collectionId, Term term, String submissionTerm, Ontology ontology, 
-			String classIRI, List<String> synonyms, String source, String sampleSentence, Type type, String user) { 
+			String classIRI, List<Synonym> synonyms, String source, String sampleSentence, Type type, String user) { 
 		this.collectionId = collectionId;
 		this.term = term;
 		this.submissionTerm = submissionTerm == null ? "" : submissionTerm;
@@ -151,11 +151,11 @@ public class OntologySynonymSubmission implements Serializable, Colorable, Comme
 		return this.classIRI != null && !this.getClassIRI().trim().isEmpty();
 	}
 		
-	public List<String> getSynonyms() {
+	public List<Synonym> getSynonyms() {
 		return synonyms;
 	}
 
-	public void addSynonym(String synonym) {
+	public void addSynonym(Synonym synonym) {
 		this.synonyms.add(synonym);
 	}
 		

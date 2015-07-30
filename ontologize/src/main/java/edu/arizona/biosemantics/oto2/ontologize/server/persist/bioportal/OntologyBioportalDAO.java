@@ -123,8 +123,8 @@ public class OntologyBioportalDAO {
 		ProvisionalClass provisionalClass = new ProvisionalClass();
 		provisionalClass.setLabel(submission.getSubmissionTerm());
 		List<String> synonyms = new LinkedList<String>();
-		for(String synonym : submission.getSynonyms())
-			synonyms.add(synonym);
+		for(Synonym synonym : submission.getSynonyms())
+			synonyms.add(synonym.getSynonym());
 		provisionalClass.setSynonym(synonyms);
 		List<String> ontologies = new LinkedList<String>();
 		ontologies.add(submission.getOntology().getIri());
@@ -147,10 +147,10 @@ public class OntologyBioportalDAO {
 		
 		//TODO: Does this need upate of bioportal client on our side or do we have to do one submission per superclass or really in one
 		//string with separator?
-		provisionalClass.setSubclassOf(createSingleString(submission.getSuperclassIRIs()));
+		provisionalClass.setSubclassOf(createSingleString(submission.getSuperclasses()));
 		List<String> synonyms = new LinkedList<String>();
-		for(String synonym : submission.getSynonyms())
-			synonyms.add(synonym);
+		for(Synonym synonym : submission.getSynonyms())
+			synonyms.add(synonym.getSynonym());
 		provisionalClass.setSynonym(synonyms);
 		List<String> ontologies = new LinkedList<String>();
 		ontologies.add(submission.getOntology().getIri());
@@ -159,10 +159,10 @@ public class OntologyBioportalDAO {
 		return provisionalClass;
 	}
 	
-	private String createSingleString(List<String> strings) {
+	private String createSingleString(List<Superclass> superclasses) {
 		String result = "";
-		for(String string : strings) {
-			result += string + ", ";
+		for(Superclass superclass : superclasses) {
+			result += superclass.getSuperclass() + ", ";
 		}
 		if(result.length() > 0) 
 			return result.substring(0, result.length() - 2);

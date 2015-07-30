@@ -58,6 +58,8 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.Term;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.TermProperties;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySynonymSubmission;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Synonym;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.SynonymProperties;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.ClassExistsException;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.IToOntologyService;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.IToOntologyServiceAsync;
@@ -65,6 +67,7 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.OntologyNo
 
 public class SubmitBioportalSynonymView implements IsWidget {
 	
+	private SynonymProperties synonymProperties = GWT.create(SynonymProperties.class);
 	private OntologyProperties ontologyProperties = GWT.create(OntologyProperties.class);
 	private TermProperties termProperties = GWT.create(TermProperties.class);
 	private IToOntologyServiceAsync toOntologyService = GWT.create(IToOntologyService.class);
@@ -83,8 +86,8 @@ public class SubmitBioportalSynonymView implements IsWidget {
 	private TextField sourceField = new TextField();
 	private TextArea sampleArea = new TextArea();
 	
-	private ListView<String, String> synonymsListView;
-	private ListStore<String> synonymsStore;
+	private ListView<Synonym, String> synonymsListView;
+	private ListStore<Synonym> synonymsStore;
 	private TextButton addSynonymButton = new TextButton("Add");
 	private TextButton removeSynonymButton = new TextButton("Remove");
 	private TextButton clearSynonymButton = new TextButton("Clear");
@@ -106,13 +109,13 @@ public class SubmitBioportalSynonymView implements IsWidget {
 	    termComboBox = new ComboBox<Term>(termStore, termProperties.nameLabel());
 	    categoryField.setEnabled(false);
 	    
-	    synonymsStore = new ListStore<String>(new ModelKeyProvider<String>() {
+	    synonymsStore = new ListStore<Synonym>(new ModelKeyProvider<Synonym>() {
 			@Override
-			public String getKey(String item) {
-				return item;
+			public String getKey(Synonym item) {
+				return item.getSynonym();
 			}
 	    });
-	    synonymsListView = new ListView<String, String>(synonymsStore, new IdentityValueProvider<String>());
+	    synonymsListView = new ListView<Synonym, String>(synonymsStore, synonymProperties.synonym());
 	    
 	    formContainer = new VerticalLayoutContainer();
 	    formContainer.add(new FieldLabel(termComboBox, "Candiate Term"), new VerticalLayoutData(1, -1));
@@ -396,7 +399,7 @@ public class SubmitBioportalSynonymView implements IsWidget {
 	protected OntologySynonymSubmission getSynonymSubmission() {
 		return new OntologySynonymSubmission(collection.getId(), termComboBox.getValue(), submissionTermField.getValue(), 
 				ontologyComboBox.getValue(), classIRIField.getValue(),
-				new LinkedList<String>(synonymsStore.getAll()),
+				new LinkedList<Synonym>(synonymsStore.getAll()),
 				sourceField.getValue(), sampleArea.getValue(), 
 				null, Ontologize.user);
 	}

@@ -52,8 +52,9 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.OntologyProperties;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Term;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.TermProperties;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.PartOf;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.PartOfProperties;
-import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.SuperclassProperties;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Superclass;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Synonym;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.SynonymProperties;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.ClassExistsException;
@@ -481,19 +482,27 @@ public class SubmitBioportalClassView implements IsWidget {
 		if(ontologyClassSubmission.hasOntology())
 			this.ontologyComboBox.setValue(ontologyClassSubmission.getOntology());
 		this.superclassStore.clear();
-		this.superclassStore.addAll(ontologyClassSubmission.getSuperclassIRIs());
+		for(Superclass superclass : ontologyClassSubmission.getSuperclasses())
+			this.superclassStore.add(superclass.getSuperclass());
 		this.definitionArea.setValue(ontologyClassSubmission.getDefinition());
 		this.synonymsStore.clear();
-		this.synonymsStore.addAll(ontologyClassSubmission.getSynonyms());
+		for(Synonym synonym : ontologyClassSubmission.getSynonyms())
+			this.synonymsStore.add(synonym.getSynonym());
 		this.sourceField.setValue(ontologyClassSubmission.getSource());
 		this.sampleArea.setValue(ontologyClassSubmission.getSampleSentence());
 	}
 	
 	protected OntologyClassSubmission getClassSubmission() {
+		List<Superclass> superclasses = new LinkedList<Superclass>();
+		for(String iri : superclassStore.getAll()) 
+			superclasses.add(new Superclass(iri));
+		List<Synonym> synonyms = new LinkedList<Synonym>();
+		for(String iri : synonymsStore.getAll()) 
+			synonyms.add(new Synonym(iri));
 		return new OntologyClassSubmission(collection.getId(), termComboBox.getValue(), submissionTermField.getValue(), 
-				ontologyComboBox.getValue(), "", new LinkedList<String>(superclassStore.getAll()),
-				definitionArea.getValue(), new LinkedList<String>(synonymsStore.getAll()), sourceField.getValue(), 
-				sampleArea.getValue(), new LinkedList<String>(), null, Ontologize.user);
+				ontologyComboBox.getValue(), "", superclasses,
+				definitionArea.getValue(), synonyms, sourceField.getValue(), 
+				sampleArea.getValue(), new LinkedList<PartOf>(), null, Ontologize.user);
 	}
 
 	protected void initCollection() {

@@ -18,12 +18,12 @@ public class OntologyClassSubmission implements Serializable, Colorable, Comment
 	private String submissionTerm = "";
 	private Ontology ontology;
 	private String classIRI = "";
-	private List<String> superclassIRIs = new LinkedList<String>();
+	private List<Superclass> superclasses = new LinkedList<Superclass>();
 	private String definition = "";
-	private List<String> synonyms = new LinkedList<String>();
+	private List<Synonym> synonyms = new LinkedList<Synonym>();
 	private String source = "";
 	private String sampleSentence = "";
-	private List<String> partOfIRIs = new LinkedList<String>();
+	private List<PartOf> partOfs = new LinkedList<PartOf>();
 	private Type type;
 	private String user;
 	private List<OntologyClassSubmissionStatus> submissionStatuses = new LinkedList<OntologyClassSubmissionStatus>();
@@ -31,39 +31,39 @@ public class OntologyClassSubmission implements Serializable, Colorable, Comment
 	public OntologyClassSubmission() { }
 	
 	public OntologyClassSubmission(int id, int collectionId, Term term, String submissionTerm, Ontology ontology, String classIRI,
-			List<String> superclassIRIs, String definition, List<String> synonyms, String source, String sampleSentence, 
-			List<String> partOfIRIs, Type type, String user, List<OntologyClassSubmissionStatus> submissionStatuses) { 
+			List<Superclass> superclasses, String definition, List<Synonym> synonyms, String source, String sampleSentence, 
+			List<PartOf> partOfs, Type type, String user, List<OntologyClassSubmissionStatus> submissionStatuses) { 
 		this.id = id;
 		this.collectionId = collectionId;
 		this.term = term;
 		this.submissionTerm = submissionTerm == null ? "" : submissionTerm;
 		this.ontology = ontology;
 		this.classIRI = classIRI == null ? "" : classIRI;
-		this.superclassIRIs = superclassIRIs;
+		this.superclasses = superclasses;
 		this.definition = definition == null ? "" : definition;
 		this.synonyms = synonyms;
 		this.source = source == null ? "" : source;
 		this.sampleSentence = sampleSentence == null ? "" : sampleSentence;
-		this.partOfIRIs = partOfIRIs;
+		this.partOfs = partOfs;
 		this.type = type;
 		this.user = user;
 		this.submissionStatuses = submissionStatuses;
 	}
 	
 	public OntologyClassSubmission(int collectionId, Term term, String submissionTerm, Ontology ontology, String classIRI,
-			List<String> superclassIRIs, String definition, List<String> synonyms, String source, String sampleSentence, 
-			List<String> partOfIRIs, Type type, String user) { 
+			List<Superclass> superclasses, String definition, List<Synonym> synonyms, String source, String sampleSentence, 
+			List<PartOf> partOfs, Type type, String user) { 
 		this.collectionId = collectionId;
 		this.term = term;
 		this.submissionTerm = submissionTerm == null ? "" : submissionTerm;
 		this.ontology = ontology;
 		this.classIRI = classIRI == null ? "" : classIRI;
-		this.superclassIRIs = superclassIRIs;
+		this.superclasses = superclasses;
 		this.definition = definition == null ? "" : definition;
 		this.synonyms = synonyms;
 		this.source = source == null ? "" : source;
 		this.sampleSentence = sampleSentence == null ? "" : sampleSentence;
-		this.partOfIRIs = partOfIRIs;
+		this.partOfs = partOfs;
 		this.type = type;
 		this.user = user;
 	}
@@ -169,48 +169,48 @@ public class OntologyClassSubmission implements Serializable, Colorable, Comment
 		return !this.synonyms.isEmpty();
 	}
 
-	public boolean hasPartOfIRI() {
-		return !this.partOfIRIs.isEmpty();
+	public boolean hasPartOfs() {
+		return !this.partOfs.isEmpty();
 	}
 
-	public boolean hasSuperclassIRI() {
-		return !this.superclassIRIs.isEmpty();
+	public boolean hasSuperclasses() {
+		return !this.superclasses.isEmpty();
 	}
 	
-	public List<String> getSuperclassIRIs() {
-		return superclassIRIs;
+	public List<Superclass> getSuperclasses() {
+		return superclasses;
 	}
 
-	public List<String> getSynonyms() {
+	public List<Synonym> getSynonyms() {
 		return synonyms;
 	}
 
-	public List<String> getPartOfIRIs() {
-		return partOfIRIs;
+	public List<PartOf> getPartOfs() {
+		return partOfs;
 	}
 	
-	public void addSynonym(String synonym) {
+	public void addSynonym(Synonym synonym) {
 		this.synonyms.add(synonym);
 	}
 	
-	public void addPartOfIRI(String partOfIRI) {
-		this.partOfIRIs.add(partOfIRI);
+	public void addPartOf(PartOf partOf){
+		this.partOfs.add(partOf);
 	}
 	
-	public void addSuperclassIRI(String superclassIRI) {
-		this.superclassIRIs.add(superclassIRI);
+	public void addSuperclass(Superclass superclass) {
+		this.superclasses.add(superclass);
 	}
 	
 	public void clearSynonyms() {
 		this.synonyms.clear();
 	}
 	
-	public void clearPartOfIRIs() {
-		this.partOfIRIs.clear();
+	public void clearPartOfs() {
+		this.partOfs.clear();
 	}
 	
-	public void clearSuperclassIRIs() {
-		this.superclassIRIs.clear();
+	public void clearSuperclasses() {
+		this.superclasses.clear();
 	}
 		
 	public int getCollectionId() {
