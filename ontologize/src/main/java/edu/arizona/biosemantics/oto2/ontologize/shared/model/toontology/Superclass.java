@@ -1,10 +1,14 @@
 package edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology;
 
-public class Superclass {
+import java.io.Serializable;
+
+public class Superclass implements Serializable {
 
 	private int id = -1;
 	private int ontologyClassSubmission = -1;
 	private String superclass;
+	
+	public Superclass() { }
 
 	public Superclass(int id, int ontologyClassSubmission, String superclass) {
 		super();

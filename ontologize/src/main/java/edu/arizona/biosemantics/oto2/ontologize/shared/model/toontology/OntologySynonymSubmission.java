@@ -28,7 +28,8 @@ public class OntologySynonymSubmission implements Serializable, Colorable, Comme
 	public OntologySynonymSubmission() { }
 	
 	public OntologySynonymSubmission(int id, int collectionId, Term term, String submissionTerm, Ontology ontology, 
-			String classIRI, List<Synonym> synonyms, String source, String sampleSentence, Type type, 
+			String classIRI, List<Synonym> synonyms, String source, String sampleSentence, 
+			Type type, 
 			String user, List<OntologySynonymSubmissionStatus> submissionStatuses) { 
 		this.id = id;
 		this.collectionId = collectionId;
@@ -38,7 +39,7 @@ public class OntologySynonymSubmission implements Serializable, Colorable, Comme
 		this.classIRI = classIRI == null ? "" : classIRI;
 		this.source = source == null ? "" : source;
 		this.sampleSentence = sampleSentence == null ? "" : sampleSentence;
-		this.type = type;
+		//this.type = type;
 		this.user = user;
 		this.submissionStatuses = submissionStatuses;
 		this.synonyms = synonyms;
@@ -53,11 +54,24 @@ public class OntologySynonymSubmission implements Serializable, Colorable, Comme
 		this.classIRI = classIRI == null ? "" : classIRI;
 		this.source = source == null ? "" : source;
 		this.sampleSentence = sampleSentence == null ? "" : sampleSentence;
-		this.type = type;
+		//this.type = type;
 		this.user = user;
 		this.synonyms = synonyms;
 	}
 	
+	public OntologySynonymSubmission(int collectionId, Term term, String submissionTerm, Ontology ontology, 
+			String classIRI, List<Synonym> synonyms, String source, String sampleSentence, String user) { 
+		this.collectionId = collectionId;
+		this.term = term;
+		this.submissionTerm = submissionTerm == null ? "" : submissionTerm;
+		this.ontology = ontology;
+		this.classIRI = classIRI == null ? "" : classIRI;
+		this.source = source == null ? "" : source;
+		this.sampleSentence = sampleSentence == null ? "" : sampleSentence;
+		this.user = user;
+		this.synonyms = synonyms;	
+	}
+
 	public int getCollectionId() {
 		return collectionId;
 	}

@@ -12,7 +12,10 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Term;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySynonymSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySynonymSubmissionStatus;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.PartOf;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.StatusEnum;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Superclass;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Synonym;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySubmission.Type;
 
 public class OntologySynonymSubmissionDAO {
@@ -91,7 +94,9 @@ public class OntologySynonymSubmissionDAO {
 				
 				ontologySynonymSubmission.setId(id);
 				
-				ontologySynonymSubmissionSynonymDAO.insert(id, ontologySynonymSubmission.getSynonyms());
+				for(Synonym synonym : ontologySynonymSubmission.getSynonyms())
+					synonym.setSubmission(id);				
+				ontologySynonymSubmissionSynonymDAO.insert(ontologySynonymSubmission.getSynonyms());
 			} catch(QueryException | SQLException e) {
 				log(LogLevel.ERROR, "Query Exception", e);
 				throw new QueryException(e);

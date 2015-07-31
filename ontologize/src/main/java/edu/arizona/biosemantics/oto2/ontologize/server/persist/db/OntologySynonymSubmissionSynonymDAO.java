@@ -52,7 +52,7 @@ public class OntologySynonymSubmissionSynonymDAO {
 		return synonym;
 	}
 	
-	public void insert(int ontologySynonymSubmissionId, List<Synonym> synonyms) throws QueryException {
+	public void insert(List<Synonym> synonyms) throws QueryException {
 		List<Synonym> result = new LinkedList<Synonym>();
 		for(Synonym synonym : synonyms)
 			result.add(insert(synonym));

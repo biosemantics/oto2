@@ -482,28 +482,28 @@ public class OntologyFileDAO {
 	}
 
 	public String insertSynonymSubmission(OntologySynonymSubmission submission) throws OntologyFileException { 
-		OWLOntology targetOwlOntology = owlOntologyManager.getOntology(IRI.create(submission.getOntology().getIri()));
 		List<OWLClass> affectedClasses = new ArrayList<OWLClass>();
-		if(submission.hasClassIRI()) {
-			try {
-				OWLClass owlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(submission.getClassIRI()));
-				boolean isContained = containsOwlClass(targetOwlOntology, owlClass);
-				String label = annotationsManager.get(collection, owlClass, labelProperty);
-				if(isContained && label != null && !label.equals(submission.getSubmissionTerm())) {
-					//class exists in current/imported ontology => add syn
-					affectedClasses.add(owlClass);
+		OWLOntology targetOwlOntology;
+		try {
+			targetOwlOntology = owlOntologyManager.getOntology(IRI.create(submission.getOntology().getIri()));
+			OWLClass owlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(submission.getClassIRI()));
+			determineAndSetSubmissionType(submission);
+			boolean isContained = containsOwlClass(targetOwlOntology, owlClass);
+			String label = annotationsManager.get(collection, owlClass, labelProperty);
+			if(isContained && label != null && !label.equals(submission.getSubmissionTerm())) {
+				//class exists in current/imported ontology => add syn
+				affectedClasses.add(owlClass);
 					
-					axiomManager.addSynonym(targetOwlOntology, owlClass, new Synonym(submission.getSubmissionTerm()));
-				} else if(!isContained){
-					//an external class does not exist => add class, then add syn	
-					owlClass = createModuleForSubmissionsClass(collection, submission);  
-					axiomManager.addSynonym(targetOwlOntology, owlClass, new Synonym(submission.getSubmissionTerm()));
-				}
-			} catch(Exception e) {
-				throw new OntologyFileException(e);
+				axiomManager.addSynonym(targetOwlOntology, owlClass, new Synonym(submission.getSubmissionTerm()));
+			} else if(!isContained){
+				//an external class does not exist => add class, then add syn					
+				owlClass = createModuleForSubmissionsClass(collection, submission);  
+				axiomManager.addSynonym(targetOwlOntology, owlClass, new Synonym(submission.getSubmissionTerm()));
 			}
+		} catch(Exception e) {
+			throw new OntologyFileException(e);
 		}
-
+		
 		//add other additional synonyms
 		for(Synonym synonym : submission.getSynonyms()){
 			for(OWLClass affectedClass : affectedClasses){
@@ -544,6 +544,18 @@ public class OntologyFileDAO {
 		}
 		return submission.getClassIRI().toString();
 	}	
+
+	public void determineAndSetSubmissionType(OntologySynonymSubmission submission) throws OntologyNotFoundException, OntologyFileException {
+		OWLClass owlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(submission.getClassIRI()));
+		OWLOntology classOwlOntology = owlOntologyRetriever.getOWLOntology(collection, owlClass);
+		if(ontologyReasoner.isSubclass(classOwlOntology, owlClass, qualityClass)) {
+			submission.setType(Type.QUALITY);
+		} else if(ontologyReasoner.isSubclass(classOwlOntology, owlClass, entityClass)) {
+			submission.setType(Type.ENTITY);
+		} else {
+			throw new OntologyFileException("Class IRI has to be a subclass of either quality or entity.");
+		}
+	}
 
 	public void updateSynonymSubmission(OntologySynonymSubmission submission) throws OntologyFileException {
 		this.removeSynonymSubmission(submission);

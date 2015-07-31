@@ -1,10 +1,14 @@
 package edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology;
 
-public class Synonym {
+import java.io.Serializable;
+
+public class Synonym implements Serializable {
 
 	private int id = -1;
 	private int submission = 1;
 	private String synonym;
+	
+	public Synonym() { }
 
 	public Synonym(int id, int submission, String synonym) {
 		super();

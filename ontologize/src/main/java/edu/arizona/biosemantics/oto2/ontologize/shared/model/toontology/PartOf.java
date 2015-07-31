@@ -1,10 +1,14 @@
 package edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology;
 
-public class PartOf {
+import java.io.Serializable;
+
+public class PartOf implements Serializable {
 
 	private int id = -1;
 	private int ontologyClassSubmission;
 	private String partOf;
+	
+	public PartOf() { }
 
 	public PartOf(int id, int ontologyClassSubmission, String partOf) {
 		super();

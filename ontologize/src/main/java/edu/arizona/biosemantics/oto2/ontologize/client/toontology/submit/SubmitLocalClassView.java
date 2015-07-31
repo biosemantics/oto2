@@ -598,7 +598,7 @@ public class SubmitLocalClassView implements IsWidget {
 		clearSuperclassButton.addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
-				clearSuperclasses();
+				clearSuperclassesExceptHigherLevelClass();
 			}
 		});
 		
@@ -649,7 +649,7 @@ public class SubmitLocalClassView implements IsWidget {
 		}
 	}
 
-	protected void clearSuperclasses() {
+	protected void clearSuperclassesExceptHigherLevelClass() {
 		superclassStore.clear();
 		if(isEntityRadio.getValue())
 			addSupreclass(HighLevelClass.ENTITY);
@@ -678,7 +678,7 @@ public class SubmitLocalClassView implements IsWidget {
 		this.submissionTermField.setValue("", false); 
 		//this.ontologyComboBox.setValue(null, false);
 		this.classIRIField.setValue("", false);
-		this.clearSuperclasses();
+		this.clearSuperclassesExceptHigherLevelClass();
 		this.definitionArea.setValue("", false);
 		this.synonymsStore.clear();
 		this.sourceField.setValue("", false);
@@ -702,7 +702,7 @@ public class SubmitLocalClassView implements IsWidget {
 		this.partOfStore.addAll(ontologyClassSubmission.getPartOfs());
 		this.isEntityRadio.setValue(ontologyClassSubmission.getType().equals(Type.ENTITY));
 		this.isQualityRadio.setValue(ontologyClassSubmission.getType().equals(Type.QUALITY));
-		this.clearSuperclasses();
+		superclassStore.clear();
 		this.superclassStore.addAll(ontologyClassSubmission.getSuperclasses());
 	}
 	
