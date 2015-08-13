@@ -7,7 +7,7 @@
 	<groupId>edu.arizona.biosemantics.oto2</groupId>
 	<artifactId>ontologize</artifactId>
 	<packaging>war</packaging>
-	<version>0.0.26-SNAPSHOT</version>
+	<version>0.0.27-SNAPSHOT</version>
 
 	<properties>
 		<gwtVersion>2.6.1</gwtVersion>
@@ -282,6 +282,21 @@
 			<artifactId>jta</artifactId>
 			<version>1.1</version>
 		</dependency>
+		<dependency>
+			<groupId>com.google.inject</groupId>
+			<artifactId>guice</artifactId>
+			<version>4.0-beta</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.inject.extensions</groupId>
+			<artifactId>guice-assistedinject</artifactId>
+			<version>4.0-beta</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.inject.extensions</groupId>
+			<artifactId>guice-servlet</artifactId>
+			<version>4.0-beta</version>
+		</dependency>		
 	</dependencies>
 
 	<build>

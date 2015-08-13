@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
+import com.google.inject.Inject;
 
 import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.ontologize.server.Configuration;
@@ -41,7 +42,12 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.UpdateSyno
  */
 public class ToOntologyService extends RemoteServiceServlet implements IToOntologyService {
 
-	private DAOManager daoManager = new DAOManager();
+	private DAOManager daoManager;
+
+	@Inject
+	public ToOntologyService(DAOManager daoManager) {
+		this.daoManager = daoManager;
+	}
 	
 	@Override
 	public List<Ontology> getOntologies(Collection collection) throws Exception {

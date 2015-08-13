@@ -12,6 +12,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.UriInfo;
 
+import com.google.inject.Inject;
+
 import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.ontologize.server.rpc.CollectionService;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
@@ -26,13 +28,14 @@ public class CollectionResource {
 	@Context
 	UriInfo uriInfo;
 	@Context
-	Request request;		
+	Request request;
+	private CollectionService collectionService;		
 	
-	public CollectionResource() {
+	@Inject
+	public CollectionResource(CollectionService collectionService) {
+		this.collectionService = collectionService;
 		log(LogLevel.DEBUG, "CollectionResource initialized");
 	}
-	
-	private CollectionService collectionService = new CollectionService();
 	
 	@POST
 	@Produces({ MediaType.APPLICATION_JSON })

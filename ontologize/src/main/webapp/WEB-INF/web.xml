@@ -4,36 +4,19 @@
               http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 	version="2.5" xmlns="http://java.sun.com/xml/ns/javaee">
 
-	<!-- Servlets -->
-	<servlet>
-		<servlet-name>collectionServlet</servlet-name>
-		<servlet-class>edu.arizona.biosemantics.oto2.ontologize.server.rpc.CollectionService</servlet-class>
-	</servlet>
-
-	<servlet-mapping>
-		<servlet-name>collectionServlet</servlet-name>
-		<url-pattern>/ontologize/ontologize_collection</url-pattern>
-	</servlet-mapping>
+	<listener>
+    	<listener-class>edu.arizona.biosemantics.etcsite.server.GuiceServletConfig</listener-class>
+	</listener>
 	
-	<servlet>
-		<servlet-name>toOntologyServlet</servlet-name>
-		<servlet-class>edu.arizona.biosemantics.oto2.ontologize.server.rpc.ToOntologyService</servlet-class>
-	</servlet>
-
-	<servlet-mapping>
-		<servlet-name>toOntologyServlet</servlet-name>
-		<url-pattern>/ontologize/ontologize_toOntology</url-pattern>
-	</servlet-mapping>
+	<filter>
+	    <filter-name>guiceFilter</filter-name>
+	    <filter-class>com.google.inject.servlet.GuiceFilter</filter-class>
+	</filter>
 	
-	<servlet>
-		<servlet-name>contextServlet</servlet-name>
-		<servlet-class>edu.arizona.biosemantics.oto2.ontologize.server.rpc.ContextService</servlet-class>
-	</servlet>
-
-	<servlet-mapping>
-		<servlet-name>contextServlet</servlet-name>
-		<url-pattern>/ontologize/ontologize_context</url-pattern>
-	</servlet-mapping>
+	<filter-mapping>
+	    <filter-name>guiceFilter</filter-name>
+	    <url-pattern>/*</url-pattern>
+	</filter-mapping>
 
 	<servlet>
 		<servlet-name>Jersey Web Application</servlet-name>

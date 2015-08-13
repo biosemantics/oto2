@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
+import com.google.inject.Inject;
 
 import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.common.ontology.search.FileSearcher;
@@ -27,7 +28,12 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.ICollectionService;
 
 public class CollectionService extends RemoteServiceServlet implements ICollectionService {
 
-	private DAOManager daoManager = new DAOManager();
+	private DAOManager daoManager;
+
+	@Inject
+	public CollectionService(DAOManager daoManager) {
+		this.daoManager = daoManager;
+	}
 	
 	@Override
 	public Collection insert(Collection collection) throws Exception {

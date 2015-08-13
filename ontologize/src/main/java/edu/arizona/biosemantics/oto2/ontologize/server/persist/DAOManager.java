@@ -1,5 +1,7 @@
 package edu.arizona.biosemantics.oto2.ontologize.server.persist;
 
+import com.google.inject.Inject;
+
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.bioportal.OntologyBioportalDAO;
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.db.CollectionDAO;
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.db.ContextDAO;
@@ -35,6 +37,7 @@ public class DAOManager {
 	private OntologyClassSubmissionSuperclassDAO ontologyClassSubmissionSuperclassDAO;
 	private OntologyClassSubmissionPartOfDAO ontologyClassSubmissionPartOfDAO;
 	
+	@Inject
 	public DAOManager() {
 		collectionDAO = new CollectionDAO();
 		termDAO = new TermDAO();

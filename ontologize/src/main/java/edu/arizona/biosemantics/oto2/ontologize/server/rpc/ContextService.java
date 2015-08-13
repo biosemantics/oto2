@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
+import com.google.inject.Inject;
 
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.DAOManager;
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.db.Query.QueryException;
@@ -16,7 +17,12 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.IContextService;
 
 public class ContextService extends RemoteServiceServlet implements IContextService {
 
-	private DAOManager daoManager = new DAOManager();
+	private DAOManager daoManager;
+
+	@Inject
+	public ContextService(DAOManager daoManager) {
+		this.daoManager = daoManager;
+	}
 	
 	public Collection insert(Collection collection) throws QueryException, IOException {
 		return daoManager.getCollectionDAO().insert(collection);
