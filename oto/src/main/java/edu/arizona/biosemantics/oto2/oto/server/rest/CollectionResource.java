@@ -20,6 +20,7 @@ import edu.arizona.biosemantics.oto2.oto.server.rpc.CollectionService;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.TrashLabel;
+import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionService;
 import edu.arizona.biosemantics.common.log.LogLevel;
 
 /**
@@ -33,10 +34,10 @@ public class CollectionResource {
 	UriInfo uriInfo;
 	@Context
 	Request request;
-	private CollectionService collectionService;		
+	private ICollectionService collectionService;		
 		
 	@Inject
-	public CollectionResource(CollectionService collectionService) {
+	public CollectionResource(ICollectionService collectionService) {
 		this.collectionService = collectionService;
 		log(LogLevel.DEBUG, "CollectionResource initialized");
 	}

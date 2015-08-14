@@ -18,6 +18,7 @@ import com.google.inject.Inject;
 import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.server.rpc.ContextService;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Context;
+import edu.arizona.biosemantics.oto2.oto.shared.rpc.IContextService;
 
 /**
  * Just a REST-like wrapper around the RPC service
@@ -31,10 +32,10 @@ public class ContextResource {
 	@javax.ws.rs.core.Context
 	Request request;		
 	
-	private ContextService contextService;
+	private IContextService contextService;
 
 	@Inject
-	public ContextResource(ContextService contextService) {
+	public ContextResource(IContextService contextService) {
 		this.contextService = contextService;
 		log(LogLevel.DEBUG, "ContextResource initialized");
 	}

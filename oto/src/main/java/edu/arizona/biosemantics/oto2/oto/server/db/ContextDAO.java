@@ -185,13 +185,11 @@ public class ContextDAO {
 				pluralSearchTerm = inflector.getPlural(searchTerm);
 			}
 			
-			if(inflector != null) {
-				if(inflector.isPlural(originalSearchTerm)) {
-					singularOriginalSearchTerm = inflector.getSingular(originalSearchTerm);
-				} else { 
-					pluralOriginalSearchTerm = inflector.getPlural(originalSearchTerm);
-				}		
-			}
+			if(inflector.isPlural(originalSearchTerm)) {
+				singularOriginalSearchTerm = inflector.getSingular(originalSearchTerm);
+			} else { 
+				pluralOriginalSearchTerm = inflector.getPlural(originalSearchTerm);
+			}	
 		} catch (Exception e) {
 			log(LogLevel.ERROR, "Could not load WordNetPOSKnowledgeBase.", e);
 		}

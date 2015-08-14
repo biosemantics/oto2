@@ -24,6 +24,7 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.TrashLabel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.community.CommunityCollection;
+import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICommunityService;
 
 /**
  * Just a REST-like wrapper around the RPC service
@@ -37,10 +38,10 @@ public class CommunityResource {
 	@Context
 	Request request;		
 	
-	private CommunityService communityService;
+	private ICommunityService communityService;
 	
 	@Inject
-	public CommunityResource(CommunityService communityService) {
+	public CommunityResource(ICommunityService communityService) {
 		this.communityService = communityService;
 		log(LogLevel.DEBUG, "CommunityResource initialized");
 	}

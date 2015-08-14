@@ -6,7 +6,7 @@
 
 	
 	<listener>
-    	<listener-class>edu.arizona.biosemantics.etcsite.server.GuiceServletConfig</listener-class>
+    	<listener-class>edu.arizona.biosemantics.oto2.oto.server.GuiceServletConfig</listener-class>
 	</listener>
 	
 	<filter>

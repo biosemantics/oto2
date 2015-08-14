@@ -5,6 +5,7 @@ import com.google.inject.Injector;
 import com.google.inject.servlet.GuiceServletContextListener;
 import com.google.inject.servlet.ServletModule;
 
+import edu.arizona.biosemantics.oto2.oto.server.rest.ContextResource;
 import edu.arizona.biosemantics.oto2.oto.server.rpc.CollectionService;
 import edu.arizona.biosemantics.oto2.oto.server.rpc.CommunityService;
 import edu.arizona.biosemantics.oto2.oto.server.rpc.ContextService;
@@ -19,10 +20,10 @@ public class GuiceServletConfig extends GuiceServletContextListener {
 				-> Common pitfalls: for url-pattern help */
 			@Override
 			protected void configureServlets() {
-				serve("/ontologize/oto_collection").with(CollectionService.class);
-				serve("/ontologize/oto_community").with(CommunityService.class);
-				serve("/ontologize/oto_ontology").with(OntologyService.class);
-				serve("/ontologize/oto_context").with(ContextService.class);
+				serve("/oto/oto_collection").with(CollectionService.class);
+				serve("/oto/oto_community").with(CommunityService.class);
+				serve("/oto/oto_ontology").with(OntologyService.class);
+				serve("/oto/oto_context").with(ContextService.class);
 			}
 			
 		}, new GuiceModule());

@@ -7,7 +7,7 @@
 	<groupId>edu.arizona.biosemantics.oto2</groupId>
 	<artifactId>oto</artifactId>
 	<packaging>war</packaging>
-	<version>0.0.92-SNAPSHOT</version>
+	<version>0.0.93-SNAPSHOT</version>
 
 	<properties>
 		<gwtVersion>2.6.1</gwtVersion>
@@ -94,6 +94,11 @@
 			<artifactId>jersey-media-json-jackson</artifactId>
 			<version>2.6</version>
 		</dependency>
+		<dependency>
+		  <groupId>com.squarespace.jersey2-guice</groupId>
+		  <artifactId>jersey2-guice</artifactId>
+		  <version>0.10</version>
+		</dependency>		
 		<dependency>
 		  <groupId>edu.arizona.biosemantics</groupId>
 		  <artifactId>gxt</artifactId>

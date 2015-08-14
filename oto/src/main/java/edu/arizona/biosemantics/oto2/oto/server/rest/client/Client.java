@@ -107,7 +107,7 @@ public class Client implements AutoCloseable {
 	 * @throws InterruptedException 
 	 */
 	public static void main(String[] args) throws InterruptedException, ExecutionException {
-		Client client = new Client("http://127.0.0.1:60137/");	
+		Client client = new Client("http://127.0.0.1:59505/");	
 		client.open();
 		
 		Collection collection = new Collection("name", "type", "my secret");
