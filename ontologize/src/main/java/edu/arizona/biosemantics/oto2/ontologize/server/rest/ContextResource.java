@@ -15,6 +15,7 @@ import javax.ws.rs.core.UriInfo;
 import com.google.inject.Inject;
 
 import edu.arizona.biosemantics.common.log.LogLevel;
+import edu.arizona.biosemantics.oto2.ontologize.server.persist.DAOManager;
 import edu.arizona.biosemantics.oto2.ontologize.server.rpc.CollectionService;
 import edu.arizona.biosemantics.oto2.ontologize.server.rpc.ContextService;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Context;
@@ -30,11 +31,12 @@ public class ContextResource {
 	UriInfo uriInfo;
 	@javax.ws.rs.core.Context
 	Request request;		
-	
-	private ContextService contextService;
+
+	//TODO: Inject singletons
+	private ContextService contextService = new ContextService(new DAOManager());
 	
 	@Inject
-	public ContextResource(ContextService contextService) {
+	public ContextResource() {
 		this.contextService = contextService;
 		log(LogLevel.DEBUG, "ContextResource initialized");
 	}

@@ -15,8 +15,10 @@ import javax.ws.rs.core.UriInfo;
 import com.google.inject.Inject;
 
 import edu.arizona.biosemantics.common.log.LogLevel;
+import edu.arizona.biosemantics.oto2.ontologize.server.persist.DAOManager;
 import edu.arizona.biosemantics.oto2.ontologize.server.rpc.CollectionService;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.ICollectionService;
 
 /**
  * Just a REST-like wrapper around the RPC service
@@ -29,11 +31,12 @@ public class CollectionResource {
 	UriInfo uriInfo;
 	@Context
 	Request request;
-	private CollectionService collectionService;		
+	
+	//TODO: Inject singletons
+	private ICollectionService collectionService = new CollectionService(new DAOManager());		
 	
 	@Inject
-	public CollectionResource(CollectionService collectionService) {
-		this.collectionService = collectionService;
+	public CollectionResource() {
 		log(LogLevel.DEBUG, "CollectionResource initialized");
 	}
 	
