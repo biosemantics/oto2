@@ -38,11 +38,10 @@ public class CommunityResource {
 	@Context
 	Request request;		
 	
-	private ICommunityService communityService;
+	private ICommunityService communityService = new CommunityService(new DAOManager());
 	
 	@Inject
 	public CommunityResource(ICommunityService communityService) {
-		this.communityService = communityService;
 		log(LogLevel.DEBUG, "CommunityResource initialized");
 	}
 	

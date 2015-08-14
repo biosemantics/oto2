@@ -16,6 +16,8 @@ import javax.ws.rs.core.UriInfo;
 
 import com.google.inject.Inject;
 
+import edu.arizona.biosemantics.oto2.oto.server.db.DAOManager;
+import edu.arizona.biosemantics.oto2.oto.server.db.HistoricInitializer;
 import edu.arizona.biosemantics.oto2.oto.server.rpc.CollectionService;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
@@ -34,11 +36,14 @@ public class CollectionResource {
 	UriInfo uriInfo;
 	@Context
 	Request request;
-	private ICollectionService collectionService;		
+	
+	private ICollectionService collectionService;	
 		
 	@Inject
-	public CollectionResource(ICollectionService collectionService) {
-		this.collectionService = collectionService;
+	public CollectionResource() {
+		DAOManager daoManager = new DAOManager();
+		HistoricInitializer historicInitializer = new HistoricInitializer(daoManager);
+		collectionService = new CollectionService(daoManager, historicInitializer);	
 		log(LogLevel.DEBUG, "CollectionResource initialized");
 	}
 	

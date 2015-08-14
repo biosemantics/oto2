@@ -16,6 +16,7 @@ import javax.ws.rs.core.UriInfo;
 import com.google.inject.Inject;
 
 import edu.arizona.biosemantics.common.log.LogLevel;
+import edu.arizona.biosemantics.oto2.oto.server.db.DAOManager;
 import edu.arizona.biosemantics.oto2.oto.server.rpc.ContextService;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Context;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.IContextService;
@@ -32,11 +33,10 @@ public class ContextResource {
 	@javax.ws.rs.core.Context
 	Request request;		
 	
-	private IContextService contextService;
+	private IContextService contextService = new ContextService(new DAOManager());
 
 	@Inject
-	public ContextResource(IContextService contextService) {
-		this.contextService = contextService;
+	public ContextResource() {
 		log(LogLevel.DEBUG, "ContextResource initialized");
 	}
 	
