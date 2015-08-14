@@ -5,6 +5,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
+import com.google.inject.Inject;
 
 import edu.arizona.biosemantics.oto2.oto.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.oto.server.db.DAOManager;
@@ -14,7 +15,12 @@ import edu.arizona.biosemantics.oto2.oto.shared.rpc.IOntologyService;
 
 public class OntologyService extends RemoteServiceServlet implements IOntologyService {
 
-	private DAOManager daoManager = new DAOManager();
+	private DAOManager daoManager;
+	
+	@Inject
+	public OntologyService(DAOManager daoManager) {
+		this.daoManager = daoManager;
+	}
 	
 	@Override
 	public List<OntologyEntry> getOntologyEntries(Term term) {

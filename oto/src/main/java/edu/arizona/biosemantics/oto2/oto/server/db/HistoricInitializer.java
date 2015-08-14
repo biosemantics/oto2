@@ -9,6 +9,8 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import com.google.inject.Inject;
+
 import edu.arizona.biosemantics.oto.client.oto.OTOClient;
 import edu.arizona.biosemantics.oto.model.GlossaryDownload;
 import edu.arizona.biosemantics.oto.model.TermCategory;
@@ -25,6 +27,7 @@ public class HistoricInitializer {
 
 	private DAOManager daoManager;
 
+	@Inject
 	public HistoricInitializer(DAOManager daoManager) {
 		this.daoManager = daoManager;
 	}

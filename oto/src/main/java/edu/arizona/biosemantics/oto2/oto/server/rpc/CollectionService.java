@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
+import com.google.inject.Inject;
 
 import edu.arizona.biosemantics.oto2.oto.server.Configuration;
 import edu.arizona.biosemantics.oto2.oto.server.db.DAOManager;
@@ -19,8 +20,14 @@ import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionService;
 
 public class CollectionService extends RemoteServiceServlet implements ICollectionService {
 	
-	private DAOManager daoManager = new DAOManager();
-	private HistoricInitializer historicInitializer = new HistoricInitializer(daoManager);
+	private HistoricInitializer historicInitializer;
+	private DAOManager daoManager;
+	
+	@Inject
+	public CollectionService(DAOManager daoManager, HistoricInitializer historicInitializer) {
+		this.daoManager = daoManager;
+		this.historicInitializer = historicInitializer;
+	}
 	
 	@Override
 	public Collection get(Collection collection) {

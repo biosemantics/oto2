@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
+import com.google.inject.Inject;
 
 import edu.arizona.biosemantics.oto2.oto.server.db.DAOManager;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
@@ -14,7 +15,12 @@ import edu.arizona.biosemantics.oto2.oto.shared.rpc.IContextService;
 
 public class ContextService extends RemoteServiceServlet implements IContextService {
 
-	private DAOManager daoManager = new DAOManager();
+	private DAOManager daoManager;
+
+	@Inject
+	public ContextService(DAOManager daoManager) {
+		this.daoManager = daoManager;
+	}
 	
 	@Override
 	public List<TypedContext> getContexts(Collection collection, Term term) {

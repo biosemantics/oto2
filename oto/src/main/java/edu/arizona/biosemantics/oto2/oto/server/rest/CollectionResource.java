@@ -14,6 +14,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.UriInfo;
 
+import com.google.inject.Inject;
+
 import edu.arizona.biosemantics.oto2.oto.server.rpc.CollectionService;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
@@ -30,13 +32,14 @@ public class CollectionResource {
 	@Context
 	UriInfo uriInfo;
 	@Context
-	Request request;		
-	
-	public CollectionResource() {
+	Request request;
+	private CollectionService collectionService;		
+		
+	@Inject
+	public CollectionResource(CollectionService collectionService) {
+		this.collectionService = collectionService;
 		log(LogLevel.DEBUG, "CollectionResource initialized");
 	}
-	
-	private CollectionService collectionService = new CollectionService();
 	
 	@PUT
 	@Produces({ MediaType.APPLICATION_JSON })

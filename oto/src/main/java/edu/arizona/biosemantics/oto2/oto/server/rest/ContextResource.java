@@ -13,6 +13,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.UriInfo;
 
+import com.google.inject.Inject;
+
 import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.server.rpc.ContextService;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Context;
@@ -29,9 +31,11 @@ public class ContextResource {
 	@javax.ws.rs.core.Context
 	Request request;		
 	
-	private ContextService contextService = new ContextService();
-	
-	public ContextResource() {
+	private ContextService contextService;
+
+	@Inject
+	public ContextResource(ContextService contextService) {
+		this.contextService = contextService;
 		log(LogLevel.DEBUG, "ContextResource initialized");
 	}
 	

@@ -34,7 +34,7 @@ public class CommunityDecisionsJob implements Job {
 			log(LogLevel.INFO, "Create community decisions for type " + type);
 			Set<Categorization> categorizations = daoManager.getCommunityDAO().getCategorizations(type);
 			Set<Synonymization> synonymizations = daoManager.getCommunityDAO().getSynoymizations(type);
-			    
+			
 			try {
 				ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(Configuration.files + File.separator + "CommunityDecisions." + type + ".Categorization.ser"));
 				out.writeObject(categorizations);

@@ -6,6 +6,7 @@ import java.io.ObjectInputStream;
 import java.util.Set;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
+import com.google.inject.Inject;
 
 import edu.arizona.biosemantics.oto2.oto.server.Configuration;
 import edu.arizona.biosemantics.oto2.oto.server.db.DAOManager;
@@ -16,7 +17,12 @@ import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICommunityService;
 
 public class CommunityService extends RemoteServiceServlet implements ICommunityService {
 
-	private DAOManager daoManager = new DAOManager();
+	private DAOManager daoManager;
+	
+	@Inject
+	public CommunityService(DAOManager daoManager) {
+		this.daoManager = daoManager;
+	}
 	
 	@Override
 	public CommunityCollection get(String type) throws Exception {

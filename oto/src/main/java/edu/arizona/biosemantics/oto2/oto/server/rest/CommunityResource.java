@@ -14,8 +14,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.UriInfo;
 
+import com.google.inject.Inject;
+
 import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.server.db.DAOManager;
+import edu.arizona.biosemantics.oto2.oto.server.rpc.CollectionService;
 import edu.arizona.biosemantics.oto2.oto.server.rpc.CommunityService;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
@@ -34,9 +37,11 @@ public class CommunityResource {
 	@Context
 	Request request;		
 	
-	private CommunityService communityService = new CommunityService();
-		
-	public CommunityResource() {
+	private CommunityService communityService;
+	
+	@Inject
+	public CommunityResource(CommunityService communityService) {
+		this.communityService = communityService;
 		log(LogLevel.DEBUG, "CommunityResource initialized");
 	}
 	
