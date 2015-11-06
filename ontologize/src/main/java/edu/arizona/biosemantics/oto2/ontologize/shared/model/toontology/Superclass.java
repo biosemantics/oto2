@@ -6,25 +6,30 @@ public class Superclass implements Serializable {
 
 	private int id = -1;
 	private int ontologyClassSubmission = -1;
-	private String superclass;
+	private String iri;
+	private String term;
 	
 	public Superclass() { }
 
-	public Superclass(int id, int ontologyClassSubmission, String superclass) {
+	public Superclass(int id, int ontologyClassSubmission, String iri) {
 		super();
 		this.id = id;
 		this.ontologyClassSubmission = ontologyClassSubmission;
-		this.superclass = superclass;
+		this.iri = iri;
 	}
 
-	public Superclass(int ontologyClassSubmission, String superclass) {
+	public Superclass(int ontologyClassSubmission, String iri) {
 		super();
 		this.ontologyClassSubmission = ontologyClassSubmission;
-		this.superclass = superclass;
+		this.iri = iri;
 	}
 	
-	public Superclass(String superclass) {
-		this.superclass = superclass;
+	public Superclass(String iri) {
+		this.iri = iri;
+	}
+
+	public Superclass(OntologyClassSubmission submission) {
+		this.iri = submission.getClassIRI() + " (" + submission.getSubmissionTerm() + ")";
 	}
 
 	public int getId() {
@@ -43,16 +48,24 @@ public class Superclass implements Serializable {
 		this.ontologyClassSubmission = ontologyClassSubmission;
 	}
 
-	public String getSuperclass() {
-		return superclass;
+	public String getIri() {
+		return iri;
 	}
 
-	public void setSuperclass(String superclass) {
-		this.superclass = superclass;
+	public void setIri(String iri) {
+		this.iri = iri;
 	}
 
 	public boolean hasId() {
 		return id != -1;
+	}
+
+	public String getTerm() {
+		return term;
+	}
+
+	public void setTerm(String term) {
+		this.term = term;
 	}
 
 }

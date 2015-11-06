@@ -46,11 +46,11 @@ import edu.arizona.biosemantics.oto2.ontologize.client.ontologyview.GraphDemo.Bu
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.OntologyProperties;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySynonymSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.PartOf;
-import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySubmission.Type;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Superclass;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Synonym;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.IToOntologyService;
@@ -296,15 +296,15 @@ public class OntologyView implements IsWidget {
 
 				for(Superclass superclass : submission.getSuperclasses()) {
 					node = Node.createObject().cast();
-					node.name(superclass.getSuperclass());
+					node.name(superclass.getIri());
 					//node.group(0);
-					addNode(superclass.getSuperclass(), node, nodeIds, nodes);
+					addNode(superclass.getIri(), node, nodeIds, nodes);
 				}
 				for(PartOf partOf : submission.getPartOfs()) {
 					node = Node.createObject().cast();
-					node.name(partOf.getPartOf());
+					node.name(partOf.getIri());
 					//node.group(0);
-					addNode(partOf.getPartOf(), node, nodeIds, nodes);
+					addNode(partOf.getIri(), node, nodeIds, nodes);
 				}
 				for(Synonym synonym : submission.getSynonyms()) {
 					node = Node.createObject().cast();
@@ -319,10 +319,10 @@ public class OntologyView implements IsWidget {
 			if(submission.getOntology().equals(ontology)) {
 				Node node = Node.createObject().cast();
 				node.name(submission.getSubmissionTerm());
-				if(submission.getType().equals(Type.ENTITY))
+				/*if(submission.getType().equals(Type.ENTITY))
 					node.group(0);
 				if(submission.getType().equals(Type.QUALITY))
-					node.group(2);
+					node.group(2);*/
 				addNode(submission.getClassIRI(), node, nodeIds, nodes);
 				
 				for(Synonym synonym : submission.getSynonyms()) {
@@ -345,10 +345,10 @@ public class OntologyView implements IsWidget {
 		for(OntologyClassSubmission submission : classSubmissions) {
 			if(submission.getOntology().equals(ontology)) {
 				for(PartOf partOf : submission.getPartOfs()) {
-					if(nodeIds.containsKey(partOf.getPartOf())) {
+					if(nodeIds.containsKey(partOf.getIri())) {
 						Link link = Link.createObject().cast();
 						link.source(nodeIds.get(submission.getClassIRI()));
-						link.target(nodeIds.get(partOf.getPartOf()));
+						link.target(nodeIds.get(partOf.getIri()));
 						link.type("partof");
 						links.push(link);
 					}
@@ -378,7 +378,7 @@ public class OntologyView implements IsWidget {
 					for(Superclass superclass : submission.getSuperclasses()) {
 						Link link = Link.createObject().cast();
 						link.source(nodeIds.get(submission.getClassIRI()));
-						link.target(nodeIds.get(superclass.getSuperclass()));
+						link.target(nodeIds.get(superclass.getIri()));
 						link.type("superclass");
 						links.push(link);
 					}

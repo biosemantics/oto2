@@ -55,7 +55,7 @@ public class OntologyClassSubmissionSuperclassDAO {
 		if(!superclass.hasId()) {
 			try(Query insert = new Query("INSERT INTO `ontologize_ontologyclasssubmission_superclass` (`ontologyclasssubmission`, `superclass`) VALUES(?, ?)")) {
 				insert.setParameter(1, superclass.getOntologyClassSubmission());
-				insert.setParameter(2, superclass.getSuperclass());
+				insert.setParameter(2, superclass.getIri());
 				insert.execute();
 				ResultSet generatedKeys = insert.getGeneratedKeys();
 				generatedKeys.next();
@@ -73,7 +73,7 @@ public class OntologyClassSubmissionSuperclassDAO {
 	public void update(Superclass superclass) throws QueryException  {		
 		try(Query query = new Query("UPDATE ontologize_ontologyclasssubmission_superclass SET ontologyclasssubmission = ?, superclass = ? WHERE id = ?")) {
 			query.setParameter(1, superclass.getOntologyClassSubmission());
-			query.setParameter(2, superclass.getSuperclass());
+			query.setParameter(2, superclass.getIri());
 			query.setParameter(3, superclass.getId());
 			query.execute();
 		} catch(QueryException e) {

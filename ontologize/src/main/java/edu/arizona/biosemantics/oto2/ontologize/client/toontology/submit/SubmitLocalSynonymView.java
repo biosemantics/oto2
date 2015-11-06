@@ -61,7 +61,7 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.Term;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.TermProperties;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySynonymSubmission;
-import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySubmission.Type;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Synonym;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.SynonymProperties;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.ClassExistsException;
@@ -145,7 +145,7 @@ public class SubmitLocalSynonymView implements IsWidget {
 	    ontologyComboBox.setAutoValidate(true);
 	    //ontologyVlc.add(browseOntologiesButton, new VerticalLayoutData(1, -1));
 	    formContainer.add(new FieldLabel(ontologyVlc, "Ontology *"), new VerticalLayoutData(1, -1));
-	    formContainer.add(new FieldLabel(classIRIComboBox, "Class IRI *"), new VerticalLayoutData(1, -1));
+	    formContainer.add(new FieldLabel(classIRIComboBox, "Class (IRI or term) *"), new VerticalLayoutData(1, -1));
 	    classIRIComboBox.setAllowBlank(false);
 	    classIRIComboBox.setAutoValidate(true);
 	    
@@ -383,9 +383,7 @@ public class SubmitLocalSynonymView implements IsWidget {
 				if(validateForm()) {
 					final MessageBox box = Alerter.startLoading();
 					final OntologySynonymSubmission submission = getSynonymSubmission();
-					final List<OntologySynonymSubmission> removeSubmissions = new LinkedList<OntologySynonymSubmission>();
-					removeSubmissions.add(selectedSubmission);
-					toOntologyService.removeSynonymSubmissions(collection, removeSubmissions, new AsyncCallback<Void>() {
+					toOntologyService.removeSynonymSubmission(collection, selectedSubmission, new AsyncCallback<Void>() {
 						@Override
 						public void onFailure(Throwable caught) {
 							Alerter.failedToRemoveOntologyClassSubmission();
@@ -393,7 +391,7 @@ public class SubmitLocalSynonymView implements IsWidget {
 						}
 						@Override
 						public void onSuccess(Void result) {
-							eventBus.fireEvent(new RemoveOntologySynonymSubmissionsEvent(removeSubmissions));
+							eventBus.fireEvent(new RemoveOntologySynonymSubmissionsEvent(selectedSubmission));
 							toOntologyService.createSynonymSubmission(collection, submission, new AsyncCallback<OntologySynonymSubmission>() {
 								@Override
 								public void onFailure(Throwable caught) {
@@ -422,9 +420,7 @@ public class SubmitLocalSynonymView implements IsWidget {
 						final MessageBox box = Alerter.startLoading();
 						final OntologySynonymSubmission submission = getSynonymSubmission();
 						submission.setId(selectedSubmission.getId());
-						final List<OntologySynonymSubmission> submissions = new LinkedList<OntologySynonymSubmission>();
-						submissions.add(submission);
-						toOntologyService.updateSynonymSubmissions(collection, submissions, new AsyncCallback<Void>() {
+						toOntologyService.updateSynonymSubmission(collection, submission, new AsyncCallback<Void>() {
 							@Override
 							public void onFailure(Throwable caught) {
 								Alerter.stopLoading(box);
@@ -433,7 +429,7 @@ public class SubmitLocalSynonymView implements IsWidget {
 							@Override
 							public void onSuccess(Void result) {
 								Alerter.stopLoading(box);
-								eventBus.fireEvent(new UpdateOntologySynonymsSubmissionsEvent(submissions));
+								eventBus.fireEvent(new UpdateOntologySynonymsSubmissionsEvent(submission));
 							}
 						});
 					}
@@ -540,12 +536,10 @@ public class SubmitLocalSynonymView implements IsWidget {
 	}
 
 	protected OntologySynonymSubmission getSynonymSubmission() {
-		//Type type = isEntityRadio.getValue() ? Type.ENTITY : Type.QUALITY;
 		return new OntologySynonymSubmission(collection.getId(), termComboBox.getValue(), submissionTermField.getValue(), 
 				ontologyComboBox.getValue(), classIRIComboBox.getValue(),
 				new LinkedList<Synonym>(synonymsStore.getAll()),
 				sourceField.getValue(), sampleArea.getValue(), 
-				//type, 
 				Ontologize.user);
 	}
 

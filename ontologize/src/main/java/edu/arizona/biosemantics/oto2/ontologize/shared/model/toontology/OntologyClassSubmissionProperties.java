@@ -9,7 +9,7 @@ import com.sencha.gxt.data.shared.PropertyAccess;
 
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Term;
-import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySubmission.Type;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
 
 public interface OntologyClassSubmissionProperties extends PropertyAccess<OntologyClassSubmission> {
 

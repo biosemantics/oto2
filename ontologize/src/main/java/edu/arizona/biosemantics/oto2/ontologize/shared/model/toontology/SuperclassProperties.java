@@ -11,11 +11,11 @@ public interface SuperclassProperties  extends PropertyAccess<Superclass> {
 	  @Path("id")
 	  ModelKeyProvider<Superclass> key();
 	   
-	  @Path("superclass")
+	  @Path("iri")
 	  LabelProvider<Superclass> nameLabel();
 	  
 	  ValueProvider<Superclass, Integer> ontologyClassSubmission();
 	  
-	  ValueProvider<Superclass, String> superclass();
+	  ValueProvider<Superclass, String> iri();
 
 }

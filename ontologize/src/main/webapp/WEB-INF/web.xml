@@ -4,10 +4,6 @@
               http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 	version="2.5" xmlns="http://java.sun.com/xml/ns/javaee">
 
-	<listener>
-    	<listener-class>edu.arizona.biosemantics.etcsite.server.GuiceServletConfig</listener-class>
-	</listener>
-	
 	<filter>
 	    <filter-name>guiceFilter</filter-name>
 	    <filter-class>com.google.inject.servlet.GuiceFilter</filter-class>
@@ -48,6 +44,10 @@
 	<listener>
 		<listener-class>edu.arizona.biosemantics.oto2.ontologize.server.OntologizeServletContextListener</listener-class>
 	</listener>
+	<listener>
+    	<listener-class>edu.arizona.biosemantics.oto2.ontologize.server.GuiceServletConfig</listener-class>
+	</listener>
+	
 
 	<!-- Default page to serve -->
 	<welcome-file-list>

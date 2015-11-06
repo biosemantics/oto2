@@ -9,6 +9,7 @@ import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.db.ConnectionPool;
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.db.Query;
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.file.OntologyFileDAO;
+import edu.arizona.biosemantics.oto2.ontologize.server.persist.file.PermanentOntologyFileDAO;
 
 public class OntologizeServletContextListener implements ServletContextListener {
 	private ConnectionPool connectionPool;
@@ -50,7 +51,7 @@ public class OntologizeServletContextListener implements ServletContextListener 
 		
 
 		log(LogLevel.INFO, "Load permanent ontologies");
-		OntologyFileDAO.loadPermanentOntologies();
+		PermanentOntologyFileDAO.loadPermanentOntologies();
 		log(LogLevel.INFO, "Done loading permanent ontologies");
 		
 		initializeFiles();

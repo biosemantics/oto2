@@ -291,7 +291,7 @@ public class SubmitBioportalClassView implements IsWidget {
 				if(validateForm()) {
 					final MessageBox box = Alerter.startLoading();
 					final OntologyClassSubmission submission = getClassSubmission();
-					toOntologyService.createClassSubmission(collection, submission, new AsyncCallback<OntologyClassSubmission>() {
+					toOntologyService.createClassSubmission(collection, submission, new AsyncCallback<List<OntologyClassSubmission>>() {
 						@Override
 						public void onFailure(Throwable caught) {
 							Alerter.stopLoading(box);
@@ -308,7 +308,7 @@ public class SubmitBioportalClassView implements IsWidget {
 							Alerter.failedToSubmitClass(caught);
 						}
 						@Override
-						public void onSuccess(OntologyClassSubmission result) {
+						public void onSuccess(List<OntologyClassSubmission> result) {
 							Alerter.stopLoading(box);
 							eventBus.fireEvent(new CreateOntologyClassSubmissionEvent(result));
 						}
@@ -326,9 +326,7 @@ public class SubmitBioportalClassView implements IsWidget {
 				if(validateForm()) {
 					final MessageBox box = Alerter.startLoading();
 					final OntologyClassSubmission newSubmission = getClassSubmission();
-					final List<OntologyClassSubmission> removeSubmissions = new LinkedList<OntologyClassSubmission>();
-					removeSubmissions.add(selectedSubmission);
-					toOntologyService.removeClassSubmissions(collection, removeSubmissions, new AsyncCallback<Void>() {
+					toOntologyService.removeClassSubmission(collection, selectedSubmission, new AsyncCallback<Void>() {
 						@Override
 						public void onFailure(Throwable caught) {
 							Alerter.failedToRemoveOntologyClassSubmission();
@@ -336,8 +334,8 @@ public class SubmitBioportalClassView implements IsWidget {
 						}
 						@Override
 						public void onSuccess(Void result) {
-							eventBus.fireEvent(new RemoveOntologyClassSubmissionsEvent(removeSubmissions));
-							toOntologyService.createClassSubmission(collection, newSubmission, new AsyncCallback<OntologyClassSubmission>() {
+							eventBus.fireEvent(new RemoveOntologyClassSubmissionsEvent(selectedSubmission));
+							toOntologyService.createClassSubmission(collection, newSubmission, new AsyncCallback<List<OntologyClassSubmission>>() {
 								@Override
 								public void onFailure(Throwable caught) {
 									Alerter.stopLoading(box);
@@ -354,7 +352,7 @@ public class SubmitBioportalClassView implements IsWidget {
 									Alerter.failedToSubmitClass(caught);
 								}
 								@Override
-								public void onSuccess(OntologyClassSubmission result) {
+								public void onSuccess(List<OntologyClassSubmission> result) {
 									Alerter.stopLoading(box);
 									eventBus.fireEvent(new CreateOntologyClassSubmissionEvent(result));
 								}
@@ -374,9 +372,7 @@ public class SubmitBioportalClassView implements IsWidget {
 						final MessageBox box = Alerter.startLoading();
 						final OntologyClassSubmission submission = getClassSubmission();
 						submission.setId(selectedSubmission.getId());
-						final List<OntologyClassSubmission> submissions = new LinkedList<OntologyClassSubmission>();
-						submissions.add(submission);
-						toOntologyService.updateClassSubmissions(collection, submissions, new AsyncCallback<Void>() {
+						toOntologyService.updateClassSubmission(collection, submission, new AsyncCallback<Void>() {
 							@Override
 							public void onFailure(Throwable caught) {
 								Alerter.stopLoading(box);
@@ -385,7 +381,7 @@ public class SubmitBioportalClassView implements IsWidget {
 							@Override
 							public void onSuccess(Void result) {
 								Alerter.stopLoading(box);
-								eventBus.fireEvent(new UpdateOntologyClassSubmissionsEvent(submissions));
+								eventBus.fireEvent(new UpdateOntologyClassSubmissionsEvent(submission));
 							}
 						});
 					} 
@@ -483,7 +479,7 @@ public class SubmitBioportalClassView implements IsWidget {
 			this.ontologyComboBox.setValue(ontologyClassSubmission.getOntology());
 		this.superclassStore.clear();
 		for(Superclass superclass : ontologyClassSubmission.getSuperclasses())
-			this.superclassStore.add(superclass.getSuperclass());
+			this.superclassStore.add(superclass.getIri());
 		this.definitionArea.setValue(ontologyClassSubmission.getDefinition());
 		this.synonymsStore.clear();
 		for(Synonym synonym : ontologyClassSubmission.getSynonyms())
@@ -502,7 +498,7 @@ public class SubmitBioportalClassView implements IsWidget {
 		return new OntologyClassSubmission(collection.getId(), termComboBox.getValue(), submissionTermField.getValue(), 
 				ontologyComboBox.getValue(), "", superclasses,
 				definitionArea.getValue(), synonyms, sourceField.getValue(), 
-				sampleArea.getValue(), new LinkedList<PartOf>(), null, Ontologize.user);
+				sampleArea.getValue(), new LinkedList<PartOf>(), Ontologize.user);
 	}
 
 	protected void initCollection() {

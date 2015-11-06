@@ -58,18 +58,27 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.ICollectionServiceAsy
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.IToOntologyService;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.IToOntologyServiceAsync;
 
-public class SynonymSubmissionsGrid implements IsWidget {
+public abstract class SynonymSubmissionsGrid implements IsWidget {
 
 	private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
 	private IToOntologyServiceAsync toOntologyService = GWT.create(IToOntologyService.class);
-	private static ColumnConfig<OntologySynonymSubmission, String> ontologyCol;
-	private static OntologySynonymSubmissionProperties ontologySynonymSubmissionProperties = GWT.create(OntologySynonymSubmissionProperties.class);
-	private static OntologySynonymSubmissionStatusProperties ontologySynonymSubmissionStatusProperties = GWT.create(OntologySynonymSubmissionStatusProperties.class);
-	private static CheckBoxSelectionModel<OntologySynonymSubmission> checkBoxSelectionModel;
+	private ColumnConfig<OntologySynonymSubmission, String> ontologyCol;
+	private OntologySynonymSubmissionProperties ontologySynonymSubmissionProperties = GWT.create(OntologySynonymSubmissionProperties.class);
+	private CheckBoxSelectionModel<OntologySynonymSubmission> checkBoxSelectionModel;
 	
 	private EventBus eventBus;
 	protected Collection collection;
 	private Grid<OntologySynonymSubmission> grid;
+	protected ColumnConfig<OntologySynonymSubmission, String> termCol;
+	protected ColumnConfig<OntologySynonymSubmission, String> submissionTermCol;
+	protected ColumnConfig<OntologySynonymSubmission, String> categoryCol;
+	protected ColumnConfig<OntologySynonymSubmission, String> synonymsCol;
+	protected ColumnConfig<OntologySynonymSubmission, String> classCol;
+	protected ColumnConfig<OntologySynonymSubmission, String> sampleCol;
+	protected ColumnConfig<OntologySynonymSubmission, String> sourceCol;
+	protected ColumnConfig<OntologySynonymSubmission, String> statusCol;
+	protected ColumnConfig<OntologySynonymSubmission, String> iriCol;
+	protected ColumnConfig<OntologySynonymSubmission, String> userCol;
 	
 	public SynonymSubmissionsGrid(EventBus eventBus, ListStore<OntologySynonymSubmission> synonymSubmissionStore) {
 		this.eventBus = eventBus;
@@ -210,17 +219,19 @@ public class SynonymSubmissionsGrid implements IsWidget {
 				deleteItem.addSelectionHandler(new SelectionHandler<Item>() {
 					@Override
 					public void onSelection(SelectionEvent<Item> event) {
-						toOntologyService.removeSynonymSubmissions(collection, 
-								grid.getSelectionModel().getSelectedItems(), new AsyncCallback<Void>() {
-							@Override
-							public void onFailure(Throwable caught) {
-								Alerter.failedToRemoveOntologyClassSubmission();
-							}
-							@Override
-							public void onSuccess(Void result) {
-								eventBus.fireEvent(new RemoveOntologySynonymSubmissionsEvent(grid.getSelectionModel().getSelectedItems()));
-							}
-						});
+						for(OntologySynonymSubmission submission : grid.getSelectionModel().getSelectedItems()) {
+							toOntologyService.removeSynonymSubmission(collection, 
+									submission, new AsyncCallback<Void>() {
+								@Override
+								public void onFailure(Throwable caught) {
+									Alerter.failedToRemoveOntologyClassSubmission();
+								}
+								@Override
+								public void onSuccess(Void result) {
+									eventBus.fireEvent(new RemoveOntologySynonymSubmissionsEvent(grid.getSelectionModel().getSelectedItems()));
+								}
+							});
+						}
 					}
 				});
 				return deleteItem;
@@ -288,12 +299,12 @@ public class SynonymSubmissionsGrid implements IsWidget {
 				return "term-term";
 			}
 		};
-		final ColumnConfig<OntologySynonymSubmission, String> termCol = new ColumnConfig<OntologySynonymSubmission, String>(
+		termCol = new ColumnConfig<OntologySynonymSubmission, String>(
 				termValueProvider, 200, "Candidate Term");
 		termCol.setCell(colorableCell);
 
 		
-		final ColumnConfig<OntologySynonymSubmission, String> submissionTermCol = new ColumnConfig<OntologySynonymSubmission, String>(
+		submissionTermCol = new ColumnConfig<OntologySynonymSubmission, String>(
 				ontologySynonymSubmissionProperties.submissionTerm(), 200, "Term");
 		submissionTermCol.setCell(colorableCell);
 		
@@ -311,7 +322,7 @@ public class SynonymSubmissionsGrid implements IsWidget {
 				return "term-category";
 			}
 		};
-		final ColumnConfig<OntologySynonymSubmission, String> categoryCol = new ColumnConfig<OntologySynonymSubmission, String>(
+		categoryCol = new ColumnConfig<OntologySynonymSubmission, String>(
 				categoryValueProvider, 200, "Category");
 		categoryCol.setCell(colorableCell);
 		ValueProvider<OntologySynonymSubmission, String> ontlogyAcronymValueProvider = new ValueProvider<OntologySynonymSubmission, String>() {
@@ -339,10 +350,10 @@ public class SynonymSubmissionsGrid implements IsWidget {
 			}
 		}); */
 		
-		final ColumnConfig<OntologySynonymSubmission, String> classCol = new ColumnConfig<OntologySynonymSubmission, String>(
+		classCol = new ColumnConfig<OntologySynonymSubmission, String>(
 				ontologySynonymSubmissionProperties.classIRI(), 200, "Superclass");
 		classCol.setCell(colorableCell);
-		final ColumnConfig<OntologySynonymSubmission, String> synonymsCol = new ColumnConfig<OntologySynonymSubmission, String>(
+		synonymsCol = new ColumnConfig<OntologySynonymSubmission, String>(
 				new ValueProvider<OntologySynonymSubmission, String>() {
 					@Override
 					public String getValue(OntologySynonymSubmission object) {
@@ -363,13 +374,13 @@ public class SynonymSubmissionsGrid implements IsWidget {
 					
 				}, 200, "Synonyms");
 		synonymsCol.setCell(colorableCell);
-		final ColumnConfig<OntologySynonymSubmission, String> sourceCol = new ColumnConfig<OntologySynonymSubmission, String>(
+		sourceCol = new ColumnConfig<OntologySynonymSubmission, String>(
 				ontologySynonymSubmissionProperties.source(), 200, "Source");
 		sourceCol.setCell(colorableCell);
-		final ColumnConfig<OntologySynonymSubmission, String> sampleCol = new ColumnConfig<OntologySynonymSubmission, String>(
+		sampleCol = new ColumnConfig<OntologySynonymSubmission, String>(
 				ontologySynonymSubmissionProperties.sampleSentence(), 200, "Sample Sentence");
 		sampleCol.setCell(colorableCell);
-		final ColumnConfig<OntologySynonymSubmission, String> statusCol = new ColumnConfig<OntologySynonymSubmission, String>(
+		statusCol = new ColumnConfig<OntologySynonymSubmission, String>(
 				new ValueProvider<OntologySynonymSubmission, String>() {
 					@Override
 					public String getValue(OntologySynonymSubmission object) {
@@ -389,7 +400,7 @@ public class SynonymSubmissionsGrid implements IsWidget {
 					}
 				}, 200, "Status");
 		statusCol.setCell(colorableCell);
-		final ColumnConfig<OntologySynonymSubmission, String> iriCol = new ColumnConfig<OntologySynonymSubmission, String>(
+		iriCol = new ColumnConfig<OntologySynonymSubmission, String>(
 				new ValueProvider<OntologySynonymSubmission, String>() {
 					@Override
 					public String getValue(OntologySynonymSubmission object) {
@@ -408,7 +419,7 @@ public class SynonymSubmissionsGrid implements IsWidget {
 					}
 				}, 200, "IRI");
 		iriCol.setCell(colorableCell);
-		final ColumnConfig<OntologySynonymSubmission, String> userCol = new ColumnConfig<OntologySynonymSubmission, String>(
+		userCol = new ColumnConfig<OntologySynonymSubmission, String>(
 				ontologySynonymSubmissionProperties.user(), 200, "User");
 		userCol.setCell(colorableCell);
 		
@@ -496,20 +507,17 @@ public class SynonymSubmissionsGrid implements IsWidget {
 		List<ColumnConfig<OntologySynonymSubmission, ?>> columns = new ArrayList<ColumnConfig<OntologySynonymSubmission, ?>>();
 		columns.add(checkBoxSelectionModel.getColumn());
 		columns.add(termCol);
-		termCol.setHidden(true);
 		columns.add(submissionTermCol);
 		columns.add(categoryCol);
-		categoryCol.setHidden(true);
 		columns.add(ontologyCol);
 		columns.add(statusCol);
 		columns.add(iriCol);
 		columns.add(sampleCol);
-		sampleCol.setHidden(true);
 		columns.add(sourceCol);
-		sourceCol.setHidden(true);
 		columns.add(synonymsCol);
-		//synonymsCol.setHidden(true);
 		columns.add(userCol);
+		
+		setHiddenColumns();
 		
 		ColumnModel<OntologySynonymSubmission> cm = new ColumnModel<OntologySynonymSubmission>(columns);
 		return cm;
@@ -524,5 +532,7 @@ public class SynonymSubmissionsGrid implements IsWidget {
 	public GridSelectionModel<OntologySynonymSubmission> getSelectionModel() {
 		return grid.getSelectionModel();
 	}
+	
+	protected abstract void setHiddenColumns();
 	
 }

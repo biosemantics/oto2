@@ -39,7 +39,7 @@ public class OntologyClassSubmissionPartOfDAO {
 		if(!partOf.hasId()) {
 			try(Query insert = new Query("INSERT INTO `ontologize_ontologyclasssubmission_partof` (`ontologyclasssubmission`, `partof`) VALUES(?, ?)")) {
 				insert.setParameter(1, partOf.getOntologyClassSubmission());
-				insert.setParameter(2, partOf.getPartOf());
+				insert.setParameter(2, partOf.getIri());
 				insert.execute();
 				ResultSet generatedKeys = insert.getGeneratedKeys();
 				generatedKeys.next();
@@ -57,7 +57,7 @@ public class OntologyClassSubmissionPartOfDAO {
 	public void update(PartOf partOf) throws QueryException  {		
 		try(Query query = new Query("UPDATE ontologize_ontologyclasssubmission_partof SET ontologyclasssubmission = ?, partof = ? WHERE id = ?")) {
 			query.setParameter(1, partOf.getOntologyClassSubmission());
-			query.setParameter(2, partOf.getPartOf());
+			query.setParameter(2, partOf.getIri());
 			query.setParameter(3, partOf.getId());
 			query.execute();
 		} catch(QueryException e) {

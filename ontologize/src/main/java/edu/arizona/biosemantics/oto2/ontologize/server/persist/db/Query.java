@@ -52,8 +52,7 @@ public class Query implements AutoCloseable {
 		}
 	}
 
-	public void setParameter(int index, boolean parameter)
-			throws QueryException {
+	public void setParameter(int index, boolean parameter) throws QueryException {
 		try {
 			preparedStatement.setBoolean(index, parameter);
 		} catch (Exception e) {

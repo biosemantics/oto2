@@ -56,7 +56,7 @@ import edu.arizona.biosemantics.oto2.ontologize.client.event.SelectSuperclassEve
 import edu.arizona.biosemantics.oto2.ontologize.client.event.TermSelectEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.UpdateOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
-import edu.arizona.biosemantics.oto2.ontologize.shared.model.HighLevelClass;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.OntologyProperties;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Term;
@@ -68,7 +68,7 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Supercla
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.SuperclassProperties;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Synonym;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.SynonymProperties;
-import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySubmission.Type;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.ClassExistsException;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.IToOntologyService;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.IToOntologyServiceAsync;
@@ -152,17 +152,17 @@ public class SubmitLocalClassView implements IsWidget {
 	    superclassStore = new ListStore<Superclass>(new ModelKeyProvider<Superclass>() {
 			@Override
 			public String getKey(Superclass item) {
-				return item.getSuperclass();
+				return item.getIri();
 			}
 	    });
-	    superclassListView = new ListView<Superclass, String>(superclassStore, superclassProperties.superclass());
+	    superclassListView = new ListView<Superclass, String>(superclassStore, superclassProperties.iri());
 	    partOfStore = new ListStore<PartOf>(new ModelKeyProvider<PartOf>() {
 			@Override
 			public String getKey(PartOf item) {
-				return item.getPartOf();
+				return item.getIri();
 			}
 	    });
-	    partOfListView = new ListView<PartOf, String>(partOfStore, partOfProperties.partOf());
+	    partOfListView = new ListView<PartOf, String>(partOfStore, partOfProperties.iri());
 	    
 	    formContainer = new VerticalLayoutContainer();
 	    formContainer.add(new FieldLabel(termComboBox, "Candiate Term"), new VerticalLayoutData(1, -1));
@@ -179,7 +179,7 @@ public class SubmitLocalClassView implements IsWidget {
 	    
 	    isEntityRadio.setBoxLabel("Is Entity");
 	    isEntityRadio.setValue(true);
-	    superclassStore.add(new Superclass(HighLevelClass.ENTITY.getIRI()));
+	    this.addTypeToSupreclassStore(Type.ENTITY);
 	    isQualityRadio.setBoxLabel("Is Quality");
 	    HorizontalPanel hp = new HorizontalPanel();
 	    hp.add(isEntityRadio);
@@ -196,7 +196,7 @@ public class SubmitLocalClassView implements IsWidget {
 	    superclassVertical.add(addSuperclassButton, new VerticalLayoutData(1, -1));
 	    superclassVertical.add(removeSuperclassButton, new VerticalLayoutData(1, -1));
 	    superclassVertical.add(clearSuperclassButton, new VerticalLayoutData(1, -1));
-	    formContainer.add(new FieldLabel(superclassHorizontal, "Superclass IRI"), new VerticalLayoutData(1, 75));
+	    formContainer.add(new FieldLabel(superclassHorizontal, "Superclass (IRI or term)"), new VerticalLayoutData(1, 75));
 	    
 	    HorizontalLayoutContainer partOfHorizontal = new HorizontalLayoutContainer();
 	    partOfHorizontal.add(partOfListView, new HorizontalLayoutData(0.7, 75));
@@ -205,7 +205,7 @@ public class SubmitLocalClassView implements IsWidget {
 	    partOfVertical.add(addPartOfButton, new VerticalLayoutData(1, -1));
 	    partOfVertical.add(removePartOfButton, new VerticalLayoutData(1, -1));
 	    partOfVertical.add(clearPartOfButton, new VerticalLayoutData(1, -1));
-	    partOfFieldLabel = new FieldLabel(partOfHorizontal, "Part of IRI");
+	    partOfFieldLabel = new FieldLabel(partOfHorizontal, "Part-of (IRI or term)");
 	    formContainer.add(partOfFieldLabel, new VerticalLayoutData(1, 75));	    
 	    
 	    formContainer.add(new FieldLabel(definitionArea, "Definition"), new VerticalLayoutData(1, 50));
@@ -235,6 +235,10 @@ public class SubmitLocalClassView implements IsWidget {
 		bindEvents();		
 	}
 	
+	private String getTypeIRINameString(Type entity) {
+		return entity.getIRI() + " (" + entity.getLabel() + ")";
+	}
+
 	private boolean validateForm() {
 		boolean validateValues = true;
 		Iterator<Widget> iterator = formContainer.iterator();
@@ -318,7 +322,7 @@ public class SubmitLocalClassView implements IsWidget {
 			public void onSelect(SelectSuperclassEvent event) {
 				setSelectedSubmission(null);
 				clearFields(false);
-				superclassStore.add(new Superclass(event.getSubmission().getClassIRI()));
+				addSuperClassToStore(event.getSubmission());
 				ontologyComboBox.setValue(event.getSubmission().getOntology());
 			}
 		});
@@ -328,7 +332,7 @@ public class SubmitLocalClassView implements IsWidget {
 				setSelectedSubmission(null);
 				clearFields(false);
 				partOfStore.clear();
-				partOfStore.add(new PartOf(event.getSubmission().getClassIRI()));
+				addToPartOfStore(event.getSubmission());
 				ontologyComboBox.setValue(event.getSubmission().getOntology());
 			}
 		});
@@ -361,15 +365,15 @@ public class SubmitLocalClassView implements IsWidget {
 			public void onValueChange(ValueChangeEvent<Boolean> event) {
 				partOfFieldLabel.setVisible(event.getValue());
 				if(event.getValue()) {
-					removeSuperclass(HighLevelClass.QUALITY);
-					addSupreclass(HighLevelClass.ENTITY);
-					//superclassStore.remove(HighLevelClass.QUALITY.getIRI());
-					//superclassStore.add(HighLevelClass.ENTITY.getIRI());
+					removeSuperclass(Type.QUALITY);
+					addTypeToSupreclassStore(Type.ENTITY);
+					//superclassStore.remove(Type.QUALITY.getIRI());
+					//superclassStore.add(Type.ENTITY.getIRI());
 				} else {
-					removeSuperclass(HighLevelClass.ENTITY);
-					addSupreclass(HighLevelClass.QUALITY);
-					//superclassStore.remove(HighLevelClass.ENTITY.getIRI());
-					//superclassStore.add(HighLevelClass.QUALITY.getIRI());
+					removeSuperclass(Type.ENTITY);
+					addTypeToSupreclassStore(Type.QUALITY);
+					//superclassStore.remove(Type.ENTITY.getIRI());
+					//superclassStore.add(Type.QUALITY.getIRI());
 				}
 			}
 		});
@@ -438,7 +442,7 @@ public class SubmitLocalClassView implements IsWidget {
 				if(validateForm()) {
 					final MessageBox box = Alerter.startLoading();
 					final OntologyClassSubmission submission = getClassSubmission();
-					toOntologyService.createClassSubmission(collection, submission, new AsyncCallback<OntologyClassSubmission>() {
+					toOntologyService.createClassSubmission(collection, submission, new AsyncCallback<List<OntologyClassSubmission>>() {
 						@Override
 						public void onFailure(Throwable caught) {
 							Alerter.stopLoading(box);
@@ -455,7 +459,7 @@ public class SubmitLocalClassView implements IsWidget {
 							Alerter.failedToSubmitClass(caught);
 						}
 						@Override
-						public void onSuccess(OntologyClassSubmission result) {
+						public void onSuccess(List<OntologyClassSubmission> result) {
 							Alerter.stopLoading(box);
 							eventBus.fireEvent(new CreateOntologyClassSubmissionEvent(result));
 						}
@@ -473,9 +477,7 @@ public class SubmitLocalClassView implements IsWidget {
 				if(validateForm()) {
 					final MessageBox box = Alerter.startLoading();
 					final OntologyClassSubmission newSubmission = getClassSubmission();
-					final List<OntologyClassSubmission> removeSubmissions = new LinkedList<OntologyClassSubmission>();
-					removeSubmissions.add(selectedSubmission);
-					toOntologyService.removeClassSubmissions(collection, removeSubmissions, new AsyncCallback<Void>() {
+					toOntologyService.removeClassSubmission(collection, selectedSubmission, new AsyncCallback<Void>() {
 						@Override
 						public void onFailure(Throwable caught) {
 							Alerter.failedToRemoveOntologyClassSubmission();
@@ -483,8 +485,8 @@ public class SubmitLocalClassView implements IsWidget {
 						}
 						@Override
 						public void onSuccess(Void result) {
-							eventBus.fireEvent(new RemoveOntologyClassSubmissionsEvent(removeSubmissions));
-							toOntologyService.createClassSubmission(collection, newSubmission, new AsyncCallback<OntologyClassSubmission>() {
+							eventBus.fireEvent(new RemoveOntologyClassSubmissionsEvent(selectedSubmission));
+							toOntologyService.createClassSubmission(collection, newSubmission, new AsyncCallback<List<OntologyClassSubmission>>() {
 								@Override
 								public void onFailure(Throwable caught) {
 									Alerter.stopLoading(box);
@@ -501,7 +503,7 @@ public class SubmitLocalClassView implements IsWidget {
 									Alerter.failedToSubmitClass(caught);
 								}
 								@Override
-								public void onSuccess(OntologyClassSubmission result) {
+								public void onSuccess(List<OntologyClassSubmission> result) {
 									Alerter.stopLoading(box);
 									eventBus.fireEvent(new CreateOntologyClassSubmissionEvent(result));
 								}
@@ -521,9 +523,7 @@ public class SubmitLocalClassView implements IsWidget {
 						final MessageBox box = Alerter.startLoading();
 						final OntologyClassSubmission submission = getClassSubmission();
 						submission.setId(selectedSubmission.getId());
-						final List<OntologyClassSubmission> submissions = new LinkedList<OntologyClassSubmission>();
-						submissions.add(submission);
-						toOntologyService.updateClassSubmissions(collection, submissions, new AsyncCallback<Void>() {
+						toOntologyService.updateClassSubmission(collection, submission, new AsyncCallback<Void>() {
 							@Override
 							public void onFailure(Throwable caught) {
 								Alerter.stopLoading(box);
@@ -532,7 +532,7 @@ public class SubmitLocalClassView implements IsWidget {
 							@Override
 							public void onSuccess(Void result) {
 								Alerter.stopLoading(box);
-								eventBus.fireEvent(new UpdateOntologyClassSubmissionsEvent(submissions));
+								eventBus.fireEvent(new UpdateOntologyClassSubmissionsEvent(submission));
 							}
 						});
 					} 
@@ -577,7 +577,7 @@ public class SubmitLocalClassView implements IsWidget {
 				box.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
 					@Override
 					public void onSelect(SelectEvent event) {
-						superclassStore.add(new Superclass(box.getValue()));
+						addSuperClassToStore(box.getValue());
 					}
 				});
 			}
@@ -586,8 +586,8 @@ public class SubmitLocalClassView implements IsWidget {
 			@Override
 			public void onSelect(SelectEvent event) {
 				for(Superclass remove : superclassListView.getSelectionModel().getSelectedItems()) {
-					if((remove.getSuperclass().equals(HighLevelClass.ENTITY.getIRI()) && isEntityRadio.getValue())
-							|| (remove.getSuperclass().equals(HighLevelClass.QUALITY.getIRI()) && !isEntityRadio.getValue())) {
+					if((remove.getIri().equals(Type.ENTITY.getIRI()) && isEntityRadio.getValue())
+							|| (remove.getIri().equals(Type.QUALITY.getIRI()) && !isEntityRadio.getValue())) {
 						Alerter.cannotRemoveEntityOrQualitySuperclass();
 					} else {
 						superclassStore.remove(remove);
@@ -610,7 +610,7 @@ public class SubmitLocalClassView implements IsWidget {
 				box.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
 					@Override
 					public void onSelect(SelectEvent event) {
-						partOfStore.add(new PartOf(box.getValue()));
+						addToPartOfStore(box.getValue());
 					}
 				});
 			}
@@ -636,14 +636,64 @@ public class SubmitLocalClassView implements IsWidget {
 			}
 		});
 	}
-
-	protected void addSupreclass(HighLevelClass clazz) {
-		superclassStore.add(new Superclass(clazz.getIRI()));
+	
+	protected void addToPartOfStore(OntologyClassSubmission submission) {
+		partOfStore.add(new PartOf(submission));
 	}
 
-	protected void removeSuperclass(HighLevelClass clazz) {
+	protected void addToPartOfStore(final String value) {
+		if(!value.startsWith("http"))
+			partOfStore.add(new PartOf(value));
+		else {
+			final MessageBox box = Alerter.startLoading();
+			toOntologyService.getClassLabel(collection, value, new AsyncCallback<String>() {
+				@Override
+				public void onFailure(Throwable caught) {
+					Alerter.failedToGetClassLabel();
+					Alerter.stopLoading(box);
+				}
+				@Override
+				public void onSuccess(String result) {
+					PartOf c = new PartOf(value + " (" + result + ")");
+					partOfStore.add(c);
+					Alerter.stopLoading(box);
+				}
+			});
+		}
+	}
+
+	protected void addSuperClassToStore(OntologyClassSubmission submission) {
+		superclassStore.add(new Superclass(submission));
+	}
+
+	private void addSuperClassToStore(final String value) {
+		if(!value.startsWith("http"))
+			superclassStore.add(new Superclass(value));
+		else {
+			final MessageBox box = Alerter.startLoading();
+			toOntologyService.getClassLabel(collection, value, new AsyncCallback<String>() {
+				@Override
+				public void onFailure(Throwable caught) {
+					Alerter.failedToGetClassLabel();
+					Alerter.stopLoading(box);
+				}
+				@Override
+				public void onSuccess(String result) {
+					Superclass c = new Superclass(value + " (" + result + ")");
+					superclassStore.add(c);
+					Alerter.stopLoading(box);
+				}
+			});
+		}
+	}
+
+	protected void addTypeToSupreclassStore(Type clazz) {
+		superclassStore.add(new Superclass(getTypeIRINameString(clazz)));
+	}
+
+	protected void removeSuperclass(Type clazz) {
 		for(Superclass superclass : new LinkedList<Superclass>(superclassStore.getAll())) {
-			if(superclass.getSuperclass().equals(clazz.getIRI())) {
+			if(superclass.getIri().equals(clazz.getIRI())) {
 				superclassStore.remove(superclass);
 			}
 		}
@@ -652,9 +702,9 @@ public class SubmitLocalClassView implements IsWidget {
 	protected void clearSuperclassesExceptHigherLevelClass() {
 		superclassStore.clear();
 		if(isEntityRadio.getValue())
-			addSupreclass(HighLevelClass.ENTITY);
+			addTypeToSupreclassStore(Type.ENTITY);
 		else
-			addSupreclass(HighLevelClass.QUALITY);
+			addTypeToSupreclassStore(Type.QUALITY);
 	}
 
 	protected void setTerm(Term term) {
@@ -699,22 +749,38 @@ public class SubmitLocalClassView implements IsWidget {
 		this.sourceField.setValue(ontologyClassSubmission.getSource());
 		this.sampleArea.setValue(ontologyClassSubmission.getSampleSentence());
 		this.partOfStore.clear();
-		this.partOfStore.addAll(ontologyClassSubmission.getPartOfs());
+		for(PartOf partOf : ontologyClassSubmission.getPartOfs())
+			this.addToPartOfStore(partOf.getIri());
 		this.isEntityRadio.setValue(ontologyClassSubmission.getType().equals(Type.ENTITY));
 		this.isQualityRadio.setValue(ontologyClassSubmission.getType().equals(Type.QUALITY));
 		superclassStore.clear();
-		this.superclassStore.addAll(ontologyClassSubmission.getSuperclasses());
+		for(Superclass superclass : ontologyClassSubmission.getSuperclasses())
+			this.addSuperClassToStore(superclass.getIri());
 	}
 	
 	protected OntologyClassSubmission getClassSubmission() {
-		LinkedList<PartOf> partOfs = new LinkedList<PartOf>(partOfStore.getAll());
+		LinkedList<PartOf> partOfs = new LinkedList<PartOf>();
+		for(PartOf partOf : partOfStore.getAll()) 
+			partOfs.add(new PartOf(removeLabel(partOf.getIri())));
+		LinkedList<Superclass> superclasses = new LinkedList<Superclass>();
+		for(Superclass superClass : superclassStore.getAll())
+			superclasses.add(new Superclass(removeLabel(superClass.getIri())));
+		
 		if(isQualityRadio.getValue()) 
 			partOfs = new LinkedList<PartOf>();
 		Type type = isEntityRadio.getValue() ? Type.ENTITY : Type.QUALITY;
 		return new OntologyClassSubmission(collection.getId(), termComboBox.getValue(), submissionTermField.getValue(), 
-				ontologyComboBox.getValue(), classIRIField.getValue(), new LinkedList<Superclass>(superclassStore.getAll()),
+				ontologyComboBox.getValue(), classIRIField.getValue(), superclasses,
 				definitionArea.getValue(), new LinkedList<Synonym>(synonymsStore.getAll()), sourceField.getValue(), 
-				sampleArea.getValue(), partOfs, type, Ontologize.user);
+				sampleArea.getValue(), partOfs, Ontologize.user);
+	}
+
+	private String removeLabel(String value) {
+		if(value.contains(" (")) {
+			return value.split(" \\(")[0];
+		} else {
+			return value;
+		}
 	}
 
 	protected void initCollection() {

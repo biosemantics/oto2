@@ -8,6 +8,7 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.Colorable;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Commentable;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Term;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
 
 public class OntologySynonymSubmission implements Serializable, Colorable, Commentable, 
 		OntologySubmission, Comparable<OntologySynonymSubmission> {
@@ -21,15 +22,14 @@ public class OntologySynonymSubmission implements Serializable, Colorable, Comme
 	private List<Synonym> synonyms = new LinkedList<Synonym>(); 
 	private String source = "";
 	private String sampleSentence = "";
-	private Type type;
 	private String user;
 	private List<OntologySynonymSubmissionStatus> submissionStatuses = new LinkedList<OntologySynonymSubmissionStatus>();
+	private Type type;
 
 	public OntologySynonymSubmission() { }
 	
 	public OntologySynonymSubmission(int id, int collectionId, Term term, String submissionTerm, Ontology ontology, 
-			String classIRI, List<Synonym> synonyms, String source, String sampleSentence, 
-			Type type, 
+			String classIRI, List<Synonym> synonyms, String source, String sampleSentence,  
 			String user, List<OntologySynonymSubmissionStatus> submissionStatuses) { 
 		this.id = id;
 		this.collectionId = collectionId;
@@ -39,23 +39,8 @@ public class OntologySynonymSubmission implements Serializable, Colorable, Comme
 		this.classIRI = classIRI == null ? "" : classIRI;
 		this.source = source == null ? "" : source;
 		this.sampleSentence = sampleSentence == null ? "" : sampleSentence;
-		//this.type = type;
 		this.user = user;
 		this.submissionStatuses = submissionStatuses;
-		this.synonyms = synonyms;
-	}
-	
-	public OntologySynonymSubmission(int collectionId, Term term, String submissionTerm, Ontology ontology, 
-			String classIRI, List<Synonym> synonyms, String source, String sampleSentence, Type type, String user) { 
-		this.collectionId = collectionId;
-		this.term = term;
-		this.submissionTerm = submissionTerm == null ? "" : submissionTerm;
-		this.ontology = ontology;
-		this.classIRI = classIRI == null ? "" : classIRI;
-		this.source = source == null ? "" : source;
-		this.sampleSentence = sampleSentence == null ? "" : sampleSentence;
-		//this.type = type;
-		this.user = user;
 		this.synonyms = synonyms;
 	}
 	
@@ -177,14 +162,6 @@ public class OntologySynonymSubmission implements Serializable, Colorable, Comme
 		this.synonyms.clear();
 	}
 	
-	public Type getType() {
-		return type;
-	}
-
-	public void setType(Type type) {
-		this.type = type;
-	}
-
 	@Override
 	public int compareTo(OntologySynonymSubmission o) {
 		return this.getId() - o.getId();
@@ -226,7 +203,15 @@ public class OntologySynonymSubmission implements Serializable, Colorable, Comme
 
 	public boolean hasTerm() {
 		return term != null;
-	}	
-		
+	}
+
+	public void setType(Type type) {
+		this.type = type;
+	}
+
+	@Override
+	public Type getType() {
+		return type;
+	}
 	
 }

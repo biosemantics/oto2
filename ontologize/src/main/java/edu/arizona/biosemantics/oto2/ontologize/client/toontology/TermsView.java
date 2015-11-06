@@ -418,8 +418,10 @@ public class TermsView implements IsWidget {
 				new CreateOntologyClassSubmissionEvent.Handler() {
 					@Override
 					public void onSubmission(CreateOntologyClassSubmissionEvent event) {
-						if(event.getClassSubmission().hasTerm())
-							update(event.getClassSubmission().getTerm());
+						for(OntologyClassSubmission submission : event.getClassSubmissions()) {
+							if(submission.hasTerm())
+								update(submission.getTerm());
+						}
 					}
 		});
 		eventBus.addHandler(CreateOntologySynonymSubmissionEvent.TYPE, 

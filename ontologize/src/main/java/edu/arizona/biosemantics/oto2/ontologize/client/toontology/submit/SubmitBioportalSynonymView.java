@@ -295,9 +295,7 @@ public class SubmitBioportalSynonymView implements IsWidget {
 				if(validateForm()) {
 					final MessageBox box = Alerter.startLoading();
 					final OntologySynonymSubmission submission = getSynonymSubmission();
-					final List<OntologySynonymSubmission> removeSubmissions = new LinkedList<OntologySynonymSubmission>();
-					removeSubmissions.add(selectedSubmission);
-					toOntologyService.removeSynonymSubmissions(collection, removeSubmissions, new AsyncCallback<Void>() {
+					toOntologyService.removeSynonymSubmission(collection, selectedSubmission, new AsyncCallback<Void>() {
 						@Override
 						public void onFailure(Throwable caught) {
 							Alerter.failedToRemoveOntologyClassSubmission();
@@ -305,7 +303,7 @@ public class SubmitBioportalSynonymView implements IsWidget {
 						}
 						@Override
 						public void onSuccess(Void result) {
-							eventBus.fireEvent(new RemoveOntologySynonymSubmissionsEvent(removeSubmissions));
+							eventBus.fireEvent(new RemoveOntologySynonymSubmissionsEvent(selectedSubmission));
 							toOntologyService.createSynonymSubmission(collection, submission, new AsyncCallback<OntologySynonymSubmission>() {
 								@Override
 								public void onFailure(Throwable caught) {
@@ -334,9 +332,7 @@ public class SubmitBioportalSynonymView implements IsWidget {
 						final MessageBox box = Alerter.startLoading();
 						final OntologySynonymSubmission submission = getSynonymSubmission();
 						submission.setId(selectedSubmission.getId());
-						final List<OntologySynonymSubmission> submissions = new LinkedList<OntologySynonymSubmission>();
-						submissions.add(submission);
-						toOntologyService.updateSynonymSubmissions(collection, submissions, new AsyncCallback<Void>() {
+						toOntologyService.updateSynonymSubmission(collection, submission, new AsyncCallback<Void>() {
 							@Override
 							public void onFailure(Throwable caught) {
 								Alerter.stopLoading(box);
@@ -345,7 +341,7 @@ public class SubmitBioportalSynonymView implements IsWidget {
 							@Override
 							public void onSuccess(Void result) {
 								Alerter.stopLoading(box);
-								eventBus.fireEvent(new UpdateOntologySynonymsSubmissionsEvent(submissions));
+								eventBus.fireEvent(new UpdateOntologySynonymsSubmissionsEvent(submission));
 							}
 						});
 					}
@@ -401,7 +397,7 @@ public class SubmitBioportalSynonymView implements IsWidget {
 				ontologyComboBox.getValue(), classIRIField.getValue(),
 				new LinkedList<Synonym>(synonymsStore.getAll()),
 				sourceField.getValue(), sampleArea.getValue(), 
-				null, Ontologize.user);
+				Ontologize.user);
 	}
 
 	protected void initCollection() {

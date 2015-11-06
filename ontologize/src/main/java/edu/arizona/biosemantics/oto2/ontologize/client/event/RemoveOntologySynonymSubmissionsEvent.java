@@ -1,5 +1,6 @@
 package edu.arizona.biosemantics.oto2.ontologize.client.event;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import com.google.gwt.event.shared.EventHandler;
@@ -19,6 +20,11 @@ public class RemoveOntologySynonymSubmissionsEvent  extends GwtEvent<Handler> {
 	
 	public RemoveOntologySynonymSubmissionsEvent(List<OntologySynonymSubmission> ontologySynonymSubmissions) {
 		this.ontologySynonymSubmissions = ontologySynonymSubmissions;
+	}
+
+	public RemoveOntologySynonymSubmissionsEvent(
+			OntologySynonymSubmission selectedSubmission) {
+		this.ontologySynonymSubmissions = new LinkedList<OntologySynonymSubmission>();
 	}
 
 	@Override

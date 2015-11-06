@@ -203,4 +203,8 @@ public class Alerter {
 		return alert;
 	}
 
+	public static MessageBox failedToGetClassLabel() {
+		return showAlert("Get Class Label", "Failed to get class label.");
+	}
+
 }

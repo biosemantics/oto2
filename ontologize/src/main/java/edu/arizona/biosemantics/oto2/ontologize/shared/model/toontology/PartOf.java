@@ -6,25 +6,29 @@ public class PartOf implements Serializable {
 
 	private int id = -1;
 	private int ontologyClassSubmission;
-	private String partOf;
+	private String iri;
 	
 	public PartOf() { }
 
-	public PartOf(int id, int ontologyClassSubmission, String partOf) {
+	public PartOf(int id, int ontologyClassSubmission, String iri) {
 		super();
 		this.id = id;
 		this.ontologyClassSubmission = ontologyClassSubmission;
-		this.partOf = partOf;
+		this.iri = iri;
 	}
 
-	public PartOf(int ontologyClassSubmission, String partOf) {
+	public PartOf(int ontologyClassSubmission, String iri) {
 		super();
 		this.ontologyClassSubmission = ontologyClassSubmission;
-		this.partOf = partOf;
+		this.iri = iri;
 	}
 	
-	public PartOf(String partOf) {
-		this.partOf = partOf;
+	public PartOf(String iri) {
+		this.iri = iri;
+	}
+
+	public PartOf(OntologyClassSubmission submission) {
+		this.iri = submission.getClassIRI() + " (" + submission.getSubmissionTerm() + ")";
 	}
 
 	public int getId() {
@@ -35,12 +39,12 @@ public class PartOf implements Serializable {
 		this.id = id;
 	}
 
-	public String getPartOf() {
-		return partOf;
+	public String getIri() {
+		return iri;
 	}
 
-	public void setPartOf(String partOf) {
-		this.partOf = partOf;
+	public void setIri(String iri) {
+		this.iri = iri;
 	}
 
 	public int getOntologyClassSubmission() {

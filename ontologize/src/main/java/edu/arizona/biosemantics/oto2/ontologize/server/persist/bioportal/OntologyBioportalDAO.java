@@ -162,7 +162,7 @@ public class OntologyBioportalDAO {
 	private String createSingleString(List<Superclass> superclasses) {
 		String result = "";
 		for(Superclass superclass : superclasses) {
-			result += superclass.getSuperclass() + ", ";
+			result += superclass.getIri() + ", ";
 		}
 		if(result.length() > 0) 
 			return result.substring(0, result.length() - 2);
