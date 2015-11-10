@@ -28,28 +28,44 @@ public class OntologyClassSubmissionPartOfDAO {
 		return partOfs;
 	}
 	
-	private PartOf createPartOf(ResultSet result) throws SQLException {
+	private PartOf createPartOf(ResultSet result) throws SQLException, QueryException {
 		int id = result.getInt("id");
 		int ontologyClassSubmission = result.getInt("ontologyclasssubmission");
 		String partOf = result.getString("partof");
-		return new PartOf(id, ontologyClassSubmission, partOf);
+		String label = getLabel(partOf);
+		return new PartOf(id, ontologyClassSubmission, partOf, label);
+	}
+
+	private String getLabel(String classIri) throws QueryException {
+		try(Query query = new Query("SELECT * FROM ontologize_ontologyclasssubmission s"
+				+ " WHERE s.class_iri = ?")) {
+			query.setParameter(1, classIri);
+			ResultSet resultSet = query.execute();
+			if(resultSet.next()) {
+				return resultSet.getString("submission_term");
+			}
+			return null;
+		} catch(QueryException | SQLException e) {
+			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
+		}
 	}
 
 	public PartOf insert(PartOf partOf) throws QueryException  {
-		if(!partOf.hasId()) {
-			try(Query insert = new Query("INSERT INTO `ontologize_ontologyclasssubmission_partof` (`ontologyclasssubmission`, `partof`) VALUES(?, ?)")) {
-				insert.setParameter(1, partOf.getOntologyClassSubmission());
-				insert.setParameter(2, partOf.getIri());
-				insert.execute();
-				ResultSet generatedKeys = insert.getGeneratedKeys();
-				generatedKeys.next();
-				int id = generatedKeys.getInt(1);
-				
-				partOf.setId(id);
-			} catch(QueryException | SQLException e) {
-				log(LogLevel.ERROR, "Query Exception", e);
-				throw new QueryException(e);
-			}
+		if(partOf.hasId()) 
+			this.remove(partOf);
+		try(Query insert = new Query("INSERT INTO `ontologize_ontologyclasssubmission_partof` (`ontologyclasssubmission`, `partof`) VALUES(?, ?)")) {
+			insert.setParameter(1, partOf.getOntologyClassSubmission());
+			insert.setParameter(2, partOf.getIri());
+			insert.execute();
+			ResultSet generatedKeys = insert.getGeneratedKeys();
+			generatedKeys.next();
+			int id = generatedKeys.getInt(1);
+			
+			partOf.setId(id);
+		} catch(QueryException | SQLException e) {
+			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
 		}
 		return partOf;
 	}
@@ -78,15 +94,16 @@ public class OntologyClassSubmissionPartOfDAO {
 
 	public List<PartOf> insert(List<PartOf> partOfs) throws QueryException {
 		List<PartOf> result = new LinkedList<PartOf>();
-		for(PartOf partOf : partOfs)
+		for(PartOf partOf : partOfs) 
 			result.add(insert(partOf));
 		return result;
 	}
 	
 	public void update(int ontologyClassSubmissionId, List<PartOf> partofs) throws QueryException {
 		remove(ontologyClassSubmissionId);
-		for(PartOf partof : partofs)
+		for(PartOf partof : partofs) {
 			insert(partof);
+		}
 	}
 	
 	public void remove(int ontologyClassSubmissionId) throws QueryException {

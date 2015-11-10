@@ -114,20 +114,20 @@ public class ContextDAO {
 	}
 
 	public Context insert(Context context)  {
-		if(!context.hasId()) {
-			try(Query insert = new Query("INSERT INTO `ontologize_context` " +
-					"(`collection`, `source`, `text`) VALUES (?, ?, ?)")) {
-				insert.setParameter(1, context.getCollectionId());
-				insert.setParameter(2, context.getSource().trim());
-				insert.setParameter(3, context.getText().trim());
-				insert.execute();
-				ResultSet generatedKeys = insert.getGeneratedKeys();
-				generatedKeys.next();
-				int id = generatedKeys.getInt(1);
-				context.setId(id);
-			} catch(Exception e) {
-				log(LogLevel.ERROR, "Query Exception", e);
-			}
+		if(context.hasId()) 
+			this.remove(context);
+		try(Query insert = new Query("INSERT INTO `ontologize_context` " +
+				"(`collection`, `source`, `text`) VALUES (?, ?, ?)")) {
+			insert.setParameter(1, context.getCollectionId());
+			insert.setParameter(2, context.getSource().trim());
+			insert.setParameter(3, context.getText().trim());
+			insert.execute();
+			ResultSet generatedKeys = insert.getGeneratedKeys();
+			generatedKeys.next();
+			int id = generatedKeys.getInt(1);
+			context.setId(id);
+		} catch(Exception e) {
+			log(LogLevel.ERROR, "Query Exception", e);
 		}
 		return context;
 	}

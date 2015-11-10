@@ -40,23 +40,23 @@ public class TermDAO {
 	}
 
 	public Term insert(Term term, int collectionId)  {
-		if(!term.hasId()) {
-			try(Query insert = new Query("INSERT INTO `ontologize_term` (`term`, `original_term`, `iri`, `buckets`, `category`, `collection`) VALUES(?, ?, ?, ?, ?, ?)")) {
-				insert.setParameter(1, term.getTerm());
-				insert.setParameter(2, term.getOriginalTerm());
-				insert.setParameter(3, term.getIri());
-				insert.setParameter(4, term.getBuckets());
-				insert.setParameter(5, term.getCategory());
-				insert.setParameter(6, collectionId);
-				insert.execute();
-				ResultSet generatedKeys = insert.getGeneratedKeys();
-				generatedKeys.next();
-				int id = generatedKeys.getInt(1);
-				
-				term.setId(id);
-			} catch(Exception e) {
-				log(LogLevel.ERROR, "Query Exception", e);
-			}
+		if(term.hasId()) 
+			this.remove(term);
+		try(Query insert = new Query("INSERT INTO `ontologize_term` (`term`, `original_term`, `iri`, `buckets`, `category`, `collection`) VALUES(?, ?, ?, ?, ?, ?)")) {
+			insert.setParameter(1, term.getTerm());
+			insert.setParameter(2, term.getOriginalTerm());
+			insert.setParameter(3, term.getIri());
+			insert.setParameter(4, term.getBuckets());
+			insert.setParameter(5, term.getCategory());
+			insert.setParameter(6, collectionId);
+			insert.execute();
+			ResultSet generatedKeys = insert.getGeneratedKeys();
+			generatedKeys.next();
+			int id = generatedKeys.getInt(1);
+			
+			term.setId(id);
+		} catch(Exception e) {
+			log(LogLevel.ERROR, "Query Exception", e);
 		}
 		return term;
 	}

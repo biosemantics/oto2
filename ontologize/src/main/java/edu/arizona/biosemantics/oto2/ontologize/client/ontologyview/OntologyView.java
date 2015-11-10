@@ -296,13 +296,13 @@ public class OntologyView implements IsWidget {
 
 				for(Superclass superclass : submission.getSuperclasses()) {
 					node = Node.createObject().cast();
-					node.name(superclass.getIri());
+					node.name(superclass.toString());
 					//node.group(0);
 					addNode(superclass.getIri(), node, nodeIds, nodes);
 				}
 				for(PartOf partOf : submission.getPartOfs()) {
 					node = Node.createObject().cast();
-					node.name(partOf.getIri());
+					node.name(partOf.toString());
 					//node.group(0);
 					addNode(partOf.getIri(), node, nodeIds, nodes);
 				}

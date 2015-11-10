@@ -135,25 +135,25 @@ public class CollectionDAO {
 	}
 
 	public Collection insert(Collection collection) throws QueryException, IOException  {
-		if(!collection.hasId()) {
-			try(Query insert = new Query("INSERT INTO `ontologize_collection` (`name`, `taxongroup`, `secret`) VALUES(?, ?, ?)")) {
-				insert.setParameter(1, collection.getName().trim());
-				insert.setParameter(2, collection.getTaxonGroup().toString());
-				insert.setParameter(3, collection.getSecret());
-				insert.execute();
-				ResultSet generatedKeys = insert.getGeneratedKeys();
-				generatedKeys.next();
-				int id = generatedKeys.getInt(1);
-				collection.setId(id);
-				
-				for(Term term : collection.getTerms()) 
-					termDAO.insert(term, collection.getId());
-				
-				serialize(collection);
-			} catch(QueryException | SQLException e) {
-				log(LogLevel.ERROR, "Query Exception", e);
-				throw new QueryException(e);
-			}
+		if(collection.hasId()) 
+			this.remove(collection);
+		try(Query insert = new Query("INSERT INTO `ontologize_collection` (`name`, `taxongroup`, `secret`) VALUES(?, ?, ?)")) {
+			insert.setParameter(1, collection.getName().trim());
+			insert.setParameter(2, collection.getTaxonGroup().toString());
+			insert.setParameter(3, collection.getSecret());
+			insert.execute();
+			ResultSet generatedKeys = insert.getGeneratedKeys();
+			generatedKeys.next();
+			int id = generatedKeys.getInt(1);
+			collection.setId(id);
+			
+			for(Term term : collection.getTerms()) 
+				termDAO.insert(term, collection.getId());
+			
+			serialize(collection);
+		} catch(QueryException | SQLException e) {
+			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
 		}
 		return collection;
 	}

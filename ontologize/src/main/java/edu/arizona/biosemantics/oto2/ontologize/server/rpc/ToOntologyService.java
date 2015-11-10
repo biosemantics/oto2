@@ -102,23 +102,23 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	@Override
 	public List<OntologyClassSubmission> createClassSubmission(Collection collection, OntologyClassSubmission submission) throws Exception {
 		List<OntologyClassSubmission> submissions = new LinkedList<OntologyClassSubmission>();
-		for(Superclass superclass : submission.getSuperclasses()) 
-			superclass.setIri(getIRI(collection, submission, superclass.getIri(), submissions));
-		for(PartOf partOf : submission.getPartOfs()) 
-			partOf.setIri(getIRI(collection, submission, partOf.getIri(), submissions));
+		addIRIsToPlainTerms(collection, submission, submissions);
 		submission = daoManager.getOntologyClassSubmissionDAO().insert(submission);
 		this.setPending(submission);
 		submissions.add(0, submission);
 		return submissions;
 	}
 
+	private void addIRIsToPlainTerms(Collection collection, OntologyClassSubmission submission, List<OntologyClassSubmission> submissions) throws Exception {
+		for(Superclass superclass : submission.getSuperclasses())
+			if(!superclass.hasIri())
+				superclass.setIri(getIRI(collection, submission, superclass.getLabel(), submissions));
+		for(PartOf partOf : submission.getPartOfs())
+			if(!partOf.hasIri())
+				partOf.setIri(getIRI(collection, submission, partOf.getLabel(), submissions));
+	}
+
 	private String getIRI(Collection collection, OntologyClassSubmission submission, String value, List<OntologyClassSubmission> submissions) throws Exception {
-		if(value.startsWith("http"))
-			if(value.contains(" (")) {
-				return value.split(" \\(")[0];
-			} else {
-				return value;
-			}
 		List<OntologyClassSubmission> valueSubmissions = daoManager.getOntologyClassSubmissionDAO().get(collection, value);
 		if(valueSubmissions.isEmpty()) {
 			List<Superclass> superclasses = new LinkedList<Superclass>();
@@ -157,8 +157,11 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	 * submisison is already permanently accepted?
 	 */
 	@Override
-	public void updateClassSubmission(Collection collection, OntologyClassSubmission submission) throws Exception {
+	public List<OntologyClassSubmission> updateClassSubmission(Collection collection, OntologyClassSubmission submission) throws Exception {
+		List<OntologyClassSubmission> submissions = new LinkedList<OntologyClassSubmission>();
+		this.addIRIsToPlainTerms(collection, submission, submissions);
 		daoManager.getOntologyClassSubmissionDAO().update(submission);
+		return submissions;
 	}
 
 	@Override

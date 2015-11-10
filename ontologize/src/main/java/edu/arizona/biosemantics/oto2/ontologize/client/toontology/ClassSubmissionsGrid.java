@@ -498,7 +498,7 @@ public abstract class ClassSubmissionsGrid implements IsWidget {
 					public String getValue(OntologyClassSubmission object) {
 						String result = "";
 						for(Superclass superclass : object.getSuperclasses()) {
-							result += superclass.getIri() + ", ";
+							result += superclass.toString() + ", ";
 						}
 						if(result.length() > 0)
 							return result.substring(0, result.length() -2);
@@ -549,7 +549,7 @@ public abstract class ClassSubmissionsGrid implements IsWidget {
 					public String getValue(OntologyClassSubmission object) {
 						String result = "";
 						for(PartOf partOf : object.getPartOfs()) {
-							result += partOf.getIri() + ", ";
+							result += partOf.toString() + ", ";
 						}
 						if(result.length() > 0)
 							return result.substring(0, result.length() -2);

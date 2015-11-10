@@ -52,6 +52,8 @@ import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadCollectionEvent
 import edu.arizona.biosemantics.oto2.ontologize.client.event.RefreshOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.RefreshOntologySynonymSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.RefreshSubmissionsEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.RemoveOntologyClassSubmissionsEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.RemoveOntologySynonymSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.SetColorEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.TermMarkUselessEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.TermSelectEvent;
@@ -431,6 +433,22 @@ public class TermsView implements IsWidget {
 						if(event.getSynonymSubmission().hasTerm())
 							update(event.getSynonymSubmission().getTerm());
 					}
+		});
+		eventBus.addHandler(RemoveOntologyClassSubmissionsEvent.TYPE, new RemoveOntologyClassSubmissionsEvent.Handler() {
+			@Override
+			public void onRemove(RemoveOntologyClassSubmissionsEvent event) {
+				for(OntologyClassSubmission submission : event.getOntologyClassSubmissions()) 
+					if(submission.hasTerm())
+						update(submission.getTerm());
+			}
+		});
+		eventBus.addHandler(RemoveOntologySynonymSubmissionsEvent.TYPE, new RemoveOntologySynonymSubmissionsEvent.Handler() {
+			@Override
+			public void onRemove(RemoveOntologySynonymSubmissionsEvent event) {
+				for(OntologySynonymSubmission submission : event.getOntologySynonymSubmissions())
+					if(submission.hasTerm())
+						update(submission.getTerm());
+			}
 		});
 	}	
 	

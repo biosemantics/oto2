@@ -19,6 +19,7 @@ import edu.arizona.biosemantics.oto2.ontologize.server.persist.DAOManager;
 import edu.arizona.biosemantics.oto2.ontologize.server.rpc.CollectionService;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.ICollectionService;
+import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.OntologyFileException;
 
 /**
  * Just a REST-like wrapper around the RPC service
@@ -33,10 +34,11 @@ public class CollectionResource {
 	Request request;
 	
 	//TODO: Inject singletons
-	private ICollectionService collectionService = new CollectionService(new DAOManager());		
+	private ICollectionService collectionService;	
 	
 	@Inject
-	public CollectionResource() {
+	public CollectionResource() throws OntologyFileException {
+		collectionService = new CollectionService(new DAOManager());	
 		log(LogLevel.DEBUG, "CollectionResource initialized");
 	}
 	

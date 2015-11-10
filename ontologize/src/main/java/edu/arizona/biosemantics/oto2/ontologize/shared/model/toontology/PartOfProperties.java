@@ -18,4 +18,5 @@ public interface PartOfProperties  extends PropertyAccess<PartOf> {
 	  
 	  ValueProvider<PartOf, String> iri();
 
+	  ValueProvider<PartOf, String> value();
 }

@@ -85,57 +85,57 @@ public class OntologyClassSubmissionDAO {
 	}
 
 	public OntologyClassSubmission insert(OntologyClassSubmission ontologyClassSubmission) throws QueryException  {
-		if(!ontologyClassSubmission.hasId()) {
-			try(Query submissionIdInCollectionQuery = new Query("SELECT COUNT(*) FROM `ontologize_ontologyclasssubmission` WHERE collection = ?")) {
-				submissionIdInCollectionQuery.setParameter(1, ontologyClassSubmission.getCollectionId());
-				submissionIdInCollectionQuery.execute();
-				ResultSet resultSet = submissionIdInCollectionQuery.getResultSet();
-				if(resultSet.next()) {
-					int submissionIdInCollection = resultSet.getInt(1);
-					ontologyClassSubmission.setClassIRI(createClassIRI(ontologyClassSubmission, submissionIdInCollection));
-					try(Query insert = new Query("INSERT INTO `ontologize_ontologyclasssubmission` "
-							+ "(`collection`, `term`, `submission_term`, `ontology`, `class_iri`, `definition`, `source`, `sample_sentence`, "
-							+ "`user`)"
-							+ " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
-						insert.setParameter(1, ontologyClassSubmission.getCollectionId());
-						if(ontologyClassSubmission.getTerm() == null)
-							insert.setParameterNull(2, java.sql.Types.BIGINT);
-						else
-							insert.setParameter(2, ontologyClassSubmission.getTerm().getId());
-						insert.setParameter(3, ontologyClassSubmission.getSubmissionTerm());
-						insert.setParameter(4, ontologyClassSubmission.getOntology().getId());
-						insert.setParameter(5, ontologyClassSubmission.getClassIRI());
-						insert.setParameter(6, ontologyClassSubmission.getDefinition());
-						insert.setParameter(7, ontologyClassSubmission.getSource());
-						insert.setParameter(8, ontologyClassSubmission.getSampleSentence());
-						insert.setParameter(9, ontologyClassSubmission.getUser());
-						insert.execute();
-						ResultSet generatedKeys = insert.getGeneratedKeys();
-						generatedKeys.next();
-						int id = generatedKeys.getInt(1);
-						
-						ontologyClassSubmission.setId(id);
-						
-						for(Synonym synonym : ontologyClassSubmission.getSynonyms())
-							synonym.setSubmission(id);
-						for(Superclass superclass : ontologyClassSubmission.getSuperclasses())
-							superclass.setOntologyClassSubmission(id);
-						for(PartOf partOf : ontologyClassSubmission.getPartOfs())
-							partOf.setOntologyClassSubmission(id);
-						
-						ontologyClassSubmissionSynonymDAO.insert(ontologyClassSubmission.getSynonyms());
-						ontologyClassSubmissionSuperclassDAO.insert(ontologyClassSubmission.getSuperclasses());
-						ontologyClassSubmissionPartOfDAO.insert(ontologyClassSubmission.getPartOfs());
-					} catch(QueryException | SQLException e) {
-						log(LogLevel.ERROR, "Query Exception", e);
-						throw new QueryException(e);
-					}
-				} else {
-					throw new QueryException("Could not get count.");
+		if(ontologyClassSubmission.hasId()) 
+			this.remove(ontologyClassSubmission);
+		try(Query submissionIdInCollectionQuery = new Query("SELECT COUNT(*) FROM `ontologize_ontologyclasssubmission` WHERE collection = ?")) {
+			submissionIdInCollectionQuery.setParameter(1, ontologyClassSubmission.getCollectionId());
+			submissionIdInCollectionQuery.execute();
+			ResultSet resultSet = submissionIdInCollectionQuery.getResultSet();
+			if(resultSet.next()) {
+				int submissionIdInCollection = resultSet.getInt(1);
+				ontologyClassSubmission.setClassIRI(createClassIRI(ontologyClassSubmission, submissionIdInCollection));
+				try(Query insert = new Query("INSERT INTO `ontologize_ontologyclasssubmission` "
+						+ "(`collection`, `term`, `submission_term`, `ontology`, `class_iri`, `definition`, `source`, `sample_sentence`, "
+						+ "`user`)"
+						+ " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+					insert.setParameter(1, ontologyClassSubmission.getCollectionId());
+					if(ontologyClassSubmission.getTerm() == null)
+						insert.setParameterNull(2, java.sql.Types.BIGINT);
+					else
+						insert.setParameter(2, ontologyClassSubmission.getTerm().getId());
+					insert.setParameter(3, ontologyClassSubmission.getSubmissionTerm());
+					insert.setParameter(4, ontologyClassSubmission.getOntology().getId());
+					insert.setParameter(5, ontologyClassSubmission.getClassIRI());
+					insert.setParameter(6, ontologyClassSubmission.getDefinition());
+					insert.setParameter(7, ontologyClassSubmission.getSource());
+					insert.setParameter(8, ontologyClassSubmission.getSampleSentence());
+					insert.setParameter(9, ontologyClassSubmission.getUser());
+					insert.execute();
+					ResultSet generatedKeys = insert.getGeneratedKeys();
+					generatedKeys.next();
+					int id = generatedKeys.getInt(1);
+					
+					ontologyClassSubmission.setId(id);
+					
+					for(Synonym synonym : ontologyClassSubmission.getSynonyms())
+						synonym.setSubmission(id);
+					for(Superclass superclass : ontologyClassSubmission.getSuperclasses())
+						superclass.setOntologyClassSubmission(id);
+					for(PartOf partOf : ontologyClassSubmission.getPartOfs())
+						partOf.setOntologyClassSubmission(id);
+					
+					ontologyClassSubmissionSynonymDAO.insert(ontologyClassSubmission.getSynonyms());
+					ontologyClassSubmissionSuperclassDAO.insert(ontologyClassSubmission.getSuperclasses());
+					ontologyClassSubmissionPartOfDAO.insert(ontologyClassSubmission.getPartOfs());
+				} catch(QueryException | SQLException e) {
+					log(LogLevel.ERROR, "Query Exception", e);
+					throw new QueryException(e);
 				}
-			} catch(QueryException | SQLException e) {
-				log(LogLevel.ERROR, "Query Exception", e);
+			} else {
+				throw new QueryException("Could not get count.");
 			}
+		} catch(QueryException | SQLException e) {
+			log(LogLevel.ERROR, "Query Exception", e);
 		}
 		return ontologyClassSubmission;
 	}

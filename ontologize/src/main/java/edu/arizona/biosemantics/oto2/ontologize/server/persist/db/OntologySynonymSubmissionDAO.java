@@ -61,36 +61,36 @@ public class OntologySynonymSubmissionDAO {
 	}
 
 	public OntologySynonymSubmission insert(OntologySynonymSubmission ontologySynonymSubmission) throws QueryException  {
-		if(!ontologySynonymSubmission.hasId()) {
-			try(Query insert = new Query("INSERT INTO `ontologize_ontologysynonymsubmission` "
-					+ "(`collection`, `term`, `submission_term`, `ontology`, `class_iri`, `source`, `sample_sentence`, "
-					+ "`user`)"
-					+ " VALUES(?, ?, ?, ?, ?, ?, ?, ?)")) {
-				insert.setParameter(1, ontologySynonymSubmission.getCollectionId());
-				if(ontologySynonymSubmission.getTerm() == null)
-					insert.setParameterNull(2, java.sql.Types.BIGINT);
-				else
-					insert.setParameter(2,ontologySynonymSubmission.getTerm().getId());
-				insert.setParameter(3, ontologySynonymSubmission.getSubmissionTerm());
-				insert.setParameter(4, ontologySynonymSubmission.getOntology().getId());
-				insert.setParameter(5, ontologySynonymSubmission.getClassIRI());
-				insert.setParameter(6, ontologySynonymSubmission.getSource());
-				insert.setParameter(7, ontologySynonymSubmission.getSampleSentence());
-				insert.setParameter(8, ontologySynonymSubmission.getUser());
-				insert.execute();
-				ResultSet generatedKeys = insert.getGeneratedKeys();
-				generatedKeys.next();
-				int id = generatedKeys.getInt(1);
-				
-				ontologySynonymSubmission.setId(id);
-				
-				for(Synonym synonym : ontologySynonymSubmission.getSynonyms())
-					synonym.setSubmission(id);				
-				ontologySynonymSubmissionSynonymDAO.insert(ontologySynonymSubmission.getSynonyms());
-			} catch(QueryException | SQLException e) {
-				log(LogLevel.ERROR, "Query Exception", e);
-				throw new QueryException(e);
-			}
+		if(ontologySynonymSubmission.hasId())
+			this.remove(ontologySynonymSubmission);
+		try(Query insert = new Query("INSERT INTO `ontologize_ontologysynonymsubmission` "
+				+ "(`collection`, `term`, `submission_term`, `ontology`, `class_iri`, `source`, `sample_sentence`, "
+				+ "`user`)"
+				+ " VALUES(?, ?, ?, ?, ?, ?, ?, ?)")) {
+			insert.setParameter(1, ontologySynonymSubmission.getCollectionId());
+			if(ontologySynonymSubmission.getTerm() == null)
+				insert.setParameterNull(2, java.sql.Types.BIGINT);
+			else
+				insert.setParameter(2,ontologySynonymSubmission.getTerm().getId());
+			insert.setParameter(3, ontologySynonymSubmission.getSubmissionTerm());
+			insert.setParameter(4, ontologySynonymSubmission.getOntology().getId());
+			insert.setParameter(5, ontologySynonymSubmission.getClassIRI());
+			insert.setParameter(6, ontologySynonymSubmission.getSource());
+			insert.setParameter(7, ontologySynonymSubmission.getSampleSentence());
+			insert.setParameter(8, ontologySynonymSubmission.getUser());
+			insert.execute();
+			ResultSet generatedKeys = insert.getGeneratedKeys();
+			generatedKeys.next();
+			int id = generatedKeys.getInt(1);
+			
+			ontologySynonymSubmission.setId(id);
+			
+			for(Synonym synonym : ontologySynonymSubmission.getSynonyms())
+				synonym.setSubmission(id);				
+			ontologySynonymSubmissionSynonymDAO.insert(ontologySynonymSubmission.getSynonyms());
+		} catch(QueryException | SQLException e) {
+			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
 		}
 		return ontologySynonymSubmission;
 	}

@@ -29,7 +29,7 @@ public interface IToOntologyService extends RemoteService {
 	
 	public void refreshSubmissionStatuses(Collection collection) throws Exception;
 	
-	public void updateClassSubmission(Collection collection, OntologyClassSubmission ontologyClassSubmissions) throws Exception;
+	public List<OntologyClassSubmission> updateClassSubmission(Collection collection, OntologyClassSubmission ontologyClassSubmissions) throws Exception;
 
 	public void updateSynonymSubmission(Collection collection, OntologySynonymSubmission ontologySynonymSubmissions) throws Exception;
 	

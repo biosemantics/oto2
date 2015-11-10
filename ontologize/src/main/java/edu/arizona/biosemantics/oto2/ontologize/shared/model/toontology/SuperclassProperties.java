@@ -17,5 +17,7 @@ public interface SuperclassProperties  extends PropertyAccess<Superclass> {
 	  ValueProvider<Superclass, Integer> ontologyClassSubmission();
 	  
 	  ValueProvider<Superclass, String> iri();
+	  
+	  ValueProvider<Superclass, String> value();
 
 }

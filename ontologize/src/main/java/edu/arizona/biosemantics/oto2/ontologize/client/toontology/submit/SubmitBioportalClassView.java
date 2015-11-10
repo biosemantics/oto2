@@ -53,17 +53,17 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.Term;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.TermProperties;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.PartOf;
-import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.PartOfProperties;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Superclass;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.SuperclassProperties;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Synonym;
-import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.SynonymProperties;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.ClassExistsException;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.IToOntologyService;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.IToOntologyServiceAsync;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.OntologyNotFoundException;
 
 public class SubmitBioportalClassView implements IsWidget {
-	
+
+	private SuperclassProperties superclassProperties = GWT.create(SuperclassProperties.class);
 	private OntologyProperties ontologyProperties = GWT.create(OntologyProperties.class);
 	private TermProperties termProperties = GWT.create(TermProperties.class);
 	private IToOntologyServiceAsync toOntologyService = GWT.create(IToOntologyService.class);
@@ -81,8 +81,8 @@ public class SubmitBioportalClassView implements IsWidget {
 	private TextField categoryField = new TextField();
 	private ComboBox<Ontology> ontologyComboBox;
 	
-	private ListView<String, String> superclassListView;
-	private ListStore<String> superclassStore;
+	private ListView<Superclass, String> superclassListView;
+	private ListStore<Superclass> superclassStore;
 	private TextButton addSuperclassButton = new TextButton("Add");
 	private TextButton removeSuperclassButton = new TextButton("Remove");
 	private TextButton clearSuperclassButton = new TextButton("Clear");
@@ -121,13 +121,13 @@ public class SubmitBioportalClassView implements IsWidget {
 			}
 	    });
 	    synonymsListView = new ListView<String, String>(synonymsStore, new IdentityValueProvider<String>());
-	    superclassStore = new ListStore<String>(new ModelKeyProvider<String>() {
+	    superclassStore = new ListStore<Superclass>(new ModelKeyProvider<Superclass>() {
 			@Override
-			public String getKey(String item) {
-				return item;
+			public String getKey(Superclass item) {
+				return item.toString();
 			}
 	    });
-	    superclassListView = new ListView<String, String>(superclassStore, new IdentityValueProvider<String>());
+	    superclassListView = new ListView<Superclass, String>(superclassStore, superclassProperties.value());
 	    
 	    formContainer = new VerticalLayoutContainer();
 	    formContainer.add(new FieldLabel(termComboBox, "Candiate Term"), new VerticalLayoutData(1, -1));
@@ -248,7 +248,7 @@ public class SubmitBioportalClassView implements IsWidget {
 				setSelectedSubmission(null);
 				clearFields(false);
 				superclassStore.clear();
-				superclassStore.add(event.getSubmission().getClassIRI());
+				addSuperClassToStore(event.getSubmission());
 				ontologyComboBox.setValue(event.getSubmission().getOntology());
 			}
 		});
@@ -372,14 +372,14 @@ public class SubmitBioportalClassView implements IsWidget {
 						final MessageBox box = Alerter.startLoading();
 						final OntologyClassSubmission submission = getClassSubmission();
 						submission.setId(selectedSubmission.getId());
-						toOntologyService.updateClassSubmission(collection, submission, new AsyncCallback<Void>() {
+						toOntologyService.updateClassSubmission(collection, submission, new AsyncCallback<List<OntologyClassSubmission>>() {
 							@Override
 							public void onFailure(Throwable caught) {
 								Alerter.stopLoading(box);
 								Alerter.failedToEditClass(caught);
 							}
 							@Override
-							public void onSuccess(Void result) {
+							public void onSuccess(List<OntologyClassSubmission> result) {
 								Alerter.stopLoading(box);
 								eventBus.fireEvent(new UpdateOntologyClassSubmissionsEvent(submission));
 							}
@@ -426,7 +426,13 @@ public class SubmitBioportalClassView implements IsWidget {
 				box.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
 					@Override
 					public void onSelect(SelectEvent event) {
-						superclassStore.add(box.getValue());
+						Superclass superclass = new Superclass();
+						if(box.getValue().startsWith("http")) {
+							superclass.setIri(box.getValue());
+						} else {
+							superclass.setLabel(box.getValue());
+						}
+						addSuperClassToStore(superclass);
 					}
 				});
 			}
@@ -434,7 +440,7 @@ public class SubmitBioportalClassView implements IsWidget {
 		removeSuperclassButton.addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
-				for(String remove : superclassListView.getSelectionModel().getSelectedItems())
+				for(Superclass remove : superclassListView.getSelectionModel().getSelectedItems())
 					superclassStore.remove(remove);
 			}
 		});
@@ -445,6 +451,32 @@ public class SubmitBioportalClassView implements IsWidget {
 			}
 		});
 	}
+
+	protected void addSuperClassToStore(OntologyClassSubmission submission) {
+		superclassStore.add(new Superclass(submission));
+	}
+
+	private void addSuperClassToStore(final Superclass superclass) {
+		if(!superclass.hasIri())
+			superclassStore.add(superclass);
+		else {
+			final MessageBox box = Alerter.startLoading();
+			toOntologyService.getClassLabel(collection, superclass.getIri(), new AsyncCallback<String>() {
+				@Override
+				public void onFailure(Throwable caught) {
+					Alerter.failedToGetClassLabel();
+					Alerter.stopLoading(box);
+				}
+				@Override
+				public void onSuccess(String result) {
+					superclass.setLabel(result);
+					superclassStore.add(superclass);
+					Alerter.stopLoading(box);
+				}
+			});
+		}
+	}
+
 
 	protected void setTerm(Term term) {
 		termComboBox.setValue(term);
@@ -478,8 +510,7 @@ public class SubmitBioportalClassView implements IsWidget {
 		if(ontologyClassSubmission.hasOntology())
 			this.ontologyComboBox.setValue(ontologyClassSubmission.getOntology());
 		this.superclassStore.clear();
-		for(Superclass superclass : ontologyClassSubmission.getSuperclasses())
-			this.superclassStore.add(superclass.getIri());
+		this.superclassStore.addAll(ontologyClassSubmission.getSuperclasses());
 		this.definitionArea.setValue(ontologyClassSubmission.getDefinition());
 		this.synonymsStore.clear();
 		for(Synonym synonym : ontologyClassSubmission.getSynonyms())
@@ -489,12 +520,10 @@ public class SubmitBioportalClassView implements IsWidget {
 	}
 	
 	protected OntologyClassSubmission getClassSubmission() {
-		List<Superclass> superclasses = new LinkedList<Superclass>();
-		for(String iri : superclassStore.getAll()) 
-			superclasses.add(new Superclass(iri));
+		List<Superclass> superclasses = new LinkedList<Superclass>(superclassStore.getAll());
 		List<Synonym> synonyms = new LinkedList<Synonym>();
-		for(String iri : synonymsStore.getAll()) 
-			synonyms.add(new Synonym(iri));
+		for(String synonym : synonymsStore.getAll()) 
+			synonyms.add(new Synonym(synonym));
 		return new OntologyClassSubmission(collection.getId(), termComboBox.getValue(), submissionTermField.getValue(), 
 				ontologyComboBox.getValue(), "", superclasses,
 				definitionArea.getValue(), synonyms, sourceField.getValue(), 
