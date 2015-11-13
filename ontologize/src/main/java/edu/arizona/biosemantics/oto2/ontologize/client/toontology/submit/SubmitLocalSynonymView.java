@@ -8,21 +8,16 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.EventBus;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.HasWidgets;
-import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.cell.core.client.form.ComboBoxCell.TriggerAction;
-import com.sencha.gxt.core.client.IdentityValueProvider;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
-import com.sencha.gxt.core.client.util.ToggleGroup;
 import com.sencha.gxt.data.shared.LabelProvider;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
-import com.sencha.gxt.data.shared.StringLabelProvider;
 import com.sencha.gxt.widget.core.client.ListView;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
 import com.sencha.gxt.widget.core.client.box.MessageBox;
@@ -34,25 +29,25 @@ import com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.Hor
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
-import com.sencha.gxt.widget.core.client.form.CheckBox;
 import com.sencha.gxt.widget.core.client.form.ComboBox;
 import com.sencha.gxt.widget.core.client.form.Field;
 import com.sencha.gxt.widget.core.client.form.FieldLabel;
-import com.sencha.gxt.widget.core.client.form.Radio;
 import com.sencha.gxt.widget.core.client.form.TextArea;
 import com.sencha.gxt.widget.core.client.form.TextField;
 
 import edu.arizona.biosemantics.oto2.ontologize.client.Ontologize;
 import edu.arizona.biosemantics.oto2.ontologize.client.common.Alerter;
-import edu.arizona.biosemantics.oto2.ontologize.client.common.CreateOntologyDialog;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.CreateOntologyClassSubmissionEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.CreateOntologySynonymSubmissionEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.OntologySynonymSubmissionSelectEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.RemoveOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.RemoveOntologySynonymSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.SelectSampleEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.SelectSourceEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.SelectSynonymEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.TermSelectEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.UpdateOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.UpdateOntologySynonymsSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;
@@ -61,13 +56,11 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.Term;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.TermProperties;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySynonymSubmission;
-import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySubmission.Type;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.SynonymClass;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Synonym;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.SynonymProperties;
-import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.ClassExistsException;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.IToOntologyService;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.IToOntologyServiceAsync;
-import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.OntologyNotFoundException;
 
 public class SubmitLocalSynonymView implements IsWidget {
 
@@ -79,20 +72,20 @@ public class SubmitLocalSynonymView implements IsWidget {
 	private Collection collection;
 	
 	private ListStore<Ontology> ontologiesStore = new ListStore<Ontology>(ontologyProperties.key());
-	private ListStore<String> classIRIStore = new ListStore<String>(new ModelKeyProvider<String>() {
+	private ListStore<SynonymClass> classIRIStore = new ListStore<SynonymClass>(new ModelKeyProvider<SynonymClass>() {
 		@Override
-		public String getKey(String item) {
-			return item;
+		public String getKey(SynonymClass item) {
+			return item.getIri();
 		}
 	});
 	private ListStore<Term> termStore = new ListStore<Term>(termProperties.key());
 	private TextButton editButton = new TextButton("Edit");
 	private TextButton submitButton = new TextButton("Save as New");
-	private TextButton obsoleteSubmitButton = new TextButton("Obsolete and Save as New");
+	private TextButton obsoleteSubmitButton = new TextButton("Remove and Save as New");
 	private TextField submissionTermField = new TextField();
 	private TextField categoryField = new TextField();
 	private ComboBox<Ontology> ontologyComboBox;
-	private ComboBox<String> classIRIComboBox;
+	private ComboBox<SynonymClass> classIRIComboBox;
 	private TextField sourceField = new TextField();
 	private TextArea sampleArea = new TextArea();
 	//private Radio isEntityRadio = new Radio();
@@ -113,7 +106,12 @@ public class SubmitLocalSynonymView implements IsWidget {
 	public SubmitLocalSynonymView(EventBus eventBus) {
 		this.eventBus = eventBus;
 		
-		classIRIComboBox = new ComboBox<String>(classIRIStore, new StringLabelProvider<String>());
+		classIRIComboBox = new ComboBox<SynonymClass>(classIRIStore, new LabelProvider<SynonymClass>() {
+			@Override
+			public String getLabel(SynonymClass item) {
+				return item.toString();
+			}
+		});
 		
 	    ontologyComboBox = new ComboBox<Ontology>(ontologiesStore, ontologyProperties.prefixLabel());
 	    ontologyComboBox.setAllowBlank(false);
@@ -145,7 +143,7 @@ public class SubmitLocalSynonymView implements IsWidget {
 	    ontologyComboBox.setAutoValidate(true);
 	    //ontologyVlc.add(browseOntologiesButton, new VerticalLayoutData(1, -1));
 	    formContainer.add(new FieldLabel(ontologyVlc, "Ontology *"), new VerticalLayoutData(1, -1));
-	    formContainer.add(new FieldLabel(classIRIComboBox, "Class IRI *"), new VerticalLayoutData(1, -1));
+	    formContainer.add(new FieldLabel(classIRIComboBox, "Class *"), new VerticalLayoutData(1, -1));
 	    classIRIComboBox.setAllowBlank(false);
 	    classIRIComboBox.setAutoValidate(true);
 	    
@@ -248,12 +246,36 @@ public class SubmitLocalSynonymView implements IsWidget {
 	}
 
 	private void bindEvents() {
+		eventBus.addHandler(CreateOntologyClassSubmissionEvent.TYPE, new CreateOntologyClassSubmissionEvent.Handler() {
+			@Override
+			public void onSubmission(CreateOntologyClassSubmissionEvent event) {
+				for(OntologyClassSubmission submission : event.getClassSubmissions())
+					if(!submission.getOntology().isBioportalOntology())
+						classIRIStore.add(new SynonymClass(submission));
+			}
+		});
+		eventBus.addHandler(UpdateOntologyClassSubmissionsEvent.TYPE, new UpdateOntologyClassSubmissionsEvent.Handler() {
+			@Override
+			public void onUpdate(UpdateOntologyClassSubmissionsEvent event) {
+				for(OntologyClassSubmission submission : event.getOntologyClassSubmissions())
+					if(!submission.getOntology().isBioportalOntology())
+						classIRIStore.update(new SynonymClass(submission));
+			}
+		});
+		eventBus.addHandler(RemoveOntologyClassSubmissionsEvent.TYPE, new RemoveOntologyClassSubmissionsEvent.Handler() {
+			@Override
+			public void onRemove(RemoveOntologyClassSubmissionsEvent event) {
+				for(OntologyClassSubmission submission : event.getOntologyClassSubmissions())
+					if(!submission.getOntology().isBioportalOntology())
+						classIRIStore.remove(new SynonymClass(submission));
+			}
+		});
 		eventBus.addHandler(SelectSynonymEvent.TYPE, new SelectSynonymEvent.Handler() {
 			@Override
 			public void onSelect(SelectSynonymEvent event) {
 				setSelectedSubmission(null);
 				clearFields(false);
-				classIRIComboBox.setValue(event.getSubmission().getClassIRI(), false);
+				classIRIComboBox.setValue(new SynonymClass(event.getSubmission()), false);
 				ontologyComboBox.setValue(event.getSubmission().getOntology());
 			}
 		});
@@ -383,9 +405,7 @@ public class SubmitLocalSynonymView implements IsWidget {
 				if(validateForm()) {
 					final MessageBox box = Alerter.startLoading();
 					final OntologySynonymSubmission submission = getSynonymSubmission();
-					final List<OntologySynonymSubmission> removeSubmissions = new LinkedList<OntologySynonymSubmission>();
-					removeSubmissions.add(selectedSubmission);
-					toOntologyService.removeSynonymSubmissions(collection, removeSubmissions, new AsyncCallback<Void>() {
+					toOntologyService.removeSynonymSubmission(collection, selectedSubmission, new AsyncCallback<Void>() {
 						@Override
 						public void onFailure(Throwable caught) {
 							Alerter.failedToRemoveOntologyClassSubmission();
@@ -393,7 +413,7 @@ public class SubmitLocalSynonymView implements IsWidget {
 						}
 						@Override
 						public void onSuccess(Void result) {
-							eventBus.fireEvent(new RemoveOntologySynonymSubmissionsEvent(removeSubmissions));
+							eventBus.fireEvent(new RemoveOntologySynonymSubmissionsEvent(selectedSubmission));
 							toOntologyService.createSynonymSubmission(collection, submission, new AsyncCallback<OntologySynonymSubmission>() {
 								@Override
 								public void onFailure(Throwable caught) {
@@ -422,9 +442,7 @@ public class SubmitLocalSynonymView implements IsWidget {
 						final MessageBox box = Alerter.startLoading();
 						final OntologySynonymSubmission submission = getSynonymSubmission();
 						submission.setId(selectedSubmission.getId());
-						final List<OntologySynonymSubmission> submissions = new LinkedList<OntologySynonymSubmission>();
-						submissions.add(submission);
-						toOntologyService.updateSynonymSubmissions(collection, submissions, new AsyncCallback<Void>() {
+						toOntologyService.updateSynonymSubmission(collection, submission, new AsyncCallback<Void>() {
 							@Override
 							public void onFailure(Throwable caught) {
 								Alerter.stopLoading(box);
@@ -433,7 +451,7 @@ public class SubmitLocalSynonymView implements IsWidget {
 							@Override
 							public void onSuccess(Void result) {
 								Alerter.stopLoading(box);
-								eventBus.fireEvent(new UpdateOntologySynonymsSubmissionsEvent(submissions));
+								eventBus.fireEvent(new UpdateOntologySynonymsSubmissionsEvent(submission));
 							}
 						});
 					}
@@ -489,7 +507,7 @@ public class SubmitLocalSynonymView implements IsWidget {
 			public void onSuccess(List<OntologyClassSubmission> result) {
 				classIRIStore.clear();
 				for(OntologyClassSubmission submission : result)
-					classIRIStore.add(submission.getClassIRI());
+					classIRIStore.add(new SynonymClass(submission));
 				Alerter.stopLoading(box);
 			}
 		});
@@ -499,8 +517,6 @@ public class SubmitLocalSynonymView implements IsWidget {
 		termComboBox.setValue(term);
 		categoryField.setValue(termComboBox.getValue().getCategory());
 		submissionTermField.setValue(termComboBox.getValue().getTerm());
-		if(term.hasIri())
-			classIRIComboBox.setValue(term.getIri());
 	}
 
 
@@ -516,7 +532,7 @@ public class SubmitLocalSynonymView implements IsWidget {
 		this.termComboBox.setValue(null, false);
 		this.submissionTermField.setValue("", false); 
 		//this.ontologyComboBox.setValue(null, false);
-		this.classIRIComboBox.setValue("", false);
+		this.classIRIComboBox.setValue(null, false);
 		this.synonymsStore.clear();
 		this.sourceField.setValue("", false);
 		this.sampleArea.setValue("", false);
@@ -530,7 +546,7 @@ public class SubmitLocalSynonymView implements IsWidget {
 		this.submissionTermField.setValue(ontologySynonymSubmission.getSubmissionTerm()); 
 		if(ontologySynonymSubmission.hasOntology())
 			this.ontologyComboBox.setValue(ontologySynonymSubmission.getOntology());
-		this.classIRIComboBox.setValue(ontologySynonymSubmission.getClassIRI());
+		this.classIRIComboBox.setValue(new SynonymClass(ontologySynonymSubmission.getClassIRI()));
 		this.synonymsStore.clear();
 		this.synonymsStore.addAll(ontologySynonymSubmission.getSynonyms());
 		this.sourceField.setValue(ontologySynonymSubmission.getSource());
@@ -540,12 +556,10 @@ public class SubmitLocalSynonymView implements IsWidget {
 	}
 
 	protected OntologySynonymSubmission getSynonymSubmission() {
-		//Type type = isEntityRadio.getValue() ? Type.ENTITY : Type.QUALITY;
 		return new OntologySynonymSubmission(collection.getId(), termComboBox.getValue(), submissionTermField.getValue(), 
-				ontologyComboBox.getValue(), classIRIComboBox.getValue(),
+				ontologyComboBox.getValue(), classIRIComboBox.getValue().getIri(),
 				new LinkedList<Synonym>(synonymsStore.getAll()),
 				sourceField.getValue(), sampleArea.getValue(), 
-				//type, 
 				Ontologize.user);
 	}
 

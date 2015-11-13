@@ -6,14 +6,19 @@ import java.util.LinkedList;
 import java.util.List;
 
 import edu.arizona.biosemantics.common.log.LogLevel;
+import edu.arizona.biosemantics.oto2.ontologize.server.Configuration;
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.db.Query.QueryException;
+import edu.arizona.biosemantics.oto2.ontologize.server.persist.file.PermanentOntologyFileDAO;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.PartOf;
+import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.OntologyNotFoundException;
 
 public class OntologyClassSubmissionPartOfDAO {
 	
+	private PermanentOntologyFileDAO permanentOntologyFileDAO;
+	
 	public OntologyClassSubmissionPartOfDAO() {} 
 	
-	public List<PartOf> getPartOfs(int ontologyClassSubmissionId) throws QueryException {
+	public List<PartOf> getPartOfs(int ontologyClassSubmissionId) throws QueryException, OntologyNotFoundException {
 		List<PartOf> partOfs = new LinkedList<PartOf>();
 		try(Query query = new Query("SELECT * FROM ontologize_ontologyclasssubmission_partof WHERE ontologyclasssubmission = ?")) {
 			query.setParameter(1, ontologyClassSubmissionId);
@@ -28,28 +33,48 @@ public class OntologyClassSubmissionPartOfDAO {
 		return partOfs;
 	}
 	
-	private PartOf createPartOf(ResultSet result) throws SQLException {
+	private PartOf createPartOf(ResultSet result) throws SQLException, QueryException, OntologyNotFoundException {
 		int id = result.getInt("id");
 		int ontologyClassSubmission = result.getInt("ontologyclasssubmission");
 		String partOf = result.getString("partof");
-		return new PartOf(id, ontologyClassSubmission, partOf);
+		String label = getLabel(partOf);
+		return new PartOf(id, ontologyClassSubmission, partOf, label);
 	}
 
-	public PartOf insert(PartOf partOf) throws QueryException  {
-		if(!partOf.hasId()) {
-			try(Query insert = new Query("INSERT INTO `ontologize_ontologyclasssubmission_partof` (`ontologyclasssubmission`, `partof`) VALUES(?, ?)")) {
-				insert.setParameter(1, partOf.getOntologyClassSubmission());
-				insert.setParameter(2, partOf.getPartOf());
-				insert.execute();
-				ResultSet generatedKeys = insert.getGeneratedKeys();
-				generatedKeys.next();
-				int id = generatedKeys.getInt(1);
-				
-				partOf.setId(id);
+	private String getLabel(String classIri) throws QueryException, OntologyNotFoundException {
+		if(classIri.startsWith(Configuration.etcOntologyBaseIRI)) {
+			try(Query query = new Query("SELECT * FROM ontologize_ontologyclasssubmission s"
+					+ " WHERE s.class_iri = ?")) {
+				query.setParameter(1, classIri);
+				ResultSet resultSet = query.execute();
+				if(resultSet.next()) {
+					return resultSet.getString("submission_term");
+				}
+				return null;
 			} catch(QueryException | SQLException e) {
 				log(LogLevel.ERROR, "Query Exception", e);
 				throw new QueryException(e);
 			}
+		} else {
+			return permanentOntologyFileDAO.getClassLabel(classIri);
+		}
+	}
+
+	public PartOf insert(PartOf partOf) throws QueryException  {
+		if(partOf.hasId()) 
+			this.remove(partOf);
+		try(Query insert = new Query("INSERT INTO `ontologize_ontologyclasssubmission_partof` (`ontologyclasssubmission`, `partof`) VALUES(?, ?)")) {
+			insert.setParameter(1, partOf.getOntologyClassSubmission());
+			insert.setParameter(2, partOf.getIri());
+			insert.execute();
+			ResultSet generatedKeys = insert.getGeneratedKeys();
+			generatedKeys.next();
+			int id = generatedKeys.getInt(1);
+			
+			partOf.setId(id);
+		} catch(QueryException | SQLException e) {
+			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
 		}
 		return partOf;
 	}
@@ -57,7 +82,7 @@ public class OntologyClassSubmissionPartOfDAO {
 	public void update(PartOf partOf) throws QueryException  {		
 		try(Query query = new Query("UPDATE ontologize_ontologyclasssubmission_partof SET ontologyclasssubmission = ?, partof = ? WHERE id = ?")) {
 			query.setParameter(1, partOf.getOntologyClassSubmission());
-			query.setParameter(2, partOf.getPartOf());
+			query.setParameter(2, partOf.getIri());
 			query.setParameter(3, partOf.getId());
 			query.execute();
 		} catch(QueryException e) {
@@ -78,15 +103,16 @@ public class OntologyClassSubmissionPartOfDAO {
 
 	public List<PartOf> insert(List<PartOf> partOfs) throws QueryException {
 		List<PartOf> result = new LinkedList<PartOf>();
-		for(PartOf partOf : partOfs)
+		for(PartOf partOf : partOfs) 
 			result.add(insert(partOf));
 		return result;
 	}
 	
 	public void update(int ontologyClassSubmissionId, List<PartOf> partofs) throws QueryException {
 		remove(ontologyClassSubmissionId);
-		for(PartOf partof : partofs)
+		for(PartOf partof : partofs) {
 			insert(partof);
+		}
 	}
 	
 	public void remove(int ontologyClassSubmissionId) throws QueryException {
@@ -103,5 +129,8 @@ public class OntologyClassSubmissionPartOfDAO {
 		for(PartOf partOf : partOfs)
 			this.remove(partOf);
 	}
-	
+
+	public void setPermanentOntologyFileDAO(PermanentOntologyFileDAO permanentOntologyFileDAO) {
+		this.permanentOntologyFileDAO = permanentOntologyFileDAO;
+	}
 }

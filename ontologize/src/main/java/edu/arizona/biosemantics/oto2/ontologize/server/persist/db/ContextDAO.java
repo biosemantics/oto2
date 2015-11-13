@@ -114,20 +114,20 @@ public class ContextDAO {
 	}
 
 	public Context insert(Context context)  {
-		if(!context.hasId()) {
-			try(Query insert = new Query("INSERT INTO `ontologize_context` " +
-					"(`collection`, `source`, `text`) VALUES (?, ?, ?)")) {
-				insert.setParameter(1, context.getCollectionId());
-				insert.setParameter(2, context.getSource().trim());
-				insert.setParameter(3, context.getText().trim());
-				insert.execute();
-				ResultSet generatedKeys = insert.getGeneratedKeys();
-				generatedKeys.next();
-				int id = generatedKeys.getInt(1);
-				context.setId(id);
-			} catch(Exception e) {
-				log(LogLevel.ERROR, "Query Exception", e);
-			}
+		if(context.hasId()) 
+			this.remove(context);
+		try(Query insert = new Query("INSERT INTO `ontologize_context` " +
+				"(`collection`, `source`, `text`) VALUES (?, ?, ?)")) {
+			insert.setParameter(1, context.getCollectionId());
+			insert.setParameter(2, context.getSource().trim());
+			insert.setParameter(3, context.getText().trim());
+			insert.execute();
+			ResultSet generatedKeys = insert.getGeneratedKeys();
+			generatedKeys.next();
+			int id = generatedKeys.getInt(1);
+			context.setId(id);
+		} catch(Exception e) {
+			log(LogLevel.ERROR, "Query Exception", e);
 		}
 		return context;
 	}
@@ -268,11 +268,12 @@ public class ContextDAO {
 		Set<Context> contextsSet = new HashSet<Context>();
 		contextsSet.addAll(contexts);
 		
+		int j=0;
 		for(Context context : contextsSet) {
 			List<TypedContext> contextResult = new LinkedList<TypedContext>();
 			for(Search search : searches) {
 				Pattern pattern = Pattern.compile("\\b(?i)" + search.getSearch() + "\\b");
-				result.addAll(extract(pattern, search.getSearch(), context, search.getType()));
+				result.addAll(extract(pattern, search.getSearch(), context, search.getType(), j++));
 			}
 			
 			/*if(contextResult.isEmpty()) {
@@ -290,7 +291,7 @@ public class ContextDAO {
 		return result;
 	}
 
-	private List<TypedContext> extract(Pattern pattern, String replaceTerm, Context context, Type type) {	
+	private List<TypedContext> extract(Pattern pattern, String replaceTerm, Context context, Type type, int j) {	
 		List<TypedContext> result = new LinkedList<TypedContext>();
 		Matcher matcher = pattern.matcher(context.getText());
 		
@@ -310,7 +311,7 @@ public class ContextDAO {
 		    	String highlightedExtractedText = text.replaceAll("(?i)" + replaceTerm, "<b>" + replaceTerm + "</b>");
 		    	String highlightedFullText = fullText.replaceAll("(?i)" + replaceTerm, "<b>" + replaceTerm + "</b>").replaceAll("\n", "</br>");
 		    	
-		    	String idString = String.valueOf(context.getId()) + "-" + type.toString() + "-" + id++;
+		    	String idString = String.valueOf(context.getId()) + "-" + type.toString() + "-" + id++ + "-" + j;
 		    	TypedContext typedContext = new TypedContext(idString, context.getCollectionId(), context.getSource(), 
 		    			text, fullText, highlightedExtractedText, highlightedFullText, type);
 		    	result.add(typedContext);

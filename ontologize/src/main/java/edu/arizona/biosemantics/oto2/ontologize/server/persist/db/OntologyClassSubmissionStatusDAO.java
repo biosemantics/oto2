@@ -40,22 +40,22 @@ public class OntologyClassSubmissionStatusDAO {
 	}
 
 	public OntologyClassSubmissionStatus insert(OntologyClassSubmissionStatus ontologyClassSubmissionStatus) throws QueryException  {
-		if(!ontologyClassSubmissionStatus.hasId()) {
-			try(Query insert = new Query("INSERT INTO `ontologize_ontologyclasssubmission_status` "
-					+ "(`ontologyclasssubmission`, `status`, `iri`) VALUES(?, ?, ?)")) {
-				insert.setParameter(1, ontologyClassSubmissionStatus.getOntologyClassSubmissionId());
-				insert.setParameter(2, ontologyClassSubmissionStatus.getStatus().getId());
-				insert.setParameter(3, ontologyClassSubmissionStatus.getIri());
-				insert.execute();
-				ResultSet generatedKeys = insert.getGeneratedKeys();
-				generatedKeys.next();
-				int id = generatedKeys.getInt(1);
-				
-				ontologyClassSubmissionStatus.setId(id);
-			} catch(QueryException | SQLException e) {
-				log(LogLevel.ERROR, "Query Exception", e);
-				throw new QueryException(e);
-			}
+		if(ontologyClassSubmissionStatus.hasId()) 
+			this.remove(ontologyClassSubmissionStatus);
+		try(Query insert = new Query("INSERT INTO `ontologize_ontologyclasssubmission_status` "
+				+ "(`ontologyclasssubmission`, `status`, `iri`) VALUES(?, ?, ?)")) {
+			insert.setParameter(1, ontologyClassSubmissionStatus.getOntologyClassSubmissionId());
+			insert.setParameter(2, ontologyClassSubmissionStatus.getStatus().getId());
+			insert.setParameter(3, ontologyClassSubmissionStatus.getIri());
+			insert.execute();
+			ResultSet generatedKeys = insert.getGeneratedKeys();
+			generatedKeys.next();
+			int id = generatedKeys.getInt(1);
+			
+			ontologyClassSubmissionStatus.setId(id);
+		} catch(QueryException | SQLException e) {
+			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
 		}
 		return ontologyClassSubmissionStatus;
 	}

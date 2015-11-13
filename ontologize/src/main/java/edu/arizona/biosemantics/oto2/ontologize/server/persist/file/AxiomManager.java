@@ -31,10 +31,10 @@ import com.google.common.base.Optional;
 import edu.arizona.biosemantics.oto2.ontologize.client.Ontologize;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.AnnotationProperty;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
-import edu.arizona.biosemantics.oto2.ontologize.shared.model.HighLevelClass;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
-import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySubmission.Type;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.PartOf;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Superclass;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Synonym;
@@ -66,8 +66,8 @@ public class AxiomManager  {
 		this.moduleCreator = moduleCreator;
 		this.ontologyReasoner = ontologyReasoner;
 		
-		entityClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(HighLevelClass.ENTITY.getIRI())); //material anatomical entity
-		qualityClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(HighLevelClass.QUALITY.getIRI())); //quality
+		entityClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(Type.ENTITY.getIRI())); //material anatomical entity
+		qualityClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(Type.QUALITY.getIRI())); //quality
 		partOfProperty = owlOntologyManager.getOWLDataFactory().getOWLObjectProperty(IRI.create(AnnotationProperty.PART_OF.getIRI()));
 		labelProperty = owlOntologyManager.getOWLDataFactory().getOWLAnnotationProperty(IRI.create(AnnotationProperty.LABEL.getIRI()));
 		synonymProperty = owlOntologyManager.getOWLDataFactory().getOWLAnnotationProperty(IRI.create(AnnotationProperty.SYNONYM.getIRI()));
@@ -83,7 +83,7 @@ public class AxiomManager  {
 	public void addSuperclasses(Collection collection, OWLOntology owlOntology, Ontology ontology,
 			OWLClass owlClass, List<Superclass> superclasses, Type type) throws OntologyFileException, OntologyNotFoundException {		
 		for(Superclass superclass : superclasses) {
-			OWLClass superOwlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(superclass.getSuperclass())); 
+			OWLClass superOwlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(superclass.getIri())); 
 			OWLAxiom subclassAxiom = owlOntologyManager.getOWLDataFactory().getOWLSubClassOfAxiom(owlClass, superOwlClass);
 			owlOntologyManager.addAxiom(owlOntology, subclassAxiom);
 
@@ -134,7 +134,7 @@ public class AxiomManager  {
 	
 	public void addPartOfs(Collection collection, OWLOntology owlOntology, Ontology ontology, OWLClass owlClass, List<PartOf> partOfs) throws Exception {
 		for(PartOf partOf : partOfs) {			
-			IRI partOfIRI = IRI.create(partOf.getPartOf());
+			IRI partOfIRI = IRI.create(partOf.getIri());
 			Set<OWLClass> introducedClasses = new HashSet<OWLClass> ();
 			
 			OWLClass wholeOwlClass = null;

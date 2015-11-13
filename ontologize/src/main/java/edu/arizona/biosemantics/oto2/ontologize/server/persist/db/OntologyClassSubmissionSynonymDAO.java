@@ -54,20 +54,21 @@ public class OntologyClassSubmissionSynonymDAO {
 	}
 
 	public Synonym insert(Synonym synonym) throws QueryException  {
-		if(!synonym.hasId()) {
-			try(Query insert = new Query("INSERT INTO `ontologize_ontologyclasssubmission_synonym` (`ontologyclasssubmission`, `synonym`) VALUES(?, ?)")) {
-				insert.setParameter(1, synonym.getSubmission());
-				insert.setParameter(2, synonym.getSynonym());
-				insert.execute();
-				ResultSet generatedKeys = insert.getGeneratedKeys();
-				generatedKeys.next();
-				int id = generatedKeys.getInt(1);
-				
-				synonym.setId(id);
-			} catch(QueryException | SQLException e) {
-				log(LogLevel.ERROR, "Query Exception", e);
-				throw new QueryException(e);
-			}
+		if(synonym.hasId())
+			this.remove(synonym);
+		
+		try(Query insert = new Query("INSERT INTO `ontologize_ontologyclasssubmission_synonym` (`ontologyclasssubmission`, `synonym`) VALUES(?, ?)")) {
+			insert.setParameter(1, synonym.getSubmission());
+			insert.setParameter(2, synonym.getSynonym());
+			insert.execute();
+			ResultSet generatedKeys = insert.getGeneratedKeys();
+			generatedKeys.next();
+			int id = generatedKeys.getInt(1);
+			
+			synonym.setId(id);
+		} catch(QueryException | SQLException e) {
+			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
 		}
 		return synonym;
 	}
@@ -93,8 +94,9 @@ public class OntologyClassSubmissionSynonymDAO {
 	
 	public void update(int ontologyClassSubmissionId, List<Synonym> synonyms) throws QueryException {
 		remove(ontologyClassSubmissionId);
-		for(Synonym synonym : synonyms)
+		for(Synonym synonym : synonyms) {
 			insert(synonym);
+		}
 	}
 	
 	public void remove(int ontologyClassSubmissionId) throws QueryException {

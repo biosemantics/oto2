@@ -6,6 +6,7 @@ import java.util.List;
 
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Colorable;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Commentable;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Term;
 
@@ -24,7 +25,6 @@ public class OntologyClassSubmission implements Serializable, Colorable, Comment
 	private String source = "";
 	private String sampleSentence = "";
 	private List<PartOf> partOfs = new LinkedList<PartOf>();
-	private Type type;
 	private String user;
 	private List<OntologyClassSubmissionStatus> submissionStatuses = new LinkedList<OntologyClassSubmissionStatus>();
 	
@@ -32,7 +32,7 @@ public class OntologyClassSubmission implements Serializable, Colorable, Comment
 	
 	public OntologyClassSubmission(int id, int collectionId, Term term, String submissionTerm, Ontology ontology, String classIRI,
 			List<Superclass> superclasses, String definition, List<Synonym> synonyms, String source, String sampleSentence, 
-			List<PartOf> partOfs, Type type, String user, List<OntologyClassSubmissionStatus> submissionStatuses) { 
+			List<PartOf> partOfs, String user, List<OntologyClassSubmissionStatus> submissionStatuses) { 
 		this.id = id;
 		this.collectionId = collectionId;
 		this.term = term;
@@ -45,14 +45,13 @@ public class OntologyClassSubmission implements Serializable, Colorable, Comment
 		this.source = source == null ? "" : source;
 		this.sampleSentence = sampleSentence == null ? "" : sampleSentence;
 		this.partOfs = partOfs;
-		this.type = type;
 		this.user = user;
 		this.submissionStatuses = submissionStatuses;
 	}
 	
 	public OntologyClassSubmission(int collectionId, Term term, String submissionTerm, Ontology ontology, String classIRI,
 			List<Superclass> superclasses, String definition, List<Synonym> synonyms, String source, String sampleSentence, 
-			List<PartOf> partOfs, Type type, String user) { 
+			List<PartOf> partOfs, String user) { 
 		this.collectionId = collectionId;
 		this.term = term;
 		this.submissionTerm = submissionTerm == null ? "" : submissionTerm;
@@ -64,7 +63,6 @@ public class OntologyClassSubmission implements Serializable, Colorable, Comment
 		this.source = source == null ? "" : source;
 		this.sampleSentence = sampleSentence == null ? "" : sampleSentence;
 		this.partOfs = partOfs;
-		this.type = type;
 		this.user = user;
 	}
 
@@ -129,13 +127,15 @@ public class OntologyClassSubmission implements Serializable, Colorable, Comment
 	}
 
 	public Type getType() {
-		return type;
+		for(Superclass superclass : this.getSuperclasses()) {
+			if(superclass.getIri().equals(Type.ENTITY.getIRI()))
+				return Type.ENTITY;
+			if(superclass.getIri().equals(Type.QUALITY.getIRI()))
+				return Type.QUALITY;
+		}
+		return null;
 	}
-
-	public void setType(Type type) {
-		this.type = type;
-	}
-
+	
 	public List<OntologyClassSubmissionStatus> getSubmissionStatuses() {
 		return submissionStatuses;
 	}

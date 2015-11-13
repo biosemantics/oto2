@@ -12,7 +12,7 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.OntologyNotFoundException;
 
 public class AnnotationsManager {
-	
+		
 	private OWLOntologyRetriever owlOntologyRetriever;
 
 	public AnnotationsManager(OWLOntologyRetriever owlOntologyRetriever) {
@@ -21,6 +21,19 @@ public class AnnotationsManager {
 
 	public String get(Collection collection, OWLClass owlClass, OWLAnnotationProperty annotationProperty) throws OntologyNotFoundException {
 		OWLOntology owlOntology = owlOntologyRetriever.getOWLOntology(collection, owlClass);
+		for (OWLAnnotation annotation : EntitySearcher.getAnnotations(owlClass, owlOntology, annotationProperty)) {
+			if (annotation.getValue() instanceof OWLLiteral) {
+				OWLLiteral val = (OWLLiteral) annotation.getValue();
+				//if (val.hasLang("en")) {
+				return val.getLiteral();
+				//}
+			}
+		}
+		return null;
+	}
+	
+	public String get(OWLClass owlClass, OWLAnnotationProperty annotationProperty) throws OntologyNotFoundException {
+		OWLOntology owlOntology = owlOntologyRetriever.getPermanentOWLOntology(owlClass);
 		for (OWLAnnotation annotation : EntitySearcher.getAnnotations(owlClass, owlOntology, annotationProperty)) {
 			if (annotation.getValue() instanceof OWLLiteral) {
 				OWLLiteral val = (OWLLiteral) annotation.getValue();

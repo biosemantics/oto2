@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS `ontologize_term` (
 CREATE TABLE IF NOT EXISTS `ontologize_context` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `collection` bigint(20) unsigned NOT NULL,
-  `source` text NOT NULL,
+  `source` text) NOT NULL,
   `text` text NOT NULL,
   `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -85,13 +85,13 @@ CREATE TABLE IF NOT EXISTS `ontologize_ontologyclasssubmission` (
 	`class_iri` VARCHAR(100) DEFAULT NULL,
 	`definition` text NULL DEFAULT NULL,
   	`source` TEXT NULL DEFAULT NULL,
-	`sample_sentence` TEXT NULL DEFAULT NULL,  
-	`type` VARCHAR(100) NULL DEFAULT NULL,
+	`sample_sentence` TEXT NULL DEFAULT NULL,
 	`user` VARCHAR(100) NULL DEFAULT NULL,
   	`lastupdated` TIMESTAMP NOT NULL DEFAULT '0000-00-00 00:00:00',
   	`created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `id` (`id`)
+  UNIQUE KEY `id` (`id`),
+  UNIQUE KEY `class_iri` (`class_iri`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0 ;
 
 CREATE TABLE IF NOT EXISTS `ontologize_ontologyclasssubmission_synonym` (
@@ -131,7 +131,6 @@ CREATE TABLE `ontologize_ontologysynonymsubmission` (
 	`synonyms` TEXT NULL DEFAULT NULL,
 	`source` TEXT NULL DEFAULT NULL,
 	`sample_sentence` TEXT NULL DEFAULT NULL,
-	`type` VARCHAR(100) NULL DEFAULT NULL,
 	`user` VARCHAR(100) NULL DEFAULT NULL,
 	`lastupdated` TIMESTAMP NOT NULL DEFAULT '0000-00-00 00:00:00',
 	`created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

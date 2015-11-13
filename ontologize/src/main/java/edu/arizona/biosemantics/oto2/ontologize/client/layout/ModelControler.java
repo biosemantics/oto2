@@ -8,6 +8,7 @@ import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadCollectionEvent
 import edu.arizona.biosemantics.oto2.ontologize.client.event.RemoveOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.RemoveOntologySynonymSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.Term;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySynonymSubmission;
 
@@ -40,8 +41,9 @@ public class ModelControler {
 		eventBus.addHandler(CreateOntologyClassSubmissionEvent.TYPE, new CreateOntologyClassSubmissionEvent.Handler() {
 			@Override
 			public void onSubmission(CreateOntologyClassSubmissionEvent event) {
-				if(event.getClassSubmission().hasTerm())
-					collection.addUsedTerm(event.getClassSubmission().getTerm(), event.getClassSubmission());
+				for(OntologyClassSubmission submission : event.getClassSubmissions())
+					if(submission.hasTerm())
+						collection.addUsedTerm(submission.getTerm(), submission);
 			}
 		});
 		eventBus.addHandler(CreateOntologySynonymSubmissionEvent.TYPE, new CreateOntologySynonymSubmissionEvent.Handler() {

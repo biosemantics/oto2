@@ -48,19 +48,19 @@ public class StatusDAO {
 	}
 
 	public Status insert(Status status) throws QueryException  {
-		if(!status.hasId()) {
-			try(Query insert = new Query("INSERT INTO `ontologize_status` (`name`) VALUES(?)")) {
-				insert.setParameter(1, status.getName());
-				insert.execute();
-				ResultSet generatedKeys = insert.getGeneratedKeys();
-				generatedKeys.next();
-				int id = generatedKeys.getInt(1);
-				
-				status.setId(id);
-			} catch(QueryException | SQLException e) {
-				log(LogLevel.ERROR, "Query Exception", e);
-				throw new QueryException(e);
-			}
+		if(status.hasId()) 
+			this.remove(status);
+		try(Query insert = new Query("INSERT INTO `ontologize_status` (`name`) VALUES(?)")) {
+			insert.setParameter(1, status.getName());
+			insert.execute();
+			ResultSet generatedKeys = insert.getGeneratedKeys();
+			generatedKeys.next();
+			int id = generatedKeys.getInt(1);
+			
+			status.setId(id);
+		} catch(QueryException | SQLException e) {
+			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
 		}
 		return status;
 	}

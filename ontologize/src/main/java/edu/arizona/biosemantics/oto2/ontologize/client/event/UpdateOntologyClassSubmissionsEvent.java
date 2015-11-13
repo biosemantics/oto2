@@ -1,5 +1,6 @@
 package edu.arizona.biosemantics.oto2.ontologize.client.event;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import com.google.gwt.event.shared.EventHandler;
@@ -11,7 +12,7 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Ontology
 public class UpdateOntologyClassSubmissionsEvent  extends GwtEvent<Handler> {
 
 	public interface Handler extends EventHandler {
-		void onRemove(UpdateOntologyClassSubmissionsEvent event);
+		void onUpdate(UpdateOntologyClassSubmissionsEvent event);
 	}
 	
     public static Type<Handler> TYPE = new Type<Handler>();
@@ -21,6 +22,12 @@ public class UpdateOntologyClassSubmissionsEvent  extends GwtEvent<Handler> {
 		this.ontologyClassSubmissions = ontologyClassSubmissions;
 	}
 
+	public UpdateOntologyClassSubmissionsEvent(
+			OntologyClassSubmission submission) {
+		ontologyClassSubmissions = new LinkedList<OntologyClassSubmission>();
+		ontologyClassSubmissions.add(submission);
+	}
+
 	@Override
 	public Type<Handler> getAssociatedType() {
 		return TYPE;
@@ -28,7 +35,7 @@ public class UpdateOntologyClassSubmissionsEvent  extends GwtEvent<Handler> {
 
 	@Override
 	protected void dispatch(Handler handler) {
-		handler.onRemove(this);
+		handler.onUpdate(this);
 	}
 
 	public List<OntologyClassSubmission> getOntologyClassSubmissions() {

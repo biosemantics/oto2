@@ -11,11 +11,12 @@ public interface PartOfProperties  extends PropertyAccess<PartOf> {
 	  @Path("id")
 	  ModelKeyProvider<PartOf> key();
 	   
-	  @Path("partof")
+	  @Path("iri")
 	  LabelProvider<PartOf> nameLabel();
 	  
 	  ValueProvider<PartOf, Integer> ontologyClassSubmission();
 	  
-	  ValueProvider<PartOf, String> partOf();
+	  ValueProvider<PartOf, String> iri();
 
+	  ValueProvider<PartOf, String> value();
 }

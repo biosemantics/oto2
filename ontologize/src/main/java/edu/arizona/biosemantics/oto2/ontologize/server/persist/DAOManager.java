@@ -17,6 +17,7 @@ import edu.arizona.biosemantics.oto2.ontologize.server.persist.db.OntologySynony
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.db.StatusDAO;
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.db.TermDAO;
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.file.OntologyFileDAO;
+import edu.arizona.biosemantics.oto2.ontologize.server.persist.file.PermanentOntologyFileDAO;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.OntologyFileException;
 
@@ -36,12 +37,14 @@ public class DAOManager {
 	private OntologySynonymSubmissionSynonymDAO ontologySynonymSubmissionSynonymDAO;
 	private OntologyClassSubmissionSuperclassDAO ontologyClassSubmissionSuperclassDAO;
 	private OntologyClassSubmissionPartOfDAO ontologyClassSubmissionPartOfDAO;
+	private PermanentOntologyFileDAO permanentOntologyFileDAO;
 	
 	@Inject
-	public DAOManager() {
+	public DAOManager() throws OntologyFileException {
 		collectionDAO = new CollectionDAO();
 		termDAO = new TermDAO();
 		ontologyDBDAO = new OntologyDAO();
+		permanentOntologyFileDAO = new PermanentOntologyFileDAO(ontologyDBDAO);
 		ontologyClassSubmissionDAO = new OntologyClassSubmissionDAO();
 		ontologySynonymSubmissionDAO = new OntologySynonymSubmissionDAO();
 		ontologyClassSubmissionStatusDAO = new OntologyClassSubmissionStatusDAO();
@@ -74,6 +77,7 @@ public class DAOManager {
 		//ontologyFileDAO.setCollectionDAO(collectionDAO);
 		ontologyBioportalDAO.setOntologyClassSubmissionDAO(ontologyClassSubmissionDAO);
 		ontologyBioportalDAO.setOntologySynonymSubmissionDAO(ontologySynonymSubmissionDAO);
+		ontologyClassSubmissionSuperclassDAO.setPermanentOntologyFileDAO(permanentOntologyFileDAO);
 	}
 
 	public CollectionDAO getCollectionDAO() {
@@ -118,6 +122,10 @@ public class DAOManager {
 
 	public OntologyBioportalDAO getOntologyBioportalDAO() {
 		return ontologyBioportalDAO;
+	}
+
+	public PermanentOntologyFileDAO getPermanentOntologyFileDAO() {
+		return permanentOntologyFileDAO;
 	}
 	
 	

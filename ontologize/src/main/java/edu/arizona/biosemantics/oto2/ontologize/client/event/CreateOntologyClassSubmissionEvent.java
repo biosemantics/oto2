@@ -1,9 +1,13 @@
 package edu.arizona.biosemantics.oto2.ontologize.client.event;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
 
 import edu.arizona.biosemantics.oto2.ontologize.client.event.CreateOntologyClassSubmissionEvent.Handler;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.Term;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
 
 public class CreateOntologyClassSubmissionEvent extends GwtEvent<Handler> {
@@ -13,10 +17,10 @@ public class CreateOntologyClassSubmissionEvent extends GwtEvent<Handler> {
 	}
 	
     public static Type<Handler> TYPE = new Type<Handler>();
-	private OntologyClassSubmission classSubmission;
+	private List<OntologyClassSubmission> classSubmissions;
 
-    public CreateOntologyClassSubmissionEvent(OntologyClassSubmission classSubmission) {
-    	this.classSubmission = classSubmission;
+    public CreateOntologyClassSubmissionEvent(List<OntologyClassSubmission> classSubmissions) {
+    	this.classSubmissions = classSubmissions;
     }
     
 	@Override
@@ -29,7 +33,7 @@ public class CreateOntologyClassSubmissionEvent extends GwtEvent<Handler> {
 		handler.onSubmission(this);
 	}
 
-	public OntologyClassSubmission getClassSubmission() {
-		return classSubmission;
+	public List<OntologyClassSubmission> getClassSubmissions() {
+		return classSubmissions;
 	}
 }

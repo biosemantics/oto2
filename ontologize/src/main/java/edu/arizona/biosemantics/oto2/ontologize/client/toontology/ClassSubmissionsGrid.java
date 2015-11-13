@@ -71,29 +71,42 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Ontology
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmissionStatus;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmissionStatusProperties;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySynonymSubmission;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySynonymSubmissionProperties;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.PartOf;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Superclass;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Synonym;
-import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySubmission.Type;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.ICollectionService;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.ICollectionServiceAsync;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.IToOntologyService;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.IToOntologyServiceAsync;
 
-public class ClassSubmissionsGrid implements IsWidget {
+public abstract class ClassSubmissionsGrid implements IsWidget {
 
+	private OntologyClassSubmissionProperties ontologyClassSubmissionProperties = GWT.create(OntologyClassSubmissionProperties.class);
+	private OntologySynonymSubmissionProperties ontologySynonymSubmissionProperties = GWT.create(OntologySynonymSubmissionProperties.class);
 	private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
 	private IToOntologyServiceAsync toOntologyService = GWT.create(IToOntologyService.class);
-	private static ColumnConfig<OntologyClassSubmission, String> ontologyCol;
-	private static OntologyClassSubmissionProperties ontologyClassSubmissionProperties = GWT.create(OntologyClassSubmissionProperties.class);
-	private static OntologyClassSubmissionStatusProperties ontologyClassSubmissionStatusProperties = GWT.create(OntologyClassSubmissionStatusProperties.class);
-	private static CheckBoxSelectionModel<OntologyClassSubmission> checkBoxSelectionModel;
-	
 	private EventBus eventBus;
-	protected Collection collection;
+	private Collection collection;
 	private Grid<OntologyClassSubmission> grid;
 	private ListStore<OntologyClassSubmission> classSubmissionStore;
+	private ColumnConfig<OntologyClassSubmission, String> ontologyCol;
+	private CheckBoxSelectionModel<OntologyClassSubmission> checkBoxSelectionModel;
+	protected ColumnConfig<OntologyClassSubmission, String> termCol;
+	protected ColumnConfig<OntologyClassSubmission, String> categoryCol;
+	protected ColumnConfig<OntologyClassSubmission, String> definitionCol;
 	//private List<Ontology> ontologies;
+	protected ColumnConfig<OntologyClassSubmission, String> sourceCol;
+	protected ColumnConfig<OntologyClassSubmission, String> sampleCol;
+	protected ColumnConfig<OntologyClassSubmission, String> synonymsCol;
+	protected ColumnConfig<OntologyClassSubmission, String> userCol;
+	protected ColumnConfig<OntologyClassSubmission, String> partOfCol;
+	protected ColumnConfig<OntologyClassSubmission, Type> typeCol;
+	protected ColumnConfig<OntologyClassSubmission, String> statusCol;
+	protected ColumnConfig<OntologyClassSubmission, String> iriCol;
+	protected ColumnConfig<OntologyClassSubmission, String> submissionTermCol;
+	protected ColumnConfig<OntologyClassSubmission, String> superClassCol;
 	
 	public ClassSubmissionsGrid(EventBus eventBus, ListStore<OntologyClassSubmission> classSubmissionStore) {		
 		this.eventBus = eventBus;
@@ -366,17 +379,19 @@ public class ClassSubmissionsGrid implements IsWidget {
 				deleteItem.addSelectionHandler(new SelectionHandler<Item>() {
 					@Override
 					public void onSelection(SelectionEvent<Item> event) {
-						toOntologyService.removeClassSubmissions(collection, 
-								grid.getSelectionModel().getSelectedItems(), new AsyncCallback<Void>() {
-							@Override
-							public void onFailure(Throwable caught) {
-								Alerter.failedToRemoveOntologyClassSubmission();
-							}
-							@Override
-							public void onSuccess(Void result) {
-								eventBus.fireEvent(new RemoveOntologyClassSubmissionsEvent(grid.getSelectionModel().getSelectedItems()));
-							}
-						});
+						for(OntologyClassSubmission submission : grid.getSelectionModel().getSelectedItems()) {
+							toOntologyService.removeClassSubmission(collection, 
+									submission, new AsyncCallback<Void>() {
+								@Override
+								public void onFailure(Throwable caught) {
+									Alerter.failedToRemoveOntologyClassSubmission();
+								}
+								@Override
+								public void onSuccess(Void result) {
+									eventBus.fireEvent(new RemoveOntologyClassSubmissionsEvent(grid.getSelectionModel().getSelectedItems()));
+								}
+							});
+						}
 					}
 				});
 				return deleteItem;
@@ -385,6 +400,15 @@ public class ClassSubmissionsGrid implements IsWidget {
 		return menu;
 	}
 
+	@Override
+	public Widget asWidget() {
+		return grid;
+	}
+
+	public GridSelectionModel<OntologyClassSubmission> getSelectionModel() {
+		return grid.getSelectionModel();
+	}
+	
 	private ColumnModel<OntologyClassSubmission> createColumnModel(ListStore<OntologyClassSubmission> classSubmissionStore) {
 		IdentityValueProvider<OntologyClassSubmission> identity = new IdentityValueProvider<OntologyClassSubmission>();
 		checkBoxSelectionModel = new CheckBoxSelectionModel<OntologyClassSubmission>(
@@ -417,12 +441,12 @@ public class ClassSubmissionsGrid implements IsWidget {
 				return "term-term";
 			}
 		};
-		final ColumnConfig<OntologyClassSubmission, String> termCol = new ColumnConfig<OntologyClassSubmission, String>(
+		termCol = new ColumnConfig<OntologyClassSubmission, String>(
 				termValueProvider, 200, "Candidate Term");
 		termCol.setCell(colorableCell);
 
 		
-		final ColumnConfig<OntologyClassSubmission, String> submissionTermCol = new ColumnConfig<OntologyClassSubmission, String>(
+		submissionTermCol = new ColumnConfig<OntologyClassSubmission, String>(
 				ontologyClassSubmissionProperties.submissionTerm(), 200, "Term");
 		submissionTermCol.setCell(colorableCell);
 		
@@ -440,7 +464,7 @@ public class ClassSubmissionsGrid implements IsWidget {
 				return "term-category";
 			}
 		};
-		final ColumnConfig<OntologyClassSubmission, String> categoryCol = new ColumnConfig<OntologyClassSubmission, String>(
+		categoryCol = new ColumnConfig<OntologyClassSubmission, String>(
 				categoryValueProvider, 200, "Category");
 		categoryCol.setCell(colorableCell);
 
@@ -468,13 +492,13 @@ public class ClassSubmissionsGrid implements IsWidget {
 				sb.append(SafeHtmlUtils.fromSafeConstant(value.getName()));
 			}
 		}); */
-		final ColumnConfig<OntologyClassSubmission, String> superClassCol = new ColumnConfig<OntologyClassSubmission, String>(
+		superClassCol = new ColumnConfig<OntologyClassSubmission, String>(
 				new ValueProvider<OntologyClassSubmission, String>() {
 					@Override
 					public String getValue(OntologyClassSubmission object) {
 						String result = "";
 						for(Superclass superclass : object.getSuperclasses()) {
-							result += superclass.getSuperclass() + ", ";
+							result += superclass.toString() + ", ";
 						}
 						if(result.length() > 0)
 							return result.substring(0, result.length() -2);
@@ -489,10 +513,10 @@ public class ClassSubmissionsGrid implements IsWidget {
 					
 				}, 200, "Superclasses");
 		superClassCol.setCell(colorableCell);
-		final ColumnConfig<OntologyClassSubmission, String> definitionCol = new ColumnConfig<OntologyClassSubmission, String>(
+		definitionCol = new ColumnConfig<OntologyClassSubmission, String>(
 				ontologyClassSubmissionProperties.definition(), 200, "Defintion");
 		definitionCol.setCell(colorableCell);
-		final ColumnConfig<OntologyClassSubmission, String> synonymsCol = new ColumnConfig<OntologyClassSubmission, String>(
+		synonymsCol = new ColumnConfig<OntologyClassSubmission, String>(
 				new ValueProvider<OntologyClassSubmission, String>() {
 					@Override
 					public String getValue(OntologyClassSubmission object) {
@@ -513,19 +537,19 @@ public class ClassSubmissionsGrid implements IsWidget {
 					
 				}, 200, "Synonyms");
 		synonymsCol.setCell(colorableCell);
-		final ColumnConfig<OntologyClassSubmission, String> sourceCol = new ColumnConfig<OntologyClassSubmission, String>(
+		sourceCol = new ColumnConfig<OntologyClassSubmission, String>(
 				ontologyClassSubmissionProperties.source(), 200, "Source");
 		sourceCol.setCell(colorableCell);
-		final ColumnConfig<OntologyClassSubmission, String> sampleCol = new ColumnConfig<OntologyClassSubmission, String>(
+		sampleCol = new ColumnConfig<OntologyClassSubmission, String>(
 				ontologyClassSubmissionProperties.sampleSentence(), 200, "Sample Sentence");
 		sampleCol.setCell(colorableCell);
-		final ColumnConfig<OntologyClassSubmission, String> partOfCol = new ColumnConfig<OntologyClassSubmission, String>(
+		partOfCol = new ColumnConfig<OntologyClassSubmission, String>(
 				new ValueProvider<OntologyClassSubmission, String>() {
 					@Override
 					public String getValue(OntologyClassSubmission object) {
 						String result = "";
 						for(PartOf partOf : object.getPartOfs()) {
-							result += partOf.getPartOf() + ", ";
+							result += partOf.toString() + ", ";
 						}
 						if(result.length() > 0)
 							return result.substring(0, result.length() -2);
@@ -541,10 +565,10 @@ public class ClassSubmissionsGrid implements IsWidget {
 				}, 200, "Part Of");
 		partOfCol.setCell(colorableCell);
 		
-		final ColumnConfig<OntologyClassSubmission, Type> typeCol = new ColumnConfig<OntologyClassSubmission, Type>(
+		typeCol = new ColumnConfig<OntologyClassSubmission, Type>(
 				ontologyClassSubmissionProperties.type(), 200, "Type");
 		
-		/*final ColumnConfig<OntologyClassSubmission, Boolean> entityCol = new ColumnConfig<OntologyClassSubmission, Boolean>(
+		/*entityCol = new ColumnConfig<OntologyClassSubmission, Boolean>(
 				ontologyClassSubmissionProperties.entity(), 200, "Entity");
 		ColorableCheckBoxCell colorableCheckBoxCell = new ColorableCheckBoxCell(eventBus, collection);
 		colorableCheckBoxCell.disable(null);
@@ -559,12 +583,12 @@ public class ClassSubmissionsGrid implements IsWidget {
 			}
 		});
 		entityCol.setCell(colorableCheckBoxCell);
-		final ColumnConfig<OntologyClassSubmission, Boolean> qualityCol = new ColumnConfig<OntologyClassSubmission, Boolean>(
+		qualityCol = new ColumnConfig<OntologyClassSubmission, Boolean>(
 				ontologyClassSubmissionProperties.quality(), 200, "Quality");
 		qualityCol.setCell(colorableCheckBoxCell);*/
 		
 		
-		final ColumnConfig<OntologyClassSubmission, String> statusCol = new ColumnConfig<OntologyClassSubmission, String>(
+		statusCol = new ColumnConfig<OntologyClassSubmission, String>(
 				new ValueProvider<OntologyClassSubmission, String>() {
 					@Override
 					public String getValue(OntologyClassSubmission object) {
@@ -584,7 +608,7 @@ public class ClassSubmissionsGrid implements IsWidget {
 					}
 				}, 200, "Status");
 		statusCol.setCell(colorableCell);
-		final ColumnConfig<OntologyClassSubmission, String> iriCol = new ColumnConfig<OntologyClassSubmission, String>(
+		iriCol = new ColumnConfig<OntologyClassSubmission, String>(
 				ontologyClassSubmissionProperties.classIRI()
 				/*new ValueProvider<OntologyClassSubmission, String>() {
 					@Override
@@ -604,11 +628,30 @@ public class ClassSubmissionsGrid implements IsWidget {
 					}
 				}*/, 200, "IRI");
 		iriCol.setCell(colorableCell);
-		final ColumnConfig<OntologyClassSubmission, String> userCol = new ColumnConfig<OntologyClassSubmission, String>(
+		userCol = new ColumnConfig<OntologyClassSubmission, String>(
 				ontologyClassSubmissionProperties.user(), 200, "User");
 		userCol.setCell(colorableCell);
 		
+		List<ColumnConfig<OntologyClassSubmission, ?>> columns = new ArrayList<ColumnConfig<OntologyClassSubmission, ?>>();
+		columns.add(checkBoxSelectionModel.getColumn());
+		columns.add(termCol);
+		columns.add(submissionTermCol);
+		columns.add(categoryCol);
+		columns.add(ontologyCol);
+		columns.add(statusCol);
+		columns.add(iriCol);
+		columns.add(superClassCol);
+		columns.add(partOfCol);
+		//columns.add(entityCol);
+		//columns.add(qualityCol);
+		columns.add(typeCol);
+		columns.add(definitionCol);
+		columns.add(sampleCol);
+		columns.add(sourceCol);
+		columns.add(synonymsCol);
+		columns.add(userCol);
 		
+		setHiddenColumns();
 		
 //		ValueProvider<Articulation, String> commentValueProvider = new ValueProvider<Articulation, String>() {
 //			@Override
@@ -691,44 +734,12 @@ public class ClassSubmissionsGrid implements IsWidget {
 //		});
 //		
 		
-		List<ColumnConfig<OntologyClassSubmission, ?>> columns = new ArrayList<ColumnConfig<OntologyClassSubmission, ?>>();
-		columns.add(checkBoxSelectionModel.getColumn());
-		columns.add(termCol);
-		termCol.setHidden(true);
-		columns.add(submissionTermCol);
-		columns.add(categoryCol);
-		categoryCol.setHidden(true);
-		columns.add(ontologyCol);
-		columns.add(statusCol);
-		columns.add(iriCol);
-		columns.add(superClassCol);
-		//superClassCol.setHidden(true);
-		columns.add(partOfCol);
-		//partOfCol.setHidden(true);
-		//columns.add(entityCol);
-		//columns.add(qualityCol);
-		columns.add(typeCol);
-		columns.add(definitionCol);
-		definitionCol.setHidden(true);
-		columns.add(sampleCol);
-		sampleCol.setHidden(true);
-		columns.add(sourceCol);
-		sourceCol.setHidden(true);
-		columns.add(synonymsCol);
-		//synonymsCol.setHidden(true);
-		columns.add(userCol);
+		
 
 		ColumnModel<OntologyClassSubmission> cm = new ColumnModel<OntologyClassSubmission>(columns);
 		return cm;
 	}
 
-	@Override
-	public Widget asWidget() {
-		return grid;
-	}
-
-	public GridSelectionModel<OntologyClassSubmission> getSelectionModel() {
-		return grid.getSelectionModel();
-	}
+	protected abstract void setHiddenColumns();
 	
 }

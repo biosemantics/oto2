@@ -36,6 +36,9 @@ public class OntologySynonymSubmissionSynonymDAO {
 	}
 
 	public Synonym insert(Synonym synonym) throws QueryException  {
+		if(synonym.hasId())
+			this.remove(synonym);
+		
 		try(Query insert = new Query("INSERT INTO `ontologize_ontologysynonymsubmission_synonym` (`ontologysynonymsubmission`, `synonym`) VALUES(?, ?)")) {
 			insert.setParameter(1, synonym.getSubmission());
 			insert.setParameter(2, synonym.getSynonym());
@@ -72,12 +75,13 @@ public class OntologySynonymSubmissionSynonymDAO {
 	
 	public void update(int ontologySynonymSubmissionId, List<Synonym> synonyms) throws QueryException {
 		remove(ontologySynonymSubmissionId);
-		for(Synonym synonym : synonyms)
+		for(Synonym synonym : synonyms) {
 			insert(synonym);
+		}
 	}
 	
 	public void remove(int ontologySynonymSubmissionId) throws QueryException {
-		try(Query query = new Query("DELETE FROM ontologize_ontologysynonymsubmission_synonym WHERE ontologysynonymsubmisson = ?")) {
+		try(Query query = new Query("DELETE FROM ontologize_ontologysynonymsubmission_synonym WHERE ontologysynonymsubmission = ?")) {
 			query.setParameter(1, ontologySynonymSubmissionId);
 			query.execute();
 		} catch(QueryException e) {

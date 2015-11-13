@@ -33,6 +33,8 @@ import edu.arizona.biosemantics.oto2.ontologize.client.event.SelectSuperclassEve
 import edu.arizona.biosemantics.oto2.ontologize.client.event.SelectSynonymEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.UpdateOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.UpdateOntologySynonymsSubmissionsEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.toontology.submit.SubmitBioportalView;
+import edu.arizona.biosemantics.oto2.ontologize.client.toontology.submit.SubmitLocalView;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmissionProperties;
@@ -49,28 +51,28 @@ public class SubmissionsView implements IsWidget {
 	private Collection collection;
 	
 	private IToOntologyServiceAsync toOntologyService = GWT.create(IToOntologyService.class);
-	private OntologyClassSubmissionProperties ontologyClassSubmissionProperties = GWT.create(OntologyClassSubmissionProperties.class);
-	private OntologySynonymSubmissionProperties ontologySynonymSubmissionProperties = GWT.create(OntologySynonymSubmissionProperties.class);
-	private OntologySynonymSubmissionStatusProperties ontologySynonymSubmissionStatusProperties = GWT.create(OntologySynonymSubmissionStatusProperties.class);
-	private OntologyClassSubmissionStatusProperties ontologyClassSubmissionStatusProperties = GWT.create(OntologyClassSubmissionStatusProperties.class);
-	
-	private ListStore<OntologyClassSubmission> classSubmissionStore =
-			new ListStore<OntologyClassSubmission>(ontologyClassSubmissionProperties.key());
-	private ListStore<OntologySynonymSubmission> synonymSubmissionStore =
-			new ListStore<OntologySynonymSubmission>(ontologySynonymSubmissionProperties.key());
+
 	private TabPanel tabPanel;
-	private ClassSubmissionsGrid classSubmissionsGrid;
-	private SynonymSubmissionsGrid synonymSubmissionsGrid;
+	private SubmissionsLocalView submissionsLocalView;
+	private SubmissionsBioportalView submissionsBioportalView;
 	
 	public SubmissionsView(EventBus eventBus) {
 		this.eventBus = eventBus;
 		
 		//tabPanel = new TabPanel(GWT.<TabPanelAppearance> create(TabPanelBottomAppearance.class));
-		tabPanel = new TabPanel();
+		/*tabPanel = new TabPanel();
 		classSubmissionsGrid = createOntologyClassSubmissionGrid();
 		synonymSubmissionsGrid = createOntologySynonymSubmissionGrid();
 		tabPanel.add(createOntologyClassSubmissionGrid(), "Class");
-		tabPanel.add(createOntologySynonymSubmissionGrid(), "Synonym");
+		tabPanel.add(createOntologySynonymSubmissionGrid(), "Synonym");*/
+		
+		tabPanel = new TabPanel();
+		
+		submissionsLocalView = new SubmissionsLocalView(eventBus);
+		submissionsBioportalView = new SubmissionsBioportalView(eventBus);
+		
+		tabPanel.add(submissionsLocalView, "Local");
+		tabPanel.add(submissionsBioportalView, "Bioportal");
 		
 		bindEvents();
 	}
@@ -118,7 +120,7 @@ public class SubmissionsView implements IsWidget {
 		});
 		eventBus.addHandler(UpdateOntologyClassSubmissionsEvent.TYPE, new UpdateOntologyClassSubmissionsEvent.Handler() {
 			@Override
-			public void onRemove(UpdateOntologyClassSubmissionsEvent event) {
+			public void onUpdate(UpdateOntologyClassSubmissionsEvent event) {
 				refreshClassSubmissions();
 			}
 		});
@@ -141,8 +143,6 @@ public class SubmissionsView implements IsWidget {
 			@Override
 			public void onSuccess(List<OntologyClassSubmission> result) {
 				eventBus.fireEvent(new RefreshOntologyClassSubmissionsEvent(result));
-				classSubmissionStore.clear();
-				classSubmissionStore.addAll(result);
 				Alerter.stopLoading(loadingBox);
 			}
 		});
@@ -160,18 +160,8 @@ public class SubmissionsView implements IsWidget {
 			public void onSuccess(List<OntologySynonymSubmission> result) {
 				Alerter.stopLoading(loadingBox);
 				eventBus.fireEvent(new RefreshOntologySynonymSubmissionsEvent(result));
-				synonymSubmissionStore.clear();
-				synonymSubmissionStore.addAll(result);
 			}
 		});
-	}
-
-	private SynonymSubmissionsGrid createOntologySynonymSubmissionGrid() {
-		return new SynonymSubmissionsGrid(eventBus, synonymSubmissionStore);
-	}
-
-	private ClassSubmissionsGrid createOntologyClassSubmissionGrid() {
-		return new ClassSubmissionsGrid(eventBus, classSubmissionStore);
 	}
 
 	@Override

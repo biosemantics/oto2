@@ -40,22 +40,22 @@ public class OntologySynonymSubmissionStatusDAO {
 	}
 
 	public OntologySynonymSubmissionStatus insert(OntologySynonymSubmissionStatus ontologySynonymSubmissionStatus) throws QueryException  {
-		if(!ontologySynonymSubmissionStatus.hasId()) {
-			try(Query insert = new Query("INSERT INTO `ontologize_ontologysynonymsubmission_status` "
-					+ "(`ontologysynonymsubmission`, `status`, `iri`) VALUES(?, ?, ?)")) {
-				insert.setParameter(1, ontologySynonymSubmissionStatus.getOntologySynonymSubmissionId());
-				insert.setParameter(2, ontologySynonymSubmissionStatus.getStatus().getId());
-				insert.setParameter(3, ontologySynonymSubmissionStatus.getIri());
-				insert.execute();
-				ResultSet generatedKeys = insert.getGeneratedKeys();
-				generatedKeys.next();
-				int id = generatedKeys.getInt(1);
-				
-				ontologySynonymSubmissionStatus.setId(id);
-			} catch(QueryException | SQLException e) {
-				log(LogLevel.ERROR, "Query Exception", e);
-				throw new QueryException(e);
-			}
+		if(ontologySynonymSubmissionStatus.hasId()) 
+			this.remove(ontologySynonymSubmissionStatus);
+		try(Query insert = new Query("INSERT INTO `ontologize_ontologysynonymsubmission_status` "
+				+ "(`ontologysynonymsubmission`, `status`, `iri`) VALUES(?, ?, ?)")) {
+			insert.setParameter(1, ontologySynonymSubmissionStatus.getOntologySynonymSubmissionId());
+			insert.setParameter(2, ontologySynonymSubmissionStatus.getStatus().getId());
+			insert.setParameter(3, ontologySynonymSubmissionStatus.getIri());
+			insert.execute();
+			ResultSet generatedKeys = insert.getGeneratedKeys();
+			generatedKeys.next();
+			int id = generatedKeys.getInt(1);
+			
+			ontologySynonymSubmissionStatus.setId(id);
+		} catch(QueryException | SQLException e) {
+			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
 		}
 		return ontologySynonymSubmissionStatus;
 	}

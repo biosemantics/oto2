@@ -41,6 +41,7 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Ontology
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySynonymSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Status;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.StatusEnum;
+import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.OntologyNotFoundException;
 
 public class CollectionDAO {
 		
@@ -65,7 +66,7 @@ public class CollectionDAO {
 		return false;
 	}
 	
-	public Collection get(int id) throws QueryException, IOException  {
+	public Collection get(int id) throws QueryException, IOException, OntologyNotFoundException  {
 		Collection collection = null;
 		try(Query query = new Query("SELECT * FROM ontologize_collection WHERE id = ?")) {
 			query.setParameter(1, id);
@@ -91,7 +92,7 @@ public class CollectionDAO {
 		return collection;
 	}
 	
-	private Collection createCollection(ResultSet result) throws SQLException, IOException, QueryException {
+	private Collection createCollection(ResultSet result) throws SQLException, IOException, QueryException, OntologyNotFoundException {
 		int id = result.getInt("id");
 		String name = result.getString("name");
 		String taxonGroupString = result.getString("taxongroup");
@@ -135,25 +136,25 @@ public class CollectionDAO {
 	}
 
 	public Collection insert(Collection collection) throws QueryException, IOException  {
-		if(!collection.hasId()) {
-			try(Query insert = new Query("INSERT INTO `ontologize_collection` (`name`, `taxongroup`, `secret`) VALUES(?, ?, ?)")) {
-				insert.setParameter(1, collection.getName().trim());
-				insert.setParameter(2, collection.getTaxonGroup().toString());
-				insert.setParameter(3, collection.getSecret());
-				insert.execute();
-				ResultSet generatedKeys = insert.getGeneratedKeys();
-				generatedKeys.next();
-				int id = generatedKeys.getInt(1);
-				collection.setId(id);
-				
-				for(Term term : collection.getTerms()) 
-					termDAO.insert(term, collection.getId());
-				
-				serialize(collection);
-			} catch(QueryException | SQLException e) {
-				log(LogLevel.ERROR, "Query Exception", e);
-				throw new QueryException(e);
-			}
+		if(collection.hasId()) 
+			this.remove(collection);
+		try(Query insert = new Query("INSERT INTO `ontologize_collection` (`name`, `taxongroup`, `secret`) VALUES(?, ?, ?)")) {
+			insert.setParameter(1, collection.getName().trim());
+			insert.setParameter(2, collection.getTaxonGroup().toString());
+			insert.setParameter(3, collection.getSecret());
+			insert.execute();
+			ResultSet generatedKeys = insert.getGeneratedKeys();
+			generatedKeys.next();
+			int id = generatedKeys.getInt(1);
+			collection.setId(id);
+			
+			for(Term term : collection.getTerms()) 
+				termDAO.insert(term, collection.getId());
+			
+			serialize(collection);
+		} catch(QueryException | SQLException e) {
+			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
 		}
 		return collection;
 	}
@@ -211,7 +212,7 @@ public class CollectionDAO {
 		}
 	}
 	
-	public List<Collection> getCollections(TaxonGroup taxonGroup) throws IOException, QueryException {
+	public List<Collection> getCollections(TaxonGroup taxonGroup) throws IOException, QueryException, OntologyNotFoundException {
 		List<Collection> collections = new LinkedList<Collection>();
 		try(Query query = new Query("SELECT id FROM ontologize_collection WHERE taxongroup = ?")) {
 			query.setParameter(1, taxonGroup.toString());

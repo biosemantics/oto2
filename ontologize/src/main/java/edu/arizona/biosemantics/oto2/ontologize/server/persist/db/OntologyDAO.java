@@ -65,29 +65,29 @@ public class OntologyDAO {
 	}
 
 	public Ontology insert(Ontology ontology) throws QueryException  {
-		if(!ontology.hasId()) {
-			try(Query insert = new Query("INSERT INTO `ontologize_ontology` (`iri`, `name`, `acronym`, "
-					+ "`browse_url`, `bioportal_ontology`, `created_in_collection`) VALUES(?, ?, ?, ?, ?, ?)")) {
-				insert.setParameter(1, ontology.getIri());
-				insert.setParameter(2, ontology.getName());
-				insert.setParameter(3, ontology.getAcronym());
-				insert.setParameter(4, ontology.getBrowseURL());
-				insert.setParameter(5, ontology.isBioportalOntology());
-				insert.setParameter(6, ontology.getCreatedInCollectionId());
-				insert.execute();
-				
-				ResultSet generatedKeys = insert.getGeneratedKeys();
-				generatedKeys.next();
-				int id = generatedKeys.getInt(1);
-				ontology.setId(id);
-				
-				addTaxonGroups(ontology);
-			} catch(QueryException | SQLException e) {
-				log(LogLevel.ERROR, "Query Exception", e);
-				throw new QueryException(e);
-			}
-			insertLocalOntologiesForCollection(ontology.getCreatedInCollectionId(), ontology);
+		if(ontology.hasId())
+			this.remove(ontology);
+		try(Query insert = new Query("INSERT INTO `ontologize_ontology` (`iri`, `name`, `acronym`, "
+				+ "`browse_url`, `bioportal_ontology`, `created_in_collection`) VALUES(?, ?, ?, ?, ?, ?)")) {
+			insert.setParameter(1, ontology.getIri());
+			insert.setParameter(2, ontology.getName());
+			insert.setParameter(3, ontology.getAcronym());
+			insert.setParameter(4, ontology.getBrowseURL());
+			insert.setParameter(5, ontology.isBioportalOntology());
+			insert.setParameter(6, ontology.getCreatedInCollectionId());
+			insert.execute();
+			
+			ResultSet generatedKeys = insert.getGeneratedKeys();
+			generatedKeys.next();
+			int id = generatedKeys.getInt(1);
+			ontology.setId(id);
+			
+			addTaxonGroups(ontology);
+		} catch(QueryException | SQLException e) {
+			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
 		}
+		insertLocalOntologiesForCollection(ontology.getCreatedInCollectionId(), ontology);
 		return ontology;
 	}
 

@@ -55,6 +55,10 @@ public class OWLOntologyRetriever  {
 			throw new OntologyNotFoundException("Could not find ontology for class " + owlClass.getIRI().toString(), e);
 		}
 		
+		return getOWLOntology(owlClass, ontologies);
+	}
+	
+	private OWLOntology getOWLOntology(OWLClass owlClass, java.util.Collection<Ontology> ontologies) throws OntologyNotFoundException {
 		String owlClassIRI = owlClass.getIRI().toString().toLowerCase();
 		String hackyOwlClassIdentifier = owlClassIRI;
 		if(hackyOwlClassIdentifier.contains("_"))
@@ -63,7 +67,8 @@ public class OWLOntologyRetriever  {
 			hackyOwlClassIdentifier = hackyOwlClassIdentifier.substring(0, hackyOwlClassIdentifier.indexOf("#"));
 
 		for(Ontology ontology : ontologies) {
-			OWLOntology owlOntology = owlOntologyManager.getOntology(OntologyFileDAO.createOntologyIRI(ontology));
+			IRI iri = OntologyFileDAO.createOntologyIRI(ontology);
+			OWLOntology owlOntology = owlOntologyManager.getOntology(iri);
 			java.util.Collection<OWLOntology> referencedOntologies = owlOntologyManager.getImportsClosure(owlOntology);//getReferencedOntologies(owlOntology);
 			for(OWLOntology referencedOntology : referencedOntologies) {
 				String ontologyIRI = referencedOntology.getOntologyID().getOntologyIRI().get().toString();
@@ -82,6 +87,17 @@ public class OWLOntologyRetriever  {
 			}
 		}
 		throw new OntologyNotFoundException("Could not find ontology for class " + owlClass.getIRI().toString());
+	}
+	
+	public OWLOntology getPermanentOWLOntology(OWLClass owlClass) throws OntologyNotFoundException {
+		java.util.Collection<Ontology> ontologies = null;
+		try {
+			ontologies = ontologyDBDAO.getBioportalOntologies();
+		} catch (QueryException e) {
+			throw new OntologyNotFoundException("Could not find ontology for class " + owlClass.getIRI().toString(), e);
+		}
+		
+		return getOWLOntology(owlClass, ontologies);
 	}
 
 	private java.util.Collection<OWLOntology> getReferencedOntologies(OWLOntology owlOntology) {

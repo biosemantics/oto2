@@ -52,6 +52,8 @@ import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadCollectionEvent
 import edu.arizona.biosemantics.oto2.ontologize.client.event.RefreshOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.RefreshOntologySynonymSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.RefreshSubmissionsEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.RemoveOntologyClassSubmissionsEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.RemoveOntologySynonymSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.SetColorEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.TermMarkUselessEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.TermSelectEvent;
@@ -253,7 +255,7 @@ public class TermsView implements IsWidget {
 	private TreeStore<TextTreeNode> treeStore;
 	private Map<Term, TermTreeNode> termTermTreeNodeMap = new HashMap<Term, TermTreeNode>();
 	private Tree<TextTreeNode, TextTreeNode> termTree;
-	private TextButton refreshButton = new TextButton("Refresh");
+	//private TextButton refreshButton = new TextButton("Refresh");
 	private EventBus eventBus;
 	private AllowSurpressSelectEventsTreeSelectionModel<TextTreeNode> termTreeSelectionModel = 
 			new AllowSurpressSelectEventsTreeSelectionModel<TextTreeNode>();
@@ -317,7 +319,7 @@ public class TermsView implements IsWidget {
 
 		vertical = new VerticalLayoutContainer();
 		vertical.add(termTree, new VerticalLayoutData(1, 1));
-		vertical.add(refreshButton, new VerticalLayoutData(1, -1));
+		//vertical.add(refreshButton, new VerticalLayoutData(1, -1));
 		
 		tabPanel = new TabPanel();
 		tabPanel.add(vertical, "Terms");
@@ -326,7 +328,7 @@ public class TermsView implements IsWidget {
 	}
 	
 	private void bindEvents() {
-		refreshButton.addSelectHandler(new SelectHandler() {
+		/*refreshButton.addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
 				toOntologyService.refreshSubmissionStatuses(collection, new AsyncCallback<Void>() {
@@ -340,7 +342,7 @@ public class TermsView implements IsWidget {
 					}
 				});
 			}
-		});
+		});*/
 		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
 			@Override
 			public void onLoad(LoadCollectionEvent event) {
@@ -418,8 +420,10 @@ public class TermsView implements IsWidget {
 				new CreateOntologyClassSubmissionEvent.Handler() {
 					@Override
 					public void onSubmission(CreateOntologyClassSubmissionEvent event) {
-						if(event.getClassSubmission().hasTerm())
-							update(event.getClassSubmission().getTerm());
+						for(OntologyClassSubmission submission : event.getClassSubmissions()) {
+							if(submission.hasTerm())
+								update(submission.getTerm());
+						}
 					}
 		});
 		eventBus.addHandler(CreateOntologySynonymSubmissionEvent.TYPE, 
@@ -429,6 +433,22 @@ public class TermsView implements IsWidget {
 						if(event.getSynonymSubmission().hasTerm())
 							update(event.getSynonymSubmission().getTerm());
 					}
+		});
+		eventBus.addHandler(RemoveOntologyClassSubmissionsEvent.TYPE, new RemoveOntologyClassSubmissionsEvent.Handler() {
+			@Override
+			public void onRemove(RemoveOntologyClassSubmissionsEvent event) {
+				for(OntologyClassSubmission submission : event.getOntologyClassSubmissions()) 
+					if(submission.hasTerm())
+						update(submission.getTerm());
+			}
+		});
+		eventBus.addHandler(RemoveOntologySynonymSubmissionsEvent.TYPE, new RemoveOntologySynonymSubmissionsEvent.Handler() {
+			@Override
+			public void onRemove(RemoveOntologySynonymSubmissionsEvent event) {
+				for(OntologySynonymSubmission submission : event.getOntologySynonymSubmissions())
+					if(submission.hasTerm())
+						update(submission.getTerm());
+			}
 		});
 	}	
 	

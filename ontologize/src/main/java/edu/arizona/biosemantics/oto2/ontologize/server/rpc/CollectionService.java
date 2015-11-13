@@ -49,6 +49,7 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 		try {
 			if(daoManager.getCollectionDAO().isValidSecret(id, secret)) {
 				Collection collection = daoManager.getCollectionDAO().get(id);
+				daoManager.getOntologyBioportalDAO().refreshStatuses(collection);
 				
 				//TODO: IS SLOW
 				//collection.setTermExistingIRIMap(getExistingIRI(collection.getTerms()));
@@ -60,7 +61,7 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 		}
 	}
 
-	private Map<Term, List<String>> getExistingIRI(List<Term> terms) throws QueryException, IOException {
+	/*private Map<Term, List<String>> getExistingIRI(List<Term> terms) throws QueryException, IOException {
 		Map<Term, List<String>> existingIRIs = new HashMap<Term, List<String>>();
 		for(Term term : terms) {
 			if(!existingIRIs.containsKey(term))
@@ -116,7 +117,7 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 		}
 		
 		return iris;
-	}
+	}*/
 
 	@Override
 	public void update(Collection collection) throws Exception {
