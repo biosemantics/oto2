@@ -44,5 +44,9 @@ public interface IToOntologyServiceAsync {
 			AsyncCallback<List<OntologyClassSubmission>> callback);
 
 	public void getClassLabel(Collection collection, String iri, AsyncCallback<String> callback);
+	
+	public void sendBioportalSubmissions(Collection collection, AsyncCallback<Void> callback);
+
+	public void storeLocalOntologiesToFile(Collection collection, AsyncCallback<Void> callback);
 
 }

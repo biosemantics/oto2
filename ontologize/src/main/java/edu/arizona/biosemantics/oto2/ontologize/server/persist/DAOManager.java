@@ -44,6 +44,7 @@ public class DAOManager {
 		collectionDAO = new CollectionDAO();
 		termDAO = new TermDAO();
 		ontologyDBDAO = new OntologyDAO();
+		permanentOntologyFileDAO = new PermanentOntologyFileDAO(ontologyDBDAO);
 		ontologyClassSubmissionDAO = new OntologyClassSubmissionDAO();
 		ontologySynonymSubmissionDAO = new OntologySynonymSubmissionDAO();
 		ontologyClassSubmissionStatusDAO = new OntologyClassSubmissionStatusDAO();
@@ -76,7 +77,7 @@ public class DAOManager {
 		//ontologyFileDAO.setCollectionDAO(collectionDAO);
 		ontologyBioportalDAO.setOntologyClassSubmissionDAO(ontologyClassSubmissionDAO);
 		ontologyBioportalDAO.setOntologySynonymSubmissionDAO(ontologySynonymSubmissionDAO);
-		permanentOntologyFileDAO = new PermanentOntologyFileDAO(ontologyDBDAO);
+		ontologyClassSubmissionSuperclassDAO.setPermanentOntologyFileDAO(permanentOntologyFileDAO);
 	}
 
 	public CollectionDAO getCollectionDAO() {

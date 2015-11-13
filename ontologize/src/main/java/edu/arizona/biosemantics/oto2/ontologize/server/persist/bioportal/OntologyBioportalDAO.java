@@ -24,6 +24,7 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Ontology
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.StatusEnum;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Superclass;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Synonym;
+import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.OntologyNotFoundException;
 
 public class OntologyBioportalDAO {
 
@@ -33,15 +34,17 @@ public class OntologyBioportalDAO {
 	private OntologyClassSubmissionStatusDAO ontologyClassSubmissionStatusDAO;
 	private OntologySynonymSubmissionStatusDAO ontologySynonymSubmissionStatusDAO;
 	
-	public void refreshStatuses(Collection collection) throws QueryException {
+	public void refreshStatuses(Collection collection) throws QueryException, OntologyNotFoundException {
 		List<OntologyClassSubmission> ontologyClassSubmissions = ontologyClassSubmissionDAO.get(collection, StatusEnum.PENDING);
 		List<OntologySynonymSubmission> ontologySynonymSubmissions = ontologySynonymSubmissionDAO.get(collection, StatusEnum.PENDING);
 		
 		for(OntologyClassSubmission ontologyClassSubmission : ontologyClassSubmissions) {
-			refresh(ontologyClassSubmission);
+			if(ontologyClassSubmission.getOntology().isBioportalOntology())
+				refresh(ontologyClassSubmission);
 		}
 		for(OntologySynonymSubmission ontologySynonymSubmission : ontologySynonymSubmissions) {
-			refresh(ontologySynonymSubmission);
+			if(ontologySynonymSubmission.getOntology().isBioportalOntology())
+				refresh(ontologySynonymSubmission);
 		}
 	}
 	

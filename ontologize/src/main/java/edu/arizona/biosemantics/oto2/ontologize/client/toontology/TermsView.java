@@ -255,7 +255,7 @@ public class TermsView implements IsWidget {
 	private TreeStore<TextTreeNode> treeStore;
 	private Map<Term, TermTreeNode> termTermTreeNodeMap = new HashMap<Term, TermTreeNode>();
 	private Tree<TextTreeNode, TextTreeNode> termTree;
-	private TextButton refreshButton = new TextButton("Refresh");
+	//private TextButton refreshButton = new TextButton("Refresh");
 	private EventBus eventBus;
 	private AllowSurpressSelectEventsTreeSelectionModel<TextTreeNode> termTreeSelectionModel = 
 			new AllowSurpressSelectEventsTreeSelectionModel<TextTreeNode>();
@@ -319,7 +319,7 @@ public class TermsView implements IsWidget {
 
 		vertical = new VerticalLayoutContainer();
 		vertical.add(termTree, new VerticalLayoutData(1, 1));
-		vertical.add(refreshButton, new VerticalLayoutData(1, -1));
+		//vertical.add(refreshButton, new VerticalLayoutData(1, -1));
 		
 		tabPanel = new TabPanel();
 		tabPanel.add(vertical, "Terms");
@@ -328,7 +328,7 @@ public class TermsView implements IsWidget {
 	}
 	
 	private void bindEvents() {
-		refreshButton.addSelectHandler(new SelectHandler() {
+		/*refreshButton.addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
 				toOntologyService.refreshSubmissionStatuses(collection, new AsyncCallback<Void>() {
@@ -342,7 +342,7 @@ public class TermsView implements IsWidget {
 					}
 				});
 			}
-		});
+		});*/
 		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
 			@Override
 			public void onLoad(LoadCollectionEvent event) {

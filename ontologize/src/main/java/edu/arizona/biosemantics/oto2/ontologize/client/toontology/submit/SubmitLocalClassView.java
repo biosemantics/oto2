@@ -613,7 +613,7 @@ public class SubmitLocalClassView implements IsWidget {
 					@Override
 					public void onSelect(SelectEvent event) {
 						PartOf partOf = new PartOf();
-						if(partOf.getValue().startsWith("http")) {
+						if(box.getValue().startsWith("http")) {
 							partOf.setIri(box.getValue());
 						} else {
 							partOf.setLabel(box.getValue());
@@ -652,7 +652,7 @@ public class SubmitLocalClassView implements IsWidget {
 	protected void addToPartOfStore(final PartOf partOf) {
 		if(!partOf.hasIri())
 			partOfStore.add(partOf);
-		else {
+		else if(!partOf.hasLabel()){
 			final MessageBox box = Alerter.startLoading();
 			toOntologyService.getClassLabel(collection, partOf.getIri(), new AsyncCallback<String>() {
 				@Override
@@ -667,6 +667,8 @@ public class SubmitLocalClassView implements IsWidget {
 					Alerter.stopLoading(box);
 				}
 			});
+		} else {
+			partOfStore.add(partOf);
 		}
 	}
 
@@ -761,8 +763,10 @@ public class SubmitLocalClassView implements IsWidget {
 		this.partOfStore.clear();
 		for(PartOf partOf : ontologyClassSubmission.getPartOfs())
 			this.addToPartOfStore(partOf);
-		this.isEntityRadio.setValue(ontologyClassSubmission.getType().equals(Type.ENTITY));
-		this.isQualityRadio.setValue(ontologyClassSubmission.getType().equals(Type.QUALITY));
+		if(ontologyClassSubmission.getType() != null) {
+			this.isEntityRadio.setValue(ontologyClassSubmission.getType().equals(Type.ENTITY));
+			this.isQualityRadio.setValue(ontologyClassSubmission.getType().equals(Type.QUALITY));
+		}
 		superclassStore.clear();
 		for(Superclass superclass : ontologyClassSubmission.getSuperclasses())
 			this.addSuperClassToStore(superclass);

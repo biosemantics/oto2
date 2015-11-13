@@ -1,6 +1,9 @@
 package edu.arizona.biosemantics.oto2.ontologize.client.layout;
 
+import com.google.gwt.event.logical.shared.SelectionEvent;
+import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.core.client.util.Margins;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.TabItemConfig;
@@ -19,6 +22,7 @@ public class ContentView extends BorderLayoutContainer {
 	//private TermsView termsView;
 	//private LabelsView labelsView;
 	private TermInfoView termInfoView;
+	private OntologyView ontologyView;
 
 	public ContentView(EventBus eventBus) {
 		/*SelectionHandler<Widget> handler = new SelectionHandler<Widget>() {
@@ -30,6 +34,7 @@ public class ContentView extends BorderLayoutContainer {
 			}
 		};*/
 
+		ontologyView = new OntologyView(eventBus);
 		TabPanel tabPanel = new TabPanel();
 		//tabPanel.addSelectionHandler(handler);
 		tabPanel.setWidth(450);
@@ -44,8 +49,16 @@ public class ContentView extends BorderLayoutContainer {
 		tabPanel.add(new OrderView(eventBus), orderConfig);*/
 		TabItemConfig ontologyViewConfig = new TabItemConfig("Ontology View");
 		ontologyViewConfig.setEnabled(true);
-		tabPanel.add(new OntologyView(eventBus), ontologyViewConfig);
-	
+		tabPanel.add(ontologyView, ontologyViewConfig);
+		/*tabPanel.addSelectionHandler(new SelectionHandler<Widget>() {
+			@Override
+			public void onSelection(SelectionEvent<Widget> event) {
+				if(event.getSelectedItem().equals(ontologyView.asWidget())) {
+					ontologyView.refresh();
+				}
+			}
+		});*/
+		
 		this.setWidget(tabPanel);
 		
 		//termsView = new TermsView(eventBus);

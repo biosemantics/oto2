@@ -73,6 +73,9 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	
 	@Override
 	public List<OntologyClassSubmission> getClassSubmissions(Collection collection) throws Exception {
+		
+		
+		//getClassLabel
 		return daoManager.getOntologyClassSubmissionDAO().get(collection);
 	}
 
@@ -222,6 +225,41 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 		} else {
 			PermanentOntologyFileDAO ontologyFileDAO = daoManager.getPermanentOntologyFileDAO();
 			return ontologyFileDAO.getClassLabel(iri);
+		}
+	}
+	
+	@Override
+	public void storeLocalOntologiesToFile(Collection collection) throws Exception {
+		for(Ontology ontology : daoManager.getOntologyDBDAO().getLocalOntologiesForCollection(collection)) {	
+			daoManager.getOntologyFileDAO(collection).insertOntology(ontology, true);
+		}
+		List<OntologyClassSubmission> classSubmissions = daoManager.getOntologyClassSubmissionDAO().get(collection);
+		for(OntologyClassSubmission classSubmission : classSubmissions) {
+			if(!classSubmission.getOntology().isBioportalOntology()) {
+				String classIRI = daoManager.getOntologyFileDAO(collection).insertClassSubmission(classSubmission);
+			}
+		}
+		List<OntologySynonymSubmission> synonymSubmissions = daoManager.getOntologySynonymSubmissionDAO().get(collection);
+		for(OntologySynonymSubmission synonymSubmission : synonymSubmissions) {
+			if(!synonymSubmission.getOntology().isBioportalOntology()) {
+				String classIRI = daoManager.getOntologyFileDAO(collection).insertSynonymSubmission(synonymSubmission);
+			}
+		}
+	}
+	
+	@Override
+	public void sendBioportalSubmissions(Collection collection) throws Exception {
+		List<OntologyClassSubmission> classSubmissions = daoManager.getOntologyClassSubmissionDAO().get(collection);
+		for(OntologyClassSubmission classSubmission : classSubmissions) {
+			if(classSubmission.getOntology().isBioportalOntology()) {
+				String classIRI = daoManager.getOntologyFileDAO(collection).insertClassSubmission(classSubmission);
+			}
+		}
+		List<OntologySynonymSubmission> synonymSubmissions = daoManager.getOntologySynonymSubmissionDAO().get(collection);
+		for(OntologySynonymSubmission synonymSubmission : synonymSubmissions) {
+			if(synonymSubmission.getOntology().isBioportalOntology()) {
+				String classIRI = daoManager.getOntologyFileDAO(collection).insertSynonymSubmission(synonymSubmission);
+			}
 		}
 	}
 }

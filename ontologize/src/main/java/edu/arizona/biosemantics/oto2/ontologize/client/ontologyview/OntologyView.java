@@ -12,6 +12,9 @@ import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.core.client.JsArray;
 import com.google.gwt.core.client.JsArrayNumber;
 import com.google.gwt.dom.client.Element;
+import com.google.gwt.event.dom.client.DomEvent;
+import com.google.gwt.event.logical.shared.AttachEvent;
+import com.google.gwt.event.logical.shared.AttachEvent.Handler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.EventBus;
@@ -30,8 +33,12 @@ import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.FlowLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
+import com.sencha.gxt.widget.core.client.event.AddEvent;
+import com.sencha.gxt.widget.core.client.event.AddEvent.AddHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
+import com.sencha.gxt.widget.core.client.event.ShowEvent;
+import com.sencha.gxt.widget.core.client.event.ShowEvent.ShowHandler;
 import com.sencha.gxt.widget.core.client.form.CheckBox;
 import com.sencha.gxt.widget.core.client.form.ComboBox;
 import com.sencha.gxt.widget.core.client.toolbar.ToolBar;
@@ -144,8 +151,7 @@ public class OntologyView implements IsWidget {
 		verticalLayoutContainer.add(createToolBar(),new VerticalLayoutData(1,-1));
 		verticalLayoutContainer.add(visualizationContainer, new VerticalLayoutData(1, 1));	
 	    visualizationContainer.setScrollMode(ScrollMode.ALWAYS);	
-		
-				
+	    
 		bindEvents();
 	}
 
@@ -260,7 +266,7 @@ public class OntologyView implements IsWidget {
 		//refresh();
 	}
 
-	protected void refresh() {
+	public void refresh() {
 		visualizationContainer.getElement().removeAllChildren();
 		
 		JsArray<Node> nodes = JavaScriptObject.createArray().cast();
@@ -296,13 +302,13 @@ public class OntologyView implements IsWidget {
 
 				for(Superclass superclass : submission.getSuperclasses()) {
 					node = Node.createObject().cast();
-					node.name(superclass.toString());
+					node.name(superclass.hasLabel() ? superclass.getLabel() : superclass.getIri());
 					//node.group(0);
 					addNode(superclass.getIri(), node, nodeIds, nodes);
 				}
 				for(PartOf partOf : submission.getPartOfs()) {
 					node = Node.createObject().cast();
-					node.name(partOf.toString());
+					node.name(partOf.hasLabel() ? partOf.getLabel() : partOf.getIri());
 					//node.group(0);
 					addNode(partOf.getIri(), node, nodeIds, nodes);
 				}
@@ -310,7 +316,7 @@ public class OntologyView implements IsWidget {
 					node = Node.createObject().cast();
 					node.name(synonym.getSynonym());
 					//node.group(0);
-					addNode(synonym.getSynonym(), node, nodeIds, nodes);
+					addNode(submission.getClassIRI() + "_" + synonym.getSynonym(), node, nodeIds, nodes);
 				}
 			}
 		}
@@ -323,12 +329,12 @@ public class OntologyView implements IsWidget {
 					node.group(0);
 				if(submission.getType().equals(Type.QUALITY))
 					node.group(2);*/
-				addNode(submission.getClassIRI(), node, nodeIds, nodes);
+				addNode(submission.getClassIRI() + "_" + submission.getId(), node, nodeIds, nodes);
 				
 				for(Synonym synonym : submission.getSynonyms()) {
 					node = Node.createObject().cast();
 					node.name(synonym.getSynonym());
-					addNode(synonym.getSynonym(), node, nodeIds, nodes);
+					addNode(submission.getClassIRI() + "_" + submission.getId() + "_" + synonym.getSynonym(), node, nodeIds, nodes);
 				}
 			}
 		}
@@ -360,10 +366,25 @@ public class OntologyView implements IsWidget {
 	private void createSynonymLinks(Ontology ontology, Map<String, Integer> nodeIds, JsArray<Link> links) {
 		for(OntologySynonymSubmission submission : synonymSubmissions) {
 			if(submission.getOntology().equals(ontology)) {
+				Link link = Link.createObject().cast();
+				link.source(nodeIds.get(submission.getClassIRI()));
+				link.target(nodeIds.get(submission.getClassIRI() + "_" + submission.getId()));
+				links.push(link);
+				for(Synonym synonym : submission.getSynonyms()) {
+					link = Link.createObject().cast();
+					link.source(nodeIds.get(submission.getClassIRI()));
+					link.target(nodeIds.get(submission.getClassIRI() + "_" + submission.getId() + "_" + synonym.getSynonym()));
+					link.type("synonym");
+					links.push(link);
+				}
+			}
+		}
+		for(OntologyClassSubmission submission : classSubmissions) {
+			if(submission.getOntology().equals(ontology)) {
 				for(Synonym synonym : submission.getSynonyms()) {
 					Link link = Link.createObject().cast();
 					link.source(nodeIds.get(submission.getClassIRI()));
-					link.target(nodeIds.get(synonym.getSynonym()));
+					link.target(nodeIds.get(submission.getClass() + "_" + synonym.getSynonym()));
 					link.type("synonym");
 					links.push(link);
 				}

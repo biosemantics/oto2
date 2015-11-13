@@ -49,6 +49,7 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 		try {
 			if(daoManager.getCollectionDAO().isValidSecret(id, secret)) {
 				Collection collection = daoManager.getCollectionDAO().get(id);
+				daoManager.getOntologyBioportalDAO().refreshStatuses(collection);
 				
 				//TODO: IS SLOW
 				//collection.setTermExistingIRIMap(getExistingIRI(collection.getTerms()));

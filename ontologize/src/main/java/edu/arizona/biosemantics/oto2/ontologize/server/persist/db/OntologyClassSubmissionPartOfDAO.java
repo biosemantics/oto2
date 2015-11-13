@@ -6,14 +6,19 @@ import java.util.LinkedList;
 import java.util.List;
 
 import edu.arizona.biosemantics.common.log.LogLevel;
+import edu.arizona.biosemantics.oto2.ontologize.server.Configuration;
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.db.Query.QueryException;
+import edu.arizona.biosemantics.oto2.ontologize.server.persist.file.PermanentOntologyFileDAO;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.PartOf;
+import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.OntologyNotFoundException;
 
 public class OntologyClassSubmissionPartOfDAO {
 	
+	private PermanentOntologyFileDAO permanentOntologyFileDAO;
+	
 	public OntologyClassSubmissionPartOfDAO() {} 
 	
-	public List<PartOf> getPartOfs(int ontologyClassSubmissionId) throws QueryException {
+	public List<PartOf> getPartOfs(int ontologyClassSubmissionId) throws QueryException, OntologyNotFoundException {
 		List<PartOf> partOfs = new LinkedList<PartOf>();
 		try(Query query = new Query("SELECT * FROM ontologize_ontologyclasssubmission_partof WHERE ontologyclasssubmission = ?")) {
 			query.setParameter(1, ontologyClassSubmissionId);
@@ -28,7 +33,7 @@ public class OntologyClassSubmissionPartOfDAO {
 		return partOfs;
 	}
 	
-	private PartOf createPartOf(ResultSet result) throws SQLException, QueryException {
+	private PartOf createPartOf(ResultSet result) throws SQLException, QueryException, OntologyNotFoundException {
 		int id = result.getInt("id");
 		int ontologyClassSubmission = result.getInt("ontologyclasssubmission");
 		String partOf = result.getString("partof");
@@ -36,18 +41,22 @@ public class OntologyClassSubmissionPartOfDAO {
 		return new PartOf(id, ontologyClassSubmission, partOf, label);
 	}
 
-	private String getLabel(String classIri) throws QueryException {
-		try(Query query = new Query("SELECT * FROM ontologize_ontologyclasssubmission s"
-				+ " WHERE s.class_iri = ?")) {
-			query.setParameter(1, classIri);
-			ResultSet resultSet = query.execute();
-			if(resultSet.next()) {
-				return resultSet.getString("submission_term");
+	private String getLabel(String classIri) throws QueryException, OntologyNotFoundException {
+		if(classIri.startsWith(Configuration.etcOntologyBaseIRI)) {
+			try(Query query = new Query("SELECT * FROM ontologize_ontologyclasssubmission s"
+					+ " WHERE s.class_iri = ?")) {
+				query.setParameter(1, classIri);
+				ResultSet resultSet = query.execute();
+				if(resultSet.next()) {
+					return resultSet.getString("submission_term");
+				}
+				return null;
+			} catch(QueryException | SQLException e) {
+				log(LogLevel.ERROR, "Query Exception", e);
+				throw new QueryException(e);
 			}
-			return null;
-		} catch(QueryException | SQLException e) {
-			log(LogLevel.ERROR, "Query Exception", e);
-			throw new QueryException(e);
+		} else {
+			return permanentOntologyFileDAO.getClassLabel(classIri);
 		}
 	}
 
@@ -120,5 +129,8 @@ public class OntologyClassSubmissionPartOfDAO {
 		for(PartOf partOf : partOfs)
 			this.remove(partOf);
 	}
-	
+
+	public void setPermanentOntologyFileDAO(PermanentOntologyFileDAO permanentOntologyFileDAO) {
+		this.permanentOntologyFileDAO = permanentOntologyFileDAO;
+	}
 }

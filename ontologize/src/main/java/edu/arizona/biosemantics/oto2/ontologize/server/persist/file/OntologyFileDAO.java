@@ -432,7 +432,7 @@ public class OntologyFileDAO extends PermanentOntologyFileDAO {
 		return submission.getClassIRI().toString();
 	}	
 
-	public void determineAndSetSubmissionType(OntologySynonymSubmission submission) throws OntologyNotFoundException, OntologyFileException {
+	private void determineAndSetSubmissionType(OntologySynonymSubmission submission) throws OntologyNotFoundException, OntologyFileException {
 		OWLClass owlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(submission.getClassIRI()));
 		OWLOntology classOwlOntology = owlOntologyRetriever.getOWLOntology(collection, owlClass);
 		if(ontologyReasoner.isSubclass(classOwlOntology, owlClass, qualityClass)) {

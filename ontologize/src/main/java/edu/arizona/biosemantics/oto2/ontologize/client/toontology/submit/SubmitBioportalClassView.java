@@ -249,7 +249,8 @@ public class SubmitBioportalClassView implements IsWidget {
 				clearFields(false);
 				superclassStore.clear();
 				addSuperClassToStore(event.getSubmission());
-				ontologyComboBox.setValue(event.getSubmission().getOntology());
+				if(event.getSubmission().hasOntology() && event.getSubmission().getOntology().isBioportalOntology())
+					ontologyComboBox.setValue(event.getSubmission().getOntology());
 			}
 		});
 		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
@@ -507,7 +508,7 @@ public class SubmitBioportalClassView implements IsWidget {
 		this.setSelectedSubmission(ontologyClassSubmission);
 		this.termComboBox.setValue(ontologyClassSubmission.getTerm());
 		this.submissionTermField.setValue(ontologyClassSubmission.getSubmissionTerm()); 
-		if(ontologyClassSubmission.hasOntology())
+		if(ontologyClassSubmission.hasOntology() && ontologyClassSubmission.getOntology().isBioportalOntology())
 			this.ontologyComboBox.setValue(ontologyClassSubmission.getOntology());
 		this.superclassStore.clear();
 		this.superclassStore.addAll(ontologyClassSubmission.getSuperclasses());

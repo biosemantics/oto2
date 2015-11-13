@@ -46,4 +46,8 @@ public interface IToOntologyService extends RemoteService {
 	public List<OntologyClassSubmission> getClassSubmissions(Collection collection, java.util.Collection<Ontology> ontologies) throws Exception;
 
 	public String getClassLabel(Collection collection, String iri) throws Exception;
+
+	public void sendBioportalSubmissions(Collection collection) throws Exception;
+
+	public void storeLocalOntologiesToFile(Collection collection) throws Exception;
 }

@@ -24,6 +24,7 @@ import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.widget.core.client.ListView;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
 import com.sencha.gxt.widget.core.client.box.MessageBox;
+import com.sencha.gxt.widget.core.client.box.PromptMessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
@@ -348,6 +349,33 @@ public class SubmitBioportalSynonymView implements IsWidget {
 				} else {
 					Alerter.alertInvalidForm();
 				}
+			}
+		});
+		
+		addSynonymButton.addSelectHandler(new SelectHandler() {
+			@Override
+			public void onSelect(SelectEvent event) {
+				final PromptMessageBox box = new PromptMessageBox("Add Synonym", "Add Synonym");
+				box.show();
+				box.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
+					@Override
+					public void onSelect(SelectEvent event) {
+						synonymsStore.add(new Synonym(box.getValue()));
+					}
+				});
+			}
+		});
+		removeSynonymButton.addSelectHandler(new SelectHandler() {
+			@Override
+			public void onSelect(SelectEvent event) {
+				for(Synonym remove : synonymsListView.getSelectionModel().getSelectedItems())
+					synonymsStore.remove(remove);
+			}
+		});
+		clearSynonymButton.addSelectHandler(new SelectHandler() {
+			@Override
+			public void onSelect(SelectEvent event) {
+				synonymsStore.clear();
 			}
 		});
 	}

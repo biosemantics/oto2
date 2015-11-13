@@ -250,21 +250,24 @@ public class SubmitLocalSynonymView implements IsWidget {
 			@Override
 			public void onSubmission(CreateOntologyClassSubmissionEvent event) {
 				for(OntologyClassSubmission submission : event.getClassSubmissions())
-					classIRIStore.add(new SynonymClass(submission));
+					if(!submission.getOntology().isBioportalOntology())
+						classIRIStore.add(new SynonymClass(submission));
 			}
 		});
 		eventBus.addHandler(UpdateOntologyClassSubmissionsEvent.TYPE, new UpdateOntologyClassSubmissionsEvent.Handler() {
 			@Override
 			public void onUpdate(UpdateOntologyClassSubmissionsEvent event) {
 				for(OntologyClassSubmission submission : event.getOntologyClassSubmissions())
-					classIRIStore.update(new SynonymClass(submission));
+					if(!submission.getOntology().isBioportalOntology())
+						classIRIStore.update(new SynonymClass(submission));
 			}
 		});
 		eventBus.addHandler(RemoveOntologyClassSubmissionsEvent.TYPE, new RemoveOntologyClassSubmissionsEvent.Handler() {
 			@Override
 			public void onRemove(RemoveOntologyClassSubmissionsEvent event) {
 				for(OntologyClassSubmission submission : event.getOntologyClassSubmissions())
-					classIRIStore.remove(new SynonymClass(submission));
+					if(!submission.getOntology().isBioportalOntology())
+						classIRIStore.remove(new SynonymClass(submission));
 			}
 		});
 		eventBus.addHandler(SelectSynonymEvent.TYPE, new SelectSynonymEvent.Handler() {
