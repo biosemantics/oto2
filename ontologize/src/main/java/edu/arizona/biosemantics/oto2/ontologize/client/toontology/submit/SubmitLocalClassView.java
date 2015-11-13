@@ -3,11 +3,20 @@ package edu.arizona.biosemantics.oto2.ontologize.client.toontology.submit;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
+import com.google.gwt.cell.client.AbstractCell;
+import com.google.gwt.cell.client.Cell;
+import com.google.gwt.cell.client.ValueUpdater;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.Element;
+import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.safehtml.shared.SafeHtml;
+import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.HasWidgets;
@@ -18,10 +27,12 @@ import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.cell.core.client.form.ComboBoxCell.TriggerAction;
 import com.sencha.gxt.core.client.IdentityValueProvider;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
+import com.sencha.gxt.core.client.dom.XElement;
 import com.sencha.gxt.core.client.util.ToggleGroup;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
+import com.sencha.gxt.widget.core.client.ListView.ListViewAppearance;
 import com.sencha.gxt.widget.core.client.ListView;
 import com.sencha.gxt.widget.core.client.box.MessageBox;
 import com.sencha.gxt.widget.core.client.box.PromptMessageBox;
@@ -98,13 +109,13 @@ public class SubmitLocalClassView implements IsWidget {
 	private ComboBox<Ontology> ontologyComboBox;
 	private TextField classIRIField = new TextField();
 	
-	private ListView<Superclass, String> superclassListView;
+	private ListView<Superclass, Superclass> superclassListView;
 	private ListStore<Superclass> superclassStore;
 	private TextButton addSuperclassButton = new TextButton("Add");
 	private TextButton removeSuperclassButton = new TextButton("Remove");
 	private TextButton clearSuperclassButton = new TextButton("Clear");
 	
-	private ListView<PartOf, String> partOfListView;
+	private ListView<PartOf, PartOf> partOfListView;
 	private ListStore<PartOf> partOfStore;
 	private TextButton addPartOfButton = new TextButton("Add");
 	private TextButton removePartOfButton = new TextButton("Remove");
@@ -155,14 +166,26 @@ public class SubmitLocalClassView implements IsWidget {
 				return item.getIri();
 			}
 	    });
-	    superclassListView = new ListView<Superclass, String>(superclassStore, superclassProperties.value());
+	    superclassListView = new ListView<Superclass, Superclass>(superclassStore, new IdentityValueProvider<Superclass>());	    
+	    superclassListView.setCell(new AbstractCell<Superclass>() {
+			@Override
+			public void render(com.google.gwt.cell.client.Cell.Context context,	Superclass value, SafeHtmlBuilder sb) {
+				sb.append(SafeHtmlUtils.fromTrustedString("<div qtip=\"" + value.toString() + "\">" + (value.hasLabel() ? value.getLabel() : value.toString()) + "</div>"));
+			}
+	    });
 	    partOfStore = new ListStore<PartOf>(new ModelKeyProvider<PartOf>() {
 			@Override
 			public String getKey(PartOf item) {
 				return item.getIri();
 			}
 	    });
-	    partOfListView = new ListView<PartOf, String>(partOfStore, partOfProperties.value());
+	    partOfListView = new ListView<PartOf, PartOf>(partOfStore, new IdentityValueProvider<PartOf>());
+	    partOfListView.setCell(new AbstractCell<PartOf>() {
+			@Override
+			public void render(com.google.gwt.cell.client.Cell.Context context,	PartOf value, SafeHtmlBuilder sb) {
+				sb.append(SafeHtmlUtils.fromTrustedString("<div qtip=\"" + value.toString() + "\">" + (value.hasLabel() ? value.getLabel() : value.toString()) + "</div>"));
+			}
+	    });
 	    
 	    formContainer = new VerticalLayoutContainer();
 	    formContainer.add(new FieldLabel(termComboBox, "Candiate Term"), new VerticalLayoutData(1, -1));

@@ -384,7 +384,7 @@ public class OntologyView implements IsWidget {
 				for(Synonym synonym : submission.getSynonyms()) {
 					Link link = Link.createObject().cast();
 					link.source(nodeIds.get(submission.getClassIRI()));
-					link.target(nodeIds.get(submission.getClass() + "_" + synonym.getSynonym()));
+					link.target(nodeIds.get(submission.getClassIRI() + "_" + synonym.getSynonym()));
 					link.type("synonym");
 					links.push(link);
 				}
