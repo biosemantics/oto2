@@ -74,7 +74,7 @@ public class SubmitBioportalClassView implements IsWidget {
 	private ListStore<Term> termStore = new ListStore<Term>(termProperties.key());
 	private TextButton editButton = new TextButton("Edit");
 	private TextButton submitButton = new TextButton("Save as New");
-	private TextButton obsoleteSubmit = new TextButton("Cancel and Save as New");
+	private TextButton obsoleteSubmitButton = new TextButton("Cancel and Save as New");
 
 	private ComboBox<Term> termComboBox;
 	private TextField submissionTermField = new TextField();
@@ -172,7 +172,7 @@ public class SubmitBioportalClassView implements IsWidget {
 	    HorizontalLayoutContainer hlc = new HorizontalLayoutContainer();
 	    hlc.add(editButton, new HorizontalLayoutData(0.33, -1));
 	    hlc.add(submitButton, new HorizontalLayoutData(0.33, -1));
-	    hlc.add(obsoleteSubmit, new HorizontalLayoutData(0.33, -1));
+	    hlc.add(obsoleteSubmitButton, new HorizontalLayoutData(0.33, -1));
 	    vlc.add(hlc, new VerticalLayoutData(1, 24)); //for some reason won't work: -1));
 	    
 		bindEvents();		
@@ -321,7 +321,7 @@ public class SubmitBioportalClassView implements IsWidget {
 
 		
 		});
-		obsoleteSubmit.addSelectHandler(new SelectHandler() { 
+		obsoleteSubmitButton.addSelectHandler(new SelectHandler() { 
 			@Override
 			public void onSelect(SelectEvent event) {
 				if(validateForm()) {
@@ -487,10 +487,15 @@ public class SubmitBioportalClassView implements IsWidget {
 
 	protected void setSelectedSubmission(OntologyClassSubmission ontologyClassSubmission) {
 		this.selectedSubmission = ontologyClassSubmission;
-		if(selectedSubmission == null)
+		if(selectedSubmission == null) {
 			this.editButton.setEnabled(false);
-		else
+			this.submitButton.setEnabled(true);
+			this.obsoleteSubmitButton.setEnabled(false);
+		} else {
 			this.editButton.setEnabled(true);
+			this.submitButton.setEnabled(false);
+			this.obsoleteSubmitButton.setEnabled(true);
+		}
 	}
 	
 	protected void clearFields(boolean fireEvents) {

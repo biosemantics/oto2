@@ -4,15 +4,19 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.HasWidgets;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
+import com.sencha.gxt.cell.core.client.form.ComboBoxCell;
 import com.sencha.gxt.cell.core.client.form.ComboBoxCell.TriggerAction;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
 import com.sencha.gxt.data.shared.LabelProvider;
@@ -106,12 +110,34 @@ public class SubmitLocalSynonymView implements IsWidget {
 	public SubmitLocalSynonymView(EventBus eventBus) {
 		this.eventBus = eventBus;
 		
-		classIRIComboBox = new ComboBox<SynonymClass>(classIRIStore, new LabelProvider<SynonymClass>() {
+		/*ComboBoxCell<SynonymClass> comboBoxCell = new ComboBoxCell<SynonymClass>(classIRIStore, new LabelProvider<SynonymClass>() {
 			@Override
 			public String getLabel(SynonymClass item) {
 				return item.toString();
 			}
+		});*/
+		classIRIComboBox = new ComboBox<SynonymClass>(classIRIStore, new LabelProvider<SynonymClass>() {
+			@Override
+			public String getLabel(SynonymClass synonymClass) {
+				return (synonymClass.hasLabel() ? synonymClass.getLabel() : synonymClass.toString());
+			}
 		});
+		classIRIComboBox.getListView().setCell(new AbstractCell() {
+			@Override
+			public void render(Context context, Object value, SafeHtmlBuilder sb) {
+				if(value instanceof SynonymClass) {
+					SynonymClass synonymClass = (SynonymClass)value;
+					sb.append(SafeHtmlUtils.fromTrustedString("<div qtip=\"" + synonymClass.toString() + "\">" + (synonymClass.hasLabel() ? synonymClass.getLabel() : synonymClass.toString()) + "</div>"));
+				}
+			}
+		});
+		
+		/*classIRIComboBox = new ComboBox<SynonymClass>(classIRIStore, new LabelProvider<SynonymClass>() {
+			@Override
+			public String getLabel(SynonymClass item) {
+				return item.toString();
+			}
+		});*/
 		
 	    ontologyComboBox = new ComboBox<Ontology>(ontologiesStore, ontologyProperties.prefixLabel());
 	    ontologyComboBox.setAllowBlank(false);
@@ -522,10 +548,15 @@ public class SubmitLocalSynonymView implements IsWidget {
 
 	protected void setSelectedSubmission(OntologySynonymSubmission ontologySynonymSubmission) {
 		this.selectedSubmission = ontologySynonymSubmission;
-		if(selectedSubmission == null)
+		if(selectedSubmission == null) {
 			this.editButton.setEnabled(false);
-		else
+			this.submitButton.setEnabled(true);
+			this.obsoleteSubmitButton.setEnabled(false);
+		} else {
 			this.editButton.setEnabled(true);
+			this.submitButton.setEnabled(false);
+			this.obsoleteSubmitButton.setEnabled(true);
+		}
 	}
 	
 	protected void clearFields(boolean fireEvents) {

@@ -389,10 +389,15 @@ public class SubmitBioportalSynonymView implements IsWidget {
 
 	protected void setSelectedSubmission(OntologySynonymSubmission ontologySynonymSubmission) {
 		this.selectedSubmission = ontologySynonymSubmission;
-		if(selectedSubmission == null)
+		if(selectedSubmission == null) {
 			this.editButton.setEnabled(false);
-		else
+			this.submitButton.setEnabled(true);
+			this.obsoleteSubmitButton.setEnabled(false);
+		} else {
 			this.editButton.setEnabled(true);
+			this.submitButton.setEnabled(false);
+			this.obsoleteSubmitButton.setEnabled(true);
+		}
 	}
 	
 	protected void clearFields(boolean fireEvents) {
