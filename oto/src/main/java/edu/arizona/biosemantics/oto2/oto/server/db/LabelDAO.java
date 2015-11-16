@@ -112,7 +112,7 @@ public class LabelDAO {
 
 	public List<Label> getLabels(Collection collection)  {
 		List<Label> labels = new LinkedList<Label>();
-		try(Query query = new Query("SELECT * FROM oto_label WHERE collection = ?")) {
+		try(Query query = new Query("SELECT * FROM oto_label WHERE collection = ? order by name")) {
 			query.setParameter(1, collection.getId());
 			ResultSet result = query.execute();
 			while(result.next()) {
