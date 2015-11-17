@@ -8,20 +8,18 @@ import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.container.BorderLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.BorderLayoutContainer.BorderLayoutData;
 
-import edu.arizona.biosemantics.oto2.ontologize.client.content.submission.CreateSubmissionView2;
-import edu.arizona.biosemantics.oto2.ontologize.client.content.submission.CreateSubmissionView3;
-import edu.arizona.biosemantics.oto2.ontologize.client.toontology.TermsView;
-import edu.arizona.biosemantics.oto2.ontologize.client.toontology.submit.CreateSubmissionView;
+import edu.arizona.biosemantics.oto2.ontologize.client.content.candidates.TermsView;
+import edu.arizona.biosemantics.oto2.ontologize.client.content.submission.CreateSubmissionView;
 
 public class CreateLocalSubmissionView implements IsWidget {
 
 	private TermsView termsView;
-	private CreateSubmissionView3 submissionView;
+	private CreateSubmissionView submissionView;
 	private BorderLayoutContainer borderLayoutContainer;
 
 	public CreateLocalSubmissionView(EventBus eventBus) {
 		termsView = new TermsView(eventBus);
-		submissionView = new CreateSubmissionView3(eventBus);
+		submissionView = new CreateSubmissionView(eventBus);
 			
 		borderLayoutContainer = new BorderLayoutContainer();
 		ContentPanel cp = new ContentPanel();

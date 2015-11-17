@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto2.ontologize.client.toontology;
+package edu.arizona.biosemantics.oto2.ontologize.client.content.candidates;
 
 import com.google.gwt.resources.client.ClientBundle;
 import com.google.gwt.resources.client.ClientBundle.Source;

@@ -8,8 +8,7 @@ import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.container.BorderLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.BorderLayoutContainer.BorderLayoutData;
 
-import edu.arizona.biosemantics.oto2.ontologize.client.toontology.TermsView;
-import edu.arizona.biosemantics.oto2.ontologize.client.toontology.submit.CreateSubmissionView;
+import edu.arizona.biosemantics.oto2.ontologize.client.content.candidates.TermsView;
 
 public class CreateBioportalSubmissionView implements IsWidget {
 

@@ -57,6 +57,7 @@ public class SelectSubmissionTypeView implements IsWidget {
 
 	public void addHandler(ValueChangeHandler<Boolean> handler) {
 		isClassRadio.addValueChangeHandler(handler);
+		isSynonymRadio.addValueChangeHandler(handler);
 	}
 	
 	public boolean validate() {

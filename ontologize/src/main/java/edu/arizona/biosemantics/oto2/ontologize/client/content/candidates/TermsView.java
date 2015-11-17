@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto2.ontologize.client.toontology;
+package edu.arizona.biosemantics.oto2.ontologize.client.content.candidates;
 
 import java.util.Comparator;
 import java.util.HashMap;
@@ -321,8 +321,8 @@ public class TermsView implements IsWidget {
 		vertical.add(termTree, new VerticalLayoutData(1, 1));
 		//vertical.add(refreshButton, new VerticalLayoutData(1, -1));
 		
-		tabPanel = new TabPanel();
-		tabPanel.add(vertical, "Terms");
+		//tabPanel = new TabPanel();
+		//tabPanel.add(vertical, "Terms");
 		
 		bindEvents();
 	}
@@ -479,7 +479,7 @@ public class TermsView implements IsWidget {
 	
 	@Override
 	public Widget asWidget() {
-		return tabPanel;
+		return vertical;
 	}
 	
 	private void update(Term term) {

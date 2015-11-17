@@ -36,7 +36,6 @@ import edu.arizona.biosemantics.oto2.ontologize.client.event.UpdateOntologySynon
 import edu.arizona.biosemantics.oto2.ontologize.client.hierarchy.HierarchyView;
 import edu.arizona.biosemantics.oto2.ontologize.client.info.TermInfoView;
 import edu.arizona.biosemantics.oto2.ontologize.client.order.OrderView;
-import edu.arizona.biosemantics.oto2.ontologize.client.toontology.ToOntologyView;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySynonymSubmission;
@@ -56,8 +55,8 @@ public class ContentView extends BorderLayoutContainer {
 	private TabPanel tabPanel;
 	private CreateLocalSubmissionView createLocalSubmissionView;
 	private LocalSubmissionsView localSubmissionsView;
-	private CreateBioportalSubmissionView createBioportalSubmissionView;
-	private BioportalSubmissionsView bioportalSubmissionsView;
+	//private CreateBioportalSubmissionView createBioportalSubmissionView;
+	//private BioportalSubmissionsView bioportalSubmissionsView;
 
 	public ContentView(EventBus eventBus) {
 		this.eventBus = eventBus;
@@ -74,8 +73,8 @@ public class ContentView extends BorderLayoutContainer {
 		tabPanel = new TabPanel();
 		createLocalSubmissionView = new CreateLocalSubmissionView(eventBus);
 		localSubmissionsView = new LocalSubmissionsView(eventBus);
-		createBioportalSubmissionView = new CreateBioportalSubmissionView(eventBus);
-		bioportalSubmissionsView = new BioportalSubmissionsView(eventBus);
+		//createBioportalSubmissionView = new CreateBioportalSubmissionView(eventBus);
+		//bioportalSubmissionsView = new BioportalSubmissionsView(eventBus);
 		
 		//tabPanel.addSelectionHandler(handler);
 		tabPanel.setWidth(450);
@@ -93,11 +92,11 @@ public class ContentView extends BorderLayoutContainer {
 		
 		TabItemConfig createBioportalSubmission = new TabItemConfig("Create Bioportal Submission");
 		createBioportalSubmission.setEnabled(true);
-		tabPanel.add(createBioportalSubmissionView, createBioportalSubmission);
+		//tabPanel.add(createBioportalSubmissionView, createBioportalSubmission);
 		
 		TabItemConfig bioportalSubmissions = new TabItemConfig("Bioportal Submissions");
 		bioportalSubmissions.setEnabled(true);
-		tabPanel.add(bioportalSubmissionsView, bioportalSubmissions);
+		//tabPanel.add(bioportalSubmissionsView, bioportalSubmissions);
 		
 		/*TabItemConfig hierarchyConfig = new TabItemConfig("Hierarchy");
 		hierarchyConfig.setEnabled(false);
