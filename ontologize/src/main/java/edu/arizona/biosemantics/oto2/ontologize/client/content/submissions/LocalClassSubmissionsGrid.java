@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto2.ontologize.client.toontology;
+package edu.arizona.biosemantics.oto2.ontologize.client.content.submissions;
 
 import com.google.gwt.event.shared.EventBus;
 import com.sencha.gxt.data.shared.ListStore;

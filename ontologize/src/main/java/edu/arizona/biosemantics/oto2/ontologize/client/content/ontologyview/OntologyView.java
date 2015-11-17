@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto2.ontologize.client.ontologyview;
+package edu.arizona.biosemantics.oto2.ontologize.client.content.ontologyview;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -44,12 +44,12 @@ import com.sencha.gxt.widget.core.client.form.ComboBox;
 import com.sencha.gxt.widget.core.client.toolbar.ToolBar;
 
 import edu.arizona.biosemantics.oto2.ontologize.client.common.Alerter;
+import edu.arizona.biosemantics.oto2.ontologize.client.content.ontologyview.GraphDemo.Bundle;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.CreateOntologyEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.RefreshOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.RefreshOntologySynonymSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.SelectOntologyEvent;
-import edu.arizona.biosemantics.oto2.ontologize.client.ontologyview.GraphDemo.Bundle;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.OntologyProperties;
@@ -137,7 +137,7 @@ public class OntologyView implements IsWidget {
 	private List<OntologySynonymSubmission> synonymSubmissions = new LinkedList<OntologySynonymSubmission>();
 	private VerticalLayoutContainer verticalLayoutContainer;
 	private ListStore<Ontology> ontologyStore;
-	private ComboBox<Ontology> ontologyComboBox;
+	//private ComboBox<Ontology> ontologyComboBox;
 	private CheckBox superClassCheckBox;
 	private CheckBox partOfCheckBox;
 	private CheckBox synonymCheckBox;
@@ -157,9 +157,9 @@ public class OntologyView implements IsWidget {
 
 	private ToolBar createToolBar() {
 		ontologyStore = new ListStore<Ontology>(ontologyProperties.key());
-		ontologyComboBox = new ComboBox<Ontology>(ontologyStore, ontologyProperties.prefixLabel());
+		/*ontologyComboBox = new ComboBox<Ontology>(ontologyStore, ontologyProperties.prefixLabel());
 		ontologyComboBox.setForceSelection(true);
-		ontologyComboBox.setTriggerAction(TriggerAction.ALL);
+		ontologyComboBox.setTriggerAction(TriggerAction.ALL);*/
 		superClassCheckBox = new CheckBox();
 		superClassCheckBox.setBoxLabel("Super-class");
 		superClassCheckBox.setValue(true);
@@ -173,7 +173,7 @@ public class OntologyView implements IsWidget {
 		ToolBar toolBar = new ToolBar();
 		//toolBar.add(new FillToolItem());
 		toolBar.add(new com.google.gwt.user.client.ui.Label("Ontology:"));
-		toolBar.add(ontologyComboBox);
+		//toolBar.add(ontologyComboBox);
 		toolBar.add(superClassCheckBox);
 		toolBar.add(partOfCheckBox);
 		toolBar.add(synonymCheckBox);
@@ -200,6 +200,7 @@ public class OntologyView implements IsWidget {
 						if(result.size() == 1) {
 							setOntology(result.get(0));
 						}
+						setOntology(result.get(0));
 					}
 				});
 			}
@@ -207,13 +208,13 @@ public class OntologyView implements IsWidget {
 		eventBus.addHandler(CreateOntologyEvent.TYPE, new CreateOntologyEvent.Handler() {
 			@Override
 			public void onCreate(CreateOntologyEvent event) {
-				ontologyStore.add(event.getOntology());
+				//ontologyStore.add(event.getOntology());
 			}
 		});
 		eventBus.addHandler(SelectOntologyEvent.TYPE, new SelectOntologyEvent.Handler() {
 			@Override
 			public void onSelect(SelectOntologyEvent event) {
-				ontologyComboBox.select(event.getOntology());
+				//ontologyComboBox.select(event.getOntology());
 			}
 		});
 		eventBus.addHandler(RefreshOntologyClassSubmissionsEvent.TYPE, new RefreshOntologyClassSubmissionsEvent.Handler() {
@@ -228,12 +229,12 @@ public class OntologyView implements IsWidget {
 				synonymSubmissions = event.getOntologySynonymSubmissions();
 			}
 		});
-		ontologyComboBox.addValueChangeHandler(new ValueChangeHandler<Ontology>() {
+		/*ontologyComboBox.addValueChangeHandler(new ValueChangeHandler<Ontology>() {
 			@Override
 			public void onValueChange(ValueChangeEvent<Ontology> event) {
 				setOntology(event.getValue());
 			}
-		});
+		});*/
 		superClassCheckBox.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
 			@Override
 			public void onValueChange(ValueChangeEvent<Boolean> event) {
@@ -262,7 +263,7 @@ public class OntologyView implements IsWidget {
 	
 	private void setOntology(Ontology ontology) {
 		OntologyView.this.ontology = ontology;
-		ontologyComboBox.setValue(ontology, false);
+		//ontologyComboBox.setValue(ontology, false);
 		//refresh();
 	}
 

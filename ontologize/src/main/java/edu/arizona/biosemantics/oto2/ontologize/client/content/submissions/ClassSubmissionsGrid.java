@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto2.ontologize.client.toontology;
+package edu.arizona.biosemantics.oto2.ontologize.client.content.submissions;
 
 import java.util.ArrayList;
 import java.util.LinkedList;

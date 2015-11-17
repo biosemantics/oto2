@@ -10,16 +10,16 @@ public class OntologizeView extends SimpleLayoutPanel {
 	private EventBus eventBus;
 
 	private MenuView menuView;
-	private ContentView categorizeView;
+	private ContentView contentView;
 	private VerticalLayoutContainer verticalLayoutContainer = new VerticalLayoutContainer();
 
 	public OntologizeView(EventBus eventBus) {
 		this.eventBus = eventBus;
-		categorizeView = new ContentView(eventBus);
+		contentView = new ContentView(eventBus);
 		menuView = new MenuView(eventBus);
 
 		verticalLayoutContainer.add(menuView,new VerticalLayoutData(1,-1));
-		verticalLayoutContainer.add(categorizeView,new VerticalLayoutData(1,1));
+		verticalLayoutContainer.add(contentView,new VerticalLayoutData(1,1));
 		this.setWidget(verticalLayoutContainer);
 	}
 }

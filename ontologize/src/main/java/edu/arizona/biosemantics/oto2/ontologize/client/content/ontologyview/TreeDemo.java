@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto2.ontologize.client.ontologyview;
+package edu.arizona.biosemantics.oto2.ontologize.client.content.ontologyview;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -24,7 +24,6 @@ import com.github.gwtd3.api.layout.Force;
 import com.github.gwtd3.api.layout.HierarchicalLayout;
 import com.github.gwtd3.api.layout.Link;
 import com.github.gwtd3.api.layout.Tree;
-import com.github.gwtd3.api.layout.HierarchicalLayout.Node;
 import com.github.gwtd3.api.scales.LinearScale;
 import com.github.gwtd3.api.scales.OrdinalScale;
 import com.github.gwtd3.api.svg.Area;
@@ -47,15 +46,12 @@ import com.google.gwt.resources.client.ClientBundle.Source;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.FlowPanel;
 
-import edu.arizona.biosemantics.oto2.ontologize.client.ontologyview.TreeDemo.Bundle;
-import edu.arizona.biosemantics.oto2.ontologize.client.ontologyview.TreeDemo.MyResources;
-
-public class GraphDemo extends FlowPanel {
-		
+public class TreeDemo extends FlowPanel {
+	
 	public interface Bundle extends ClientBundle {
 		public static final Bundle INSTANCE = GWT.create(Bundle.class);
 
-		@Source("GraphStyles.css")
+		@Source("TreeDemoStyles.css")
 		public MyResources css();
 	}
 	
@@ -64,58 +60,13 @@ public class GraphDemo extends FlowPanel {
 		String link();
 
 		String node();
+
+		String border();
 	}
 	
-	private static class Graph extends JavaScriptObject {
-       		
-		protected Graph() {
-			super();
-		}
-		
-        public final native Array<GraphNode> nodes() /*-{
-            return this.nodes;
-        }-*/;
-        
-        public final native Array<GraphLink> links() /*-{
-	        return this.links;
-	    }-*/;
-        
-        public final native void nodes(Array<GraphNode> nodes)/*-{
-            this.nodes = nodes;
-        }-*/;
-        
-        public final native void links(Array<GraphLink> links)/*-{
-            this.links = links;
-        }-*/;
-        
-		protected final native int id() /*-{
-			return this.id || -1;
-		}-*/;
-	
-		protected final native int id(int id) /*-{
-			return this.id = id;
-		}-*/;
-	
-		protected final native void setAttr(String name, JavaScriptObject value) /*-{
-			this[name] = value;
-		}-*/;
-	
-		protected final native double setAttr(String name, double value) /*-{
-			return this[name] = value;
-		}-*/;
-	
-		protected final native JavaScriptObject getObjAttr(String name) /*-{
-			return this[name];
-		}-*/;
-	
-		protected final native double getNumAttr(String name) /*-{
-			return this[name];
-		}-*/;
-        
-	}
-	
-	private static class GraphNode extends Force.Node {
-		protected GraphNode() {
+	// Perhaps a mutable JSO class would be a nice feature?
+	private static class TreeDemoNode extends com.github.gwtd3.api.layout.HierarchicalLayout.Node {
+		protected TreeDemoNode() {
 			super();
 		}
 
@@ -144,46 +95,151 @@ public class GraphDemo extends FlowPanel {
 		}-*/;
 	}
 	
-	private static class GraphLink extends Link {
-		protected GraphLink() {
-			super();
-		}
+//	private static class Graph extends JavaScriptObject {
+//		
+//		protected Graph() {
+//			super();
+//		}
+//		
+//        public final native Array<GraphNode> nodes() /*-{
+//            return this.children;
+//        }-*/;
+//        
+//        public final native Array<GraphLink> links() /*-{
+//	        return this.children;
+//	    }-*/;
+//        
+//
+//        public final native void nodes(Array<GraphNode> nodes)/*-{
+//            this.nodes = nodes;
+//        }-*/;
+//        
+//        public final native void links(Array<GraphLink> links)/*-{
+//            this.links = links;
+//        }-*/;
+//        
+//	}
+//	
+//	// Perhaps a mutable JSO class would be a nice feature?
+//	private static class GraphNode extends Node {
+//		protected GraphNode() {
+//			super();
+//		}
+//
+//		protected final native int id() /*-{
+//			return this.id || -1;
+//		}-*/;
+//
+//		protected final native int id(int id) /*-{
+//			return this.id = id;
+//		}-*/;
+//
+//		protected final native void setAttr(String name, JavaScriptObject value) /*-{
+//			this[name] = value;
+//		}-*/;
+//
+//		protected final native double setAttr(String name, double value) /*-{
+//			return this[name] = value;
+//		}-*/;
+//
+//		protected final native JavaScriptObject getObjAttr(String name) /*-{
+//			return this[name];
+//		}-*/;
+//
+//		protected final native double getNumAttr(String name) /*-{
+//			return this[name];
+//		}-*/;
+//	}
+//	
+//	private static class GraphLink extends Link {
+//		protected GraphLink() {
+//			super();
+//		}
+//
+//		protected final native int id() /*-{
+//			return this.id || -1;
+//		}-*/;
+//
+//		protected final native int id(int id) /*-{
+//			return this.id = id;
+//		}-*/;
+//
+//		protected final native void setAttr(String name, JavaScriptObject value) /*-{
+//			this[name] = value;
+//		}-*/;
+//
+//		protected final native double setAttr(String name, double value) /*-{
+//			return this[name] = value;
+//		}-*/;
+//
+//		protected final native JavaScriptObject getObjAttr(String name) /*-{
+//			return this[name];
+//		}-*/;
+//
+//		protected final native double getNumAttr(String name) /*-{
+//			return this[name];
+//		}-*/;
+//	}
 
-		protected final native int id() /*-{
-			return this.id || -1;
-		}-*/;
-
-		protected final native int id(int id) /*-{
-			return this.id = id;
-		}-*/;
-
-		protected final native void setAttr(String name, JavaScriptObject value) /*-{
-			this[name] = value;
-		}-*/;
-
-		protected final native double setAttr(String name, double value) /*-{
-			return this[name] = value;
-		}-*/;
-
-		protected final native JavaScriptObject getObjAttr(String name) /*-{
-			return this[name];
-		}-*/;
-
-		protected final native double getNumAttr(String name) /*-{
-			return this[name];
-		}-*/;
-	}
-
-	final int width = 960;
-	final int height = 500;
-	private Force force;
+	private Tree tree;
+	private Diagonal diagonal;
 	private Selection svg;
-	private Graph graph;
+	private TreeDemoNode root;
 	final MyResources css = Bundle.INSTANCE.css();
+	// global references for demo
+	static int i = 0;
+	final int duration = 750;
+		
+	/*private static class Data {
+		private final String symbol;
 
-	public void start() {
+		private final JsDate date;
+
+		private final double price;
+
 		/*
-		String data = "{\r\n" + 
+		 * (non-Javadoc)
+		 * 
+		 * @see java.lang.Object#toString()
+		 */
+	/*	@Override
+		public String toString() {
+			return "Data [date=" + date.getTime() + ", price=" + price + "]";
+		}
+
+		public Data(final String symbol, final JsDate date, final double price) {
+			super();
+			this.symbol = symbol;
+			this.date = date;
+			this.price = price;
+		}
+
+		public String getSymbol() {
+			return symbol;
+		}
+
+		public JsDate getDate() {
+			return date;
+		}
+
+		public double getPrice() {
+			return price;
+		}
+	}*/
+
+	/*var graph = {
+			  "nodes":[
+			    {"name":"Myriel","group":1},
+			    ]
+			    "links":[
+    			{"source":1,"target":0,"value":1},
+		      ]
+		};*/
+	public void start() {
+		final int width = 960;
+		final int height = 500;
+		
+		/*String data = "{\r\n" + 
 				"  \"nodes\":[\r\n" + 
 				"    {\"name\":\"Myriel\",\"group\":1},\r\n" + 
 				"    {\"name\":\"Napoleon\",\"group\":1},\r\n" + 
@@ -520,73 +576,73 @@ public class GraphDemo extends FlowPanel {
 				"    {\"source\":76,\"target\":58,\"value\":1}\r\n" + 
 				"  ]\r\n" + 
 				"}";*/
+		String data = "{\n\"children\": [\n{\n\"children\": [\n{},\n{},\n{\n\"children\": [\n{}\n]\n},\n{}\n]\n},\n{}\n]\n}";
+		root = JSONParser.parseLenient(data).isObject().getJavaScriptObject()
+				.<TreeDemoNode> cast();
+		System.out.println(root.children().length());
 		
 		
-		String data = "{\r\n" + 
-				"  \"nodes\":[\r\n" + 
-				"    {\"name\":\"Myriel\",\"group\":1},\r\n" + 
-				"    {\"name\":\"Napoleon\",\"group\":1}" + 
-				"  ],\r\n" + 
-				"  \"links\":[\r\n" + 
-				"    {\"source\":1,\"target\":0,\"value\":1}" +
-				"  ]\r\n" + 
-				"}";
+		// get tree layout
+		tree = D3.layout().tree().size(width, height);
+		// set the global way to draw paths
+		diagonal = D3.svg().diagonal()
+				.projection(new DatumFunction<Array<Double>>() {
+					@Override
+					public Array<Double> apply(Element context, Value d,
+							int index) {
+						TreeDemoNode data = d.<TreeDemoNode> as();
+						return Array.fromDoubles(data.x(), data.y());
+					}
+				});
+
+		// add the SVG
+		svg = D3.select(this).append("svg").attr("width", width + 20)
+				.attr("height", height + 280).append("g")
+				.attr("transform", "translate(10, 140)");
+
+		// get the root of the tree and initialize it
+		root = JSONParser.parseLenient(data).isObject().getJavaScriptObject()
+				.<TreeDemoNode> cast();
+		root.setAttr("x0", (width - 20) / 2);
+		root.setAttr("y0", 0);
+		if (root.children() != null) {
+			root.children().forEach(new Collapse());
+		}
+		update(root);
 		
-		graph = JSONParser.parseLenient(data).isObject().getJavaScriptObject().<Graph> cast();		
-		
-		System.out.println(graph.links().length());
-		Array<GraphLink> graphLinks = graph.links();
-		GraphLink l = graphLinks.get(0);
-		com.github.gwtd3.api.layout.Node n = l.source();
-		GraphNode graphNode = graph.links().get(0).source().cast();
-		
-		System.out.println(graphNode.id());
-		
-		
-		//final OrdinalScale color = D3.scale.category20();
-		
-		force = D3.layout().force().charge(-120).linkDistance(30);//.size(new [width, height]);
-		svg = D3.select(this).append("svg").attr("width", width).attr("height", height);
+		/*
+		System.out.println(root);
+		System.out.print(root.toSource());
 
 		
+		final OrdinalScale color = D3.scale.category20();
+		
+		
+		final Force force = D3.layout().force();
+		//final Selection svg = D3.select("body").append("svg").attr("width", width).attr("height", height);
+		//final Dsv<Graph> dsv = D3.csv();
+		/*D3.csv("", new DsvCallback<Data>() {
+			@Override
+			public void get(JavaScriptObject error, DsvRows<Data> data) {
+				
+			}
+		});*//*
+		Graph graph = JSONParser.parseStrict(data).isObject().getJavaScriptObject()
+				.<Graph> cast();
+				
+		final Selection svg = D3.select(this).append("svg").attr("width", width)
+				.attr("height", height);
+
+		System.out.println(	graph.nodes().length());
+		System.out.println(graph.links().length());
 		force.nodes(graph.nodes()).links(graph.links()).start();
 		
 		final Selection link = svg.selectAll(".link")
 			      .data(graph.links())
 			      .enter().append("line")
-			      .attr("class", css.link()).style("stroke-width", new DatumFunction<Double>() {
-					@Override
-					public Double apply(Element context, Value d, int index) {
-						return Math.sqrt(d.asDouble());
-					}
-			      });
+			      .attr("class", "link");
 		
-		final Selection gnodes = svg.selectAll("g.gnode")
-			     .data(graph.nodes())
-			     .enter()
-			     .append("g")
-			     .classed("gnode", true);
-		
-		final Selection node = gnodes.append("circle")
-			      .attr("class", css.node())
-			      .attr("r", 5)
-			      /*.style("fill", new DatumFunction<Value>() {
-					@Override
-					public Value apply(Element context, Value d, int index) {
-
-				    	  return color.apply(d); 
-					} 
-			      })*/.call(force.drag());
-
-		final Selection	labels = gnodes.append("text").text(new DatumFunction<String>() {
-			@Override
-			public String apply(Element context, Value d, int index) {
-				return "test";
-			}
-		});
-		
-		
-		/*force.on("tick", new DatumFunction<Void>() {
+		force.on("tick", new DatumFunction<Void>() {
 			@Override
 			public Void apply(Element context, Value d, int index) {
 				link.attr("x1", new DatumFunction<Double>() {
@@ -617,19 +673,376 @@ public class GraphDemo extends FlowPanel {
 						return link.target().y();
 					}
 				});
-				
-				gnodes.attr("transform", new DatumFunction<String>() {
-					@Override
-					public String apply(Element context, Value d, int index) {
-						 return "translate(' + [d.x, d.y] + ')"; 
-					}
-				});
-			       
-				
 				return null;
 			}
-		});*/
-	
+		});
 		
+		
+		/*final Selection link = svg.selectAll(".link").data(links).enter().append("line").attr("class", "link").style("stroke-width", new DatumFunction() {
+			@Override
+			public Object apply(Element context, Value d, int index) {
+				return Math.sqrt(d.asDouble());
+			}
+		});
+		final Selection gnodes = svg.selectAll("g.gnode").data(nodes).enter().append("g").classed("gnode", true);
+		final Selection node = gnodes.append("circle").attr("class", "node").attr("r", 5).style("fill", new DatumFunction() {
+			@Override
+			public Object apply(Element context, Value d, int index) {
+				return color.apply(d);
+			}
+		}).call(force.drag());
+		
+		final Selection labels = gnodes.append("text").text(new DatumFunction() {
+			@Override
+			public Object apply(Element context, Value d, int index) {
+				return d.asString();
+			}
+		});*/
+			
+		
+		//dsv.parse("");
+		
+		/*dsv.get(new DsvCallback<Data>() {
+			@Override
+			public void get(JavaScriptObject error, DsvRows<Data> dataRows) {
+				List<Node> nodes = new LinkedList<Node>();
+				List<Link> links = new LinkedList<Link>();
+				for(Data data : dataRows.asList()) {
+					for(MyNode myNode : data.nodes) 
+						nodes.add(new Node(myNode.name));
+					nodes.addAll(data.nodes);
+					links.addAll(data.links);
+				}
+				force.nodes(nodes).links(links).start();
+				svg.selectAll(".link").data(links).enter().append("path").attr("class", "link");
+				svg.selectAll(".node").data(nodes).enter().append("circle").attr("class", "node").attr("r", 5)
+					/*.style("fill", new DatumFunction() {
+						@Override
+						public Object apply(Element context, Value d, int index) {
+							return color.(d.group); 
+						} 
+		//			})*///.call(force.drag());
+		//		
+		//	}
+		//});
+		
+		/*final MyResources css = Bundle.INSTANCE.css();
+
+		final int[] m = new int[] { 80, 80, 80, 80 };
+		final int width = 960 - m[1] - m[3];
+		final int height = 500 - m[0] - m[2];
+		//final TimeFormat format = D3.time().format("%b %Y");
+
+		// Scales and axes. Note the inverted domain for the y-scale: bigger is
+		// up!
+		//final TimeScale x = D3.time().scale().range(0, width);
+		//final LinearScale y = D3.scale.linear().range(height, 0);
+		final Axis xAxis = D3.svg().axis().scale(x).tickSize(-height);
+		// removed .tickSubdivide(1);
+		final Axis yAxis = D3.svg().axis().scale(y).orient(Orientation.RIGHT)
+				.ticks(4);
+
+		// An area generator, for the light fill.
+		final Area area = D3.svg().area()
+				.interpolate(Area.InterpolationMode.MONOTONE)
+				// .x(function(d) { return x(d.date); })
+				.x(new DatumFunction<Double>() {
+					@Override
+					public Double apply(final Element context, final Value d,
+							final int index) {
+						return x.apply(((Data) d.as()).getDate()).asDouble();
+					}
+				}).y0(height)
+				// .y1(function(d) { return y(d.price); });
+				.y1(new DatumFunction<Double>() {
+					@Override
+					public Double apply(final Element context, final Value d,
+							final int index) {
+						return y.apply(((Data) d.as()).getPrice()).asDouble();
+					}
+				});
+
+		// A line generator, for the dark stroke.
+		final Line line = D3.svg().line()
+				.interpolate(Line.InterpolationMode.MONOTONE)
+				// .x(function(d) { return x(d.date); })
+				.x(new DatumFunction<Double>() {
+					@Override
+					public Double apply(final Element context, final Value d,
+							final int index) {
+						return x.apply(((Data) d.as()).getDate()).asDouble();
+					}
+				})
+				// // .y(function(d) { return y(d.price); });
+				.y(new DatumFunction<Double>() {
+					@Override
+					public Double apply(final Element context, final Value d,
+							final int index) {
+						return y.apply(d.<Data> as().getPrice()).asDouble();
+					}
+				});
+
+		D3.csv("demo-data/readme.csv", new DsvObjectAccessor<Data>() {
+			@Override
+			public Data apply(final DsvRow d, final int index) {
+				Value value = d.get("symbol");
+				if ("S&P 500".equals(value.asString())) {
+					String symbol = d.get("symbol").asString();
+					JsDate date = format.parse(d.get("date").asString());
+					double price = d.get("price").asDouble();
+					return new Data(symbol, date, price);
+				} else {
+					return null;
+				}
+			}
+		}, new DsvCallback<Data>() {
+			@Override
+			public void get(final JavaScriptObject error,
+					final DsvRows<Data> values) {
+
+				if (error != null) {
+					XmlHttpRequest xhrError = error.cast();
+					String message = xhrError.status() + " ("
+							+ xhrError.statusText() + ")";
+					Window.alert(message);
+					throw new RuntimeException(message);
+				}
+
+				// // Compute the minimum and maximum date, and the maximum
+				// price.
+				x.domain(Array.fromObjects(values.getObject(0).getDate(),
+						values.getObject(values.length() - 1).getDate()));
+
+				int maxY = Arrays.max(values, new NumericForEachCallback() {
+					@Override
+					public double forEach(final Object thisArg,
+							final Value element, final int index,
+							final Array<?> array) {
+						return element.<Data> as().getPrice();
+					}
+				}).asInt();
+				System.out.println("the max Y is " + maxY + " among " + values);
+				y.domain(Array.fromInts(0, maxY)).nice();
+				// Add an SVG element with the desired dimensions and margin.
+				final Selection svg = D3
+						.select(AxisComponent.this)
+						.append("svg:svg")
+						.attr("class", css.svg())
+						.attr("width", width + m[1] + m[3])
+						.attr("height", height + m[0] + m[2])
+						.append("svg:g")
+						.attr("transform",
+								"translate(" + m[3] + "," + m[0] + ")");
+
+				// Add the clip path.
+				svg.append("svg:clipPath").attr("id", "clip")
+						.append("svg:rect").attr("width", width).attr("height", height);
+
+				// Add the area path.
+				svg.append("svg:path").attr("class", css.area())
+						.attr("clip-path", "url(#clip)")
+						.attr("d", area.apply(values));
+
+				// Add the x-axis.
+				svg.append("svg:g").attr("class", css.x() + " " + css.axis())
+						.attr("transform", "translate(0," + height + ")")
+						.call(xAxis);
+
+				// Add the y-axis.
+				svg.append("svg:g").attr("class", css.y() + " " + css.axis())
+						.attr("transform", "translate(" + width + ",0)")
+						.call(yAxis);
+
+				// Add the line path.
+				svg.append("svg:path").attr("class", css.line())
+						.attr("clip-path", "url(#clip)")
+						.attr("d", line.generate(values));
+
+				// Add a small label for the symbol name.
+				svg.append("svg:text").attr("x", width - 6).attr("y", height - 6)
+						.attr("text-anchor", "end")
+						.text(values.getObject(0).getSymbol());
+
+				// On click, update the x-axis.
+				svg.on(BrowserEvents.CLICK, new DatumFunction<Void>() {
+					@Override
+					public Void apply(final Element context, final Value d,
+							final int index) {
+						int n = values.length() - 1;
+						int i = (int) Math.floor((Math.random() * n) / 2);
+						int j = i + (int) Math.floor((Math.random() * n) / 2)
+								+ 1;
+						x.domain(Array.fromObjects(values.getObject(i)
+								.getDate(), values.getObject(j).getDate()));
+						Transition transition = svg.transition().duration(750);
+						transition.select("." + css.x() + "." + css.axis())
+								.call(xAxis);
+						transition.select("." + css.area()).attr("d",
+								area.apply(values));
+						transition.select("." + css.line()).attr("d",
+								line.generate(values));
+						return null;
+					};
+				});
+			}
+		});
+		*/
 	}
+	
+	private void update(final TreeDemoNode source) {
+		Array<HierarchicalLayout.Node> nodes = tree.nodes(root).reverse();
+		Array<Link> links = tree.links(nodes);
+
+		// normalize depth
+		nodes.forEach(new ForEachCallback<Void>() {
+			@Override
+			public Void forEach(Object thisArg, Value element, int index,
+					Array<?> array) {
+				TreeDemoNode datum = element.<TreeDemoNode> as();
+				datum.setAttr("y", datum.depth() * 180);
+				return null;
+			}
+		});
+
+		// assign ids to nodes
+		UpdateSelection node = svg.selectAll("g." + css.node()).data(nodes,
+				new KeyFunction<Integer>() {
+					@Override
+					public Integer map(Element context, Array<?> newDataArray,
+							Value datum, int index) {
+						TreeDemoNode d = datum.<TreeDemoNode> as();
+						return ((d.id() == -1) ? d.id(++i) : d.id());
+					}
+				});
+
+		// add click function on node click
+		Selection nodeEnter = node
+				.enter()
+				.append("g")
+				.attr("class", css.node())
+				.attr("transform",
+						"translate(" + source.getNumAttr("x0") + ","
+								+ source.getNumAttr("y0") + ")")
+				.on("click", new Click());
+
+		// add circles to all entering nodes
+		nodeEnter.append("circle").attr("r", 1e-6)
+				.style("fill", new DatumFunction<String>() {
+					@Override
+					public String apply(Element context, Value d, int index) {
+						JavaScriptObject node = d.<TreeDemoNode> as()
+								.getObjAttr("_children");
+						return (node != null) ? "lightsteelblue" : "#fff";
+					}
+				});
+
+		// transition entering nodes
+		Transition nodeUpdate = node.transition().duration(duration)
+				.attr("transform", new DatumFunction<String>() {
+					@Override
+					public String apply(Element context, Value d, int index) {
+						TreeDemoNode data = d.<TreeDemoNode> as();
+						return "translate(" + data.x() + "," + data.y() + ")";
+					}
+				});
+
+		nodeUpdate.select("circle").attr("r", 4.5)
+				.style("fill", new DatumFunction<String>() {
+					@Override
+					public String apply(Element context, Value d, int index) {
+						JavaScriptObject object = d.<TreeDemoNode> as()
+								.getObjAttr("_children");
+						return (object != null) ? "lightsteelblue" : "#fff";
+					}
+				});
+
+		// transition exiting nodes
+		Transition nodeExit = node.exit().transition().duration(duration)
+				.attr("transform", new DatumFunction<String>() {
+					@Override
+					public String apply(Element context, Value d, int index) {
+						return "translate(" + source.x() + "," + source.y()
+								+ ")";
+					}
+				}).remove();
+
+		nodeExit.select("circle").attr("r", 1e-6);
+
+		// update svg paths for new node locations
+		UpdateSelection link = svg.selectAll("path." + css.link()).data(links,
+				new KeyFunction<Integer>() {
+					@Override
+					public Integer map(Element context, Array<?> newDataArray,
+							Value datum, int index) {
+						return datum.<Link> as().target().<TreeDemoNode> cast()
+								.id();
+					}
+				});
+
+		link.enter().insert("svg:path", "g").attr("class", css.link())
+				.attr("d", new DatumFunction<String>() {
+					@Override
+					public String apply(Element context, Value d, int index) {
+						Coords o = Coords.create(source.getNumAttr("x0"),
+								source.getNumAttr("y0"));
+						return diagonal.generate(Link.create(o, o));
+					}
+				});
+
+		link.transition().duration(duration).attr("d", diagonal);
+
+		link.exit().transition().duration(duration)
+				.attr("d", new DatumFunction<String>() {
+					@Override
+					public String apply(Element context, Value d, int index) {
+						Coords o = Coords.create(source.x(), source.y());
+						return diagonal.generate(Link.create(o, o));
+					}
+				}).remove();
+
+		// update locations on node
+		nodes.forEach(new ForEachCallback<Void>() {
+			@Override
+			public Void forEach(Object thisArg, Value element, int index,
+					Array<?> array) {
+				TreeDemoNode data = element.<TreeDemoNode> as();
+				data.setAttr("x0", data.x());
+				data.setAttr("y0", data.y());
+				return null;
+			}
+		});
+	}
+
+	private class Collapse implements ForEachCallback<Void> {
+		@Override
+		public Void forEach(Object thisArg, Value element, int index,
+				Array<?> array) {
+			TreeDemoNode datum = element.<TreeDemoNode> as();
+			Array<HierarchicalLayout.Node> children = datum.children();
+			if (children != null) {
+				datum.setAttr("_children", children);
+				datum.getObjAttr("_children").<Array<HierarchicalLayout.Node>> cast()
+						.forEach(this);
+				datum.setAttr("children", null);
+			}
+			return null;
+		}
+	}
+	
+	private class Click implements DatumFunction<Void> {
+		@Override
+		public Void apply(Element context, Value d, int index) {
+			TreeDemoNode node = d.<TreeDemoNode> as();
+			if (node.children() != null) {
+				node.setAttr("_children", node.children());
+				node.setAttr("children", null);
+			} else {
+				node.setAttr("children", node.getObjAttr("_children"));
+				node.setAttr("_children", null);
+			}
+			update(node);
+			return null;
+		}
+	}
+
 }

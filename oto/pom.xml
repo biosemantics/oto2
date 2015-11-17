@@ -98,7 +98,7 @@
 		  <groupId>com.squarespace.jersey2-guice</groupId>
 		  <artifactId>jersey2-guice</artifactId>
 		  <version>0.10</version>
-		</dependency>		
+		</dependency>
 		<dependency>
 		  <groupId>edu.arizona.biosemantics</groupId>
 		  <artifactId>gxt</artifactId>

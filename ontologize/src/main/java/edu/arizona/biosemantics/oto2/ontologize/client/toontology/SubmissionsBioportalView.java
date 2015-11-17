@@ -7,6 +7,10 @@ import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.TabPanel;
 
+import edu.arizona.biosemantics.oto2.ontologize.client.content.submissions.BioportalClassSubmissionsGrid;
+import edu.arizona.biosemantics.oto2.ontologize.client.content.submissions.BioportalSynonymSubmissionGrid;
+import edu.arizona.biosemantics.oto2.ontologize.client.content.submissions.ClassSubmissionsGrid;
+import edu.arizona.biosemantics.oto2.ontologize.client.content.submissions.SynonymSubmissionsGrid;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.RefreshOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.RefreshOntologySynonymSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
