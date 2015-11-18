@@ -24,17 +24,19 @@ public class SelectRelationsView implements IsWidget {
 	private EventBus eventBus;
 	private SelectTypeView selectTypeView;
 	private SelectSuperclassView selectSuperclassView;
-	private SelectPartOfView selectPartOfView;
+	private SelectSinglePartOfView selectPartOfView;
 	private SelectSynonymsView selectSynonymsView;
 	private FieldValidator fieldValidator = new FieldValidator();
+	private boolean bindTermSelectEvent;
 	
-	public SelectRelationsView(EventBus eventBus) {
+	public SelectRelationsView(EventBus eventBus, boolean bindTermSelectEvent) {
 		this.eventBus = eventBus;
+		this.bindTermSelectEvent = bindTermSelectEvent;
 		
 		formContainer = new VerticalLayoutContainer();
 		selectTypeView = new SelectTypeView(eventBus);
 		selectSuperclassView = new SelectSuperclassView(eventBus);
-		selectPartOfView = new SelectPartOfView(eventBus);
+		selectPartOfView = new SelectSinglePartOfView(eventBus);
 		selectSynonymsView = new SelectSynonymsView(eventBus);
 	    
 	    bindEvents();
@@ -47,15 +49,18 @@ public class SelectRelationsView implements IsWidget {
 				setTypeSelected(selectTypeView.getType());
 			}
 		});
-		eventBus.addHandler(TermSelectEvent.TYPE, new TermSelectEvent.Handler() {
-			@Override
-			public void onSelect(TermSelectEvent event) {
-				clear();
-			}
-		});
+		if(bindTermSelectEvent) {
+			eventBus.addHandler(TermSelectEvent.TYPE, new TermSelectEvent.Handler() {
+				@Override
+				public void onSelect(TermSelectEvent event) {
+					clear();
+				}
+			});
+		}
 	}
 	
 	public void clear() {
+		selectTypeView.clear();
 		selectSuperclassView.clearSuperclassesExceptHigherLevelClass();
 		selectPartOfView.clear();
 		selectSynonymsView.clear();
@@ -124,6 +129,7 @@ public class SelectRelationsView implements IsWidget {
 	public void setOntologyClassSubmission(OntologyClassSubmission submission) {
 		this.setClassSubmission();
 		this.selectTypeView.setType(submission.getType());
+		this.setTypeSelected(submission.getType());
 		this.selectSuperclassView.setSuperclasses(submission.getSuperclasses());
 		this.selectPartOfView.setPartOfs(submission.getPartOfs());
 		this.selectSynonymsView.setSynonyms(submission.getSynonyms());

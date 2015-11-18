@@ -19,6 +19,7 @@ public class OntologySynonymSubmission implements Serializable, Colorable, Comme
 	private String submissionTerm = "";
 	private Ontology ontology;
 	private String classIRI = "";
+	private String classLabel = "";
 	private List<Synonym> synonyms = new LinkedList<Synonym>(); 
 	private String source = "";
 	private String sampleSentence = "";
@@ -29,7 +30,7 @@ public class OntologySynonymSubmission implements Serializable, Colorable, Comme
 	public OntologySynonymSubmission() { }
 	
 	public OntologySynonymSubmission(int id, int collectionId, Term term, String submissionTerm, Ontology ontology, 
-			String classIRI, List<Synonym> synonyms, String source, String sampleSentence,  
+			String classIRI, String classLabel, List<Synonym> synonyms, String source, String sampleSentence,  
 			String user, List<OntologySynonymSubmissionStatus> submissionStatuses) { 
 		this.id = id;
 		this.collectionId = collectionId;
@@ -37,6 +38,7 @@ public class OntologySynonymSubmission implements Serializable, Colorable, Comme
 		this.submissionTerm = submissionTerm == null ? "" : submissionTerm;
 		this.ontology = ontology;
 		this.classIRI = classIRI == null ? "" : classIRI;
+		this.classLabel = classLabel == null ? "" : classLabel;
 		this.source = source == null ? "" : source;
 		this.sampleSentence = sampleSentence == null ? "" : sampleSentence;
 		this.user = user;
@@ -45,12 +47,13 @@ public class OntologySynonymSubmission implements Serializable, Colorable, Comme
 	}
 	
 	public OntologySynonymSubmission(int collectionId, Term term, String submissionTerm, Ontology ontology, 
-			String classIRI, List<Synonym> synonyms, String source, String sampleSentence, String user) { 
+			String classIRI, String classLabel, List<Synonym> synonyms, String source, String sampleSentence, String user) { 
 		this.collectionId = collectionId;
 		this.term = term;
 		this.submissionTerm = submissionTerm == null ? "" : submissionTerm;
 		this.ontology = ontology;
 		this.classIRI = classIRI == null ? "" : classIRI;
+		this.classLabel = classLabel == null ? "" : classLabel;
 		this.source = source == null ? "" : source;
 		this.sampleSentence = sampleSentence == null ? "" : sampleSentence;
 		this.user = user;
@@ -213,5 +216,12 @@ public class OntologySynonymSubmission implements Serializable, Colorable, Comme
 	public Type getType() {
 		return type;
 	}
-	
+
+	public String getClassLabel() {
+		return classLabel;
+	}
+
+	public boolean hasClassLabel() {
+		return classLabel != null && !classLabel.isEmpty();
+	}
 }

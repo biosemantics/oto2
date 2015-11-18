@@ -21,6 +21,8 @@ import edu.arizona.biosemantics.oto2.ontologize.client.event.CreateOntologySynon
 import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.OntologyClassSubmissionSelectEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.OntologySynonymSubmissionSelectEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.UpdateOntologyClassSubmissionsEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.UpdateOntologySynonymsSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
@@ -49,6 +51,8 @@ public class EditSubmissionView implements IsWidget {
 	private SelectMetadataView selectMetadataView;
 	protected Collection collection;
 	protected Ontology ontology;
+	private OntologySynonymSubmission selectedSynonymSubmission;
+	private OntologyClassSubmission selectedClassSubmission;
 
 	public EditSubmissionView(EventBus eventBus) {
 		this.eventBus = eventBus;
@@ -58,7 +62,7 @@ public class EditSubmissionView implements IsWidget {
 		metaCardButton = new TextButton("Meta-data");
 
 		selectTermView = new SelectTermView(eventBus, false);
-		selectRelationsView = new SelectRelationsView(eventBus);
+		selectRelationsView = new SelectRelationsView(eventBus, false);
 		selectMetadataView = new SelectMetadataView(eventBus, false);
 
 		cardLayout = new CardLayoutContainer();
@@ -84,12 +88,14 @@ public class EditSubmissionView implements IsWidget {
 			@Override
 			public void onSelect(OntologyClassSubmissionSelectEvent event) {
 				setOntologyClassSubmission(event.getOntologyClassSubmission());
+				cardLayout.setActiveWidget(selectTermView);
 			}
 		});
 		eventBus.addHandler(OntologySynonymSubmissionSelectEvent.TYPE, new OntologySynonymSubmissionSelectEvent.Handler() {
 			@Override
 			public void onSelect(OntologySynonymSubmissionSelectEvent event) {
 				setOntologySynonymSubmission(event.getOntologySynonymSubmission());
+				cardLayout.setActiveWidget(selectTermView);
 			}
 		});
 		eventBus.addHandler(LoadCollectionEvent.TYPE,
@@ -146,80 +152,57 @@ public class EditSubmissionView implements IsWidget {
 		});
 	}
 
-	protected void setOntologySynonymSubmission(OntologySynonymSubmission ontologySynonymSubmission) {
+	protected void setOntologySynonymSubmission(OntologySynonymSubmission submission) {
+		selectedSynonymSubmission = submission;
 		selectTermView.setEnabledTermComboBox(false);
 		selectTermView.setEnabledSubmissionTypeField(false);
-		selectTermView.setOntologySynonymSubmission(ontologySynonymSubmission);
-		selectRelationsView.setOntologySynonymSubmission(ontologySynonymSubmission);
-		selectMetadataView.setOntologySynonymSubmission(ontologySynonymSubmission);
+		selectTermView.setOntologySynonymSubmission(submission);
+		selectRelationsView.setOntologySynonymSubmission(submission);
+		selectMetadataView.setOntologySynonymSubmission(submission);
 	}
 
-	protected void setOntologyClassSubmission(OntologyClassSubmission ontologyClassSubmission) {
+	protected void setOntologyClassSubmission(OntologyClassSubmission submission) {
+		selectedClassSubmission = submission;
 		selectTermView.setEnabledTermComboBox(false);
 		selectTermView.setEnabledSubmissionTypeField(false);
-		selectTermView.setOntologyClassSubmission(ontologyClassSubmission);
-		selectRelationsView.setOntologyClassSubmission(ontologyClassSubmission);
-		selectMetadataView.setOntologyClassSubmission(ontologyClassSubmission);
+		selectTermView.setOntologyClassSubmission(submission);
+		selectRelationsView.setOntologyClassSubmission(submission);
+		selectMetadataView.setOntologyClassSubmission(submission);
 	}
 
 	protected void editSubmission(final MessageBox box) {
 		if (selectTermView.isClass()) {
 			final OntologyClassSubmission submission = getClassSubmission();
-			toOntologyService.createClassSubmission(collection, submission,
+			submission.setId(selectedClassSubmission.getId());
+			toOntologyService.updateClassSubmission(collection, submission,
 					new AsyncCallback<List<OntologyClassSubmission>>() {
 						@Override
 						public void onFailure(Throwable caught) {
 							Alerter.stopLoading(box);
-							if (caught.getCause() != null) {
-								if (caught instanceof OntologyNotFoundException) {
-									Alerter.failedToSubmitClassOntologyNotFound(caught
-											.getCause());
-								}
-								if (caught instanceof ClassExistsException) {
-									Alerter.failedToSubmitClassExists(caught
-											.getCause());
-								} else {
-									Alerter.failedToSubmitClass(caught);
-								}
-							}
-							Alerter.failedToSubmitClass(caught);
+							Alerter.failedToUpdateSubmission(caught);
 						}
-
 						@Override
 						public void onSuccess(
 								List<OntologyClassSubmission> result) {
 							Alerter.stopLoading(box);
-							eventBus.fireEvent(new CreateOntologyClassSubmissionEvent(
+							eventBus.fireEvent(new UpdateOntologyClassSubmissionsEvent(
 									result));
 						}
 					});
 		} else if (selectTermView.isSynonym()) {
 			final OntologySynonymSubmission submission = getSynonymSubmission();
-			toOntologyService.createSynonymSubmission(collection, submission,
+			submission.setId(selectedSynonymSubmission.getId());
+			toOntologyService.updateSynonymSubmission(collection, submission,
 					new AsyncCallback<OntologySynonymSubmission>() {
 						@Override
 						public void onFailure(Throwable caught) {
 							Alerter.stopLoading(box);
-							if (caught.getCause() != null) {
-								if (caught instanceof OntologyNotFoundException) {
-									Alerter.failedToSubmitClassOntologyNotFound(caught
-											.getCause());
-								}
-								if (caught instanceof ClassExistsException) {
-									Alerter.failedToSubmitClassExists(caught
-											.getCause());
-								} else {
-									Alerter.failedToSubmitClass(caught);
-								}
-							}
-							Alerter.failedToSubmitClass(caught);
+							Alerter.failedToUpdateSubmission(caught);
 						}
-
 						@Override
 						public void onSuccess(OntologySynonymSubmission result) {
 							Alerter.stopLoading(box);
-							eventBus.fireEvent(new CreateOntologySynonymSubmissionEvent(
-									result));
+							eventBus.fireEvent(new UpdateOntologySynonymsSubmissionsEvent(result));
 						}
 					});
 		}
@@ -229,7 +212,7 @@ public class EditSubmissionView implements IsWidget {
 		List<Synonym> synonyms = selectRelationsView.getSynonyms();
 		return new OntologySynonymSubmission(collection.getId(),
 				selectTermView.getTerm(), selectTermView.getSubmissionTerm(),
-				ontology, selectTermView.getClassIRI(), synonyms,
+				ontology, selectTermView.getClassIRI(), "", synonyms,
 				selectMetadataView.getSource(), selectMetadataView.getSample(),
 				Ontologize.user);
 	}

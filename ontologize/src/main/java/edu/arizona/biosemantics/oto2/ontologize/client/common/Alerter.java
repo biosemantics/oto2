@@ -207,4 +207,8 @@ public class Alerter {
 		return showAlert("Get Class Label", "Failed to get class label.");
 	}
 
+	public static MessageBox failedToUpdateSubmission(Throwable caught) {
+		return showAlert("Update failed", "Failed to udpate submission.");
+	}
+
 }

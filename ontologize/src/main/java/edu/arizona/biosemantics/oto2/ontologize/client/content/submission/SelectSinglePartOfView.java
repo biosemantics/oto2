@@ -1,7 +1,6 @@
 package edu.arizona.biosemantics.oto2.ontologize.client.content.submission;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 import com.google.gwt.cell.client.AbstractCell;
@@ -18,7 +17,6 @@ import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.widget.core.client.ListView;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
 import com.sencha.gxt.widget.core.client.box.MessageBox;
-import com.sencha.gxt.widget.core.client.box.PromptMessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
@@ -38,7 +36,7 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.PartOf;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.IToOntologyService;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.IToOntologyServiceAsync;
 
-public class SelectPartOfView implements IsWidget {
+public class SelectSinglePartOfView implements IsWidget {
 	
 	private IToOntologyServiceAsync toOntologyService = GWT.create(IToOntologyService.class);
 
@@ -46,16 +44,16 @@ public class SelectPartOfView implements IsWidget {
 
 	private ListView<PartOf, PartOf> listView;
 	private ListStore<PartOf> store;
-	private TextButton addButton = new TextButton("Add");
-	private TextButton removeButton = new TextButton("Remove");
-	private TextButton clearButton = new TextButton("Clear");
+	private TextButton setButton = new TextButton("Add");
+	private TextButton removeButton = new TextButton("Clear");
 
 	protected Collection collection;
 	private EventBus eventBus;
-
+	private AddPartOfDialog addPartOfDialog;
 	
-	public SelectPartOfView(EventBus eventBus) {
+	public SelectSinglePartOfView(EventBus eventBus) {
 		this.eventBus = eventBus;
+		addPartOfDialog = new AddPartOfDialog(eventBus);
 		store = new ListStore<PartOf>(new ModelKeyProvider<PartOf>() {
 			@Override
 			public String getKey(PartOf item) {
@@ -72,12 +70,11 @@ public class SelectPartOfView implements IsWidget {
 		 
 	    formContainer = new VerticalLayoutContainer();
 		HorizontalLayoutContainer horizontalLayoutContainer = new HorizontalLayoutContainer();
-		horizontalLayoutContainer.add(listView, new HorizontalLayoutData(0.7, 75));
-	    VerticalLayoutContainer partOfVertical = new VerticalLayoutContainer();
-	    horizontalLayoutContainer.add(partOfVertical, new HorizontalLayoutData(0.3, -1));
-	    partOfVertical.add(addButton, new VerticalLayoutData(1, -1));
-	    partOfVertical.add(removeButton, new VerticalLayoutData(1, -1));
-	    partOfVertical.add(clearButton, new VerticalLayoutData(1, -1));
+		horizontalLayoutContainer.add(listView, new HorizontalLayoutData(0.7, 25));
+	    //VerticalLayoutContainer partOfVertical = new VerticalLayoutContainer();
+	    //horizontalLayoutContainer.add(partOfVertical, new HorizontalLayoutData(0.3, -1));
+	    horizontalLayoutContainer.add(setButton, new HorizontalLayoutData(0.15, -1));
+	    horizontalLayoutContainer.add(removeButton, new HorizontalLayoutData(0.15, -1));
 	    formContainer.add(new FieldLabel(horizontalLayoutContainer, "Part Of (IRI or term)"), new VerticalLayoutData(1, 75));
 	    
 	    bindEvents();
@@ -87,7 +84,7 @@ public class SelectPartOfView implements IsWidget {
 		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
 			@Override
 			public void onLoad(LoadCollectionEvent event) {
-				SelectPartOfView.this.collection = event.getCollection();
+				SelectSinglePartOfView.this.collection = event.getCollection();
 			}
 		});
 		eventBus.addHandler(SelectPartOfEvent.TYPE, new SelectPartOfEvent.Handler() {
@@ -96,34 +93,21 @@ public class SelectPartOfView implements IsWidget {
 				addPartOfToStore(event.getSubmission());
 			}
 		});
-		addButton.addSelectHandler(new SelectHandler() {
+		setButton.addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
-				final PromptMessageBox box = new PromptMessageBox("Add Part Of", "Add Part Of");
-				box.show();
-				box.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
+				addPartOfDialog.show();
+				addPartOfDialog.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
 					@Override
 					public void onSelect(SelectEvent event) {
-						PartOf partOf = new PartOf();
-						if(box.getValue().startsWith("http")) {
-							partOf.setIri(box.getValue());
-						} else {
-							partOf.setLabel(box.getValue());
-						}
+						PartOf partOf = addPartOfDialog.getValue();
 						addPartOfToStore(partOf);
+						addPartOfDialog.hide();
 					}
 				});
 			}
 		});
 		removeButton.addSelectHandler(new SelectHandler() {
-			@Override
-			public void onSelect(SelectEvent event) {
-				for(PartOf remove : listView.getSelectionModel().getSelectedItems()) {
-					store.remove(remove);
-				}
-			}
-		});
-		clearButton.addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
 				clear();
@@ -132,10 +116,12 @@ public class SelectPartOfView implements IsWidget {
 	}
 
 	public void addPartOfToStore(OntologyClassSubmission submission) {
+		clear();
 		store.add(new PartOf(submission));
 	}
 
 	public void addPartOfToStore(final PartOf partOf) {
+		clear();
 		if(!partOf.hasIri())
 			store.add(partOf);
 		else if(!partOf.hasLabel()) {
@@ -159,6 +145,7 @@ public class SelectPartOfView implements IsWidget {
 	}
 	
 	private void addTypeToSupreclassStore(Type type) {
+		clear();
 		this.store.add(new PartOf(type.getIRI(), type.getLabel()));
 	}
 

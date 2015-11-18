@@ -57,6 +57,7 @@ public class SelectTypeView implements IsWidget {
 
 	public void addHandler(ValueChangeHandler<Boolean> handler) {
 		isEntityRadio.addValueChangeHandler(handler);
+		isQualityRadio.addValueChangeHandler(handler);
 	}
 
 	public Type getType() {
@@ -85,6 +86,11 @@ public class SelectTypeView implements IsWidget {
 	public void setEntity() {
 		isEntityRadio.setValue(true, true);
 		isQualityRadio.setValue(false, true);
+	}
+
+	public void clear() {
+		isEntityRadio.setValue(false);
+		isQualityRadio.setValue(false);
 	}
 
 }

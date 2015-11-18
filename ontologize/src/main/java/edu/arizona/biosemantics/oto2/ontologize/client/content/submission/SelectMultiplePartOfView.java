@@ -30,48 +30,43 @@ import com.sencha.gxt.widget.core.client.form.FieldLabel;
 
 import edu.arizona.biosemantics.oto2.ontologize.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadCollectionEvent;
-import edu.arizona.biosemantics.oto2.ontologize.client.event.RefreshOntologyClassSubmissionsEvent;
-import edu.arizona.biosemantics.oto2.ontologize.client.event.SelectSuperclassEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.SelectPartOfEvent;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
-import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Superclass;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.PartOf;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Synonym;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.IToOntologyService;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.IToOntologyServiceAsync;
 
-public class SelectSuperclassView implements IsWidget {
+public class SelectMultiplePartOfView implements IsWidget {
 	
 	private IToOntologyServiceAsync toOntologyService = GWT.create(IToOntologyService.class);
 
 	private VerticalLayoutContainer formContainer;
 
-	private ListView<Superclass, Superclass> listView;
-	private ListStore<Superclass> store;
-	private TextButton add = new TextButton("Add");
-	private TextButton remove = new TextButton("Remove");
-	private TextButton clear = new TextButton("Clear");
+	private ListView<PartOf, PartOf> listView;
+	private ListStore<PartOf> store;
+	private TextButton addButton = new TextButton("Add");
+	private TextButton removeButton = new TextButton("Remove");
+	private TextButton clearButton = new TextButton("Clear");
 
 	protected Collection collection;
-
 	private EventBus eventBus;
-
-	private Type defaultSuperclass;
-
-	private AddSuperclassDialog addSuperclassDialog;
+	private AddPartOfDialog addPartOfDialog = new AddPartOfDialog();
 	
-	public SelectSuperclassView(EventBus eventBus) {
+	public SelectMultiplePartOfView(EventBus eventBus) {
 		this.eventBus = eventBus;
-		addSuperclassDialog = new AddSuperclassDialog(eventBus);
-		store = new ListStore<Superclass>(new ModelKeyProvider<Superclass>() {
+		store = new ListStore<PartOf>(new ModelKeyProvider<PartOf>() {
 			@Override
-			public String getKey(Superclass item) {
+			public String getKey(PartOf item) {
 				return item.getIri();
 			}
 	    });
-	 	listView = new ListView<Superclass, Superclass>(store, new IdentityValueProvider<Superclass>());	    
-	    listView.setCell(new AbstractCell<Superclass>() {
+	 	listView = new ListView<PartOf, PartOf>(store, new IdentityValueProvider<PartOf>());	    
+	    listView.setCell(new AbstractCell<PartOf>() {
 			@Override
-			public void render(com.google.gwt.cell.client.Cell.Context context,	Superclass value, SafeHtmlBuilder sb) {
+			public void render(com.google.gwt.cell.client.Cell.Context context,	PartOf value, SafeHtmlBuilder sb) {
 				sb.append(SafeHtmlUtils.fromTrustedString("<div qtip=\"" + value.toString() + "\">" + (value.hasLabel() ? value.getLabel() : value.toString()) + "</div>"));
 			}
 	    });
@@ -79,12 +74,12 @@ public class SelectSuperclassView implements IsWidget {
 	    formContainer = new VerticalLayoutContainer();
 		HorizontalLayoutContainer horizontalLayoutContainer = new HorizontalLayoutContainer();
 		horizontalLayoutContainer.add(listView, new HorizontalLayoutData(0.7, 75));
-	    VerticalLayoutContainer superclassVertical = new VerticalLayoutContainer();
-	    horizontalLayoutContainer.add(superclassVertical, new HorizontalLayoutData(0.3, -1));
-	    superclassVertical.add(add, new VerticalLayoutData(1, -1));
-	    superclassVertical.add(remove, new VerticalLayoutData(1, -1));
-	    superclassVertical.add(clear, new VerticalLayoutData(1, -1));
-	    formContainer.add(new FieldLabel(horizontalLayoutContainer, "Superclass (IRI or term)"), new VerticalLayoutData(1, 75));
+	    VerticalLayoutContainer partOfVertical = new VerticalLayoutContainer();
+	    horizontalLayoutContainer.add(partOfVertical, new HorizontalLayoutData(0.3, -1));
+	    partOfVertical.add(addButton, new VerticalLayoutData(1, -1));
+	    partOfVertical.add(removeButton, new VerticalLayoutData(1, -1));
+	    partOfVertical.add(clearButton, new VerticalLayoutData(1, -1));
+	    formContainer.add(new FieldLabel(horizontalLayoutContainer, "Part Of (IRI or term)"), new VerticalLayoutData(1, 75));
 	    
 	    bindEvents();
 	}
@@ -93,65 +88,61 @@ public class SelectSuperclassView implements IsWidget {
 		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
 			@Override
 			public void onLoad(LoadCollectionEvent event) {
-				SelectSuperclassView.this.collection = event.getCollection();
+				SelectMultiplePartOfView.this.collection = event.getCollection();
 			}
 		});
-		eventBus.addHandler(SelectSuperclassEvent.TYPE, new SelectSuperclassEvent.Handler() {
+		eventBus.addHandler(SelectPartOfEvent.TYPE, new SelectPartOfEvent.Handler() {
 			@Override
-			public void onSelect(SelectSuperclassEvent event) {
-				addSuperClassToStore(event.getSubmission());
+			public void onSelect(SelectPartOfEvent event) {
+				addPartOfToStore(event.getSubmission());
 			}
 		});
-		add.addSelectHandler(new SelectHandler() {
+		addButton.addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
-				addSuperclassDialog.show();
-				addSuperclassDialog.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
+				addPartOfDialog.setCollection(collection);
+				addPartOfDialog.show();
+				addPartOfDialog.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
 					@Override
 					public void onSelect(SelectEvent event) {
-						String value = addSuperclassDialog.getValue();
-						Superclass superclass = new Superclass();
-						if(value.startsWith("http")) {
-							superclass.setIri(value);
+						PartOf partOf = new PartOf();
+						if(addPartOfDialog.getValue().startsWith("http")) {
+							partOf.setIri(addPartOfDialog.getValue());
 						} else {
-							superclass.setLabel(value);
+							partOf.setLabel(addPartOfDialog.getValue());
 						}
-						addSuperClassToStore(superclass);
-						addSuperclassDialog.hide();
+						addPartOfToStore(partOf);
+						addPartOfDialog.hide();
 					}
 				});
 			}
 		});
-		remove.addSelectHandler(new SelectHandler() {
+		removeButton.addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
-				for(Superclass remove : listView.getSelectionModel().getSelectedItems()) {
-					if(remove.getIri().equals(defaultSuperclass.getIRI())) {
-						Alerter.cannotRemoveEntityOrQualitySuperclass();
-					} else {
-						store.remove(remove);
-					}
+				for(PartOf remove : listView.getSelectionModel().getSelectedItems()) {
+					store.remove(remove);
 				}
 			}
 		});
-		clear.addSelectHandler(new SelectHandler() {
+		clearButton.addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
-				clearSuperclassesExceptHigherLevelClass();
+				clear();
 			}
 		});
 	}
 
-	public void addSuperClassToStore(OntologyClassSubmission submission) {
-		store.add(new Superclass(submission));
+	public void addPartOfToStore(OntologyClassSubmission submission) {
+		store.add(new PartOf(submission));
 	}
 
-	public void addSuperClassToStore(final Superclass superclass) {
-		if(!superclass.hasIri())
-			store.add(superclass);
-		else if(!superclass.hasLabel()) {
+	public void addPartOfToStore(final PartOf partOf) {
+		if(!partOf.hasIri())
+			store.add(partOf);
+		else if(!partOf.hasLabel()) {
 			final MessageBox box = Alerter.startLoading();
-			toOntologyService.getClassLabel(collection, superclass.getIri(), new AsyncCallback<String>() {
+			toOntologyService.getClassLabel(collection, partOf.getIri(), new AsyncCallback<String>() {
 				@Override
 				public void onFailure(Throwable caught) {
 					Alerter.failedToGetClassLabel();
@@ -159,46 +150,35 @@ public class SelectSuperclassView implements IsWidget {
 				}
 				@Override
 				public void onSuccess(String result) {
-					superclass.setLabel(result);
-					store.add(superclass);
+					partOf.setLabel(result);
+					store.add(partOf);
 					Alerter.stopLoading(box);
 				}
 			});
 		} else {
-			store.add(superclass);
+			store.add(partOf);
 		}
-	}
-
-	public void clearSuperclassesExceptHigherLevelClass() {
-		store.clear();
-		if(defaultSuperclass != null)
-			addTypeToSupreclassStore(defaultSuperclass);
 	}
 	
 	private void addTypeToSupreclassStore(Type type) {
-		this.store.add(new Superclass(type.getIRI(), type.getLabel()));
+		this.store.add(new PartOf(type.getIRI(), type.getLabel()));
 	}
 
 	@Override
 	public Widget asWidget() {
 		return formContainer;
 	}
-	
-	public void setDefaultSuperclass(Type type) {
-		this.defaultSuperclass = type;
-		clearSuperclassesExceptHigherLevelClass();
-	}
 
-	public List<Superclass> getSuperclasses() {
-		return new ArrayList<Superclass>(store.getAll());
-	}
-
-	public void setSuperclasses(List<Superclass> superclasses) {
-		clear();
-		this.store.addAll(superclasses);
+	public List<PartOf> getPartsOfs() {
+		return new ArrayList<PartOf>(store.getAll());
 	}
 
 	public void clear() {
 		store.clear();
+	}
+
+	public void setPartOfs(List<PartOf> partOfs) {
+		clear();
+		store.addAll(partOfs);
 	}
 }

@@ -31,7 +31,7 @@ public interface IToOntologyService extends RemoteService {
 	
 	public List<OntologyClassSubmission> updateClassSubmission(Collection collection, OntologyClassSubmission ontologyClassSubmissions) throws Exception;
 
-	public void updateSynonymSubmission(Collection collection, OntologySynonymSubmission ontologySynonymSubmissions) throws Exception;
+	public OntologySynonymSubmission updateSynonymSubmission(Collection collection, OntologySynonymSubmission ontologySynonymSubmissions) throws Exception;
 	
 	public void removeClassSubmission(Collection collection, OntologyClassSubmission submission) throws Exception;
 

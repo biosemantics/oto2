@@ -21,6 +21,10 @@ public class TermTreeNodeIconProvider implements IconProvider<TextTreeNode> {
 		bindEvents();
 	}
 
+	public TermTreeNodeIconProvider(Collection collection) {
+		this.collection = collection;
+	}
+
 	private void bindEvents() {
 		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
 			@Override

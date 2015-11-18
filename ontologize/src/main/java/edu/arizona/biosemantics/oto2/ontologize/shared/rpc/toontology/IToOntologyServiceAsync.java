@@ -27,7 +27,7 @@ public interface IToOntologyServiceAsync {
 	
 	public void updateClassSubmission(Collection collection, OntologyClassSubmission ontologyClassSubmissions, AsyncCallback<List<OntologyClassSubmission>> callback);
 
-	public void updateSynonymSubmission(Collection collection, OntologySynonymSubmission ontologySynonymSubmissions, AsyncCallback<Void> callback);
+	public void updateSynonymSubmission(Collection collection, OntologySynonymSubmission ontologySynonymSubmissions, AsyncCallback<OntologySynonymSubmission> callback);
 	
 	public void removeClassSubmission(Collection collection, OntologyClassSubmission submission, AsyncCallback<Void> callback);
 

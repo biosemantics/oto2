@@ -6,7 +6,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 import edu.arizona.biosemantics.common.log.LogLevel;
+import edu.arizona.biosemantics.oto2.ontologize.server.Configuration;
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.db.Query.QueryException;
+import edu.arizona.biosemantics.oto2.ontologize.server.persist.file.PermanentOntologyFileDAO;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Term;
@@ -14,6 +16,7 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Ontology
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySynonymSubmissionStatus;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.StatusEnum;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Synonym;
+import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.OntologyNotFoundException;
 
 public class OntologySynonymSubmissionDAO {
 
@@ -21,6 +24,7 @@ public class OntologySynonymSubmissionDAO {
 	private OntologyDAO ontologyDAO;
 	private OntologySynonymSubmissionStatusDAO ontologySynonymSubmissionStatusDAO;
 	private OntologySynonymSubmissionSynonymDAO ontologySynonymSubmissionSynonymDAO;
+	private PermanentOntologyFileDAO permanentOntologyFileDAO;
 	
 	public OntologySynonymSubmissionDAO() {} 
 	
@@ -32,14 +36,33 @@ public class OntologySynonymSubmissionDAO {
 			while(result.next()) {
 				ontologySynonymSubmission = createSynonymSubmission(result);
 			}
-		} catch(QueryException | SQLException e) {
+		} catch(QueryException | SQLException | OntologyNotFoundException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
 			throw new QueryException(e);
 		}
 		return ontologySynonymSubmission;
 	}
 	
-	private OntologySynonymSubmission createSynonymSubmission(ResultSet result) throws SQLException, QueryException {
+	private String getLabel(String classIri) throws QueryException, OntologyNotFoundException {
+		if(classIri.startsWith(Configuration.etcOntologyBaseIRI)) {
+			try(Query query = new Query("SELECT * FROM ontologize_ontologyclasssubmission s"
+					+ " WHERE s.class_iri = ?")) {
+				query.setParameter(1, classIri);
+				ResultSet resultSet = query.execute();
+				if(resultSet.next()) {
+					return resultSet.getString("submission_term");
+				}
+				return null;
+			} catch(QueryException | SQLException e) {
+				log(LogLevel.ERROR, "Query Exception", e);
+				throw new QueryException(e);
+			}
+		} else {
+			return permanentOntologyFileDAO.getClassLabel(classIri);
+		}
+	}
+	
+	private OntologySynonymSubmission createSynonymSubmission(ResultSet result) throws SQLException, QueryException, OntologyNotFoundException {
 		int id = result.getInt("id");
 		int collectionId = result.getInt("collection");
 		int termId = result.getInt("term");
@@ -55,7 +78,7 @@ public class OntologySynonymSubmissionDAO {
 		
 		Ontology ontology = ontologyDAO.get(ontologyId);
 		List<OntologySynonymSubmissionStatus> ontologysynonymSubmissionStatuses = ontologySynonymSubmissionStatusDAO.getStatusOfOntologySynonymSubmission(id);
-		return new OntologySynonymSubmission(id, collectionId, term, submissionTerm, ontology, classIRI, 
+		return new OntologySynonymSubmission(id, collectionId, term, submissionTerm, ontology, classIRI, getLabel(classIRI),
 				ontologySynonymSubmissionSynonymDAO.getSynonyms(id), 
 				source, sampleSentence,	user, ontologysynonymSubmissionStatuses);
 	}
@@ -166,7 +189,7 @@ public class OntologySynonymSubmissionDAO {
 			while(resultSet.next()) {
 				result.add(createSynonymSubmission(resultSet));
 			}
-		} catch(QueryException | SQLException e) {
+		} catch(QueryException | SQLException | OntologyNotFoundException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
 			throw new QueryException(e);
 		}
@@ -185,7 +208,7 @@ public class OntologySynonymSubmissionDAO {
 			while(resultSet.next()) {
 				result.add(createSynonymSubmission(resultSet));
 			}
-		} catch(QueryException | SQLException e) {
+		} catch(QueryException | SQLException | OntologyNotFoundException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
 			throw new QueryException(e);
 		}
@@ -207,11 +230,15 @@ public class OntologySynonymSubmissionDAO {
 			while(resultSet.next()) {
 				result.add(createSynonymSubmission(resultSet));
 			}
-		} catch(QueryException | SQLException e) {
+		} catch(QueryException | SQLException | OntologyNotFoundException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
 			throw new QueryException(e);
 		}
 		return result;
+	}
+	
+	public void setPermanentOntologyFileDAO(PermanentOntologyFileDAO permanentOntologyFileDAO) {
+		this.permanentOntologyFileDAO = permanentOntologyFileDAO;
 	}
 	
 }

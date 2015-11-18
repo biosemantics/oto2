@@ -25,6 +25,8 @@ import com.sencha.gxt.widget.core.client.form.FieldLabel;
 import com.sencha.gxt.widget.core.client.form.TextArea;
 import com.sencha.gxt.widget.core.client.form.TextField;
 
+import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadCollectionEvent;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Synonym;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.SynonymProperties;
 
@@ -39,6 +41,8 @@ public class SelectSynonymsView implements IsWidget {
 	private TextButton add = new TextButton("Add");
 	private TextButton remove = new TextButton("Remove");
 	private TextButton clear = new TextButton("Clear");
+	protected Collection collection;
+	private AddSynonymDialog addSynonymDialog = new AddSynonymDialog();
 
 	public SelectSynonymsView(EventBus eventBus) {
 		this.eventBus = eventBus;
@@ -67,15 +71,23 @@ public class SelectSynonymsView implements IsWidget {
 	}
 	
 	private void bindEvents() {
+		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
+			@Override
+			public void onLoad(LoadCollectionEvent event) {
+				SelectSynonymsView.this.collection = event.getCollection();
+			}
+		});
+		
 		add.addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
-				final PromptMessageBox box = new PromptMessageBox("Add Synonym", "Add Synonym");
-				box.show();
-				box.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
+				addSynonymDialog.setCollection(collection);
+				addSynonymDialog.show();
+				addSynonymDialog.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
 					@Override
 					public void onSelect(SelectEvent event) {
-						store.add(new Synonym(box.getValue()));
+						store.add(new Synonym(addSynonymDialog.getValue()));
+						addSynonymDialog.hide();
 					}
 				});
 			}

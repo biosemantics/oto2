@@ -291,7 +291,7 @@ public class SelectTermView implements IsWidget {
 		this.termComboBox.setValue(submission.getTerm());
 		this.categoryField.setValue(submission.getTerm().getCategory());
 		this.selectSubmissionTypeView.setSynonym();
-		this.classIRIComboBox.setValue(new SynonymClass(submission.getClassIRI()));
+		this.classIRIComboBox.setValue(new SynonymClass(submission.getClassIRI(), submission.getClassLabel()));
 		this.submissionTermField.setValue(submission.getSubmissionTerm());
 	}
 

@@ -85,7 +85,7 @@ public class CreateSubmissionView implements IsWidget {
 		metaCardButton = new TextButton("Meta-data");
 
 		selectTermView = new SelectTermView(eventBus, true);
-		selectRelationsView = new SelectRelationsView(eventBus);
+		selectRelationsView = new SelectRelationsView(eventBus, true);
 		selectMetadataView = new SelectMetadataView(eventBus, true);
 
 		cardLayout = new CardLayoutContainer();
@@ -107,6 +107,13 @@ public class CreateSubmissionView implements IsWidget {
 	}
 
 	private void bindEvents() {
+		eventBus.addHandler(TermSelectEvent.TYPE, new TermSelectEvent.Handler() {
+			@Override
+			public void onSelect(TermSelectEvent event) {
+				cardLayout.setActiveWidget(selectTermView);
+			}
+		});
+		
 		selectTermView.addSubmissionTypeHandler(new ValueChangeHandler<Boolean>() {
 			@Override
 			public void onValueChange(ValueChangeEvent<Boolean> event) {
@@ -229,7 +236,7 @@ public class CreateSubmissionView implements IsWidget {
 	private OntologySynonymSubmission getSynonymSubmission() {
 		List<Synonym> synonyms = selectRelationsView.getSynonyms();
 		return new OntologySynonymSubmission(collection.getId(), selectTermView.getTerm(), selectTermView.getSubmissionTerm(), 
-				ontology, selectTermView.getClassIRI(), synonyms, selectMetadataView.getSource(), selectMetadataView.getSample(), Ontologize.user);
+				ontology, selectTermView.getClassIRI(), "", synonyms, selectMetadataView.getSource(), selectMetadataView.getSample(), Ontologize.user);
 	}
 
 	protected OntologyClassSubmission getClassSubmission() {

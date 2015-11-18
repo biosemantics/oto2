@@ -168,8 +168,9 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	}
 
 	@Override
-	public void updateSynonymSubmission(Collection collection, OntologySynonymSubmission submission) throws Exception {
+	public OntologySynonymSubmission updateSynonymSubmission(Collection collection, OntologySynonymSubmission submission) throws Exception {
 		daoManager.getOntologySynonymSubmissionDAO().update(submission);
+		return submission;
 	}
 
 	@Override
