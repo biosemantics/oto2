@@ -157,8 +157,22 @@ public class PermanentOntologyFileDAO {
 	}
 
 	public String getClassLabel(String classIRI) throws OntologyNotFoundException {
-		OWLClass owlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(classIRI));
+		OWLClass owlClass = getOWLClass(classIRI);
 		String label = annotationsManager.get(owlClass, labelProperty);
 		return label;
+	}
+	
+	public OWLClass getOWLClass(String classIRI) {
+		return owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(classIRI));
+	}
+
+	public boolean contains(Collection collection, String iri) {
+		try {
+			OWLClass owlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(iri));
+			owlOntologyRetriever.getPermanentOWLOntology(owlClass);
+			return true;
+		} catch(OntologyNotFoundException e) {
+			return false;
+		}
 	}
 }

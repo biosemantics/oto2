@@ -110,15 +110,40 @@ public class SelectSinglePartOfView implements IsWidget {
 				addPartOfDialog.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
 					@Override
 					public void onSelect(SelectEvent event) {
-						String value = addPartOfDialog.getValue();
-						PartOf partOf = new PartOf(); 
+						final String value = addPartOfDialog.getValue();
+						final PartOf partOf = new PartOf(); 
 						if(value.startsWith("http")) {
-							partOf.setIri(value);
+							final MessageBox box = Alerter.startLoading();
+							toOntologyService.isSupportedIRI(collection, value, new AsyncCallback<Boolean>() {
+								@Override
+								public void onFailure(Throwable caught) {
+									Alerter.failedToCheckIRI(caught);
+									Alerter.stopLoading(box);
+								}
+								@Override
+								public void onSuccess(Boolean result) {
+									if(result) {
+										partOf.setIri(value);
+										addPartOfToStore(partOf);
+										addPartOfDialog.hide();
+									} else {
+										Alerter.unsupportedIRI();
+									}
+									Alerter.stopLoading(box);
+								}
+							});
+						/*} else if(ontologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(partOf, classSubmissions) != null) {
+							partOf.setLabel(value);
+							addPartOfToStore(superclass);
+							addPartOfDialog.hide();
+						} else {
+							Alerter.unupportedPartOf();
+						}*/
 						} else {
 							partOf.setLabel(value);
+							addPartOfToStore(partOf);
+							addPartOfDialog.hide();
 						}
-						addPartOfToStore(partOf);
-						addPartOfDialog.hide();
 					}
 				});
 			}
@@ -134,7 +159,9 @@ public class SelectSinglePartOfView implements IsWidget {
 	public void addPartOfToStore(final PartOf partOf) {
 		store.clear();
 		if(!partOf.hasIri()) {
-			partOf.setIri(ontologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(partOf, classSubmissions).getIri());
+			OntologyClassSubmission ontologyClassSubmission = ontologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(partOf, classSubmissions);
+			if(ontologyClassSubmission != null)
+				partOf.setIri(ontologyClassSubmission.getIri());
 			store.add(partOf);
 		} else if(!partOf.hasLabel()) {
 			final MessageBox box = Alerter.startLoading();

@@ -147,9 +147,8 @@ public class Alerter {
         return box;
 	}
 
-	public static void failedToRemoveOntologyClassSubmission() {
-		// TODO Auto-generated method stub
-		
+	public static MessageBox failedToRemoveOntologyClassSubmission() {
+		return showAlert("Failed to remove class submission", "Failed to remove class submission");
 	}
 
 	public static void dialogRename(final EventBus eventBus, final Term term, final Collection collection) {
@@ -177,14 +176,12 @@ public class Alerter {
 		box.show();
 	}
 
-	public static void failedToSetColor() {
-		// TODO Auto-generated method stub
-		
+	public static MessageBox failedToSetColor() {
+		return showAlert("Failed to set color", "Failed to set color");
 	}
 
-	public static void failedToEditClass(Throwable caught) {
-		// TODO Auto-generated method stub
-		
+	public static MessageBox failedToEditClass(Throwable caught) {
+		return showAlert("Failed to edit class", "Failed to edit class");
 	}
 
 	public static void alertFailedToLoadCollection() {
@@ -192,9 +189,8 @@ public class Alerter {
 		alert.show();
 	}
 
-	public static void failedToGetOntologies() {
-		// TODO Auto-generated method stub
-		
+	public static MessageBox failedToGetOntologies() {
+		return showAlert("Failed to get ontologies", "Failed to get ontologies");
 	}
 
 	public static MessageBox cannotRemoveEntityOrQualitySuperclass() {
@@ -209,6 +205,19 @@ public class Alerter {
 
 	public static MessageBox failedToUpdateSubmission(Throwable caught) {
 		return showAlert("Update failed", "Failed to udpate submission.");
+	}
+
+	public static MessageBox failedToCheckIRI(Throwable caught) {
+		return showAlert("Failed to Check IRI", "Failed to Check IRI");
+	}
+
+
+	public static MessageBox unsupportedIRI() {
+		return showAlert("IRI not supported", "IRI not supported");
+	}
+
+	public static MessageBox unupportedSuperclass() {
+		return showAlert("Superclass not supported", "Superclass not supported");
 	}
 
 }

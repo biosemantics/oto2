@@ -5,6 +5,8 @@ import java.util.List;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
+import org.semanticweb.owlapi.model.OWLClass;
+
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import com.google.inject.Inject;
 
@@ -105,6 +107,11 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 
 	@Override
 	public List<OntologyClassSubmission> createClassSubmission(Collection collection, OntologyClassSubmission submission) throws Exception {
+		if(!submission.getClassIRI().isEmpty()) {
+			if(!this.isSupportedIRI(collection, submission.getClassIRI())) {
+				throw new Exception("IRI not supported");
+			}
+		}
 		List<OntologyClassSubmission> submissions = new LinkedList<OntologyClassSubmission>();
 		addIRIsToPlainTerms(collection, submission, submissions);
 		submission = daoManager.getOntologyClassSubmissionDAO().insert(submission);
@@ -268,5 +275,13 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 				String classIRI = daoManager.getOntologyFileDAO(collection).insertSynonymSubmission(synonymSubmission);
 			}
 		}
+	}
+
+	@Override
+	public boolean isSupportedIRI(Collection collection, String iri) throws Exception {
+		if(daoManager.getOntologyClassSubmissionDAO().getFromIRI(collection, iri) != null)
+			return true;
+		else
+			return daoManager.getPermanentOntologyFileDAO().contains(collection, iri);
 	}
 }

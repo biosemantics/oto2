@@ -48,5 +48,7 @@ public interface IToOntologyServiceAsync {
 	public void sendBioportalSubmissions(Collection collection, AsyncCallback<Void> callback);
 
 	public void storeLocalOntologiesToFile(Collection collection, AsyncCallback<Void> callback);
+	
+	public void isSupportedIRI(Collection collection, String iri, AsyncCallback<Boolean> callback);
 
 }

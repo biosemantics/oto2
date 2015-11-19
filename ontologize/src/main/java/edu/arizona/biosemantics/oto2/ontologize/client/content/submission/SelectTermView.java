@@ -4,6 +4,8 @@ import java.util.List;
 
 import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.editor.client.Editor;
+import com.google.gwt.editor.client.EditorError;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.EventBus;
@@ -21,6 +23,7 @@ import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.Verti
 import com.sencha.gxt.widget.core.client.form.ComboBox;
 import com.sencha.gxt.widget.core.client.form.FieldLabel;
 import com.sencha.gxt.widget.core.client.form.TextField;
+import com.sencha.gxt.widget.core.client.form.Validator;
 
 import edu.arizona.biosemantics.oto2.ontologize.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.CreateOntologyClassSubmissionEvent;
@@ -101,6 +104,9 @@ public class SelectTermView implements IsWidget {
 	    classIRIComboBox.setAllowBlank(false);
 	    classIRIComboBox.setAutoValidate(true);
 		classIRIFieldLabel = new FieldLabel(classIRIField, "Class IRI");
+		classIRIField.setAutoValidate(true);
+		classIRIField.setValidateOnBlur(true);
+		//classIRIField.setValidationDelay(1000);
 		classIRIComboBox.setEnabled(enabledClassIRIFields);
 		classIRIFieldLabel.setEnabled(enabledClassIRIFields);
 		classIRIComboBoxFieldLabel = new FieldLabel(classIRIComboBox, "Class *");
@@ -136,6 +142,40 @@ public class SelectTermView implements IsWidget {
 				refreshTerms();
 			}
 		});
+		classIRIField.addValueChangeHandler(new ValueChangeHandler<String>() {
+			@Override
+			public void onValueChange(ValueChangeEvent<String> event) {
+				toOntologyService.isSupportedIRI(collection, event.getValue().trim(), new AsyncCallback<Boolean>() {
+					@Override
+					public void onFailure(Throwable caught) {
+						Alerter.failedToCheckIRI(caught);
+					}
+					@Override
+					public void onSuccess(Boolean result) {
+						if(!result) {
+							classIRIField.setValue("", false);
+							Alerter.unsupportedIRI();
+						}
+					}
+				});
+			}
+		});
+		/*classIRIField.addValidator(new Validator<String>() {
+			@Override
+			public List<EditorError> validate(Editor<String> editor, String value) {
+				toOntologyService.isSupportedIRI(value, new AsyncCallback<Boolean>() {
+					@Override
+					public void onFailure(Throwable caught) {
+						
+					}
+
+					@Override
+					public void onSuccess(Boolean result) {
+						
+					}
+				});
+			}
+		});*/
 		termComboBox.addValueChangeHandler(new ValueChangeHandler<Term>() {
 			@Override
 			public void onValueChange(ValueChangeEvent<Term> event) {
@@ -234,6 +274,18 @@ public class SelectTermView implements IsWidget {
 		boolean result = true;
 		if(selectSubmissionTypeView.asWidget().isAttached())
 			result &= selectSubmissionTypeView.validate();
+		if(classIRIField.isAttached()) {
+			if(classIRIField.getValue().isEmpty()) 
+				return true;
+			else {
+				if(!classIRIField.getText().startsWith("http"))
+					return false;
+				else {
+					//can't do a async call to check for validity of iri here: Do when text field was changed with a load
+				}
+			}
+			result &= (classIRIFieldLabel.getText().isEmpty() ? true : classIRIField.getText().startsWith("http"));
+		}
 		result &= fieldValidator.validate(formContainer.iterator());
 		return result;
 	}
@@ -285,7 +337,8 @@ public class SelectTermView implements IsWidget {
 	public void setOntologyClassSubmission(OntologyClassSubmission submission) {
 		this.setClassSubmission();
 		this.termComboBox.setValue(submission.getTerm());
-		this.categoryField.setValue(submission.getTerm().getCategory());
+		if(submission.hasTerm())
+			this.categoryField.setValue(submission.getTerm().getCategory());
 		this.selectSubmissionTypeView.setClass();
 		this.classIRIField.setValue(submission.getClassIRI());
 		this.submissionTermField.setValue(submission.getSubmissionTerm());

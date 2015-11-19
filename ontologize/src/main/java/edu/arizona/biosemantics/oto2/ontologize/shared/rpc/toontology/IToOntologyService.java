@@ -50,4 +50,6 @@ public interface IToOntologyService extends RemoteService {
 	public void sendBioportalSubmissions(Collection collection) throws Exception;
 
 	public void storeLocalOntologiesToFile(Collection collection) throws Exception;
+	
+	public boolean isSupportedIRI(Collection collection, String iri) throws Exception;
 }

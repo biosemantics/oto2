@@ -113,15 +113,42 @@ public class SelectSuperclassView implements IsWidget {
 				addSuperclassDialog.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
 					@Override
 					public void onSelect(SelectEvent event) {
-						String value = addSuperclassDialog.getValue();
-						Superclass superclass = new Superclass();
+						final String value = addSuperclassDialog.getValue();
+						final Superclass superclass = new Superclass();
 						if(value.startsWith("http")) {
-							superclass.setIri(value);
+							final MessageBox box = Alerter.startLoading();
+							toOntologyService.isSupportedIRI(collection, value, new AsyncCallback<Boolean>() {
+								@Override
+								public void onFailure(Throwable caught) {
+									Alerter.failedToCheckIRI(caught);
+									Alerter.stopLoading(box);
+								}
+								@Override
+								public void onSuccess(Boolean result) {
+									if(result) {
+										superclass.setIri(value);
+										addSuperClassToStore(superclass);
+										addSuperclassDialog.hide();
+									} else {
+										Alerter.unsupportedIRI();
+									}
+									Alerter.stopLoading(box);
+								}
+							});
+						/*} else if(ontologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(superclass, classSubmissions) != null) {
+							superclass.setLabel(value);
+							addSuperClassToStore(superclass);
+							addSuperclassDialog.hide();
+						} else {
+							Alerter.unupportedSuperclass();
+						}*/
+							
+						//allow creation of superclass submissions 'on the fly'
 						} else {
 							superclass.setLabel(value);
+							addSuperClassToStore(superclass);
+							addSuperclassDialog.hide();
 						}
-						addSuperClassToStore(superclass);
-						addSuperclassDialog.hide();
 					}
 				});
 			}
@@ -148,7 +175,9 @@ public class SelectSuperclassView implements IsWidget {
 
 	public void addSuperClassToStore(final Superclass superclass) {
 		if(!superclass.hasIri()) {
-			superclass.setIri(ontologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(superclass, classSubmissions).getIri());
+			OntologyClassSubmission ontologyClassSubmission = ontologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(superclass, classSubmissions);
+			if(ontologyClassSubmission != null) 
+				superclass.setIri(ontologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(superclass, classSubmissions).getIri());
 			store.add(superclass);
 		} else if(!superclass.hasLabel()) {
 			final MessageBox box = Alerter.startLoading();
