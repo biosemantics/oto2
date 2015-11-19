@@ -22,6 +22,7 @@ import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadCollectionEvent
 import edu.arizona.biosemantics.oto2.ontologize.client.event.RefreshOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Term;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.BucketTreeNode;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmissionProperties;
@@ -46,6 +47,9 @@ public class SuperclassesView implements IsWidget {
 	public SuperclassesView(EventBus eventBus) {
 		this.eventBus = eventBus;
 		this.ontologyView = new OntologyView(eventBus);
+		this.ontologyView.setPartOfChecked(false);
+		this.ontologyView.setSynonymChecked(false);
+		this.ontologyView.setSuperclassChecked(true);
 		this.listStore = new ListStore<OntologyClassSubmission>(ontologyClassSubmissionProperties.key());
 		this.listView = new ListView<OntologyClassSubmission, String>(listStore, ontologyClassSubmissionProperties.submissionTerm());
 		this.verticalLayoutContainer = new VerticalLayoutContainer();
@@ -75,7 +79,8 @@ public class SuperclassesView implements IsWidget {
 		listView.getSelectionModel().addSelectionChangedHandler(new SelectionChangedHandler<OntologyClassSubmission>() {
 			@Override
 			public void onSelectionChanged(SelectionChangedEvent<OntologyClassSubmission> event) {
-				superclassTextField.setValue(event.getSelection().get(0).getSubmissionTerm());
+				if(event.getSelection().size() == 1)
+					superclassTextField.setValue(event.getSelection().get(0).getSubmissionTerm());
 			}
 		});
 	}
@@ -87,6 +92,23 @@ public class SuperclassesView implements IsWidget {
 
 	public String getValue() {
 		return superclassTextField.getValue().trim();
+	}
+
+	public void setSubmissionType(Type type) {
+		switch(type) {
+		case ENTITY:
+			ontologyView.setEntityChecked(true);
+			ontologyView.setQualityChecked(false);
+			break;
+		case QUALITY:
+			ontologyView.setEntityChecked(false);
+			ontologyView.setQualityChecked(true);
+			break;
+		default:
+			ontologyView.setEntityChecked(true);
+			ontologyView.setQualityChecked(true);
+			break;
+		}
 	}
 
 }

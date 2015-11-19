@@ -28,6 +28,7 @@ import com.sencha.gxt.widget.core.client.form.FieldLabel;
 
 import edu.arizona.biosemantics.oto2.ontologize.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadCollectionEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.RefreshOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.SelectPartOfEvent;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
@@ -50,6 +51,9 @@ public class SelectSinglePartOfView implements IsWidget {
 	protected Collection collection;
 	private EventBus eventBus;
 	private AddPartOfDialog addPartOfDialog;
+	private OntologyClassSubmissionRetriever ontologyClassSubmissionRetriever = new OntologyClassSubmissionRetriever();
+
+	protected List<OntologyClassSubmission> classSubmissions;
 	
 	public SelectSinglePartOfView(EventBus eventBus) {
 		this.eventBus = eventBus;
@@ -90,7 +94,13 @@ public class SelectSinglePartOfView implements IsWidget {
 		eventBus.addHandler(SelectPartOfEvent.TYPE, new SelectPartOfEvent.Handler() {
 			@Override
 			public void onSelect(SelectPartOfEvent event) {
-				addPartOfToStore(event.getSubmission());
+				addPartOfToStore(new PartOf(event.getSubmission()));
+			}
+		});
+		eventBus.addHandler(RefreshOntologyClassSubmissionsEvent.TYPE, new RefreshOntologyClassSubmissionsEvent.Handler() {
+			@Override
+			public void onSelect(RefreshOntologyClassSubmissionsEvent event) {
+				SelectSinglePartOfView.this.classSubmissions = event.getOntologyClassSubmissions();
 			}
 		});
 		setButton.addSelectHandler(new SelectHandler() {
@@ -100,7 +110,13 @@ public class SelectSinglePartOfView implements IsWidget {
 				addPartOfDialog.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
 					@Override
 					public void onSelect(SelectEvent event) {
-						PartOf partOf = addPartOfDialog.getValue();
+						String value = addPartOfDialog.getValue();
+						PartOf partOf = new PartOf(); 
+						if(value.startsWith("http")) {
+							partOf.setIri(value);
+						} else {
+							partOf.setLabel(value);
+						}
 						addPartOfToStore(partOf);
 						addPartOfDialog.hide();
 					}
@@ -110,21 +126,17 @@ public class SelectSinglePartOfView implements IsWidget {
 		removeButton.addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
-				clear();
+				store.clear();
 			}
 		});
 	}
 
-	public void addPartOfToStore(OntologyClassSubmission submission) {
-		clear();
-		store.add(new PartOf(submission));
-	}
-
 	public void addPartOfToStore(final PartOf partOf) {
-		clear();
-		if(!partOf.hasIri())
+		store.clear();
+		if(!partOf.hasIri()) {
+			partOf.setIri(ontologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(partOf, classSubmissions).getIri());
 			store.add(partOf);
-		else if(!partOf.hasLabel()) {
+		} else if(!partOf.hasLabel()) {
 			final MessageBox box = Alerter.startLoading();
 			toOntologyService.getClassLabel(collection, partOf.getIri(), new AsyncCallback<String>() {
 				@Override
@@ -143,11 +155,6 @@ public class SelectSinglePartOfView implements IsWidget {
 			store.add(partOf);
 		}
 	}
-	
-	private void addTypeToSupreclassStore(Type type) {
-		clear();
-		this.store.add(new PartOf(type.getIRI(), type.getLabel()));
-	}
 
 	@Override
 	public Widget asWidget() {
@@ -158,12 +165,17 @@ public class SelectSinglePartOfView implements IsWidget {
 		return new ArrayList<PartOf>(store.getAll());
 	}
 
+	public void setPartOfs(List<PartOf> partOfs) {
+		store.clear();
+		for(PartOf partOf : partOfs) 
+			this.addPartOfToStore(partOf);
+	}
+
 	public void clear() {
 		store.clear();
 	}
 
-	public void setPartOfs(List<PartOf> partOfs) {
-		clear();
-		store.addAll(partOfs);
+	public void setSubmissionType(Type type) {
+		this.addPartOfDialog.setSubmissionType(type);
 	}
 }

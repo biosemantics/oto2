@@ -13,12 +13,13 @@ import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent.Selecti
 
 import edu.arizona.biosemantics.oto2.ontologize.client.content.candidates.TermsView;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.PartOf;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.TermTreeNode;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.TextTreeNode;
 
 public class AddPartOfDialog extends Dialog {
-	private PartsView partsView;
+	private PartsOfsView partsView;
 
 	public AddPartOfDialog(EventBus eventBus) {
 		this.setHeadingText("Add Part Of");
@@ -28,7 +29,7 @@ public class AddPartOfDialog extends Dialog {
 		this.setOnEsc(true);
 		this.setModal(true);
 		
-		partsView = new PartsView(eventBus);
+		partsView = new PartsOfsView(eventBus);
 		
 		VerticalLayoutContainer vlp = new VerticalLayoutContainer();
 		vlp.getScrollSupport().setScrollMode(ScrollMode.AUTO);
@@ -42,7 +43,11 @@ public class AddPartOfDialog extends Dialog {
 	private void bindEvents() {
 	}
 	
-	public PartOf getValue() {
+	public String getValue() {
 		return partsView.getValue();
+	}
+
+	public void setSubmissionType(Type type) {
+		partsView.setSubmissionType(type);
 	}
 }

@@ -67,7 +67,8 @@ public class SelectTermView implements IsWidget {
 	protected Ontology ontology;
 	private boolean bindTermSelectEvent;
 
-	public SelectTermView(EventBus eventBus, boolean bindTermSelectEvent) {
+	public SelectTermView(EventBus eventBus, boolean bindTermSelectEvent, boolean enabledSubmissionTermField, 
+			boolean enabledClassIRIFields) {
 		this.eventBus = eventBus;
 		this.bindTermSelectEvent = bindTermSelectEvent;
 		
@@ -77,6 +78,7 @@ public class SelectTermView implements IsWidget {
 	    formContainer.add(new FieldLabel(submissionTermField, "Term *"), new VerticalLayoutData(1, -1));
 	    submissionTermField.setAllowBlank(false);
 	    submissionTermField.setAutoValidate(true);
+	    submissionTermField.setEnabled(enabledSubmissionTermField);
 	    formContainer.add(new FieldLabel(categoryField, "Category"), new VerticalLayoutData(1, -1));
 	    categoryField.setEnabled(false);
 	   	selectSubmissionTypeView = new SelectSubmissionTypeView(eventBus);
@@ -99,6 +101,8 @@ public class SelectTermView implements IsWidget {
 	    classIRIComboBox.setAllowBlank(false);
 	    classIRIComboBox.setAutoValidate(true);
 		classIRIFieldLabel = new FieldLabel(classIRIField, "Class IRI");
+		classIRIComboBox.setEnabled(enabledClassIRIFields);
+		classIRIFieldLabel.setEnabled(enabledClassIRIFields);
 		classIRIComboBoxFieldLabel = new FieldLabel(classIRIComboBox, "Class *");
 	    
 	    bindEvents();
@@ -194,6 +198,7 @@ public class SelectTermView implements IsWidget {
 	}
 
 	protected void setTerm(Term term) {
+		clear();
 		termComboBox.setValue(term);
 		categoryField.setValue(termComboBox.getValue().getCategory());
 		submissionTermField.setValue(termComboBox.getValue().getTerm());
@@ -296,6 +301,8 @@ public class SelectTermView implements IsWidget {
 	}
 
 	public void clear() {
+		this.formContainer.remove(this.classIRIComboBoxFieldLabel);
+		this.formContainer.remove(this.classIRIFieldLabel);
 		this.termComboBox.setValue(null);
 		this.categoryField.setValue("");
 		this.selectSubmissionTypeView.clear();

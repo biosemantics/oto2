@@ -9,6 +9,7 @@ import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.ontologize.server.Configuration;
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.db.Query.QueryException;
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.file.PermanentOntologyFileDAO;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.PartOf;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Superclass;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Synonym;
@@ -60,6 +61,10 @@ public class OntologyClassSubmissionSuperclassDAO {
 	}
 
 	private String getLabel(String classIri) throws QueryException, OntologyNotFoundException {
+		if(classIri.equals(Type.ENTITY.getIRI()))
+			return Type.ENTITY.getLabel();
+		if(classIri.equals(Type.QUALITY.getIRI()))
+			return Type.QUALITY.getLabel();
 		if(classIri.startsWith(Configuration.etcOntologyBaseIRI)) {
 			try(Query query = new Query("SELECT * FROM ontologize_ontologyclasssubmission s"
 					+ " WHERE s.class_iri = ?")) {

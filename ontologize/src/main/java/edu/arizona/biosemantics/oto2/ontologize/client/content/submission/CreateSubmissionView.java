@@ -84,7 +84,7 @@ public class CreateSubmissionView implements IsWidget {
 		relationCardButton = new TextButton("Relations");
 		metaCardButton = new TextButton("Meta-data");
 
-		selectTermView = new SelectTermView(eventBus, true);
+		selectTermView = new SelectTermView(eventBus, true, true, true);
 		selectRelationsView = new SelectRelationsView(eventBus, true);
 		selectMetadataView = new SelectMetadataView(eventBus, true);
 

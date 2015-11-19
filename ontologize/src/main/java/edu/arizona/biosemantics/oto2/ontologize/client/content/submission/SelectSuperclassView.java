@@ -50,14 +50,12 @@ public class SelectSuperclassView implements IsWidget {
 	private TextButton add = new TextButton("Add");
 	private TextButton remove = new TextButton("Remove");
 	private TextButton clear = new TextButton("Clear");
-
 	protected Collection collection;
-
 	private EventBus eventBus;
-
 	private Type defaultSuperclass;
-
 	private AddSuperclassDialog addSuperclassDialog;
+	private OntologyClassSubmissionRetriever ontologyClassSubmissionRetriever = new OntologyClassSubmissionRetriever();
+	protected List<OntologyClassSubmission> classSubmissions;
 	
 	public SelectSuperclassView(EventBus eventBus) {
 		this.eventBus = eventBus;
@@ -99,7 +97,13 @@ public class SelectSuperclassView implements IsWidget {
 		eventBus.addHandler(SelectSuperclassEvent.TYPE, new SelectSuperclassEvent.Handler() {
 			@Override
 			public void onSelect(SelectSuperclassEvent event) {
-				addSuperClassToStore(event.getSubmission());
+				addSuperClassToStore(new Superclass(event.getSubmission()));
+			}
+		});
+		eventBus.addHandler(RefreshOntologyClassSubmissionsEvent.TYPE, new RefreshOntologyClassSubmissionsEvent.Handler() {
+			@Override
+			public void onSelect(RefreshOntologyClassSubmissionsEvent event) {
+				SelectSuperclassView.this.classSubmissions = event.getOntologyClassSubmissions();
 			}
 		});
 		add.addSelectHandler(new SelectHandler() {
@@ -142,14 +146,11 @@ public class SelectSuperclassView implements IsWidget {
 		});
 	}
 
-	public void addSuperClassToStore(OntologyClassSubmission submission) {
-		store.add(new Superclass(submission));
-	}
-
 	public void addSuperClassToStore(final Superclass superclass) {
-		if(!superclass.hasIri())
+		if(!superclass.hasIri()) {
+			superclass.setIri(ontologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(superclass, classSubmissions).getIri());
 			store.add(superclass);
-		else if(!superclass.hasLabel()) {
+		} else if(!superclass.hasLabel()) {
 			final MessageBox box = Alerter.startLoading();
 			toOntologyService.getClassLabel(collection, superclass.getIri(), new AsyncCallback<String>() {
 				@Override
@@ -176,7 +177,7 @@ public class SelectSuperclassView implements IsWidget {
 	}
 	
 	private void addTypeToSupreclassStore(Type type) {
-		this.store.add(new Superclass(type.getIRI(), type.getLabel()));
+		this.addSuperClassToStore(new Superclass(type.getIRI(), type.getLabel()));
 	}
 
 	@Override
@@ -184,21 +185,31 @@ public class SelectSuperclassView implements IsWidget {
 		return formContainer;
 	}
 	
-	public void setDefaultSuperclass(Type type) {
-		this.defaultSuperclass = type;
-		clearSuperclassesExceptHigherLevelClass();
-	}
-
 	public List<Superclass> getSuperclasses() {
 		return new ArrayList<Superclass>(store.getAll());
 	}
 
 	public void setSuperclasses(List<Superclass> superclasses) {
-		clear();
-		this.store.addAll(superclasses);
+		clearSuperclassesExceptHigherLevelClass();
+		for(Superclass superclass : superclasses)
+			if(!superclass.getIri().equals(this.defaultSuperclass.getIRI()))
+				this.addSuperClassToStore(superclass);
 	}
 
-	public void clear() {
-		store.clear();
+	public void setSubmissionType(Type type) {
+		setSuperclassType(type);
+		addSuperclassDialog.setSubmissionType(type);
 	}
+
+	private void setSuperclassType(Type type) {
+		//remove old
+		for(Superclass superclass : new ArrayList<Superclass>(this.store.getAll())) {
+			if(superclass.getIri().equals(defaultSuperclass.getIRI())) 
+				store.remove(superclass);
+		}
+		//add new
+		this.defaultSuperclass = type;
+		addTypeToSupreclassStore(defaultSuperclass);
+	}
+
 }

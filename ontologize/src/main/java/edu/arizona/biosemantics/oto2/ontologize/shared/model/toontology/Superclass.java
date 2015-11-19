@@ -2,7 +2,7 @@ package edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology;
 
 import java.io.Serializable;
 
-public class Superclass implements Serializable {
+public class Superclass implements HasLabelAndIri, Serializable {
 
 	private int id = -1;
 	private int ontologyClassSubmission = -1;
@@ -102,8 +102,15 @@ public class Superclass implements Serializable {
 			return this.iri;
 		if(!hasIri() && hasLabel())
 			return this.label;
-		return "";
-			
+		return "";	
 	}
 
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((iri == null) ? 0 : iri.hashCode());
+		result = prime * result + ((label == null) ? 0 : label.hashCode());
+		return result;
+	}
 }

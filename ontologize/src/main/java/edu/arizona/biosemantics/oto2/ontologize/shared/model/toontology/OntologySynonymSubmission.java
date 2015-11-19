@@ -10,7 +10,7 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Term;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
 
-public class OntologySynonymSubmission implements Serializable, Colorable, Commentable, 
+public class OntologySynonymSubmission implements HasLabelAndIri, Serializable, Colorable, Commentable, 
 		OntologySubmission, Comparable<OntologySynonymSubmission> {
 	
 	private int id = -1;
@@ -223,5 +223,29 @@ public class OntologySynonymSubmission implements Serializable, Colorable, Comme
 
 	public boolean hasClassLabel() {
 		return classLabel != null && !classLabel.isEmpty();
+	}
+
+	@Override
+	public boolean hasLabel() {
+		return this.hasSubmissionTerm();
+	}
+
+	public boolean hasSubmissionTerm() {
+		return this.submissionTerm != null && !this.submissionTerm.isEmpty();
+	}
+
+	@Override
+	public String getLabel() {
+		return this.getSubmissionTerm();
+	}
+
+	@Override
+	public String getIri() {
+		return this.getClassIRI();
+	}
+
+	@Override
+	public boolean hasIri() {
+		return this.hasClassIRI();
 	}
 }

@@ -27,6 +27,7 @@ import com.sencha.gxt.widget.core.client.form.TextField;
 
 import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Synonym;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.SynonymProperties;
 
@@ -42,10 +43,11 @@ public class SelectSynonymsView implements IsWidget {
 	private TextButton remove = new TextButton("Remove");
 	private TextButton clear = new TextButton("Clear");
 	protected Collection collection;
-	private AddSynonymDialog addSynonymDialog = new AddSynonymDialog();
+	private AddSynonymDialog addSynonymDialog;
 
 	public SelectSynonymsView(EventBus eventBus) {
 		this.eventBus = eventBus;
+		this.addSynonymDialog = new AddSynonymDialog(eventBus);
 
 		formContainer = new VerticalLayoutContainer();
 		store = new ListStore<Synonym>(new ModelKeyProvider<Synonym>() {
@@ -121,7 +123,11 @@ public class SelectSynonymsView implements IsWidget {
 	}
 
 	public void setSynonyms(List<Synonym> synonyms) {
-		clear();
+		store.clear();
 		store.addAll(synonyms);
+	}
+	
+	public void setSubmissionType(Type type) {
+		addSynonymDialog.setSubmissionType(type);
 	}
 }

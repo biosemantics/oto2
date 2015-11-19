@@ -8,6 +8,7 @@ import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.Verti
 import com.sencha.gxt.widget.core.client.form.FieldLabel;
 
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.PartOf;
 
 public class AddSuperclassDialog extends Dialog {
@@ -38,5 +39,9 @@ public class AddSuperclassDialog extends Dialog {
 	
 	public String getValue() {
 		return superclassesView.getValue();
+	}
+
+	public void setSubmissionType(Type type) {
+		superclassesView.setSubmissionType(type);
 	}
 }

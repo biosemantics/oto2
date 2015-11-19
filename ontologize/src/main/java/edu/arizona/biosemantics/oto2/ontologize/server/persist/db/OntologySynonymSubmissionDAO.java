@@ -123,6 +123,7 @@ public class OntologySynonymSubmissionDAO {
 				+ "submission_term = ?, ontology = ?, class_iri = ?, source = ?, sample_sentence = ?, "
 				+ "user = ? WHERE id = ?")) {
 			ontologySynonymSubmission.setCollectionId(ontologySynonymSubmission.getCollectionId());
+			query.setParameter(1, ontologySynonymSubmission.getCollectionId());
 			if(ontologySynonymSubmission.getTerm() == null)
 				query.setParameterNull(2, java.sql.Types.BIGINT);
 			else

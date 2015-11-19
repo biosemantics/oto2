@@ -10,12 +10,12 @@ public class PartOfTreeNode extends TextTreeNode {
 
 	@Override
 	public String getText() {
-		return partOf.getLabel();
+		return partOf.getLabelAlternativelyIri();
 	}
 
 	@Override
 	public String getId() {
-		return String.valueOf(partOf.toString());
+		return partOf.getLabelAlternativelyIri();
 	}
 
 	public PartOf getPartOf() {

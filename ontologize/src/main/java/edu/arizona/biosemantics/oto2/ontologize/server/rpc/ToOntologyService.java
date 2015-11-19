@@ -17,6 +17,7 @@ import edu.arizona.biosemantics.oto2.ontologize.server.persist.file.PermanentOnt
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Term;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmissionStatus;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySubmission;
@@ -221,6 +222,11 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 
 	@Override
 	public String getClassLabel(Collection collection, String iri) throws OntologyFileException, OntologyNotFoundException, QueryException {
+		iri = iri.trim();
+		if(iri.equals(Type.ENTITY.getIRI()))
+			return Type.ENTITY.getLabel();
+		if(iri.equals(Type.QUALITY.getIRI()))
+			return Type.QUALITY.getLabel();
 		if(iri.startsWith(Configuration.etcOntologyBaseIRI)) {
 			return daoManager.getOntologyClassSubmissionDAO().getFromIRI(collection, iri).getSubmissionTerm();
 		} else {

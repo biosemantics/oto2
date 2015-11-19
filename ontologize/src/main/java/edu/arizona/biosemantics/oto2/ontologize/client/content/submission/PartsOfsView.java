@@ -36,6 +36,7 @@ import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadCollectionEvent
 import edu.arizona.biosemantics.oto2.ontologize.client.event.RefreshOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Term;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.PartOf;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.PartOfTreeNode;
@@ -43,7 +44,7 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.PartOfTr
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.IToOntologyService;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.IToOntologyServiceAsync;
 
-public class PartsView implements IsWidget {
+public class PartsOfsView implements IsWidget {
 
 	private static final PartOfTreeNodeProperties partOfTreeNodeProperties = GWT.create(PartOfTreeNodeProperties.class);
 	
@@ -54,10 +55,10 @@ public class PartsView implements IsWidget {
 	private TextField partOfTextField = new TextField();
 	private TreeStore<PartOfTreeNode> store;
 	private Tree<PartOfTreeNode, String> tree;
-	
+	private OntologyClassSubmissionRetriever ontologyClassSubmissionRetriever = new OntologyClassSubmissionRetriever();
 	private Collection collection;
 	
-	public PartsView(EventBus eventBus) {
+	public PartsOfsView(EventBus eventBus) {
 		this.eventBus = eventBus;
 		store = new TreeStore<PartOfTreeNode>(partOfTreeNodeProperties.key());
 		store.setAutoCommit(true);
@@ -104,12 +105,15 @@ public class PartsView implements IsWidget {
 		tree.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
 		
 		this.ontologyView = new OntologyView(eventBus);
+		this.ontologyView.setPartOfChecked(true);
+		this.ontologyView.setSynonymChecked(false);
+		this.ontologyView.setSuperclassChecked(false);
 		this.verticalLayoutContainer = new VerticalLayoutContainer();
 		verticalLayoutContainer.getScrollSupport().setScrollMode(ScrollMode.AUTO);
 		
 		verticalLayoutContainer.add(new FieldLabel(ontologyView, "Ontology View"), new VerticalLayoutData(1, 550));
-		verticalLayoutContainer.add(new FieldLabel(tree, "Candidate Superclasses"), new VerticalLayoutData(1, 150));
-		verticalLayoutContainer.add(new FieldLabel(partOfTextField, "New Superclass"), new VerticalLayoutData(1, 1));
+		verticalLayoutContainer.add(new FieldLabel(tree, "Candidate Bearers"), new VerticalLayoutData(1, 150));
+		verticalLayoutContainer.add(new FieldLabel(partOfTextField, "New Bearer"), new VerticalLayoutData(1, 1));
 		
 		bindEvents();
 	}
@@ -118,7 +122,7 @@ public class PartsView implements IsWidget {
 		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
 			@Override
 			public void onLoad(LoadCollectionEvent event) {
-				PartsView.this.collection = event.getCollection();
+				PartsOfsView.this.collection = event.getCollection();
 			}
 		});
 		eventBus.addHandler(RefreshOntologyClassSubmissionsEvent.TYPE, new RefreshOntologyClassSubmissionsEvent.Handler() {
@@ -141,30 +145,59 @@ public class PartsView implements IsWidget {
 		for(OntologyClassSubmission submission : result) {
 			PartOfTreeNode partOfTreeNode = new PartOfTreeNode(new PartOf(submission));
 			nodes.put(partOfTreeNode.getId(), partOfTreeNode);
-		}
-		for(OntologyClassSubmission submission : result) {
-			if(submission.getPartOfs().isEmpty())
-				store.add(new PartOfTreeNode(new PartOf(submission)));
-		}
-		for(OntologyClassSubmission submission : result) {
-			if(!submission.getPartOfs().isEmpty()) {
-				PartOf partOf = submission.getPartOfs().get(0);
-				PartOfTreeNode partOfTreeNode = new PartOfTreeNode(partOf);
-				PartOfTreeNode bearer = nodes.get(partOfTreeNode.getId());
-				PartOfTreeNode partTreeNode = new PartOfTreeNode(new PartOf(submission));
-				PartOfTreeNode part = nodes.get(partTreeNode.getId());
-				store.add(bearer, part);
+			
+			for(PartOf partOf : submission.getPartOfs()) {
+				PartOfTreeNode child = new PartOfTreeNode(partOf);
+				nodes.put(child.getId(), child);
 			}
+		}
+		for(OntologyClassSubmission submission : result) {
+			popuplateStore(submission, result, nodes);
 		}
 	}
 
-	public PartOf getValue() {
-		return tree.getSelectionModel().getSelectedItem().getPartOf();
+	private void popuplateStore(OntologyClassSubmission submission, List<OntologyClassSubmission> submissions, Map<String, PartOfTreeNode> nodes) {
+		PartOfTreeNode partOfTreeNode = new PartOfTreeNode(new PartOf(submission));
+		if(store.findModel(nodes.get(partOfTreeNode.getId())) != null) {
+			return;
+		}
+		if(submission.getPartOfs().isEmpty()) {
+			store.add(nodes.get(partOfTreeNode.getId()));
+		} else {
+			for(PartOf partOf : submission.getPartOfs()) {
+				PartOfTreeNode parent = new PartOfTreeNode(partOf);
+				OntologyClassSubmission parentSubmission = ontologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(
+						parent.getPartOf(), submissions);
+				popuplateStore(parentSubmission, submissions, nodes);
+				store.add(nodes.get(parent.getId()), nodes.get(partOfTreeNode.getId()));
+			}			
+		}
+	}
+
+	public String getValue() {
+		return partOfTextField.getValue();
 	}
 
 	@Override
 	public Widget asWidget() {
 		return verticalLayoutContainer;
+	}
+
+	public void setSubmissionType(Type type) {
+		switch(type) {
+		case ENTITY:
+			ontologyView.setEntityChecked(true);
+			ontologyView.setQualityChecked(false);
+			break;
+		case QUALITY:
+			ontologyView.setEntityChecked(false);
+			ontologyView.setQualityChecked(true);
+			break;
+		default:
+			ontologyView.setEntityChecked(true);
+			ontologyView.setQualityChecked(true);
+			break;
+		}
 	}
 
 }

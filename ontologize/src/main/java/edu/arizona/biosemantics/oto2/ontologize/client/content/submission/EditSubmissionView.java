@@ -61,7 +61,7 @@ public class EditSubmissionView implements IsWidget {
 		relationCardButton = new TextButton("Relations");
 		metaCardButton = new TextButton("Meta-data");
 
-		selectTermView = new SelectTermView(eventBus, false);
+		selectTermView = new SelectTermView(eventBus, false, false, false);
 		selectRelationsView = new SelectRelationsView(eventBus, false);
 		selectMetadataView = new SelectMetadataView(eventBus, false);
 

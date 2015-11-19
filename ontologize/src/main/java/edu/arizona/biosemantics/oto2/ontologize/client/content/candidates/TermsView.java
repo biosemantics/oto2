@@ -56,7 +56,7 @@ public class TermsView implements IsWidget {
 			}
 		}, SortDir.ASC));
 		termTree = new Tree<TextTreeNode, TextTreeNode>(treeStore, new IdentityValueProvider<TextTreeNode>());
-		termTree.setIconProvider(new TermTreeNodeIconProvider(collection));
+		termTree.setIconProvider(new TermTreeNodeIconProvider(eventBus));
 		termTree.setCell(new AbstractCell<TextTreeNode>() {
 			@Override
 			public void render(com.google.gwt.cell.client.Cell.Context context,	TextTreeNode textTreeNode, SafeHtmlBuilder sb) {

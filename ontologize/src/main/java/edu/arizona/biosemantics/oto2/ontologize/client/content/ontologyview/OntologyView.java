@@ -141,6 +141,8 @@ public class OntologyView implements IsWidget {
 	private CheckBox superClassCheckBox;
 	private CheckBox partOfCheckBox;
 	private CheckBox synonymCheckBox;
+	private CheckBox entityCheckBox;
+	private CheckBox qualityCheckBox;
 	protected Ontology ontology;
 	private TextButton refreshButton = new TextButton("Refresh");
 	
@@ -154,12 +156,38 @@ public class OntologyView implements IsWidget {
 	    
 		bindEvents();
 	}
+	
+	public void setEntityChecked(boolean value) {
+		this.entityCheckBox.setValue(value);
+	}
+	
+	public void setQualityChecked(boolean value) {
+		this.qualityCheckBox.setValue(value);
+	}
+	
+	public void setSuperclassChecked(boolean value) {
+		this.superClassCheckBox.setValue(value);
+	}
+	
+	public void setPartOfChecked(boolean value) {
+		this.partOfCheckBox.setValue(value);
+	}
+
+	public void setSynonymChecked(boolean value) {
+		this.synonymCheckBox.setValue(value);
+	}
 
 	private ToolBar createToolBar() {
 		ontologyStore = new ListStore<Ontology>(ontologyProperties.key());
 		/*ontologyComboBox = new ComboBox<Ontology>(ontologyStore, ontologyProperties.prefixLabel());
 		ontologyComboBox.setForceSelection(true);
 		ontologyComboBox.setTriggerAction(TriggerAction.ALL);*/
+		entityCheckBox = new CheckBox();
+		entityCheckBox.setBoxLabel("Entity");
+		entityCheckBox.setValue(true);
+		qualityCheckBox = new CheckBox();
+		qualityCheckBox.setBoxLabel("Quality");
+		qualityCheckBox.setValue(true);
 		superClassCheckBox = new CheckBox();
 		superClassCheckBox.setBoxLabel("Super-class");
 		superClassCheckBox.setValue(true);
@@ -174,6 +202,8 @@ public class OntologyView implements IsWidget {
 		//toolBar.add(new FillToolItem());
 		toolBar.add(new com.google.gwt.user.client.ui.Label("Ontology:"));
 		//toolBar.add(ontologyComboBox);
+		toolBar.add(entityCheckBox);
+		toolBar.add(qualityCheckBox);
 		toolBar.add(superClassCheckBox);
 		toolBar.add(partOfCheckBox);
 		toolBar.add(synonymCheckBox);
@@ -292,53 +322,62 @@ public class OntologyView implements IsWidget {
 	private void createNodesOfSubmissions(Ontology ontology, Map<String, Integer> nodeIds, JsArray<Node> nodes) {
 		for(OntologyClassSubmission submission : classSubmissions) {
 			if(submission.getOntology().equals(ontology)) {
-				Node node = Node.createObject().cast();
-				node.name(submission.getSubmissionTerm());
-				if(submission.getType().equals(Type.ENTITY))
-					node.group(0);
-				if(submission.getType().equals(Type.QUALITY))
-					node.group(6);
-				
-				addNode(submission.getClassIRI(), node, nodeIds, nodes);
-
-				for(Superclass superclass : submission.getSuperclasses()) {
-					node = Node.createObject().cast();
-					node.name(superclass.hasLabel() ? superclass.getLabel() : superclass.getIri());
-					//node.group(0);
-					addNode(superclass.getIri(), node, nodeIds, nodes);
-				}
-				for(PartOf partOf : submission.getPartOfs()) {
-					node = Node.createObject().cast();
-					node.name(partOf.hasLabel() ? partOf.getLabel() : partOf.getIri());
-					//node.group(0);
-					addNode(partOf.getIri(), node, nodeIds, nodes);
-				}
-				for(Synonym synonym : submission.getSynonyms()) {
-					node = Node.createObject().cast();
-					node.name(synonym.getSynonym());
-					//node.group(0);
-					addNode(submission.getClassIRI() + "_" + synonym.getSynonym(), node, nodeIds, nodes);
+				if(submissionTypeValid(submission)) {
+					Node node = Node.createObject().cast();
+					node.name(submission.getSubmissionTerm());
+					if(submission.getType().equals(Type.ENTITY))
+						node.group(0);
+					if(submission.getType().equals(Type.QUALITY))
+						node.group(6);
+					
+					addNode(submission.getClassIRI(), node, nodeIds, nodes);
+	
+					for(Superclass superclass : submission.getSuperclasses()) {
+						node = Node.createObject().cast();
+						node.name(superclass.hasLabel() ? superclass.getLabel() : superclass.getIri());
+						//node.group(0);
+						addNode(superclass.getIri(), node, nodeIds, nodes);
+					}
+					for(PartOf partOf : submission.getPartOfs()) {
+						node = Node.createObject().cast();
+						node.name(partOf.hasLabel() ? partOf.getLabel() : partOf.getIri());
+						//node.group(0);
+						addNode(partOf.getIri(), node, nodeIds, nodes);
+					}
+					for(Synonym synonym : submission.getSynonyms()) {
+						node = Node.createObject().cast();
+						node.name(synonym.getSynonym());
+						//node.group(0);
+						addNode(submission.getClassIRI() + "_" + synonym.getSynonym(), node, nodeIds, nodes);
+					}
 				}
 			}
 		}
 		
 		for(OntologySynonymSubmission submission : synonymSubmissions) {
 			if(submission.getOntology().equals(ontology)) {
-				Node node = Node.createObject().cast();
-				node.name(submission.getSubmissionTerm());
-				/*if(submission.getType().equals(Type.ENTITY))
-					node.group(0);
-				if(submission.getType().equals(Type.QUALITY))
-					node.group(2);*/
-				addNode(submission.getClassIRI() + "_" + submission.getId(), node, nodeIds, nodes);
-				
-				for(Synonym synonym : submission.getSynonyms()) {
-					node = Node.createObject().cast();
-					node.name(synonym.getSynonym());
-					addNode(submission.getClassIRI() + "_" + submission.getId() + "_" + synonym.getSynonym(), node, nodeIds, nodes);
+				if(nodeIds.containsKey(submission.getClassIRI())) {
+					Node node = Node.createObject().cast();
+					node.name(submission.getSubmissionTerm());
+					/*if(submission.getType().equals(Type.ENTITY))
+						node.group(0);
+					if(submission.getType().equals(Type.QUALITY))
+						node.group(2);*/
+					addNode(submission.getClassIRI() + "_" + submission.getId(), node, nodeIds, nodes);
+					
+					for(Synonym synonym : submission.getSynonyms()) {
+						node = Node.createObject().cast();
+						node.name(synonym.getSynonym());
+						addNode(submission.getClassIRI() + "_" + submission.getId() + "_" + synonym.getSynonym(), node, nodeIds, nodes);
+					}
 				}
 			}
 		}
+	}
+
+	private boolean submissionTypeValid(OntologyClassSubmission submission) {
+		return submission.getType().equals(Type.ENTITY) && this.entityCheckBox.getValue() ||
+				submission.getType().equals(Type.QUALITY) && this.qualityCheckBox.getValue();
 	}
 
 	private void addNode(String iri, Node node, Map<String, Integer> nodeIds, JsArray<Node> nodes) {
@@ -351,13 +390,15 @@ public class OntologyView implements IsWidget {
 	private void createPartOfLinks(Ontology ontology, Map<String, Integer> nodeIds, JsArray<Link> links) {
 		for(OntologyClassSubmission submission : classSubmissions) {
 			if(submission.getOntology().equals(ontology)) {
-				for(PartOf partOf : submission.getPartOfs()) {
-					if(nodeIds.containsKey(partOf.getIri())) {
-						Link link = Link.createObject().cast();
-						link.source(nodeIds.get(submission.getClassIRI()));
-						link.target(nodeIds.get(partOf.getIri()));
-						link.type("partof");
-						links.push(link);
+				if(submissionTypeValid(submission)) {
+					for(PartOf partOf : submission.getPartOfs()) {
+						if(nodeIds.containsKey(partOf.getIri())) {
+							Link link = Link.createObject().cast();
+							link.source(nodeIds.get(submission.getClassIRI()));
+							link.target(nodeIds.get(partOf.getIri()));
+							link.type("partof");
+							links.push(link);
+						}
 					}
 				}
 			}
@@ -367,27 +408,31 @@ public class OntologyView implements IsWidget {
 	private void createSynonymLinks(Ontology ontology, Map<String, Integer> nodeIds, JsArray<Link> links) {
 		for(OntologySynonymSubmission submission : synonymSubmissions) {
 			if(submission.getOntology().equals(ontology)) {
-				Link link = Link.createObject().cast();
-				link.source(nodeIds.get(submission.getClassIRI()));
-				link.target(nodeIds.get(submission.getClassIRI() + "_" + submission.getId()));
-				links.push(link);
-				for(Synonym synonym : submission.getSynonyms()) {
-					link = Link.createObject().cast();
+				if(nodeIds.containsKey(submission.getClassIRI())) {
+					Link link = Link.createObject().cast();
 					link.source(nodeIds.get(submission.getClassIRI()));
-					link.target(nodeIds.get(submission.getClassIRI() + "_" + submission.getId() + "_" + synonym.getSynonym()));
-					link.type("synonym");
+					link.target(nodeIds.get(submission.getClassIRI() + "_" + submission.getId()));
 					links.push(link);
+					for(Synonym synonym : submission.getSynonyms()) {
+						link = Link.createObject().cast();
+						link.source(nodeIds.get(submission.getClassIRI()));
+						link.target(nodeIds.get(submission.getClassIRI() + "_" + submission.getId() + "_" + synonym.getSynonym()));
+						link.type("synonym");
+						links.push(link);
+					}
 				}
 			}
 		}
 		for(OntologyClassSubmission submission : classSubmissions) {
 			if(submission.getOntology().equals(ontology)) {
-				for(Synonym synonym : submission.getSynonyms()) {
-					Link link = Link.createObject().cast();
-					link.source(nodeIds.get(submission.getClassIRI()));
-					link.target(nodeIds.get(submission.getClassIRI() + "_" + synonym.getSynonym()));
-					link.type("synonym");
-					links.push(link);
+				if(submissionTypeValid(submission)) {
+					for(Synonym synonym : submission.getSynonyms()) {
+						Link link = Link.createObject().cast();
+						link.source(nodeIds.get(submission.getClassIRI()));
+						link.target(nodeIds.get(submission.getClassIRI() + "_" + synonym.getSynonym()));
+						link.type("synonym");
+						links.push(link);
+					}
 				}
 			}
 		}
@@ -396,13 +441,15 @@ public class OntologyView implements IsWidget {
 	private void createSuperclassLinks(Ontology ontology, Map<String, Integer> nodeIds, JsArray<Link> links) {				
 		for(OntologyClassSubmission submission : classSubmissions) {
 			if(submission.getOntology().equals(ontology)) {
-				if(submission.hasSuperclasses()) {
-					for(Superclass superclass : submission.getSuperclasses()) {
-						Link link = Link.createObject().cast();
-						link.source(nodeIds.get(submission.getClassIRI()));
-						link.target(nodeIds.get(superclass.getIri()));
-						link.type("superclass");
-						links.push(link);
+				if(submissionTypeValid(submission)) {
+					if(submission.hasSuperclasses()) {
+						for(Superclass superclass : submission.getSuperclasses()) {
+							Link link = Link.createObject().cast();
+							link.source(nodeIds.get(submission.getClassIRI()));
+							link.target(nodeIds.get(superclass.getIri()));
+							link.type("superclass");
+							links.push(link);
+						}
 					}
 				}
 			}

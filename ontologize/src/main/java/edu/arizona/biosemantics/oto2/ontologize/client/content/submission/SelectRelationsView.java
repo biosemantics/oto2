@@ -70,7 +70,9 @@ public class SelectRelationsView implements IsWidget {
 	}
 
 	protected void setTypeSelected(Type type) {
-		selectSuperclassView.setDefaultSuperclass(type);
+		this.selectSuperclassView.setSubmissionType(type);
+		this.selectPartOfView.setSubmissionType(type);
+		this.selectSynonymsView.setSubmissionType(type);
 		formContainer.add(selectSuperclassView);
 		if(type.equals(Type.ENTITY)) {
 			formContainer.add(selectPartOfView);
