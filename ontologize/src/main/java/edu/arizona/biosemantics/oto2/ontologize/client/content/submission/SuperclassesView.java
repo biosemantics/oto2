@@ -55,8 +55,8 @@ public class SuperclassesView implements IsWidget {
 		this.verticalLayoutContainer = new VerticalLayoutContainer();
 		verticalLayoutContainer.getScrollSupport().setScrollMode(ScrollMode.AUTO);
 		
-		verticalLayoutContainer.add(new FieldLabel(ontologyView, "Ontology View"), new VerticalLayoutData(1, 550));
-		verticalLayoutContainer.add(new FieldLabel(listView, "Candidate Superclasses"), new VerticalLayoutData(1, 150));
+		verticalLayoutContainer.add(new FieldLabel(ontologyView, "Ontology View"), new VerticalLayoutData(1, 400));
+		verticalLayoutContainer.add(new FieldLabel(listView, "Candidate Superclasses"), new VerticalLayoutData(1, 100));
 		verticalLayoutContainer.add(new FieldLabel(superclassTextField, "New Superclass"), new VerticalLayoutData(1, 1));
 		
 		bindEvents();

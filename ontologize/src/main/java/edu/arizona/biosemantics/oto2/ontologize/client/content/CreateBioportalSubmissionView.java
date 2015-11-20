@@ -9,6 +9,7 @@ import com.sencha.gxt.widget.core.client.container.BorderLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.BorderLayoutContainer.BorderLayoutData;
 
 import edu.arizona.biosemantics.oto2.ontologize.client.content.candidates.CandidateTermsView;
+import edu.arizona.biosemantics.oto2.ontologize.client.content.submission.CreateSubmissionView;
 
 public class CreateBioportalSubmissionView implements IsWidget {
 
@@ -18,7 +19,7 @@ public class CreateBioportalSubmissionView implements IsWidget {
 
 	public CreateBioportalSubmissionView(EventBus eventBus) {
 		candidateTermsView = new CandidateTermsView(eventBus);
-		submissionView = new CreateSubmissionView(eventBus);
+		submissionView = new CreateSubmissionView(eventBus, false, false, false, true, true, true);
 			
 		borderLayoutContainer = new BorderLayoutContainer();
 		ContentPanel cp = new ContentPanel();

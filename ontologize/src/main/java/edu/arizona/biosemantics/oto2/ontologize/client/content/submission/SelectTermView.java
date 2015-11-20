@@ -14,6 +14,7 @@ import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Widget;
+import com.sencha.gxt.cell.core.client.form.ComboBoxCell.TriggerAction;
 import com.sencha.gxt.data.shared.LabelProvider;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
@@ -34,6 +35,7 @@ import edu.arizona.biosemantics.oto2.ontologize.client.event.TermSelectEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.UpdateOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.OntologyProperties;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Term;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.TermProperties;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
@@ -69,11 +71,16 @@ public class SelectTermView implements IsWidget {
 	private FieldValidator fieldValidator = new FieldValidator();
 	protected Ontology ontology;
 	private boolean bindTermSelectEvent;
+	private boolean showClassIRI;
+	private SelectOntologyView selectOntologyView;
+	private boolean showIRITextFieldForSynonym;
 
 	public SelectTermView(EventBus eventBus, boolean bindTermSelectEvent, boolean enabledSubmissionTermField, 
-			boolean enabledClassIRIFields) {
+			boolean enabledClassIRIFields, boolean showClassIRI, boolean showOntology, boolean enableOntology, boolean showIRITextFieldForSynonym) {
 		this.eventBus = eventBus;
 		this.bindTermSelectEvent = bindTermSelectEvent;
+		this.showClassIRI = showClassIRI;
+		this.showIRITextFieldForSynonym = showIRITextFieldForSynonym;
 		
 	    formContainer = new VerticalLayoutContainer();
 	    termComboBox = new ComboBox<Term>(termStore, termProperties.nameLabel());
@@ -84,6 +91,13 @@ public class SelectTermView implements IsWidget {
 	    submissionTermField.setEnabled(enabledSubmissionTermField);
 	    formContainer.add(new FieldLabel(categoryField, "Category"), new VerticalLayoutData(1, -1));
 	    categoryField.setEnabled(false);
+	    
+	    if(showOntology) {
+			selectOntologyView = new SelectOntologyView(eventBus);
+		    selectOntologyView.setEnabled(enableOntology);
+		    formContainer.add(new FieldLabel(selectOntologyView, "Ontology *"), new VerticalLayoutData(1, -1));
+	    }
+	    
 	   	selectSubmissionTypeView = new SelectSubmissionTypeView(eventBus);
 	   	formContainer.add(selectSubmissionTypeView);
 	    classIRIComboBox = new ComboBox<SynonymClass>(classIRIStore, new LabelProvider<SynonymClass>() {
@@ -110,7 +124,7 @@ public class SelectTermView implements IsWidget {
 		classIRIComboBox.setEnabled(enabledClassIRIFields);
 		classIRIFieldLabel.setEnabled(enabledClassIRIFields);
 		classIRIComboBoxFieldLabel = new FieldLabel(classIRIComboBox, "Class *");
-	    
+		
 	    bindEvents();
 	}
 	
@@ -261,7 +275,7 @@ public class SelectTermView implements IsWidget {
 	}
 	
 	public String getClassIRI() {
-		if(isSynonym()) 
+		if(isSynonym() && !showIRITextFieldForSynonym)
 			return this.classIRIComboBox.getValue().getIri().trim();
 		return this.classIRIField.getText().trim();
 	}
@@ -304,13 +318,17 @@ public class SelectTermView implements IsWidget {
 
 	public void setClassSubmission() {
 		formContainer.remove(classIRIComboBoxFieldLabel);
-		formContainer.add(classIRIFieldLabel, new VerticalLayoutData(1, -1));
+		if(showClassIRI)
+			formContainer.add(classIRIFieldLabel, new VerticalLayoutData(1, -1));
 		formContainer.forceLayout();
 	}
 
 	public void setSynonymSubmission() {
 		formContainer.remove(classIRIFieldLabel);
-		formContainer.add(classIRIComboBoxFieldLabel, new VerticalLayoutData(1, -1));
+		if(showClassIRI)
+			formContainer.add(classIRIComboBoxFieldLabel, new VerticalLayoutData(1, -1));
+		else if(showIRITextFieldForSynonym)
+			formContainer.add(classIRIFieldLabel, new VerticalLayoutData(1, -1));
 		formContainer.forceLayout();
 	}
 	
@@ -361,5 +379,9 @@ public class SelectTermView implements IsWidget {
 		this.selectSubmissionTypeView.clear();
 		this.classIRIField.setValue("");
 		this.classIRIComboBox.setValue(null);
+	}
+
+	public Ontology getOntology() {
+		return selectOntologyView.getOntology();
 	}
 }

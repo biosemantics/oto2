@@ -111,8 +111,8 @@ public class PartsOfsView implements IsWidget {
 		this.verticalLayoutContainer = new VerticalLayoutContainer();
 		verticalLayoutContainer.getScrollSupport().setScrollMode(ScrollMode.AUTO);
 		
-		verticalLayoutContainer.add(new FieldLabel(ontologyView, "Ontology View"), new VerticalLayoutData(1, 550));
-		verticalLayoutContainer.add(new FieldLabel(tree, "Candidate Bearers"), new VerticalLayoutData(1, 150));
+		verticalLayoutContainer.add(new FieldLabel(ontologyView, "Ontology View"), new VerticalLayoutData(1, 400));
+		verticalLayoutContainer.add(new FieldLabel(tree, "Candidate Bearers"), new VerticalLayoutData(1, 100));
 		verticalLayoutContainer.add(new FieldLabel(partOfTextField, "New Bearer"), new VerticalLayoutData(1, 1));
 		
 		bindEvents();

@@ -78,6 +78,8 @@ public class DAOManager {
 		ontologyBioportalDAO.setOntologyClassSubmissionDAO(ontologyClassSubmissionDAO);
 		ontologyBioportalDAO.setOntologySynonymSubmissionDAO(ontologySynonymSubmissionDAO);
 		ontologyClassSubmissionSuperclassDAO.setPermanentOntologyFileDAO(permanentOntologyFileDAO);
+		ontologySynonymSubmissionDAO.setPermanentOntologyFileDAO(permanentOntologyFileDAO);
+		ontologyClassSubmissionPartOfDAO.setPermanentOntologyFileDAO(permanentOntologyFileDAO);
 	}
 
 	public CollectionDAO getCollectionDAO() {

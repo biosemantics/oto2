@@ -9,7 +9,11 @@ import com.sencha.gxt.widget.core.client.container.BorderLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.BorderLayoutContainer.BorderLayoutData;
 
 import edu.arizona.biosemantics.oto2.ontologize.client.content.submission.EditSubmissionView;
+import edu.arizona.biosemantics.oto2.ontologize.client.content.submissions.ClassSubmissionsGrid;
 import edu.arizona.biosemantics.oto2.ontologize.client.content.submissions.SubmissionsView;
+import edu.arizona.biosemantics.oto2.ontologize.client.content.submissions.SynonymSubmissionsGrid;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySynonymSubmission;
 
 public class LocalSubmissionsView implements IsWidget {
 
@@ -18,8 +22,19 @@ public class LocalSubmissionsView implements IsWidget {
 	private EditSubmissionView editSubmissionView;
 
 	public LocalSubmissionsView(EventBus eventBus) {
-		submissionsView = new SubmissionsView(eventBus);
-		editSubmissionView = new EditSubmissionView(eventBus);
+		submissionsView = new SubmissionsView(eventBus, new ClassSubmissionsGrid.SubmissionsFilter() {
+			@Override
+			public boolean isFiltered(OntologyClassSubmission ontologyClassSubmission) {
+				return ontologyClassSubmission.getOntology().isBioportalOntology();
+			}
+		}, new SynonymSubmissionsGrid.SubmissionsFilter() {
+			@Override
+			public boolean isFiltered(OntologySynonymSubmission ontologySynonymSubmission) {
+				return ontologySynonymSubmission.getOntology().isBioportalOntology();
+			}
+		});
+		
+		editSubmissionView = new EditSubmissionView(eventBus, true, true, true, false, false, false);
 			
 		borderLayoutContainer = new BorderLayoutContainer();
 		ContentPanel cp = new ContentPanel();

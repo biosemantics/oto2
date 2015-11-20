@@ -54,15 +54,16 @@ public class EditSubmissionView implements IsWidget {
 	private OntologySynonymSubmission selectedSynonymSubmission;
 	private OntologyClassSubmission selectedClassSubmission;
 
-	public EditSubmissionView(EventBus eventBus) {
+	public EditSubmissionView(EventBus eventBus, boolean showPartOfRelations, boolean showClassIRI, boolean showDefaultSuperclasses, 
+			boolean showOntology, boolean enableOntology, boolean showIRITextFieldForSynonym) {
 		this.eventBus = eventBus;
 
 		termCardButton = new TextButton("Term");
 		relationCardButton = new TextButton("Relations");
 		metaCardButton = new TextButton("Meta-data");
 
-		selectTermView = new SelectTermView(eventBus, false, false, false);
-		selectRelationsView = new SelectRelationsView(eventBus, false);
+		selectTermView = new SelectTermView(eventBus, false, false, false, showClassIRI, showOntology, enableOntology, showIRITextFieldForSynonym);
+		selectRelationsView = new SelectRelationsView(eventBus, false, showPartOfRelations, showDefaultSuperclasses);
 		selectMetadataView = new SelectMetadataView(eventBus, false);
 
 		cardLayout = new CardLayoutContainer();

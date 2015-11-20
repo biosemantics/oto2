@@ -55,6 +55,7 @@ import edu.arizona.biosemantics.oto2.ontologize.client.event.CreateOntologyEvent
 import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.OntologyClassSubmissionSelectEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.RefreshOntologyClassSubmissionsEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.RefreshOntologySynonymSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.RemoveOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.SelectPartOfEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.SelectSuperclassEvent;
@@ -81,8 +82,14 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.ICollectionServiceAsy
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.IToOntologyService;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.IToOntologyServiceAsync;
 
-public abstract class ClassSubmissionsGrid implements IsWidget {
+public class ClassSubmissionsGrid implements IsWidget {
 
+	public static interface SubmissionsFilter {
+		
+		public boolean isFiltered(OntologyClassSubmission ontologyClassSubmission);
+		
+	}
+	
 	private OntologyClassSubmissionProperties ontologyClassSubmissionProperties = GWT.create(OntologyClassSubmissionProperties.class);
 	private OntologySynonymSubmissionProperties ontologySynonymSubmissionProperties = GWT.create(OntologySynonymSubmissionProperties.class);
 	private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
@@ -90,7 +97,6 @@ public abstract class ClassSubmissionsGrid implements IsWidget {
 	private EventBus eventBus;
 	private Collection collection;
 	private Grid<OntologyClassSubmission> grid;
-	private ListStore<OntologyClassSubmission> classSubmissionStore;
 	private ColumnConfig<OntologyClassSubmission, String> ontologyCol;
 	private CheckBoxSelectionModel<OntologyClassSubmission> checkBoxSelectionModel;
 	protected ColumnConfig<OntologyClassSubmission, String> termCol;
@@ -107,10 +113,14 @@ public abstract class ClassSubmissionsGrid implements IsWidget {
 	protected ColumnConfig<OntologyClassSubmission, String> iriCol;
 	protected ColumnConfig<OntologyClassSubmission, String> submissionTermCol;
 	protected ColumnConfig<OntologyClassSubmission, String> superClassCol;
+	private ListStore<OntologyClassSubmission> classSubmissionStore =
+			new ListStore<OntologyClassSubmission>(ontologyClassSubmissionProperties.key());
+	private SubmissionsFilter submissionsFilter;
 	
-	public ClassSubmissionsGrid(EventBus eventBus, ListStore<OntologyClassSubmission> classSubmissionStore) {		
+	public ClassSubmissionsGrid(EventBus eventBus, SubmissionsFilter submissionsFilter) {		
 		this.eventBus = eventBus;
-		this.classSubmissionStore = classSubmissionStore;
+		this.submissionsFilter = submissionsFilter;
+		
 		grid = new Grid<OntologyClassSubmission>(classSubmissionStore, createColumnModel(classSubmissionStore));
 		
 		final GroupingView<OntologyClassSubmission> groupingView = new GroupingView<OntologyClassSubmission>();
@@ -133,6 +143,17 @@ public abstract class ClassSubmissionsGrid implements IsWidget {
 	}
 
 	private void bindEvents() {
+		eventBus.addHandler(RefreshOntologyClassSubmissionsEvent.TYPE, new RefreshOntologyClassSubmissionsEvent.Handler() {
+			@Override
+			public void onSelect(RefreshOntologyClassSubmissionsEvent event) {
+				classSubmissionStore.clear();
+				for(OntologyClassSubmission submission : event.getOntologyClassSubmissions()) {
+					if(!submissionsFilter.isFiltered(submission))
+						classSubmissionStore.add(submission);
+				}
+			}
+		});
+		
 		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
 			@Override
 			public void onLoad(LoadCollectionEvent event) {
@@ -740,6 +761,18 @@ public abstract class ClassSubmissionsGrid implements IsWidget {
 		return cm;
 	}
 
-	protected abstract void setHiddenColumns();
+	protected void setHiddenColumns() {
+		termCol.setHidden(true);
+		categoryCol.setHidden(true);
+		iriCol.setHidden(true);
+		superClassCol.setHidden(true);
+		partOfCol.setHidden(true);
+		definitionCol.setHidden(true);
+		sampleCol.setHidden(true);
+		sourceCol.setHidden(true);
+		synonymsCol.setHidden(true);
+		userCol.setHidden(true);
+		statusCol.setHidden(true);
+	}
 	
 }

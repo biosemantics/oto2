@@ -23,7 +23,7 @@ public class AddPartOfDialog extends Dialog {
 
 	public AddPartOfDialog(EventBus eventBus) {
 		this.setHeadingText("Add Part Of");
-		this.setHeight(800);
+		this.setHeight(600);
 		this.setWidth(800);
 		this.setClosable(true);
 		this.setOnEsc(true);
@@ -35,7 +35,7 @@ public class AddPartOfDialog extends Dialog {
 		vlp.getScrollSupport().setScrollMode(ScrollMode.AUTO);
 		this.setWidget(vlp);
 		
-		vlp.add(partsView, new VerticalLayoutData(780, 740));
+		vlp.add(partsView, new VerticalLayoutData(780, 540));
 		
 		bindEvents();
 	}

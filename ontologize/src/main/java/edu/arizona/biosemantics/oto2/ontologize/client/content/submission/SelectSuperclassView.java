@@ -56,9 +56,12 @@ public class SelectSuperclassView implements IsWidget {
 	private AddSuperclassDialog addSuperclassDialog;
 	private OntologyClassSubmissionRetriever ontologyClassSubmissionRetriever = new OntologyClassSubmissionRetriever();
 	protected List<OntologyClassSubmission> classSubmissions;
+	private boolean showDefaultSuperclasses;
 	
-	public SelectSuperclassView(EventBus eventBus) {
+	public SelectSuperclassView(EventBus eventBus, boolean showDefaultSuperclasses) {
 		this.eventBus = eventBus;
+		this.showDefaultSuperclasses = showDefaultSuperclasses;
+		
 		addSuperclassDialog = new AddSuperclassDialog(eventBus);
 		store = new ListStore<Superclass>(new ModelKeyProvider<Superclass>() {
 			@Override
@@ -157,7 +160,7 @@ public class SelectSuperclassView implements IsWidget {
 			@Override
 			public void onSelect(SelectEvent event) {
 				for(Superclass remove : listView.getSelectionModel().getSelectedItems()) {
-					if(remove.getIri().equals(defaultSuperclass.getIRI())) {
+					if(defaultSuperclass != null && remove.getIri().equals(defaultSuperclass.getIRI())) {
 						Alerter.cannotRemoveEntityOrQualitySuperclass();
 					} else {
 						store.remove(remove);
@@ -221,7 +224,7 @@ public class SelectSuperclassView implements IsWidget {
 	public void setSuperclasses(List<Superclass> superclasses) {
 		clearSuperclassesExceptHigherLevelClass();
 		for(Superclass superclass : superclasses)
-			if(!superclass.getIri().equals(this.defaultSuperclass.getIRI()))
+			if(defaultSuperclass != null && !superclass.getIri().equals(this.defaultSuperclass.getIRI()))
 				this.addSuperClassToStore(superclass);
 	}
 
@@ -233,7 +236,7 @@ public class SelectSuperclassView implements IsWidget {
 	private void setSuperclassType(Type type) {
 		//remove old
 		for(Superclass superclass : new ArrayList<Superclass>(this.store.getAll())) {
-			if(superclass.getIri().equals(defaultSuperclass.getIRI())) 
+			if(defaultSuperclass != null && superclass.getIri().equals(defaultSuperclass.getIRI())) 
 				store.remove(superclass);
 		}
 		//add new

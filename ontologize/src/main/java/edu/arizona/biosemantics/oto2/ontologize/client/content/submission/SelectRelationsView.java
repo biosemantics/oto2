@@ -8,7 +8,6 @@ import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.web.bindery.event.shared.EventBus;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
-import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
 
 import edu.arizona.biosemantics.oto2.ontologize.client.event.TermSelectEvent;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
@@ -28,17 +27,24 @@ public class SelectRelationsView implements IsWidget {
 	private SelectSynonymsView selectSynonymsView;
 	private FieldValidator fieldValidator = new FieldValidator();
 	private boolean bindTermSelectEvent;
+	private boolean showPartOfRelations;
+	private boolean showDefaultSuperclasses;
 	
-	public SelectRelationsView(EventBus eventBus, boolean bindTermSelectEvent) {
+	public SelectRelationsView(EventBus eventBus, boolean bindTermSelectEvent, boolean showPartOfRelations, boolean showDefaultSuperclasses) {
 		this.eventBus = eventBus;
 		this.bindTermSelectEvent = bindTermSelectEvent;
+		this.showPartOfRelations = showPartOfRelations;
+		this.showDefaultSuperclasses = showDefaultSuperclasses;
 		
 		formContainer = new VerticalLayoutContainer();
 		selectTypeView = new SelectTypeView(eventBus);
-		selectSuperclassView = new SelectSuperclassView(eventBus);
+		selectSuperclassView = new SelectSuperclassView(eventBus, showDefaultSuperclasses);
 		selectPartOfView = new SelectSinglePartOfView(eventBus);
 		selectSynonymsView = new SelectSynonymsView(eventBus);
 	    
+		if(!showDefaultSuperclasses)
+			addTypeDependentFormElements(null);
+		
 	    bindEvents();
 	}
 	
@@ -64,20 +70,33 @@ public class SelectRelationsView implements IsWidget {
 		selectSuperclassView.clearSuperclassesExceptHigherLevelClass();
 		selectPartOfView.clear();
 		selectSynonymsView.clear();
-		formContainer.remove(selectSuperclassView);
-		formContainer.remove(selectPartOfView);
-		formContainer.remove(selectSynonymsView);
+		if(showDefaultSuperclasses) {
+			formContainer.remove(selectSuperclassView);
+			formContainer.remove(selectPartOfView);
+			formContainer.remove(selectSynonymsView);
+		}
 	}
 
 	protected void setTypeSelected(Type type) {
-		this.selectSuperclassView.setSubmissionType(type);
+		if(showDefaultSuperclasses)
+			this.selectSuperclassView.setSubmissionType(type);
 		this.selectPartOfView.setSubmissionType(type);
 		this.selectSynonymsView.setSubmissionType(type);
+		addTypeDependentFormElements(type);
+	}
+
+	private void addTypeDependentFormElements(Type type) {
 		formContainer.add(selectSuperclassView);
-		if(type.equals(Type.ENTITY)) {
-			formContainer.add(selectPartOfView);
+		if(type != null) {
+			if(type.equals(Type.ENTITY)) {
+				if(showPartOfRelations)
+					formContainer.add(selectPartOfView);
+			} else {
+				formContainer.remove(selectPartOfView);
+			}
 		} else {
-			formContainer.remove(selectPartOfView);
+			if(showPartOfRelations)
+				formContainer.add(selectPartOfView);
 		}
 		formContainer.add(selectSynonymsView);
 	}
@@ -112,9 +131,11 @@ public class SelectRelationsView implements IsWidget {
 	}
 
 	public void setClassSubmission() {
-		formContainer.clear();
-	    formContainer.add(selectTypeView);
-		formContainer.forceLayout();
+		if(showDefaultSuperclasses) {
+			formContainer.clear();
+			formContainer.add(selectTypeView);
+			formContainer.forceLayout();
+		}
 	}
 
 	public void setSynonymSubmission() {

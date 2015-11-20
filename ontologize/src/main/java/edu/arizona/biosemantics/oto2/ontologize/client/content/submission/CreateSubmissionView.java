@@ -75,17 +75,20 @@ public class CreateSubmissionView implements IsWidget {
 	private SelectRelationsView selectRelationsView;
 	private SelectMetadataView selectMetadataView;
 	protected Collection collection;
-	protected Ontology ontology;
+	protected Ontology localOntology;
+	private boolean showOntology;
 
-	public CreateSubmissionView(EventBus eventBus) {
+	public CreateSubmissionView(EventBus eventBus, boolean showClassIRI, boolean showPartOfRelations, boolean showDefaultSuperclasses, 
+			boolean showOntology, boolean enableOntology, boolean showIRITextFieldForSynonym) {
 		this.eventBus = eventBus;
+		this.showOntology = showOntology;
 
 		termCardButton = new TextButton("Term");
 		relationCardButton = new TextButton("Relations");
 		metaCardButton = new TextButton("Meta-data");
 
-		selectTermView = new SelectTermView(eventBus, true, true, true);
-		selectRelationsView = new SelectRelationsView(eventBus, true);
+		selectTermView = new SelectTermView(eventBus, true, true, true, showClassIRI, showOntology, enableOntology, showIRITextFieldForSynonym);
+		selectRelationsView = new SelectRelationsView(eventBus, true, showPartOfRelations, showDefaultSuperclasses);
 		selectMetadataView = new SelectMetadataView(eventBus, true);
 
 		cardLayout = new CardLayoutContainer();
@@ -141,7 +144,7 @@ public class CreateSubmissionView implements IsWidget {
 					}
 					@Override
 					public void onSuccess(List<Ontology> result) {
-						CreateSubmissionView.this.ontology = result.get(0);
+						CreateSubmissionView.this.localOntology = result.get(0);
 					}
 				});
 			}
@@ -233,10 +236,10 @@ public class CreateSubmissionView implements IsWidget {
 		Alerter.stopLoading(box);
 	}
 
-	private OntologySynonymSubmission getSynonymSubmission() {
+	protected OntologySynonymSubmission getSynonymSubmission() {
 		List<Synonym> synonyms = selectRelationsView.getSynonyms();
 		return new OntologySynonymSubmission(collection.getId(), selectTermView.getTerm(), selectTermView.getSubmissionTerm(), 
-				ontology, selectTermView.getClassIRI(), "", synonyms, selectMetadataView.getSource(), selectMetadataView.getSample(), Ontologize.user);
+				showOntology ? selectTermView.getOntology() : localOntology, selectTermView.getClassIRI(), "", synonyms, selectMetadataView.getSource(), selectMetadataView.getSample(), Ontologize.user);
 	}
 
 	protected OntologyClassSubmission getClassSubmission() {
@@ -244,7 +247,7 @@ public class CreateSubmissionView implements IsWidget {
 		List<Superclass> superclasses = selectRelationsView.getSuperclasses();
 		List<Synonym> synonyms = selectRelationsView.getSynonyms();
 		return new OntologyClassSubmission(collection.getId(), selectTermView.getTerm(), selectTermView.getSubmissionTerm(), 
-				ontology, selectTermView.getClassIRI(), superclasses,
+				showOntology ? selectTermView.getOntology() : localOntology, selectTermView.getClassIRI(), superclasses,
 				selectMetadataView.getDefinition(), synonyms, selectMetadataView.getSource(), 
 				selectMetadataView.getSample(), partOfs, Ontologize.user);
 	}

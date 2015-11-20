@@ -39,6 +39,7 @@ import edu.arizona.biosemantics.oto2.ontologize.client.common.ColorableCell;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.AddCommentEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.OntologySynonymSubmissionSelectEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.RefreshOntologySynonymSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.RemoveOntologySynonymSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.SetColorEvent;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
@@ -58,8 +59,14 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.ICollectionServiceAsy
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.IToOntologyService;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.IToOntologyServiceAsync;
 
-public abstract class SynonymSubmissionsGrid implements IsWidget {
+public class SynonymSubmissionsGrid implements IsWidget {
+	
+	public static interface SubmissionsFilter {
 
+		public boolean isFiltered(OntologySynonymSubmission ontologySynonymSubmission);
+		
+	}
+	
 	private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
 	private IToOntologyServiceAsync toOntologyService = GWT.create(IToOntologyService.class);
 	private ColumnConfig<OntologySynonymSubmission, String> ontologyCol;
@@ -79,9 +86,14 @@ public abstract class SynonymSubmissionsGrid implements IsWidget {
 	protected ColumnConfig<OntologySynonymSubmission, String> statusCol;
 	protected ColumnConfig<OntologySynonymSubmission, String> iriCol;
 	protected ColumnConfig<OntologySynonymSubmission, String> userCol;
+	private ListStore<OntologySynonymSubmission> synonymSubmissionStore =
+			new ListStore<OntologySynonymSubmission>(ontologySynonymSubmissionProperties.key());
+	private SubmissionsFilter submissionsFilter;
 	
-	public SynonymSubmissionsGrid(EventBus eventBus, ListStore<OntologySynonymSubmission> synonymSubmissionStore) {
+	public SynonymSubmissionsGrid(EventBus eventBus, SubmissionsFilter submissionsFilter) {
 		this.eventBus = eventBus;
+		this.submissionsFilter = submissionsFilter;
+
 		grid = new Grid<OntologySynonymSubmission>(synonymSubmissionStore, createColumnModel(synonymSubmissionStore));
 		
 		final GroupingView<OntologySynonymSubmission> groupingView = new GroupingView<OntologySynonymSubmission>();
@@ -241,6 +253,17 @@ public abstract class SynonymSubmissionsGrid implements IsWidget {
 	}
 
 	private void bindEvents() {
+		eventBus.addHandler(RefreshOntologySynonymSubmissionsEvent.TYPE, new RefreshOntologySynonymSubmissionsEvent.Handler() {
+			@Override
+			public void onSelect(RefreshOntologySynonymSubmissionsEvent event) {
+				synonymSubmissionStore.clear();
+				for(OntologySynonymSubmission submission : event.getOntologySynonymSubmissions()) {
+					if(!submissionsFilter.isFiltered(submission))
+						synonymSubmissionStore.add(submission);
+				}
+			}
+		});
+		
 		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
 			@Override
 			public void onLoad(LoadCollectionEvent event) {
@@ -533,6 +556,14 @@ public abstract class SynonymSubmissionsGrid implements IsWidget {
 		return grid.getSelectionModel();
 	}
 	
-	protected abstract void setHiddenColumns();
-	
+	protected void setHiddenColumns() {
+		termCol.setHidden(true);
+		categoryCol.setHidden(true);
+		iriCol.setHidden(true);
+		sampleCol.setHidden(true);
+		sourceCol.setHidden(true);
+		synonymsCol.setHidden(true);
+		userCol.setHidden(true);
+		statusCol.setHidden(true);
+	}
 }

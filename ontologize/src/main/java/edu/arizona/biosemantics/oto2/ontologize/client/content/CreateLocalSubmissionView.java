@@ -19,7 +19,7 @@ public class CreateLocalSubmissionView implements IsWidget {
 
 	public CreateLocalSubmissionView(EventBus eventBus) {
 		candidateTermsView = new CandidateTermsView(eventBus);
-		submissionView = new CreateSubmissionView(eventBus);
+		submissionView = new CreateSubmissionView(eventBus, true, true, true, false, false, false);
 			
 		borderLayoutContainer = new BorderLayoutContainer();
 		ContentPanel cp = new ContentPanel();

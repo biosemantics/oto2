@@ -49,14 +49,14 @@ public class ContentView extends BorderLayoutContainer {
 	//private TermsView termsView;
 	//private LabelsView labelsView;
 	private TermInfoView termInfoView;
-	private OntologyView ontologyView;
 	private Collection collection;
 	private EventBus eventBus;
 	private TabPanel tabPanel;
 	private CreateLocalSubmissionView createLocalSubmissionView;
 	private LocalSubmissionsView localSubmissionsView;
-	//private CreateBioportalSubmissionView createBioportalSubmissionView;
-	//private BioportalSubmissionsView bioportalSubmissionsView;
+	private OntologyView ontologyView;
+	private CreateBioportalSubmissionView createBioportalSubmissionView;
+	private BioportalSubmissionsView bioportalSubmissionsView;
 
 	public ContentView(EventBus eventBus) {
 		this.eventBus = eventBus;
@@ -73,8 +73,8 @@ public class ContentView extends BorderLayoutContainer {
 		tabPanel = new TabPanel();
 		createLocalSubmissionView = new CreateLocalSubmissionView(eventBus);
 		localSubmissionsView = new LocalSubmissionsView(eventBus);
-		//createBioportalSubmissionView = new CreateBioportalSubmissionView(eventBus);
-		//bioportalSubmissionsView = new BioportalSubmissionsView(eventBus);
+		createBioportalSubmissionView = new CreateBioportalSubmissionView(eventBus);
+		bioportalSubmissionsView = new BioportalSubmissionsView(eventBus);
 		
 		//tabPanel.addSelectionHandler(handler);
 		tabPanel.setWidth(450);
@@ -92,11 +92,11 @@ public class ContentView extends BorderLayoutContainer {
 		
 		TabItemConfig createBioportalSubmission = new TabItemConfig("Create Bioportal Submission");
 		createBioportalSubmission.setEnabled(true);
-		//tabPanel.add(createBioportalSubmissionView, createBioportalSubmission);
+		tabPanel.add(createBioportalSubmissionView, createBioportalSubmission);
 		
 		TabItemConfig bioportalSubmissions = new TabItemConfig("Bioportal Submissions");
 		bioportalSubmissions.setEnabled(true);
-		//tabPanel.add(bioportalSubmissionsView, bioportalSubmissions);
+		tabPanel.add(bioportalSubmissionsView, bioportalSubmissions);
 		
 		/*TabItemConfig hierarchyConfig = new TabItemConfig("Hierarchy");
 		hierarchyConfig.setEnabled(false);
