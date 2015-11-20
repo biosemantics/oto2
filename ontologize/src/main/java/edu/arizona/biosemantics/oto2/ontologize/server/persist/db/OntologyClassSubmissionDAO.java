@@ -10,9 +10,11 @@ import org.semanticweb.owlapi.model.IRI;
 import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.ontologize.server.Configuration;
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.db.Query.QueryException;
+import edu.arizona.biosemantics.oto2.ontologize.shared.log.TypeFromSuperclasses;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Term;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmissionStatus;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.PartOf;
@@ -181,9 +183,15 @@ public class OntologyClassSubmissionDAO {
 				superclass.setOntologyClassSubmission(ontologyClassSubmission.getId());
 			for(PartOf partOf : ontologyClassSubmission.getPartOfs())
 				partOf.setOntologyClassSubmission(ontologyClassSubmission.getId());
-			ontologyClassSubmissionSynonymDAO.update(ontologyClassSubmission.getId(), ontologyClassSubmission.getSynonyms());
+			ontologyClassSubmissionSynonymDAO.update(ontologyClassSubmission.getId(), ontologyClassSubmission.getSynonyms());			
 			ontologyClassSubmissionSuperclassDAO.update(ontologyClassSubmission.getId(), ontologyClassSubmission.getSuperclasses());
-			ontologyClassSubmissionPartOfDAO.update(ontologyClassSubmission.getId(), ontologyClassSubmission.getPartOfs());
+			
+			
+			Type type = TypeFromSuperclasses.getType(ontologyClassSubmission.getSuperclasses());
+			if(type != null && type.equals(Type.QUALITY))
+				ontologyClassSubmissionPartOfDAO.remove(ontologyClassSubmission.getPartOfs());
+			else
+				ontologyClassSubmissionPartOfDAO.update(ontologyClassSubmission.getId(), ontologyClassSubmission.getPartOfs());
 		} catch(QueryException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
 			throw e;

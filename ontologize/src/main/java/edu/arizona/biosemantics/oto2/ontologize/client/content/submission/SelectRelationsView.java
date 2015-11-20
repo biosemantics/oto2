@@ -21,7 +21,7 @@ public class SelectRelationsView implements IsWidget {
 	
 	private VerticalLayoutContainer formContainer;
 	private EventBus eventBus;
-	private SelectTypeView selectTypeView;
+	//private SelectTypeView selectTypeView;
 	private SelectSuperclassView selectSuperclassView;
 	private SelectSinglePartOfView selectPartOfView;
 	private SelectSynonymsView selectSynonymsView;
@@ -37,7 +37,7 @@ public class SelectRelationsView implements IsWidget {
 		this.showDefaultSuperclasses = showDefaultSuperclasses;
 		
 		formContainer = new VerticalLayoutContainer();
-		selectTypeView = new SelectTypeView(eventBus);
+		//selectTypeView = new SelectTypeView(eventBus);
 		selectSuperclassView = new SelectSuperclassView(eventBus, showDefaultSuperclasses);
 		selectPartOfView = new SelectSinglePartOfView(eventBus);
 		selectSynonymsView = new SelectSynonymsView(eventBus);
@@ -49,12 +49,12 @@ public class SelectRelationsView implements IsWidget {
 	}
 	
 	private void bindEvents() {
-		selectTypeView.addHandler(new ValueChangeHandler<Boolean>() {
+		/*selectTypeView.addHandler(new ValueChangeHandler<Boolean>() {
 			@Override
 			public void onValueChange(ValueChangeEvent<Boolean> event) {
 				setTypeSelected(selectTypeView.getType());
 			}
-		});
+		});*/
 		if(bindTermSelectEvent) {
 			eventBus.addHandler(TermSelectEvent.TYPE, new TermSelectEvent.Handler() {
 				@Override
@@ -66,7 +66,7 @@ public class SelectRelationsView implements IsWidget {
 	}
 	
 	public void clear() {
-		selectTypeView.clear();
+		//selectTypeView.clear();
 		selectSuperclassView.clearSuperclassesExceptHigherLevelClass();
 		selectPartOfView.clear();
 		selectSynonymsView.clear();
@@ -114,28 +114,24 @@ public class SelectRelationsView implements IsWidget {
 		return selectSuperclassView.getSuperclasses();
 	}
 
-	public Type getType() {
-		return selectTypeView.getType();
-	}
-
 	public List<Synonym> getSynonyms() {
 		return selectSynonymsView.getSynonyms();
 	}
 	
 	public boolean validate() {
 		boolean result = true;
-		if(selectTypeView.asWidget().isAttached())
-			result &= selectTypeView.validate();
+		//if(selectTypeView.asWidget().isAttached())
+		//	result &= selectTypeView.validate();
 		result &= fieldValidator.validate(formContainer.iterator());
 		return result;
 	}
 
 	public void setClassSubmission() {
-		if(showDefaultSuperclasses) {
+		/*if(showDefaultSuperclasses) {
 			formContainer.clear();
 			formContainer.add(selectTypeView);
 			formContainer.forceLayout();
-		}
+		}*/
 	}
 
 	public void setSynonymSubmission() {
@@ -151,7 +147,7 @@ public class SelectRelationsView implements IsWidget {
 
 	public void setOntologyClassSubmission(OntologyClassSubmission submission) {
 		this.setClassSubmission();
-		this.selectTypeView.setType(submission.getType());
+		//this.selectTypeView.setType(submission.getType());
 		this.setTypeSelected(submission.getType());
 		this.selectSuperclassView.setSuperclasses(submission.getSuperclasses());
 		this.selectPartOfView.setPartOfs(submission.getPartOfs());

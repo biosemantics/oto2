@@ -55,7 +55,6 @@ public class PartsOfsView implements IsWidget {
 	private TextField partOfTextField = new TextField();
 	private TreeStore<PartOfTreeNode> store;
 	private Tree<PartOfTreeNode, String> tree;
-	private OntologyClassSubmissionRetriever ontologyClassSubmissionRetriever = new OntologyClassSubmissionRetriever();
 	private Collection collection;
 	
 	public PartsOfsView(EventBus eventBus) {
@@ -134,7 +133,8 @@ public class PartsOfsView implements IsWidget {
 		tree.getSelectionModel().addSelectionChangedHandler(new SelectionChangedHandler<PartOfTreeNode>() {
 			@Override
 			public void onSelectionChanged(SelectionChangedEvent<PartOfTreeNode> event) {
-				partOfTextField.setValue(event.getSelection().get(0).getPartOf().getLabel());
+				if(!event.getSelection().isEmpty())
+					partOfTextField.setValue(event.getSelection().get(0).getPartOf().getLabel());
 			}
 		});
 	}
@@ -166,11 +166,11 @@ public class PartsOfsView implements IsWidget {
 		} else {
 			for(PartOf partOf : submission.getPartOfs()) {
 				PartOfTreeNode parent = new PartOfTreeNode(partOf);
-				OntologyClassSubmission parentSubmission = ontologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(
+				OntologyClassSubmission parentSubmission = OntologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(
 						parent.getPartOf(), submissions);
 				popuplateStore(parentSubmission, submissions, nodes);
 				store.add(nodes.get(parent.getId()), nodes.get(partOfTreeNode.getId()));
-			}			
+			}	
 		}
 	}
 

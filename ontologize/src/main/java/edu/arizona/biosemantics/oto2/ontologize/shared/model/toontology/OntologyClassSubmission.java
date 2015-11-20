@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 
+import edu.arizona.biosemantics.oto2.ontologize.shared.log.TypeFromSuperclasses;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Colorable;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Commentable;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
@@ -127,13 +128,7 @@ public class OntologyClassSubmission implements HasLabelAndIri, Serializable, Co
 	}
 
 	public Type getType() {
-		for(Superclass superclass : this.getSuperclasses()) {
-			if(superclass.getIri().equals(Type.ENTITY.getIRI()))
-				return Type.ENTITY;
-			if(superclass.getIri().equals(Type.QUALITY.getIRI()))
-				return Type.QUALITY;
-		}
-		return null;
+		return TypeFromSuperclasses.getType(this.getSuperclasses());
 	}
 	
 	public List<OntologyClassSubmissionStatus> getSubmissionStatuses() {

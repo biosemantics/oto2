@@ -3,6 +3,8 @@ package edu.arizona.biosemantics.oto2.ontologize.client.content.submission;
 import java.util.List;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.logical.shared.ValueChangeEvent;
+import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.IsWidget;
@@ -62,7 +64,7 @@ public class EditSubmissionView implements IsWidget {
 		relationCardButton = new TextButton("Relations");
 		metaCardButton = new TextButton("Meta-data");
 
-		selectTermView = new SelectTermView(eventBus, false, false, false, showClassIRI, showOntology, enableOntology, showIRITextFieldForSynonym);
+		selectTermView = new SelectTermView(eventBus, false, false, false, showClassIRI, showOntology, enableOntology, showIRITextFieldForSynonym, showDefaultSuperclasses);
 		selectRelationsView = new SelectRelationsView(eventBus, false, showPartOfRelations, showDefaultSuperclasses);
 		selectMetadataView = new SelectMetadataView(eventBus, false);
 
@@ -85,6 +87,12 @@ public class EditSubmissionView implements IsWidget {
 	}
 
 	private void bindEvents() {
+		selectTermView.addSelectTypeHandler(new ValueChangeHandler<Boolean>() {
+			@Override
+			public void onValueChange(ValueChangeEvent<Boolean> event) {
+				selectRelationsView.setTypeSelected(selectTermView.getType());
+			}
+		});
 		eventBus.addHandler(OntologyClassSubmissionSelectEvent.TYPE, new OntologyClassSubmissionSelectEvent.Handler() {
 			@Override
 			public void onSelect(OntologyClassSubmissionSelectEvent event) {

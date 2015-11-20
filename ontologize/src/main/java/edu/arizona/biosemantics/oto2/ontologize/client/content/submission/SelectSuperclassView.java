@@ -54,7 +54,6 @@ public class SelectSuperclassView implements IsWidget {
 	private EventBus eventBus;
 	private Type defaultSuperclass;
 	private AddSuperclassDialog addSuperclassDialog;
-	private OntologyClassSubmissionRetriever ontologyClassSubmissionRetriever = new OntologyClassSubmissionRetriever();
 	protected List<OntologyClassSubmission> classSubmissions;
 	private boolean showDefaultSuperclasses;
 	
@@ -178,9 +177,9 @@ public class SelectSuperclassView implements IsWidget {
 
 	public void addSuperClassToStore(final Superclass superclass) {
 		if(!superclass.hasIri()) {
-			OntologyClassSubmission ontologyClassSubmission = ontologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(superclass, classSubmissions);
+			OntologyClassSubmission ontologyClassSubmission = OntologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(superclass, classSubmissions);
 			if(ontologyClassSubmission != null) 
-				superclass.setIri(ontologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(superclass, classSubmissions).getIri());
+				superclass.setIri(OntologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(superclass, classSubmissions).getIri());
 			store.add(superclass);
 		} else if(!superclass.hasLabel()) {
 			final MessageBox box = Alerter.startLoading();

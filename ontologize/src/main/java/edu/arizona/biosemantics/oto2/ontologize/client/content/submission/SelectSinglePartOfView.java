@@ -51,7 +51,6 @@ public class SelectSinglePartOfView implements IsWidget {
 	protected Collection collection;
 	private EventBus eventBus;
 	private AddPartOfDialog addPartOfDialog;
-	private OntologyClassSubmissionRetriever ontologyClassSubmissionRetriever = new OntologyClassSubmissionRetriever();
 
 	protected List<OntologyClassSubmission> classSubmissions;
 	
@@ -159,7 +158,7 @@ public class SelectSinglePartOfView implements IsWidget {
 	public void addPartOfToStore(final PartOf partOf) {
 		store.clear();
 		if(!partOf.hasIri()) {
-			OntologyClassSubmission ontologyClassSubmission = ontologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(partOf, classSubmissions);
+			OntologyClassSubmission ontologyClassSubmission = OntologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(partOf, classSubmissions);
 			if(ontologyClassSubmission != null)
 				partOf.setIri(ontologyClassSubmission.getIri());
 			store.add(partOf);

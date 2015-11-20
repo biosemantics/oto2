@@ -38,6 +38,7 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.OntologyProperties;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Term;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.TermProperties;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySynonymSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.SynonymClass;
@@ -74,13 +75,17 @@ public class SelectTermView implements IsWidget {
 	private boolean showClassIRI;
 	private SelectOntologyView selectOntologyView;
 	private boolean showIRITextFieldForSynonym;
+	private SelectTypeView selectTypeView;
+	private boolean showDefaultSuperclasses;
 
 	public SelectTermView(EventBus eventBus, boolean bindTermSelectEvent, boolean enabledSubmissionTermField, 
-			boolean enabledClassIRIFields, boolean showClassIRI, boolean showOntology, boolean enableOntology, boolean showIRITextFieldForSynonym) {
+			boolean enabledClassIRIFields, boolean showClassIRI, boolean showOntology, boolean enableOntology, boolean showIRITextFieldForSynonym, 
+			boolean showDefaultSuperclasses) {
 		this.eventBus = eventBus;
 		this.bindTermSelectEvent = bindTermSelectEvent;
 		this.showClassIRI = showClassIRI;
 		this.showIRITextFieldForSynonym = showIRITextFieldForSynonym;
+		this.showDefaultSuperclasses = showDefaultSuperclasses;
 		
 	    formContainer = new VerticalLayoutContainer();
 	    termComboBox = new ComboBox<Term>(termStore, termProperties.nameLabel());
@@ -124,6 +129,8 @@ public class SelectTermView implements IsWidget {
 		classIRIComboBox.setEnabled(enabledClassIRIFields);
 		classIRIFieldLabel.setEnabled(enabledClassIRIFields);
 		classIRIComboBoxFieldLabel = new FieldLabel(classIRIComboBox, "Class *");
+		
+		selectTypeView = new SelectTypeView(eventBus);
 		
 	    bindEvents();
 	}
@@ -320,10 +327,13 @@ public class SelectTermView implements IsWidget {
 		formContainer.remove(classIRIComboBoxFieldLabel);
 		if(showClassIRI)
 			formContainer.add(classIRIFieldLabel, new VerticalLayoutData(1, -1));
+		if(showDefaultSuperclasses)
+			formContainer.add(selectTypeView);
 		formContainer.forceLayout();
 	}
 
 	public void setSynonymSubmission() {
+		formContainer.remove(selectTypeView);
 		formContainer.remove(classIRIFieldLabel);
 		if(showClassIRI)
 			formContainer.add(classIRIComboBoxFieldLabel, new VerticalLayoutData(1, -1));
@@ -360,6 +370,7 @@ public class SelectTermView implements IsWidget {
 		this.selectSubmissionTypeView.setClass();
 		this.classIRIField.setValue(submission.getClassIRI());
 		this.submissionTermField.setValue(submission.getSubmissionTerm());
+		this.selectTypeView.setType(submission.getType());
 	}
 
 	public void setOntologySynonymSubmission(OntologySynonymSubmission submission) {
@@ -369,9 +380,12 @@ public class SelectTermView implements IsWidget {
 		this.selectSubmissionTypeView.setSynonym();
 		this.classIRIComboBox.setValue(new SynonymClass(submission.getClassIRI(), submission.getClassLabel()));
 		this.submissionTermField.setValue(submission.getSubmissionTerm());
+		this.selectTypeView.setType(submission.getType());
 	}
 
 	public void clear() {
+		this.selectTypeView.clear();
+		this.formContainer.remove(this.selectTypeView);
 		this.formContainer.remove(this.classIRIComboBoxFieldLabel);
 		this.formContainer.remove(this.classIRIFieldLabel);
 		this.termComboBox.setValue(null);
@@ -383,5 +397,13 @@ public class SelectTermView implements IsWidget {
 
 	public Ontology getOntology() {
 		return selectOntologyView.getOntology();
+	}
+	
+	public void addSelectTypeHandler(ValueChangeHandler<Boolean> handler) {
+		selectTypeView.addHandler(handler);
+	}
+
+	public Type getType() {
+		return selectTypeView.getType();
 	}
 }

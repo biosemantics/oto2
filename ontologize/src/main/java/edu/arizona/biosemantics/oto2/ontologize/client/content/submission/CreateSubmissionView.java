@@ -87,7 +87,7 @@ public class CreateSubmissionView implements IsWidget {
 		relationCardButton = new TextButton("Relations");
 		metaCardButton = new TextButton("Meta-data");
 
-		selectTermView = new SelectTermView(eventBus, true, true, true, showClassIRI, showOntology, enableOntology, showIRITextFieldForSynonym);
+		selectTermView = new SelectTermView(eventBus, true, true, true, showClassIRI, showOntology, enableOntology, showIRITextFieldForSynonym, showDefaultSuperclasses);
 		selectRelationsView = new SelectRelationsView(eventBus, true, showPartOfRelations, showDefaultSuperclasses);
 		selectMetadataView = new SelectMetadataView(eventBus, true);
 
@@ -110,6 +110,12 @@ public class CreateSubmissionView implements IsWidget {
 	}
 
 	private void bindEvents() {
+		selectTermView.addSelectTypeHandler(new ValueChangeHandler<Boolean>() {
+			@Override
+			public void onValueChange(ValueChangeEvent<Boolean> event) {
+				selectRelationsView.setTypeSelected(selectTermView.getType());
+			}
+		});
 		eventBus.addHandler(TermSelectEvent.TYPE, new TermSelectEvent.Handler() {
 			@Override
 			public void onSelect(TermSelectEvent event) {

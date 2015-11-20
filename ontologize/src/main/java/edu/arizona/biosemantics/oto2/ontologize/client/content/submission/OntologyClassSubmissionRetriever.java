@@ -7,7 +7,7 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Ontology
 
 public class OntologyClassSubmissionRetriever {
 
-	public OntologyClassSubmission getSubmissionOfLabelOrIri(HasLabelAndIri hasLabelAndIri, Collection<OntologyClassSubmission> submissions) {
+	public static OntologyClassSubmission getSubmissionOfLabelOrIri(HasLabelAndIri hasLabelAndIri, Collection<OntologyClassSubmission> submissions) {
 		for(OntologyClassSubmission submission : submissions) {
 			if(hasLabelAndIri.hasLabel()) {
 				if(submission.getSubmissionTerm().equals(hasLabelAndIri.getLabel())) {
