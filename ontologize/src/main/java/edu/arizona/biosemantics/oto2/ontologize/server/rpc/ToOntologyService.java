@@ -107,9 +107,13 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 
 	@Override
 	public List<OntologyClassSubmission> createClassSubmission(Collection collection, OntologyClassSubmission submission) throws Exception {
+		//make sure term is only used once
+		if(daoManager.getOntologyClassSubmissionDAO().getByTerm(collection, submission.getSubmissionTerm()) != null) 
+			throw new Exception("Term can only be submitted once as class.");
+		
 		if(!submission.getClassIRI().isEmpty()) {
 			if(!this.isSupportedIRI(collection, submission.getClassIRI())) {
-				throw new Exception("IRI not supported");
+				throw new Exception("IRI not supported.");
 			}
 		}
 		List<OntologyClassSubmission> submissions = new LinkedList<OntologyClassSubmission>();
@@ -235,7 +239,7 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 		if(iri.equals(Type.QUALITY.getIRI()))
 			return Type.QUALITY.getLabel();
 		if(iri.startsWith(Configuration.etcOntologyBaseIRI)) {
-			return daoManager.getOntologyClassSubmissionDAO().getFromIRI(collection, iri).getSubmissionTerm();
+			return daoManager.getOntologyClassSubmissionDAO().getByClassIRI(collection, iri).getSubmissionTerm();
 		} else {
 			PermanentOntologyFileDAO ontologyFileDAO = daoManager.getPermanentOntologyFileDAO();
 			return ontologyFileDAO.getClassLabel(iri);
@@ -279,7 +283,7 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 
 	@Override
 	public boolean isSupportedIRI(Collection collection, String iri) throws Exception {
-		if(daoManager.getOntologyClassSubmissionDAO().getFromIRI(collection, iri) != null)
+		if(daoManager.getOntologyClassSubmissionDAO().getByClassIRI(collection, iri) != null)
 			return true;
 		else
 			return daoManager.getPermanentOntologyFileDAO().contains(collection, iri);

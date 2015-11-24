@@ -12,6 +12,7 @@ import edu.arizona.biosemantics.oto2.ontologize.server.persist.file.PermanentOnt
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Term;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySynonymSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySynonymSubmissionStatus;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.StatusEnum;
@@ -240,6 +241,30 @@ public class OntologySynonymSubmissionDAO {
 	
 	public void setPermanentOntologyFileDAO(PermanentOntologyFileDAO permanentOntologyFileDAO) {
 		this.permanentOntologyFileDAO = permanentOntologyFileDAO;
+	}
+	
+	public List<OntologySynonymSubmission> getByClassIRI(String classIRI) throws QueryException {		
+		List<OntologySynonymSubmission> ontologySynonymSubmissions = new LinkedList<OntologySynonymSubmission>();
+		try(Query query = new Query("SELECT * FROM ontologize_ontologysynonymsubmission WHERE class_iri = ?")) {
+			query.setParameter(1, classIRI);
+			ResultSet result = query.execute();
+			while(result.next()) {
+				ontologySynonymSubmissions.add(createSynonymSubmission(result));
+			}
+		} catch(QueryException | SQLException | OntologyNotFoundException e) {
+			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
+		}
+		return ontologySynonymSubmissions;
+	}
+
+	public void remove(OntologyClassSubmission ontologyClassSubmission) throws QueryException {
+		if(ontologyClassSubmission.hasClassIRI()) {
+			List<OntologySynonymSubmission> ontologySynonymSubmissions = this.getByClassIRI(ontologyClassSubmission.getClassIRI());
+			for(OntologySynonymSubmission ontologySynonymSubmission : ontologySynonymSubmissions) {
+				this.remove(ontologySynonymSubmission);
+			}
+		}
 	}
 	
 }

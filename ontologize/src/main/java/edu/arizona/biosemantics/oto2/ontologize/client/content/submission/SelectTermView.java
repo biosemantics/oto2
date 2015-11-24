@@ -64,7 +64,7 @@ public class SelectTermView implements IsWidget {
 	private ListStore<SynonymClass> classIRIStore = new ListStore<SynonymClass>(new ModelKeyProvider<SynonymClass>() {
 		@Override
 		public String getKey(SynonymClass item) {
-			return item.getIri();
+			return item.getLabel();
 		}
 	});
 	private TextField submissionTermField = new TextField();

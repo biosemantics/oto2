@@ -80,6 +80,7 @@ public class DAOManager {
 		ontologyClassSubmissionSuperclassDAO.setPermanentOntologyFileDAO(permanentOntologyFileDAO);
 		ontologySynonymSubmissionDAO.setPermanentOntologyFileDAO(permanentOntologyFileDAO);
 		ontologyClassSubmissionPartOfDAO.setPermanentOntologyFileDAO(permanentOntologyFileDAO);
+		ontologyClassSubmissionDAO.setOntologySynonymSubmissionDAO(ontologySynonymSubmissionDAO);
 	}
 
 	public CollectionDAO getCollectionDAO() {

@@ -112,7 +112,7 @@ public class Alerter {
 	}
 
 	public static MessageBox failedToSubmitClass(Throwable caught) {
-		return showAlert("Class submission failed", "Failed to submit class.");
+		return showAlert("Class submission failed", "Failed to submit class. " + caught.getMessage());
 	}
 	
 	private static MessageBox showAlert(String title, String message, Throwable caught) {

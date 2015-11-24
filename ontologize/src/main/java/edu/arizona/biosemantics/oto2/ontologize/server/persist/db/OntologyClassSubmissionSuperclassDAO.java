@@ -10,6 +10,7 @@ import edu.arizona.biosemantics.oto2.ontologize.server.Configuration;
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.db.Query.QueryException;
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.file.PermanentOntologyFileDAO;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.PartOf;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Superclass;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Synonym;
@@ -146,6 +147,19 @@ public class OntologyClassSubmissionSuperclassDAO {
 		} catch(QueryException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
 			throw e;
+		}
+	}
+	
+	public void remove(OntologyClassSubmission ontologyClassSubmission) throws QueryException {
+		this.remove(ontologyClassSubmission.getId());
+		if(ontologyClassSubmission.hasIri()) {
+			try(Query query = new Query("DELETE FROM ontologize_ontologyclasssubmission_superclass WHERE superclass = ?")) {
+				query.setParameter(1, ontologyClassSubmission.getClassIRI());
+				query.execute();
+			} catch(QueryException e) {
+				log(LogLevel.ERROR, "Query Exception", e);
+				throw e;
+			}
 		}
 	}
 

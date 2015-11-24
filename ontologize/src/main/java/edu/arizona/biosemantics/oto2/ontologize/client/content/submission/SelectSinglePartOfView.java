@@ -60,7 +60,7 @@ public class SelectSinglePartOfView implements IsWidget {
 		store = new ListStore<PartOf>(new ModelKeyProvider<PartOf>() {
 			@Override
 			public String getKey(PartOf item) {
-				return item.getIri();
+				return item.getLabel();
 			}
 	    });
 	 	listView = new ListView<PartOf, PartOf>(store, new IdentityValueProvider<PartOf>());	    
@@ -106,45 +106,45 @@ public class SelectSinglePartOfView implements IsWidget {
 			@Override
 			public void onSelect(SelectEvent event) {
 				addPartOfDialog.show();
-				addPartOfDialog.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
-					@Override
-					public void onSelect(SelectEvent event) {
-						final String value = addPartOfDialog.getValue();
-						final PartOf partOf = new PartOf(); 
-						if(value.startsWith("http")) {
-							final MessageBox box = Alerter.startLoading();
-							toOntologyService.isSupportedIRI(collection, value, new AsyncCallback<Boolean>() {
-								@Override
-								public void onFailure(Throwable caught) {
-									Alerter.failedToCheckIRI(caught);
-									Alerter.stopLoading(box);
-								}
-								@Override
-								public void onSuccess(Boolean result) {
-									if(result) {
-										partOf.setIri(value);
-										addPartOfToStore(partOf);
-										addPartOfDialog.hide();
-									} else {
-										Alerter.unsupportedIRI();
-									}
-									Alerter.stopLoading(box);
-								}
-							});
-						/*} else if(ontologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(partOf, classSubmissions) != null) {
-							partOf.setLabel(value);
-							addPartOfToStore(superclass);
-							addPartOfDialog.hide();
-						} else {
-							Alerter.unupportedPartOf();
-						}*/
-						} else {
-							partOf.setLabel(value);
-							addPartOfToStore(partOf);
-							addPartOfDialog.hide();
+			}
+		});
+		addPartOfDialog.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
+			@Override
+			public void onSelect(SelectEvent event) {
+				final String value = addPartOfDialog.getValue();
+				final PartOf partOf = new PartOf(); 
+				if(value.startsWith("http")) {
+					final MessageBox box = Alerter.startLoading();
+					toOntologyService.isSupportedIRI(collection, value, new AsyncCallback<Boolean>() {
+						@Override
+						public void onFailure(Throwable caught) {
+							Alerter.failedToCheckIRI(caught);
+							Alerter.stopLoading(box);
 						}
-					}
-				});
+						@Override
+						public void onSuccess(Boolean result) {
+							if(result) {
+								partOf.setIri(value);
+								addPartOfToStore(partOf);
+								addPartOfDialog.hide();
+							} else {
+								Alerter.unsupportedIRI();
+							}
+							Alerter.stopLoading(box);
+						}
+					});
+				/*} else if(ontologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(partOf, classSubmissions) != null) {
+					partOf.setLabel(value);
+					addPartOfToStore(superclass);
+					addPartOfDialog.hide();
+				} else {
+					Alerter.unupportedPartOf();
+				}*/
+				} else {
+					partOf.setLabel(value);
+					addPartOfToStore(partOf);
+					addPartOfDialog.hide();
+				}
 			}
 		});
 		removeButton.addSelectHandler(new SelectHandler() {

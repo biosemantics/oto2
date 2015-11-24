@@ -65,7 +65,7 @@ public class SelectSuperclassView implements IsWidget {
 		store = new ListStore<Superclass>(new ModelKeyProvider<Superclass>() {
 			@Override
 			public String getKey(Superclass item) {
-				return item.getIri();
+				return item.getLabel();
 			}
 	    });
 	 	listView = new ListView<Superclass, Superclass>(store, new IdentityValueProvider<Superclass>());	    
@@ -112,47 +112,47 @@ public class SelectSuperclassView implements IsWidget {
 			@Override
 			public void onSelect(SelectEvent event) {
 				addSuperclassDialog.show();
-				addSuperclassDialog.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
-					@Override
-					public void onSelect(SelectEvent event) {
-						final String value = addSuperclassDialog.getValue();
-						final Superclass superclass = new Superclass();
-						if(value.startsWith("http")) {
-							final MessageBox box = Alerter.startLoading();
-							toOntologyService.isSupportedIRI(collection, value, new AsyncCallback<Boolean>() {
-								@Override
-								public void onFailure(Throwable caught) {
-									Alerter.failedToCheckIRI(caught);
-									Alerter.stopLoading(box);
-								}
-								@Override
-								public void onSuccess(Boolean result) {
-									if(result) {
-										superclass.setIri(value);
-										addSuperClassToStore(superclass);
-										addSuperclassDialog.hide();
-									} else {
-										Alerter.unsupportedIRI();
-									}
-									Alerter.stopLoading(box);
-								}
-							});
-						/*} else if(ontologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(superclass, classSubmissions) != null) {
-							superclass.setLabel(value);
-							addSuperClassToStore(superclass);
-							addSuperclassDialog.hide();
-						} else {
-							Alerter.unupportedSuperclass();
-						}*/
-							
-						//allow creation of superclass submissions 'on the fly'
-						} else {
-							superclass.setLabel(value);
-							addSuperClassToStore(superclass);
-							addSuperclassDialog.hide();
+			}
+		});
+		addSuperclassDialog.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
+			@Override
+			public void onSelect(SelectEvent event) {
+				final String value = addSuperclassDialog.getValue();
+				final Superclass superclass = new Superclass();
+				if(value.startsWith("http")) {
+					final MessageBox box = Alerter.startLoading();
+					toOntologyService.isSupportedIRI(collection, value, new AsyncCallback<Boolean>() {
+						@Override
+						public void onFailure(Throwable caught) {
+							Alerter.failedToCheckIRI(caught);
+							Alerter.stopLoading(box);
 						}
-					}
-				});
+						@Override
+						public void onSuccess(Boolean result) {
+							if(result) {
+								superclass.setIri(value);
+								addSuperClassToStore(superclass);
+								addSuperclassDialog.hide();
+							} else {
+								Alerter.unsupportedIRI();
+							}
+							Alerter.stopLoading(box);
+						}
+					});
+				/*} else if(ontologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(superclass, classSubmissions) != null) {
+					superclass.setLabel(value);
+					addSuperClassToStore(superclass);
+					addSuperclassDialog.hide();
+				} else {
+					Alerter.unupportedSuperclass();
+				}*/
+					
+				//allow creation of superclass submissions 'on the fly'
+				} else {
+					superclass.setLabel(value);
+					addSuperClassToStore(superclass);
+					addSuperclassDialog.hide();
+				}
 			}
 		});
 		remove.addSelectHandler(new SelectHandler() {

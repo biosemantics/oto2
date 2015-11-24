@@ -31,6 +31,7 @@ public class OntologyClassSubmissionDAO {
 	private OntologyClassSubmissionSynonymDAO ontologyClassSubmissionSynonymDAO;
 	private OntologyClassSubmissionSuperclassDAO ontologyClassSubmissionSuperclassDAO;
 	private OntologyClassSubmissionPartOfDAO ontologyClassSubmissionPartOfDAO;
+	private OntologySynonymSubmissionDAO ontologySynonymSubmissionDAO;
 	
 	public OntologyClassSubmissionDAO() {} 
 	
@@ -205,8 +206,9 @@ public class OntologyClassSubmissionDAO {
 			
 			ontologyClassSubmissionStatusDAO.remove(ontologyClassSubmission.getSubmissionStatuses());
 			ontologyClassSubmissionSynonymDAO.remove(ontologyClassSubmission.getId());
-			ontologyClassSubmissionSuperclassDAO.remove(ontologyClassSubmission.getId());
-			ontologyClassSubmissionPartOfDAO.remove(ontologyClassSubmission.getId());
+			ontologyClassSubmissionSuperclassDAO.remove(ontologyClassSubmission);
+			ontologyClassSubmissionPartOfDAO.remove(ontologyClassSubmission);
+			ontologySynonymSubmissionDAO.remove(ontologyClassSubmission);
 		} catch(QueryException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
 			throw e;
@@ -239,6 +241,11 @@ public class OntologyClassSubmissionDAO {
 	public void setOntologyClassSubmissionPartOfDAO(
 			OntologyClassSubmissionPartOfDAO ontologyClassSubmissionPartOfDAO) {
 		this.ontologyClassSubmissionPartOfDAO = ontologyClassSubmissionPartOfDAO;
+	}
+	
+	public void setOntologySynonymSubmissionDAO(
+			OntologySynonymSubmissionDAO ontologySynonymSubmissionDAO) {
+		this.ontologySynonymSubmissionDAO = ontologySynonymSubmissionDAO;
 	}
 
 	public List<OntologyClassSubmission> get(Collection collection) throws QueryException, OntologyNotFoundException {
@@ -346,12 +353,29 @@ public class OntologyClassSubmissionDAO {
 		return result;
 	}
 	
-	public OntologyClassSubmission getFromIRI(Collection collection, String iri) throws QueryException, OntologyNotFoundException {
+	public OntologyClassSubmission getByClassIRI(Collection collection, String iri) throws QueryException, OntologyNotFoundException {
 		try(Query query = new Query("SELECT * FROM ontologize_ontologyclasssubmission s"
 				+ " WHERE "
 				+ "s.collection = ? AND s.class_iri = ?")) {
 			query.setParameter(1, collection.getId());
 			query.setParameter(2, iri);
+			ResultSet resultSet = query.execute();
+			if(resultSet.next()) {
+				return createClassSubmission(resultSet);
+			}
+			return null;
+		} catch(QueryException | SQLException e) {
+			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
+		}
+	}
+
+	public OntologyClassSubmission getByTerm(Collection collection, String submissionTerm) throws OntologyNotFoundException, QueryException {
+		try(Query query = new Query("SELECT * FROM ontologize_ontologyclasssubmission s"
+				+ " WHERE "
+				+ "s.collection = ? AND s.submission_term = ?")) {
+			query.setParameter(1, collection.getId());
+			query.setParameter(2, submissionTerm);
 			ResultSet resultSet = query.execute();
 			if(resultSet.next()) {
 				return createClassSubmission(resultSet);

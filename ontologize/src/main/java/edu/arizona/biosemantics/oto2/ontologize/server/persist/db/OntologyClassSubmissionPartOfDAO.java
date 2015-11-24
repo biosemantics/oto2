@@ -9,6 +9,7 @@ import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.ontologize.server.Configuration;
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.db.Query.QueryException;
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.file.PermanentOntologyFileDAO;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.PartOf;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.OntologyNotFoundException;
 
@@ -124,6 +125,19 @@ public class OntologyClassSubmissionPartOfDAO {
 			throw e;
 		}
 	}
+	
+	public void remove(OntologyClassSubmission ontologyClassSubmission) throws QueryException {
+		this.remove(ontologyClassSubmission.getId());
+		if(ontologyClassSubmission.hasClassIRI()) {
+			try(Query query = new Query("DELETE FROM ontologize_ontologyclasssubmission_partof WHERE partof = ?")) {
+				query.setParameter(1, ontologyClassSubmission.getClassIRI());
+				query.execute();
+			} catch(QueryException e) {
+				log(LogLevel.ERROR, "Query Exception", e);
+				throw e;
+			}
+		}
+	}
 
 	public void remove(List<PartOf> partOfs) throws QueryException {
 		for(PartOf partOf : partOfs)
@@ -133,4 +147,6 @@ public class OntologyClassSubmissionPartOfDAO {
 	public void setPermanentOntologyFileDAO(PermanentOntologyFileDAO permanentOntologyFileDAO) {
 		this.permanentOntologyFileDAO = permanentOntologyFileDAO;
 	}
+
+
 }

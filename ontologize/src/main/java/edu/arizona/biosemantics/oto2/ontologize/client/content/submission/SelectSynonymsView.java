@@ -85,13 +85,13 @@ public class SelectSynonymsView implements IsWidget {
 			public void onSelect(SelectEvent event) {
 				addSynonymDialog.setCollection(collection);
 				addSynonymDialog.show();
-				addSynonymDialog.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
-					@Override
-					public void onSelect(SelectEvent event) {
-						store.add(new Synonym(addSynonymDialog.getValue()));
-						addSynonymDialog.hide();
-					}
-				});
+			}
+		});
+		addSynonymDialog.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
+			@Override
+			public void onSelect(SelectEvent event) {
+				store.add(new Synonym(addSynonymDialog.getValue()));
+				addSynonymDialog.hide();
 			}
 		});
 		remove.addSelectHandler(new SelectHandler() {

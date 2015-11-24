@@ -60,7 +60,7 @@ public class SelectMultiplePartOfView implements IsWidget {
 		store = new ListStore<PartOf>(new ModelKeyProvider<PartOf>() {
 			@Override
 			public String getKey(PartOf item) {
-				return item.getIri();
+				return item.getLabel();
 			}
 	    });
 	 	listView = new ListView<PartOf, PartOf>(store, new IdentityValueProvider<PartOf>());	    
