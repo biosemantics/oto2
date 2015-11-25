@@ -28,7 +28,6 @@ import edu.arizona.biosemantics.oto2.ontologize.server.Configuration;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySubmission;
-import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.OntologyNotFoundException;
 
 public class ModuleCreator  {
 	
@@ -51,7 +50,7 @@ public class ModuleCreator  {
 		labelProperty = owlOntologyManager.getOWLDataFactory().getOWLAnnotationProperty(OWLRDFVocabulary.RDFS_LABEL.getIRI());
 	}
 	
-	public OWLOntology createModuleFromOwlClass(Collection collection, OWLClass owlClass, Ontology targetOntology) throws OntologyNotFoundException, OWLOntologyCreationException, OWLOntologyStorageException {
+	public OWLOntology createModuleFromOwlClass(Collection collection, OWLClass owlClass, Ontology targetOntology) throws Exception {
 		OWLOntology owlClassOntology = owlOntologyRetriever.getOWLOntology(collection, owlClass);
 		OWLOntology targetOwlOntology = owlOntologyManager.getOntology(OntologyFileDAO.createOntologyIRI(targetOntology));
 		Set<OWLEntity> seeds = new HashSet<OWLEntity>();

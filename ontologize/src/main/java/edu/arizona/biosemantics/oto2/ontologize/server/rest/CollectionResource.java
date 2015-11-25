@@ -12,6 +12,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.UriInfo;
 
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+
 import com.google.inject.Inject;
 
 import edu.arizona.biosemantics.common.log.LogLevel;
@@ -19,7 +21,6 @@ import edu.arizona.biosemantics.oto2.ontologize.server.persist.DAOManager;
 import edu.arizona.biosemantics.oto2.ontologize.server.rpc.CollectionService;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.ICollectionService;
-import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.OntologyFileException;
 
 /**
  * Just a REST-like wrapper around the RPC service
@@ -37,8 +38,8 @@ public class CollectionResource {
 	private ICollectionService collectionService;	
 	
 	@Inject
-	public CollectionResource() throws OntologyFileException {
-		collectionService = new CollectionService(new DAOManager());	
+	public CollectionResource() throws OWLOntologyCreationException {
+		collectionService = new CollectionService(new DAOManager());
 		log(LogLevel.DEBUG, "CollectionResource initialized");
 	}
 	

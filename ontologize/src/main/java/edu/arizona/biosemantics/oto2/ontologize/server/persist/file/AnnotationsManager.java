@@ -9,7 +9,6 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.search.EntitySearcher;
 
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
-import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.OntologyNotFoundException;
 
 public class AnnotationsManager {
 		
@@ -19,7 +18,7 @@ public class AnnotationsManager {
 		this.owlOntologyRetriever = owlOntologyRetriever;
 	}
 
-	public String get(Collection collection, OWLClass owlClass, OWLAnnotationProperty annotationProperty) throws OntologyNotFoundException {
+	public String get(Collection collection, OWLClass owlClass, OWLAnnotationProperty annotationProperty) throws Exception {
 		OWLOntology owlOntology = owlOntologyRetriever.getOWLOntology(collection, owlClass);
 		for (OWLAnnotation annotation : EntitySearcher.getAnnotations(owlClass, owlOntology, annotationProperty)) {
 			if (annotation.getValue() instanceof OWLLiteral) {
@@ -32,7 +31,7 @@ public class AnnotationsManager {
 		return null;
 	}
 	
-	public String get(OWLClass owlClass, OWLAnnotationProperty annotationProperty) throws OntologyNotFoundException {
+	public String get(OWLClass owlClass, OWLAnnotationProperty annotationProperty) throws Exception {
 		OWLOntology owlOntology = owlOntologyRetriever.getPermanentOWLOntology(owlClass);
 		for (OWLAnnotation annotation : EntitySearcher.getAnnotations(owlClass, owlOntology, annotationProperty)) {
 			if (annotation.getValue() instanceof OWLLiteral) {

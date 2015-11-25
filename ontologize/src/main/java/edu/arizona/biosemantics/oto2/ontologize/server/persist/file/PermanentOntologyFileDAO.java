@@ -27,8 +27,6 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySubmission;
-import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.OntologyFileException;
-import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.OntologyNotFoundException;
 
 public class PermanentOntologyFileDAO {
 
@@ -111,7 +109,7 @@ public class PermanentOntologyFileDAO {
 	protected OWLAnnotationProperty labelProperty;
 	protected OWLAnnotationProperty definitionProperty;
 
-	public PermanentOntologyFileDAO(OntologyDAO ontologyDBDAO) throws OntologyFileException {
+	public PermanentOntologyFileDAO(OntologyDAO ontologyDBDAO) throws OWLOntologyCreationException {
 		this.ontologyDBDAO = ontologyDBDAO;
 		this.owlOntologyManager = OWLManager.createOWLOntologyManager();
 		try {
@@ -122,7 +120,7 @@ public class PermanentOntologyFileDAO {
 			}
 		} catch (OWLOntologyCreationException e) {
 			log(LogLevel.ERROR, "Failed to initialize ontology manager. Relevant ontologies could not be retrieved or created.", e);
-			throw new OntologyFileException(e);
+			throw e;
 		}
 		
 		labelProperty = owlOntologyManager.getOWLDataFactory().getOWLAnnotationProperty(OWLRDFVocabulary.RDFS_LABEL.getIRI());
@@ -156,7 +154,7 @@ public class PermanentOntologyFileDAO {
 		
 	}
 
-	public String getClassLabel(String classIRI) throws OntologyNotFoundException {
+	public String getClassLabel(String classIRI) throws Exception {
 		OWLClass owlClass = getOWLClass(classIRI);
 		String label = annotationsManager.get(owlClass, labelProperty);
 		return label;
@@ -171,7 +169,7 @@ public class PermanentOntologyFileDAO {
 			OWLClass owlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(iri));
 			owlOntologyRetriever.getPermanentOWLOntology(owlClass);
 			return true;
-		} catch(OntologyNotFoundException e) {
+		} catch(Exception e) {
 			return false;
 		}
 	}

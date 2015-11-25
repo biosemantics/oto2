@@ -41,7 +41,6 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Ontology
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySynonymSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Status;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.StatusEnum;
-import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.OntologyNotFoundException;
 
 public class CollectionDAO {
 		
@@ -66,7 +65,7 @@ public class CollectionDAO {
 		return false;
 	}
 	
-	public Collection get(int id) throws QueryException, IOException, OntologyNotFoundException  {
+	public Collection get(int id) throws Exception  {
 		Collection collection = null;
 		try(Query query = new Query("SELECT * FROM ontologize_collection WHERE id = ?")) {
 			query.setParameter(1, id);
@@ -92,7 +91,7 @@ public class CollectionDAO {
 		return collection;
 	}
 	
-	private Collection createCollection(ResultSet result) throws SQLException, IOException, QueryException, OntologyNotFoundException {
+	private Collection createCollection(ResultSet result) throws Exception {
 		int id = result.getInt("id");
 		String name = result.getString("name");
 		String taxonGroupString = result.getString("taxongroup");
@@ -212,7 +211,7 @@ public class CollectionDAO {
 		}
 	}
 	
-	public List<Collection> getCollections(TaxonGroup taxonGroup) throws IOException, QueryException, OntologyNotFoundException {
+	public List<Collection> getCollections(TaxonGroup taxonGroup) throws Exception {
 		List<Collection> collections = new LinkedList<Collection>();
 		try(Query query = new Query("SELECT id FROM ontologize_collection WHERE taxongroup = ?")) {
 			query.setParameter(1, taxonGroup.toString());

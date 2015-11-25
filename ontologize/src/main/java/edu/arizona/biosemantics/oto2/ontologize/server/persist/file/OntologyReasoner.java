@@ -11,8 +11,6 @@ import org.semanticweb.owlapi.reasoner.SimpleConfiguration;
 import org.semanticweb.owlapi.reasoner.structural.StructuralReasonerFactory;
 import org.semanticweb.owlapi.search.EntitySearcher;
 
-import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.UnsatisfiableClassesException;
-
 public class OntologyReasoner {
 	
 	private StructuralReasonerFactory owlReasonerFactory;
@@ -29,7 +27,7 @@ public class OntologyReasoner {
 		return EntitySearcher.getSubClasses(superclass, owlOntology).contains(subclass);
 	}
 	
-	public void checkConsistency(OWLOntology owlOntology) throws UnsatisfiableClassesException {
+	public void checkConsistency(OWLOntology owlOntology) throws Exception {
 		OWLReasoner reasoner = owlReasonerFactory.createReasoner(owlOntology, owlReasonerConfig);
 		reasoner.precomputeInferences();
 		boolean consistent = reasoner.isConsistent();
@@ -42,7 +40,7 @@ public class OntologyReasoner {
 				for (OWLClass cls : unsatisfiable) {
 					sb.append("    " + cls+"\n");
 				}
-				throw new UnsatisfiableClassesException(sb.toString());
+				throw new Exception(sb.toString());
 			} 
 		}
 	}

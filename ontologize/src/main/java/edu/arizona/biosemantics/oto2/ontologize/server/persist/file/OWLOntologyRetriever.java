@@ -16,7 +16,6 @@ import edu.arizona.biosemantics.oto2.ontologize.server.persist.db.OntologyDAO;
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.db.Query.QueryException;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;
-import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.OntologyNotFoundException;
 
 public class OWLOntologyRetriever  {
 	
@@ -47,18 +46,18 @@ public class OWLOntologyRetriever  {
 	 * (2) Using RDFS:defined_by
 	 * (3) Using obo:IAO_0000412 ("imported from"): may still be used in some OBO originated ontologies
 	 * */
-	public OWLOntology getOWLOntology(Collection collection, OWLClass owlClass) throws OntologyNotFoundException {
+	public OWLOntology getOWLOntology(Collection collection, OWLClass owlClass) throws Exception {
 		java.util.Collection<Ontology> ontologies = null;
 		try {
 			ontologies = ontologyDBDAO.getAllOntologiesForCollection(collection);
 		} catch (QueryException e) {
-			throw new OntologyNotFoundException("Could not find ontology for class " + owlClass.getIRI().toString(), e);
+			throw new Exception("Could not find ontology for class " + owlClass.getIRI().toString(), e);
 		}
 		
 		return getOWLOntology(owlClass, ontologies);
 	}
 	
-	private OWLOntology getOWLOntology(OWLClass owlClass, java.util.Collection<Ontology> ontologies) throws OntologyNotFoundException {
+	private OWLOntology getOWLOntology(OWLClass owlClass, java.util.Collection<Ontology> ontologies) throws Exception {
 		String owlClassIRI = owlClass.getIRI().toString().toLowerCase();
 		String hackyOwlClassIdentifier = owlClassIRI;
 		if(hackyOwlClassIdentifier.contains("_"))
@@ -86,15 +85,15 @@ public class OWLOntologyRetriever  {
 					return referencedOntology;
 			}
 		}
-		throw new OntologyNotFoundException("Could not find ontology for class " + owlClass.getIRI().toString());
+		throw new Exception("Could not find ontology for class " + owlClass.getIRI().toString());
 	}
 	
-	public OWLOntology getPermanentOWLOntology(OWLClass owlClass) throws OntologyNotFoundException {
+	public OWLOntology getPermanentOWLOntology(OWLClass owlClass) throws Exception {
 		java.util.Collection<Ontology> ontologies = null;
 		try {
 			ontologies = ontologyDBDAO.getBioportalOntologies();
 		} catch (QueryException e) {
-			throw new OntologyNotFoundException("Could not find ontology for class " + owlClass.getIRI().toString(), e);
+			throw new Exception("Could not find ontology for class " + owlClass.getIRI().toString(), e);
 		}
 		
 		return getOWLOntology(owlClass, ontologies);

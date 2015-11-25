@@ -103,10 +103,6 @@ public class Alerter {
 		return showAlert("Synonym submission failed", "Failed to submit synonym.");
 	}
 	
-	public static MessageBox failedToSubmitClassExists(Throwable caught) {
-		return showAlert("Class submission failed", "Failed to submit class. " + caught.getMessage());
-	}
-	
 	public static MessageBox failedToSubmitClassOntologyNotFound(Throwable caught) {
 		return showAlert("Class submission failed", "Failed to submit class. The originating ontology of the class could not be retrieved.");
 	}

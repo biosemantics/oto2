@@ -29,19 +29,7 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.PartOf;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.StatusEnum;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Superclass;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Synonym;
-import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.ClassExistsException;
-import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.CreateClassSubmissionException;
-import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.CreateOntologyException;
-import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.CreateSynonymSubmissionException;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.IToOntologyService;
-import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.OntologyBioportalException;
-import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.OntologyExistsException;
-import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.OntologyFileException;
-import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.OntologyNotFoundException;
-import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.RemoveClassSubmissionException;
-import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.RemoveSynonymSubmissionException;
-import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.UpdateClassSubmissionException;
-import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.UpdateSynonymSubmissionException;
 
 /**
  * Note: Not trivial to guarantee consistency between all three data stores (DB, OWL File, Bioportal), e.g. could end up in a situation where 
@@ -156,7 +144,7 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 				return valueSubmissions.get(0).getClassIRI();
 			}
 		}
-		throw new Exception("Term not unique");
+		throw new Exception("Term not unique.");
 	}
 
 	@Override
@@ -232,7 +220,7 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	}
 
 	@Override
-	public String getClassLabel(Collection collection, String iri) throws OntologyFileException, OntologyNotFoundException, QueryException {
+	public String getClassLabel(Collection collection, String iri) throws Exception {
 		iri = iri.trim();
 		if(iri.equals(Type.ENTITY.getIRI()))
 			return Type.ENTITY.getLabel();

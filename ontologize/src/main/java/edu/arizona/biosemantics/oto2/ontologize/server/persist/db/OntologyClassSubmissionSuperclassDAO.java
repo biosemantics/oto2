@@ -14,7 +14,6 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Ontology
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.PartOf;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Superclass;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Synonym;
-import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.OntologyNotFoundException;
 
 public class OntologyClassSubmissionSuperclassDAO {
 	
@@ -23,7 +22,7 @@ public class OntologyClassSubmissionSuperclassDAO {
 	public OntologyClassSubmissionSuperclassDAO() {
 	} 
 	
-	public Superclass get(int id) throws QueryException, OntologyNotFoundException  {
+	public Superclass get(int id) throws Exception  {
 		Superclass superclass = null;
 		try(Query query = new Query("SELECT * FROM ontologize_ontologyclasssubmission_superclass WHERE id = ?")) {
 			query.setParameter(1, id);
@@ -38,7 +37,7 @@ public class OntologyClassSubmissionSuperclassDAO {
 		return superclass;
 	}
 	
-	public List<Superclass> getSuperclasses(int ontologyClassSubmissionId) throws QueryException, OntologyNotFoundException {
+	public List<Superclass> getSuperclasses(int ontologyClassSubmissionId) throws Exception {
 		List<Superclass> superclasses = new LinkedList<Superclass>();
 		try(Query query = new Query("SELECT * FROM ontologize_ontologyclasssubmission_superclass WHERE ontologyclasssubmission = ?")) {
 			query.setParameter(1, ontologyClassSubmissionId);
@@ -53,7 +52,7 @@ public class OntologyClassSubmissionSuperclassDAO {
 		return superclasses;
 	}
 	
-	private Superclass createSuperclass(ResultSet result) throws SQLException, QueryException, OntologyNotFoundException {
+	private Superclass createSuperclass(ResultSet result) throws Exception {
 		int id = result.getInt("id");
 		int ontologyClassSubmission = result.getInt("ontologyclasssubmission");
 		String superclass = result.getString("superclass");
@@ -61,7 +60,7 @@ public class OntologyClassSubmissionSuperclassDAO {
 		return new Superclass(id, ontologyClassSubmission, superclass, label);
 	}
 
-	private String getLabel(String classIri) throws QueryException, OntologyNotFoundException {
+	private String getLabel(String classIri) throws Exception {
 		if(classIri.equals(Type.ENTITY.getIRI()))
 			return Type.ENTITY.getLabel();
 		if(classIri.equals(Type.QUALITY.getIRI()))

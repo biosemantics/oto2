@@ -32,10 +32,8 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Ontology
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.PartOf;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Superclass;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Synonym;
-import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.ClassExistsException;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.IToOntologyService;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.IToOntologyServiceAsync;
-import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.OntologyNotFoundException;
 
 public class EditSubmissionView implements IsWidget {
 

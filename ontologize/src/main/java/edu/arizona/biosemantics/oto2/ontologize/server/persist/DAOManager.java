@@ -1,5 +1,7 @@
 package edu.arizona.biosemantics.oto2.ontologize.server.persist;
 
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+
 import com.google.inject.Inject;
 
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.bioportal.OntologyBioportalDAO;
@@ -19,7 +21,6 @@ import edu.arizona.biosemantics.oto2.ontologize.server.persist.db.TermDAO;
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.file.OntologyFileDAO;
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.file.PermanentOntologyFileDAO;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
-import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.OntologyFileException;
 
 public class DAOManager {
 
@@ -40,7 +41,7 @@ public class DAOManager {
 	private PermanentOntologyFileDAO permanentOntologyFileDAO;
 	
 	@Inject
-	public DAOManager() throws OntologyFileException {
+	public DAOManager() throws OWLOntologyCreationException {
 		collectionDAO = new CollectionDAO();
 		termDAO = new TermDAO();
 		ontologyDBDAO = new OntologyDAO();
@@ -95,7 +96,7 @@ public class DAOManager {
 		return ontologyDBDAO;
 	}
 	
-	public OntologyFileDAO getOntologyFileDAO(Collection collection) throws OntologyFileException {
+	public OntologyFileDAO getOntologyFileDAO(Collection collection) throws Exception {
 		return new OntologyFileDAO(collection, ontologyDBDAO);
 	}
 

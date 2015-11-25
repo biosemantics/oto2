@@ -38,8 +38,6 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.PartOf;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Superclass;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Synonym;
-import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.OntologyFileException;
-import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.OntologyNotFoundException;
 
 public class AxiomManager  {
 
@@ -81,7 +79,7 @@ public class AxiomManager  {
 	}
 			
 	public void addSuperclasses(Collection collection, OWLOntology owlOntology, Ontology ontology,
-			OWLClass owlClass, List<Superclass> superclasses, Type type) throws OntologyFileException, OntologyNotFoundException {		
+			OWLClass owlClass, List<Superclass> superclasses, Type type) throws Exception {		
 		for(Superclass superclass : superclasses) {
 			OWLClass superOwlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(superclass.getIri())); 
 			OWLAxiom subclassAxiom = owlOntologyManager.getOWLDataFactory().getOWLSubClassOfAxiom(owlClass, superOwlClass);
@@ -90,11 +88,7 @@ public class AxiomManager  {
 			if(type != null) {
 				Set<OWLClass> introducedClasses = new HashSet<OWLClass> ();
 				OWLOntology moduleOntology;
-				try {
-					moduleOntology = moduleCreator.createModuleFromOwlClass(collection, superOwlClass, ontology);
-				} catch (OWLOntologyCreationException | OWLOntologyStorageException	| OntologyNotFoundException e) {
-					throw new OntologyFileException(e);
-				}
+				moduleOntology = moduleCreator.createModuleFromOwlClass(collection, superOwlClass, ontology);
 				introducedClasses.addAll(moduleOntology.getClassesInSignature());
 
 				OWLClass owlSuperclass = null;
@@ -142,13 +136,7 @@ public class AxiomManager  {
 				//external 
 				wholeOwlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(partOfIRI); //extract module
 				OWLOntology moduleOntology;
-				try {
-					moduleOntology =  moduleCreator.createModuleFromOwlClass(collection, wholeOwlClass, ontology);
-				} catch (OWLOntologyCreationException
-						| OWLOntologyStorageException
-						| OntologyNotFoundException e) {
-					throw new OntologyFileException(e);
-				}
+				moduleOntology =  moduleCreator.createModuleFromOwlClass(collection, wholeOwlClass, ontology);
 				introducedClasses.addAll(moduleOntology.getClassesInSignature());
 			} 
 			if(!ontologyReasoner.isSubclass(owlOntology, wholeOwlClass, qualityClass)) {

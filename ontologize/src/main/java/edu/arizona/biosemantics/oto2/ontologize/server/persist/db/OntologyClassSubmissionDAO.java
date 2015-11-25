@@ -21,7 +21,6 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.PartOf;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.StatusEnum;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Superclass;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Synonym;
-import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.OntologyNotFoundException;
 
 public class OntologyClassSubmissionDAO {
 
@@ -35,7 +34,7 @@ public class OntologyClassSubmissionDAO {
 	
 	public OntologyClassSubmissionDAO() {} 
 	
-	public OntologyClassSubmission get(int id) throws QueryException, OntologyNotFoundException  {
+	public OntologyClassSubmission get(int id) throws Exception  {
 		OntologyClassSubmission classSubmission = null;
 		try(Query query = new Query("SELECT * FROM ontologize_ontologyclasssubmission WHERE id = ?")) {
 			query.setParameter(1, id);
@@ -50,7 +49,7 @@ public class OntologyClassSubmissionDAO {
 		return classSubmission;
 	}
 	
-	private OntologyClassSubmission createClassSubmission(ResultSet result) throws QueryException, SQLException, OntologyNotFoundException {
+	private OntologyClassSubmission createClassSubmission(ResultSet result) throws Exception {
 		int id = result.getInt("id");
 		int collectionId = result.getInt("collection");
 		int termId = result.getInt("term");
@@ -88,7 +87,7 @@ public class OntologyClassSubmissionDAO {
 				ontologyClassSubmissionPartOfDAO.getPartOfs(id), user, ontologyClassSubmissionStatuses);
 	}
 
-	public OntologyClassSubmission insert(OntologyClassSubmission ontologyClassSubmission) throws QueryException  {
+	public OntologyClassSubmission insert(OntologyClassSubmission ontologyClassSubmission) throws Exception  {
 		if(ontologyClassSubmission.hasId()) 
 			this.remove(ontologyClassSubmission);
 		try(Query submissionIdInCollectionQuery = new Query("SELECT COUNT(*) FROM `ontologize_ontologyclasssubmission` WHERE collection = ?")) {
@@ -199,7 +198,7 @@ public class OntologyClassSubmissionDAO {
 		}
 	}
 	
-	public void remove(OntologyClassSubmission ontologyClassSubmission) throws QueryException  {
+	public void remove(OntologyClassSubmission ontologyClassSubmission) throws Exception  {
 		try(Query query = new Query("DELETE FROM ontologize_ontologyclasssubmission WHERE id = ?")) {
 			query.setParameter(1, ontologyClassSubmission.getId());
 			query.execute();
@@ -248,11 +247,11 @@ public class OntologyClassSubmissionDAO {
 		this.ontologySynonymSubmissionDAO = ontologySynonymSubmissionDAO;
 	}
 
-	public List<OntologyClassSubmission> get(Collection collection) throws QueryException, OntologyNotFoundException {
+	public List<OntologyClassSubmission> get(Collection collection) throws Exception {
 		return this.getByCollectionId(collection.getId());
 	}
 	
-	public List<OntologyClassSubmission> getByCollectionId(int collectionId) throws QueryException, OntologyNotFoundException {
+	public List<OntologyClassSubmission> getByCollectionId(int collectionId) throws Exception {
 		List<OntologyClassSubmission> result = new LinkedList<OntologyClassSubmission>();
 		try(Query query = new Query("SELECT * FROM ontologize_ontologyclasssubmission WHERE collection = ?")) {
 			query.setParameter(1, collectionId);
@@ -267,7 +266,7 @@ public class OntologyClassSubmissionDAO {
 		return result;
 	}
 	
-	public List<OntologyClassSubmission> get(Collection collection,	Ontology ontology) throws QueryException, OntologyNotFoundException {
+	public List<OntologyClassSubmission> get(Collection collection,	Ontology ontology) throws Exception {
 		List<OntologyClassSubmission> result = new LinkedList<OntologyClassSubmission>();
 		try(Query query = new Query("SELECT * FROM ontologize_ontologyclasssubmission WHERE collection = ? AND ontology = ?")) {
 			query.setParameter(1, collection.getId());
@@ -283,7 +282,7 @@ public class OntologyClassSubmissionDAO {
 		return result;
 	}
 	
-	public List<OntologyClassSubmission> get(Collection collection,	java.util.Collection<Ontology> ontologies) throws QueryException, OntologyNotFoundException {
+	public List<OntologyClassSubmission> get(Collection collection,	java.util.Collection<Ontology> ontologies) throws Exception {
 		List<OntologyClassSubmission> result = new LinkedList<OntologyClassSubmission>();
 		for(Ontology ontology : ontologies) {
 			result.addAll(get(collection, ontology));
@@ -291,7 +290,7 @@ public class OntologyClassSubmissionDAO {
 		return result;
 	}
 	
-	public List<OntologyClassSubmission> get(Collection collection, StatusEnum status) throws QueryException, OntologyNotFoundException {
+	public List<OntologyClassSubmission> get(Collection collection, StatusEnum status) throws Exception {
 		List<OntologyClassSubmission> result = new LinkedList<OntologyClassSubmission>();
 		try(Query query = new Query("SELECT * FROM ontologize_ontologyclasssubmission s, "
 				+ "ontologize_ontologyclasssubmission_status ss, ontologize_status st"
@@ -310,7 +309,7 @@ public class OntologyClassSubmissionDAO {
 		return result;
 	}
 
-	public List<OntologyClassSubmission> get(Collection collection, StatusEnum status, String term) throws QueryException, OntologyNotFoundException {
+	public List<OntologyClassSubmission> get(Collection collection, StatusEnum status, String term) throws Exception {
 		List<OntologyClassSubmission> result = new LinkedList<OntologyClassSubmission>();
 		try(Query query = new Query("SELECT * FROM ontologize_ontologyclasssubmission s, "
 				+ "ontologize_ontologyclasssubmission_status ss, ontologize_status st, ontologize_ontologyclasssubmission_synonym ssy"
@@ -332,7 +331,7 @@ public class OntologyClassSubmissionDAO {
 		return result;
 	}
 
-	public List<OntologyClassSubmission> get(Collection collection, String term) throws QueryException, OntologyNotFoundException {
+	public List<OntologyClassSubmission> get(Collection collection, String term) throws Exception {
 		List<OntologyClassSubmission> result = new LinkedList<OntologyClassSubmission>();
 		try(Query query = new Query("SELECT * FROM ontologize_ontologyclasssubmission s, "
 				+ "ontologize_ontologyclasssubmission_synonym ssy"
@@ -353,7 +352,7 @@ public class OntologyClassSubmissionDAO {
 		return result;
 	}
 	
-	public OntologyClassSubmission getByClassIRI(Collection collection, String iri) throws QueryException, OntologyNotFoundException {
+	public OntologyClassSubmission getByClassIRI(Collection collection, String iri) throws Exception {
 		try(Query query = new Query("SELECT * FROM ontologize_ontologyclasssubmission s"
 				+ " WHERE "
 				+ "s.collection = ? AND s.class_iri = ?")) {
@@ -370,7 +369,7 @@ public class OntologyClassSubmissionDAO {
 		}
 	}
 
-	public OntologyClassSubmission getByTerm(Collection collection, String submissionTerm) throws OntologyNotFoundException, QueryException {
+	public OntologyClassSubmission getByTerm(Collection collection, String submissionTerm) throws Exception {
 		try(Query query = new Query("SELECT * FROM ontologize_ontologyclasssubmission s"
 				+ " WHERE "
 				+ "s.collection = ? AND s.submission_term = ?")) {

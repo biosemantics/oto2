@@ -45,10 +45,8 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Supercla
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.SuperclassProperties;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Synonym;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.SynonymProperties;
-import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.ClassExistsException;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.IToOntologyService;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.IToOntologyServiceAsync;
-import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.OntologyNotFoundException;
 
 public class CreateSubmissionView implements IsWidget {
 
@@ -196,16 +194,6 @@ public class CreateSubmissionView implements IsWidget {
 				@Override
 				public void onFailure(Throwable caught) {
 					Alerter.stopLoading(box);
-					if(caught.getCause() != null) {
-						if(caught instanceof OntologyNotFoundException) {
-							Alerter.failedToSubmitClassOntologyNotFound(caught.getCause());
-						}
-						if(caught instanceof ClassExistsException) {
-							Alerter.failedToSubmitClassExists(caught.getCause());
-						} else {
-							Alerter.failedToSubmitClass(caught);
-						}
-					}
 					Alerter.failedToSubmitClass(caught);
 				}
 				@Override
@@ -220,16 +208,6 @@ public class CreateSubmissionView implements IsWidget {
 				@Override
 				public void onFailure(Throwable caught) {
 					Alerter.stopLoading(box);
-					if(caught.getCause() != null) {
-						if(caught instanceof OntologyNotFoundException) {
-							Alerter.failedToSubmitClassOntologyNotFound(caught.getCause());
-						}
-						if(caught instanceof ClassExistsException) {
-							Alerter.failedToSubmitClassExists(caught.getCause());
-						} else {
-							Alerter.failedToSubmitClass(caught);
-						}
-					}
 					Alerter.failedToSubmitClass(caught);
 				}
 				@Override

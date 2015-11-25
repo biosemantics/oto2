@@ -17,7 +17,6 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Ontology
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySynonymSubmissionStatus;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.StatusEnum;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Synonym;
-import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.OntologyNotFoundException;
 
 public class OntologySynonymSubmissionDAO {
 
@@ -29,7 +28,7 @@ public class OntologySynonymSubmissionDAO {
 	
 	public OntologySynonymSubmissionDAO() {} 
 	
-	public OntologySynonymSubmission get(int id) throws QueryException  {
+	public OntologySynonymSubmission get(int id) throws Exception  {
 		OntologySynonymSubmission ontologySynonymSubmission = null;
 		try(Query query = new Query("SELECT * FROM ontologize_ontologysynonymsubmission WHERE id = ?")) {
 			query.setParameter(1, id);
@@ -37,14 +36,14 @@ public class OntologySynonymSubmissionDAO {
 			while(result.next()) {
 				ontologySynonymSubmission = createSynonymSubmission(result);
 			}
-		} catch(QueryException | SQLException | OntologyNotFoundException e) {
+		} catch(QueryException | SQLException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
 			throw new QueryException(e);
 		}
 		return ontologySynonymSubmission;
 	}
 	
-	private String getLabel(String classIri) throws QueryException, OntologyNotFoundException {
+	private String getLabel(String classIri) throws Exception {
 		if(classIri.startsWith(Configuration.etcOntologyBaseIRI)) {
 			try(Query query = new Query("SELECT * FROM ontologize_ontologyclasssubmission s"
 					+ " WHERE s.class_iri = ?")) {
@@ -63,7 +62,7 @@ public class OntologySynonymSubmissionDAO {
 		}
 	}
 	
-	private OntologySynonymSubmission createSynonymSubmission(ResultSet result) throws SQLException, QueryException, OntologyNotFoundException {
+	private OntologySynonymSubmission createSynonymSubmission(ResultSet result) throws Exception {
 		int id = result.getInt("id");
 		int collectionId = result.getInt("collection");
 		int termId = result.getInt("term");
@@ -177,13 +176,13 @@ public class OntologySynonymSubmissionDAO {
 		this.ontologySynonymSubmissionSynonymDAO = ontologySynonymSubmissionSynonymDAO;
 	}
 
-	public List<OntologySynonymSubmission> get(Collection collection) throws QueryException {
+	public List<OntologySynonymSubmission> get(Collection collection) throws Exception {
 		return this.getByCollectionId(collection.getId());
 	}
 	
 
 	public List<OntologySynonymSubmission> getByCollectionId(
-			int ontologyId) throws QueryException {
+			int ontologyId) throws Exception {
 		List<OntologySynonymSubmission> result = new LinkedList<OntologySynonymSubmission>();
 		try(Query query = new Query("SELECT * FROM ontologize_ontologysynonymsubmission WHERE collection = ?")) {
 			query.setParameter(1, ontologyId);
@@ -191,14 +190,14 @@ public class OntologySynonymSubmissionDAO {
 			while(resultSet.next()) {
 				result.add(createSynonymSubmission(resultSet));
 			}
-		} catch(QueryException | SQLException | OntologyNotFoundException e) {
+		} catch(QueryException | SQLException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
 			throw new QueryException(e);
 		}
 		return result;
 	}	
 
-	public List<OntologySynonymSubmission> get(Collection collection, StatusEnum status) throws QueryException {
+	public List<OntologySynonymSubmission> get(Collection collection, StatusEnum status) throws Exception {
 		List<OntologySynonymSubmission> result = new LinkedList<OntologySynonymSubmission>();
 		try(Query query = new Query("SELECT * FROM ontologize_ontologysynonymsubmission s, "
 				+ "ontologize_ontologysynonymsubmission_status ss, ontologize_status st"
@@ -210,14 +209,14 @@ public class OntologySynonymSubmissionDAO {
 			while(resultSet.next()) {
 				result.add(createSynonymSubmission(resultSet));
 			}
-		} catch(QueryException | SQLException | OntologyNotFoundException e) {
+		} catch(QueryException | SQLException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
 			throw new QueryException(e);
 		}
 		return result;
 	}
 
-	public List<OntologySynonymSubmission> get(Collection collection, StatusEnum status, String term) throws QueryException {
+	public List<OntologySynonymSubmission> get(Collection collection, StatusEnum status, String term) throws Exception {
 		List<OntologySynonymSubmission> result = new LinkedList<OntologySynonymSubmission>();
 		try(Query query = new Query("SELECT * FROM ontologize_ontologysynonymsubmission s, "
 				+ "ontologize_ontologysynonymsubmission_status ss, ontologize_status st, ontologize_ontologysynonymsubmission_synonym ssy"
@@ -232,7 +231,7 @@ public class OntologySynonymSubmissionDAO {
 			while(resultSet.next()) {
 				result.add(createSynonymSubmission(resultSet));
 			}
-		} catch(QueryException | SQLException | OntologyNotFoundException e) {
+		} catch(QueryException | SQLException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
 			throw new QueryException(e);
 		}
@@ -243,7 +242,7 @@ public class OntologySynonymSubmissionDAO {
 		this.permanentOntologyFileDAO = permanentOntologyFileDAO;
 	}
 	
-	public List<OntologySynonymSubmission> getByClassIRI(String classIRI) throws QueryException {		
+	public List<OntologySynonymSubmission> getByClassIRI(String classIRI) throws Exception {		
 		List<OntologySynonymSubmission> ontologySynonymSubmissions = new LinkedList<OntologySynonymSubmission>();
 		try(Query query = new Query("SELECT * FROM ontologize_ontologysynonymsubmission WHERE class_iri = ?")) {
 			query.setParameter(1, classIRI);
@@ -251,14 +250,14 @@ public class OntologySynonymSubmissionDAO {
 			while(result.next()) {
 				ontologySynonymSubmissions.add(createSynonymSubmission(result));
 			}
-		} catch(QueryException | SQLException | OntologyNotFoundException e) {
+		} catch(QueryException | SQLException e) {
 			log(LogLevel.ERROR, "Query Exception", e);
 			throw new QueryException(e);
 		}
 		return ontologySynonymSubmissions;
 	}
 
-	public void remove(OntologyClassSubmission ontologyClassSubmission) throws QueryException {
+	public void remove(OntologyClassSubmission ontologyClassSubmission) throws Exception {
 		if(ontologyClassSubmission.hasClassIRI()) {
 			List<OntologySynonymSubmission> ontologySynonymSubmissions = this.getByClassIRI(ontologyClassSubmission.getClassIRI());
 			for(OntologySynonymSubmission ontologySynonymSubmission : ontologySynonymSubmissions) {

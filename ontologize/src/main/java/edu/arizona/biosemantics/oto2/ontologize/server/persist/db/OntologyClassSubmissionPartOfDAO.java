@@ -11,7 +11,6 @@ import edu.arizona.biosemantics.oto2.ontologize.server.persist.db.Query.QueryExc
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.file.PermanentOntologyFileDAO;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.PartOf;
-import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.OntologyNotFoundException;
 
 public class OntologyClassSubmissionPartOfDAO {
 	
@@ -19,7 +18,7 @@ public class OntologyClassSubmissionPartOfDAO {
 	
 	public OntologyClassSubmissionPartOfDAO() {} 
 	
-	public List<PartOf> getPartOfs(int ontologyClassSubmissionId) throws QueryException, OntologyNotFoundException {
+	public List<PartOf> getPartOfs(int ontologyClassSubmissionId) throws Exception {
 		List<PartOf> partOfs = new LinkedList<PartOf>();
 		try(Query query = new Query("SELECT * FROM ontologize_ontologyclasssubmission_partof WHERE ontologyclasssubmission = ?")) {
 			query.setParameter(1, ontologyClassSubmissionId);
@@ -34,7 +33,7 @@ public class OntologyClassSubmissionPartOfDAO {
 		return partOfs;
 	}
 	
-	private PartOf createPartOf(ResultSet result) throws SQLException, QueryException, OntologyNotFoundException {
+	private PartOf createPartOf(ResultSet result) throws Exception {
 		int id = result.getInt("id");
 		int ontologyClassSubmission = result.getInt("ontologyclasssubmission");
 		String partOf = result.getString("partof");
@@ -42,7 +41,7 @@ public class OntologyClassSubmissionPartOfDAO {
 		return new PartOf(id, ontologyClassSubmission, partOf, label);
 	}
 
-	private String getLabel(String classIri) throws QueryException, OntologyNotFoundException {
+	private String getLabel(String classIri) throws Exception {
 		if(classIri.startsWith(Configuration.etcOntologyBaseIRI)) {
 			try(Query query = new Query("SELECT * FROM ontologize_ontologyclasssubmission s"
 					+ " WHERE s.class_iri = ?")) {
