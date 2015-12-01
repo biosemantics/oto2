@@ -71,10 +71,12 @@ public class SelectTypeView implements IsWidget {
 	}
 
 	public void setType(Type type) {
-		if(type.equals(Type.ENTITY)) {
-			setEntity();
-		} else if(type.equals(Type.QUALITY)) {
-			setQuality();
+		if(type != null) {
+			if(type.equals(Type.ENTITY)) {
+				setEntity();
+			} else if(type.equals(Type.QUALITY)) {
+				setQuality();
+			}
 		}
 	}
 

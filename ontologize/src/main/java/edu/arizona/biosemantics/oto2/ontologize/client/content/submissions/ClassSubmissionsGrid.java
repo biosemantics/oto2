@@ -206,7 +206,7 @@ public class ClassSubmissionsGrid implements IsWidget {
 				menu.clear();
 				final List<OntologyClassSubmission> selected = checkBoxSelectionModel.getSelectedItems();
 				if(!selected.isEmpty()) {
-					menu.add(createAddItem(selected));
+					//menu.add(createAddItem(selected));
 					menu.add(createRemoveItem(selected));
 					menu.add(new HeaderMenuItem("Annotation"));
 					menu.add(createCommentItem(selected));
