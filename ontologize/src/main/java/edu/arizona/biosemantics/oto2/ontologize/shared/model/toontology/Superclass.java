@@ -2,6 +2,8 @@ package edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology;
 
 import java.io.Serializable;
 
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
+
 public class Superclass implements HasLabelAndIri, Serializable {
 
 	private int id = -1;
@@ -44,6 +46,10 @@ public class Superclass implements HasLabelAndIri, Serializable {
 	public Superclass(OntologyClassSubmission submission) {
 		this.iri = submission.getClassIRI();
 		this.label = submission.getSubmissionTerm();
+	}
+
+	public Superclass(Type entity) {
+		this(entity.getIRI(), entity.getLabel());
 	}
 
 	public int getId() {

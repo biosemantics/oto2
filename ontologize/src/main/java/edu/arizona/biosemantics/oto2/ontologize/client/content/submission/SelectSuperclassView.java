@@ -273,7 +273,7 @@ public class SelectSuperclassView implements IsWidget {
 	}
 	
 	private void addTypeToSupreclassStore(Type type) {
-		this.addSuperClassToStore(new Superclass(type.getIRI(), type.getLabel()));
+		this.addSuperClassToStore(new Superclass(type));
 	}
 
 	@Override

@@ -30,6 +30,7 @@ import edu.arizona.biosemantics.oto2.ontologize.client.event.UpdateOntologyClass
 import edu.arizona.biosemantics.oto2.ontologize.client.event.UpdateOntologySynonymsSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.HasLabelAndIri;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySynonymSubmission;
@@ -263,16 +264,18 @@ public class EditSubmissionView implements IsWidget {
 		return isCircularFreePartOfRelationships(visited, selectRelationsView.getPartOfs());
 	}
 
-	private boolean isCircularFreePartOfRelationships(Set<String> visited, List<PartOf> partOfs) {
+	private boolean isCircularFreePartOfRelationships(Set<String> visited, List<PartOf> partOfs) {		
+		boolean result = true;
 		for(PartOf partOf : partOfs) {
-			if(visited.contains(partOf.getLabelAlternativelyIri()))
+			Set<String> newVisited = new HashSet<String>(visited);
+			if(newVisited.contains(partOf.getLabelAlternativelyIri()))
 				return false;
-			visited.add(partOf.getLabelAlternativelyIri());
+			newVisited.add(partOf.getLabelAlternativelyIri());
 			OntologyClassSubmission submission = OntologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(partOf, classSubmissions);
 			if(submission != null) 
-				return isCircularFreePartOfRelationships(visited, submission.getPartOfs());
+				result &= isCircularFreePartOfRelationships(newVisited, submission.getPartOfs());
 		}
-		return true;
+		return result;
 	}
 
 	private boolean isCircularFreeSuperclassRelationships() {
@@ -282,15 +285,17 @@ public class EditSubmissionView implements IsWidget {
 	}
 
 	private boolean isCircularFreeSuperclassRelationships(Set<String> visited, List<Superclass> superclasses) {
+		boolean result = true;
 		for(Superclass superclass : superclasses) {
-			if(visited.contains(superclass.getLabelAlternativelyIri()))
+			Set<String> newVisited = new HashSet<String>(visited);
+			if(newVisited.contains(superclass.getLabelAlternativelyIri()))
 				return false;
-			visited.add(superclass.getLabelAlternativelyIri());
+			newVisited.add(superclass.getLabelAlternativelyIri());
 			OntologyClassSubmission submission = OntologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(superclass, classSubmissions);
 			if(submission != null) 
-				return isCircularFreeSuperclassRelationships(visited, submission.getSuperclasses());
+				result &= isCircularFreeSuperclassRelationships(newVisited, submission.getSuperclasses());
 		}
-		return true;
+		return result;
 	}
 
 	@Override
