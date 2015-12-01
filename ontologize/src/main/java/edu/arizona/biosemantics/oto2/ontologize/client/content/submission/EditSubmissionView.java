@@ -201,11 +201,10 @@ public class EditSubmissionView implements IsWidget {
 							Alerter.failedToUpdateSubmission(caught);
 						}
 						@Override
-						public void onSuccess(
-								List<OntologyClassSubmission> result) {
+						public void onSuccess(List<OntologyClassSubmission> result) {
 							Alerter.stopLoading(box);
-							eventBus.fireEvent(new UpdateOntologyClassSubmissionsEvent(
-									result));
+							eventBus.fireEvent(new CreateOntologyClassSubmissionEvent(result));
+							eventBus.fireEvent(new UpdateOntologyClassSubmissionsEvent(submission));
 						}
 					});
 		} else if (selectTermView.isSynonym()) {

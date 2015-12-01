@@ -204,9 +204,11 @@ public class Collection implements Serializable, Comparable<Collection> {
 	}
 	
 	public void removeUsedTerm(Term term, Object usage) {
-		usedTerms.get(term).remove(usage);
-		if(usedTerms.get(term).isEmpty())
-			usedTerms.remove(term);
+		if(usedTerms.containsKey(term)) {
+			usedTerms.get(term).remove(usage);
+			if(usedTerms.get(term).isEmpty())
+				usedTerms.remove(term);
+		}
 	}
 
 	public boolean isUsed(Term term) {

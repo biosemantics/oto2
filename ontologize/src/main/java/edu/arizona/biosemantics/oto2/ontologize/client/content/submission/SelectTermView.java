@@ -222,8 +222,13 @@ public class SelectTermView implements IsWidget {
 			@Override
 			public void onUpdate(UpdateOntologyClassSubmissionsEvent event) {
 				for(OntologyClassSubmission submission : event.getOntologyClassSubmissions())
-					if(!submission.getOntology().isBioportalOntology())
-						classIRIStore.update(new SynonymClass(submission));
+					if(!submission.getOntology().isBioportalOntology()) {
+						SynonymClass synonymClass = new SynonymClass(submission);
+						if(classIRIStore.hasRecord(synonymClass))
+							classIRIStore.update(new SynonymClass(submission));
+					///	else 
+						//	classIRIStore.add(synonymClass);
+					}
 			}
 		});
 		eventBus.addHandler(RemoveOntologyClassSubmissionsEvent.TYPE, new RemoveOntologyClassSubmissionsEvent.Handler() {
