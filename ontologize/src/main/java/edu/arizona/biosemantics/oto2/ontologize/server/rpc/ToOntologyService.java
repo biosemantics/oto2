@@ -258,13 +258,13 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 		List<OntologyClassSubmission> classSubmissions = daoManager.getOntologyClassSubmissionDAO().get(collection);
 		for(OntologyClassSubmission classSubmission : classSubmissions) {
 			if(classSubmission.getOntology().isBioportalOntology()) {
-				String classIRI = daoManager.getOntologyFileDAO(collection).insertClassSubmission(classSubmission);
+				String classIRI = daoManager.getOntologyBioportalDAO().insertClassSubmission(collection, classSubmission);
 			}
 		}
 		List<OntologySynonymSubmission> synonymSubmissions = daoManager.getOntologySynonymSubmissionDAO().get(collection);
 		for(OntologySynonymSubmission synonymSubmission : synonymSubmissions) {
 			if(synonymSubmission.getOntology().isBioportalOntology()) {
-				String classIRI = daoManager.getOntologyFileDAO(collection).insertSynonymSubmission(synonymSubmission);
+				String classIRI = daoManager.getOntologyBioportalDAO().insertSynonymSubmission(collection, synonymSubmission);
 			}
 		}
 	}
