@@ -216,4 +216,8 @@ public class Alerter {
 		return showAlert("Superclass not supported", "Superclass not supported");
 	}
 
+	public static MessageBox inputRequired() {
+		return showAlert("Input required", "Input required");
+	}
+
 }

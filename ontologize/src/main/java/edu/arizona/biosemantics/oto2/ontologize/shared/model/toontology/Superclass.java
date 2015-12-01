@@ -113,4 +113,13 @@ public class Superclass implements HasLabelAndIri, Serializable {
 		result = prime * result + ((label == null) ? 0 : label.hashCode());
 		return result;
 	}
+	
+	@Override
+	public String getLabelAlternativelyIri() {
+		if(hasLabel())
+			return label;
+		if(hasIri())
+			return iri;
+		return "";
+	}
 }

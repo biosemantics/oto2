@@ -248,4 +248,13 @@ public class OntologySynonymSubmission implements HasLabelAndIri, Serializable, 
 	public boolean hasIri() {
 		return this.hasClassIRI();
 	}
+	
+	@Override
+	public String getLabelAlternativelyIri() {
+		if(hasLabel())
+			return getLabel();
+		if(hasIri())
+			return getIri();
+		return "";
+	}
 }

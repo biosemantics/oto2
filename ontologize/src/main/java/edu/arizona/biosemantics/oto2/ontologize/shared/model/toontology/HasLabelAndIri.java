@@ -9,4 +9,6 @@ public interface HasLabelAndIri {
 	public String getIri();
 
 	public boolean hasIri();
+
+	String getLabelAlternativelyIri();
 }

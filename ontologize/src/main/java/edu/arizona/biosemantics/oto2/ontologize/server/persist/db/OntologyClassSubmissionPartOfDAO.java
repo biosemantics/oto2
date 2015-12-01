@@ -42,22 +42,20 @@ public class OntologyClassSubmissionPartOfDAO {
 	}
 
 	private String getLabel(String classIri) throws Exception {
-		if(classIri.startsWith(Configuration.etcOntologyBaseIRI)) {
-			try(Query query = new Query("SELECT * FROM ontologize_ontologyclasssubmission s"
-					+ " WHERE s.class_iri = ?")) {
-				query.setParameter(1, classIri);
-				ResultSet resultSet = query.execute();
-				if(resultSet.next()) {
-					return resultSet.getString("submission_term");
-				}
-				return null;
-			} catch(QueryException | SQLException e) {
-				log(LogLevel.ERROR, "Query Exception", e);
-				throw new QueryException(e);
+		//if(classIri.startsWith(Configuration.etcOntologyBaseIRI)) {
+		try(Query query = new Query("SELECT * FROM ontologize_ontologyclasssubmission s"
+				+ " WHERE s.class_iri = ?")) {
+			query.setParameter(1, classIri);
+			ResultSet resultSet = query.execute();
+			if(resultSet.next()) {
+				return resultSet.getString("submission_term");
 			}
-		} else {
-			return permanentOntologyFileDAO.getClassLabel(classIri);
+		} catch(QueryException | SQLException e) {
+			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
 		}
+		
+		return permanentOntologyFileDAO.getClassLabel(classIri);
 	}
 
 	public PartOf insert(PartOf partOf) throws QueryException  {

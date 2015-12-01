@@ -18,6 +18,8 @@ import com.sencha.gxt.core.client.Style.SelectionMode;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.SortDir;
+import com.sencha.gxt.data.shared.Store;
+import com.sencha.gxt.data.shared.Store.StoreFilter;
 import com.sencha.gxt.data.shared.TreeStore;
 import com.sencha.gxt.data.shared.Store.StoreSortInfo;
 import com.sencha.gxt.widget.core.client.ListView;
@@ -33,7 +35,9 @@ import edu.arizona.biosemantics.oto2.ontologize.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize.client.content.candidates.TermTreeNodeIconProvider;
 import edu.arizona.biosemantics.oto2.ontologize.client.content.ontologyview.OntologyView;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadCollectionEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.OntologyClassSubmissionSelectEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.RefreshOntologyClassSubmissionsEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.TermSelectEvent;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Term;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
@@ -61,6 +65,7 @@ public class PartsOfsView implements IsWidget {
 		this.eventBus = eventBus;
 		store = new TreeStore<PartOfTreeNode>(partOfTreeNodeProperties.key());
 		store.setAutoCommit(true);
+		store.setEnableFilters(true);
 		store.addSortInfo(new StoreSortInfo<PartOfTreeNode>(new Comparator<PartOfTreeNode>() {
 			@Override
 			public int compare(PartOfTreeNode o1, PartOfTreeNode o2) {
@@ -137,6 +142,26 @@ public class PartsOfsView implements IsWidget {
 					partOfTextField.setValue(event.getSelection().get(0).getPartOf().getLabel());
 			}
 		});
+		eventBus.addHandler(OntologyClassSubmissionSelectEvent.TYPE, new OntologyClassSubmissionSelectEvent.Handler() {
+			@Override
+			public void onSelect(final OntologyClassSubmissionSelectEvent event) {
+				store.removeFilters();
+				store.addFilter(new StoreFilter<PartOfTreeNode>() {
+					@Override
+					public boolean select(Store<PartOfTreeNode> store, PartOfTreeNode parent, PartOfTreeNode item) {
+						PartOfTreeNode partOfTreeNode = new PartOfTreeNode(new PartOf(event.getOntologyClassSubmission()));
+						
+						PartOfTreeNode child = item;
+						while((parent = tree.getStore().getParent(child)) != null) {
+							if(parent.getId().equals(partOfTreeNode.getId()))
+								return false;
+							child = parent;
+						}
+						return !item.getId().equals(partOfTreeNode.getId());
+					}
+				});
+			}
+		});
 	}
 
 	protected void loadParts(List<OntologyClassSubmission> result) {
@@ -170,12 +195,12 @@ public class PartsOfsView implements IsWidget {
 						parent.getPartOf(), submissions);
 				popuplateStore(parentSubmission, submissions, nodes);
 				store.add(nodes.get(parent.getId()), nodes.get(partOfTreeNode.getId()));
-			}	
+			}
 		}
 	}
 
 	public String getValue() {
-		return partOfTextField.getValue();
+		return partOfTextField.getValue() == null ? "" : partOfTextField.getValue().trim();
 	}
 
 	@Override

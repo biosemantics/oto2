@@ -15,6 +15,15 @@ import com.google.web.bindery.event.shared.EventBus;
 import com.sencha.gxt.core.client.IdentityValueProvider;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
+import com.sencha.gxt.data.shared.event.StoreAddEvent;
+import com.sencha.gxt.data.shared.event.StoreClearEvent;
+import com.sencha.gxt.data.shared.event.StoreDataChangeEvent;
+import com.sencha.gxt.data.shared.event.StoreFilterEvent;
+import com.sencha.gxt.data.shared.event.StoreHandlers;
+import com.sencha.gxt.data.shared.event.StoreRecordChangeEvent;
+import com.sencha.gxt.data.shared.event.StoreRemoveEvent;
+import com.sencha.gxt.data.shared.event.StoreSortEvent;
+import com.sencha.gxt.data.shared.event.StoreUpdateEvent;
 import com.sencha.gxt.widget.core.client.ListView;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
 import com.sencha.gxt.widget.core.client.box.MessageBox;
@@ -27,6 +36,8 @@ import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.Verti
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.form.FieldLabel;
+import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent;
+import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent.SelectionChangedHandler;
 
 import edu.arizona.biosemantics.oto2.ontologize.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadCollectionEvent;
@@ -83,6 +94,7 @@ public class SelectSuperclassView implements IsWidget {
 	    horizontalLayoutContainer.add(superclassVertical, new HorizontalLayoutData(0.3, -1));
 	    superclassVertical.add(add, new VerticalLayoutData(1, -1));
 	    superclassVertical.add(remove, new VerticalLayoutData(1, -1));
+	    remove.setEnabled(false);
 	    superclassVertical.add(clear, new VerticalLayoutData(1, -1));
 	    formContainer.add(new FieldLabel(horizontalLayoutContainer, "Superclass (IRI or term)"), new VerticalLayoutData(1, 75));
 	    
@@ -90,6 +102,46 @@ public class SelectSuperclassView implements IsWidget {
 	}
 	
 	private void bindEvents() {
+		listView.getSelectionModel().addSelectionChangedHandler(new SelectionChangedHandler<Superclass>() {
+			@Override
+			public void onSelectionChanged(SelectionChangedEvent<Superclass> event) {
+				remove.setEnabled(!event.getSelection().isEmpty());
+			}
+		});
+		store.addStoreHandlers(new StoreHandlers<Superclass>() {
+			@Override
+			public void onAdd(StoreAddEvent<Superclass> event) {
+				enableButtons();
+			}
+			@Override
+			public void onRemove(StoreRemoveEvent<Superclass> event) {
+				enableButtons();
+			}
+			@Override
+			public void onFilter(StoreFilterEvent<Superclass> event) {
+				enableButtons();
+			}
+			@Override
+			public void onClear(StoreClearEvent<Superclass> event) {
+				enableButtons();
+			}
+			@Override
+			public void onUpdate(StoreUpdateEvent<Superclass> event) {
+				enableButtons();
+			}
+			@Override
+			public void onDataChange(StoreDataChangeEvent<Superclass> event) {
+				enableButtons();
+			}
+			@Override
+			public void onRecordChange(StoreRecordChangeEvent<Superclass> event) {
+				enableButtons();
+			}
+			@Override
+			public void onSort(StoreSortEvent<Superclass> event) {
+				enableButtons();
+			}
+		});
 		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
 			@Override
 			public void onLoad(LoadCollectionEvent event) {
@@ -118,40 +170,44 @@ public class SelectSuperclassView implements IsWidget {
 			@Override
 			public void onSelect(SelectEvent event) {
 				final String value = addSuperclassDialog.getValue();
-				final Superclass superclass = new Superclass();
-				if(value.startsWith("http")) {
-					final MessageBox box = Alerter.startLoading();
-					toOntologyService.isSupportedIRI(collection, value, new AsyncCallback<Boolean>() {
-						@Override
-						public void onFailure(Throwable caught) {
-							Alerter.failedToCheckIRI(caught);
-							Alerter.stopLoading(box);
-						}
-						@Override
-						public void onSuccess(Boolean result) {
-							if(result) {
-								superclass.setIri(value);
-								addSuperClassToStore(superclass);
-								addSuperclassDialog.hide();
-							} else {
-								Alerter.unsupportedIRI();
+				if(value == null || value.isEmpty()) 
+					Alerter.inputRequired();
+				else {
+					final Superclass superclass = new Superclass();
+					if(value.startsWith("http")) {
+						final MessageBox box = Alerter.startLoading();
+						toOntologyService.isSupportedIRI(collection, value, new AsyncCallback<Boolean>() {
+							@Override
+							public void onFailure(Throwable caught) {
+								Alerter.failedToCheckIRI(caught);
+								Alerter.stopLoading(box);
 							}
-							Alerter.stopLoading(box);
-						}
-					});
-				/*} else if(ontologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(superclass, classSubmissions) != null) {
-					superclass.setLabel(value);
-					addSuperClassToStore(superclass);
-					addSuperclassDialog.hide();
-				} else {
-					Alerter.unupportedSuperclass();
-				}*/
+							@Override
+							public void onSuccess(Boolean result) {
+								if(result) {
+									superclass.setIri(value);
+									addSuperClassToStore(superclass);
+									addSuperclassDialog.hide();
+								} else {
+									Alerter.unsupportedIRI();
+								}
+								Alerter.stopLoading(box);
+							}
+						});
+					/*} else if(ontologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(superclass, classSubmissions) != null) {
+						superclass.setLabel(value);
+						addSuperClassToStore(superclass);
+						addSuperclassDialog.hide();
+					} else {
+						Alerter.unupportedSuperclass();
+					}*/
 					
-				//allow creation of superclass submissions 'on the fly'
-				} else {
-					superclass.setLabel(value);
-					addSuperClassToStore(superclass);
-					addSuperclassDialog.hide();
+					//allow creation of superclass submissions 'on the fly'
+					} else {
+						superclass.setLabel(value);
+						addSuperClassToStore(superclass);
+						addSuperclassDialog.hide();
+					}
 				}
 			}
 		});
@@ -173,6 +229,15 @@ public class SelectSuperclassView implements IsWidget {
 				clearSuperclassesExceptHigherLevelClass();
 			}
 		});
+	}
+
+	protected void enableButtons() {
+		if(store.size() == 0) {
+			add.setEnabled(true);
+			clear.setEnabled(false);
+		} else {
+			clear.setEnabled(true);
+		}
 	}
 
 	public void addSuperClassToStore(final Superclass superclass) {

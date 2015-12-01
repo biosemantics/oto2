@@ -14,6 +14,17 @@ import com.google.web.bindery.event.shared.EventBus;
 import com.sencha.gxt.core.client.IdentityValueProvider;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
+import com.sencha.gxt.data.shared.event.StoreAddEvent;
+import com.sencha.gxt.data.shared.event.StoreClearEvent;
+import com.sencha.gxt.data.shared.event.StoreDataChangeEvent;
+import com.sencha.gxt.data.shared.event.StoreDataChangeEvent.StoreDataChangeHandler;
+import com.sencha.gxt.data.shared.event.StoreFilterEvent;
+import com.sencha.gxt.data.shared.event.StoreHandlers;
+import com.sencha.gxt.data.shared.event.StoreRecordChangeEvent;
+import com.sencha.gxt.data.shared.event.StoreRemoveEvent;
+import com.sencha.gxt.data.shared.event.StoreSortEvent;
+import com.sencha.gxt.data.shared.event.StoreUpdateEvent;
+import com.sencha.gxt.data.shared.event.StoreUpdateEvent.StoreUpdateHandler;
 import com.sencha.gxt.widget.core.client.ListView;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
 import com.sencha.gxt.widget.core.client.box.MessageBox;
@@ -84,6 +95,66 @@ public class SelectSinglePartOfView implements IsWidget {
 	}
 	
 	private void bindEvents() {
+		store.addStoreDataChangeHandler(new StoreDataChangeHandler<PartOf>() {
+			@Override
+			public void onDataChange(StoreDataChangeEvent<PartOf> event) {
+				if(store.size() == 0) {
+					setButton.setEnabled(true);
+					removeButton.setEnabled(false);
+				} else {
+					setButton.setEnabled(false);
+					removeButton.setEnabled(true);
+				}
+			}
+		});
+		store.addStoreUpdateHandler(new StoreUpdateHandler<PartOf>() {
+
+			@Override
+			public void onUpdate(StoreUpdateEvent<PartOf> event) {
+				if(store.size() == 0) {
+					setButton.setEnabled(true);
+					removeButton.setEnabled(false);
+				} else {
+					setButton.setEnabled(false);
+					removeButton.setEnabled(true);
+				}
+			}
+			
+		});
+		store.addStoreHandlers(new StoreHandlers<PartOf>() {
+			@Override
+			public void onAdd(StoreAddEvent<PartOf> event) {
+				enableButtons();
+			}
+			@Override
+			public void onRemove(StoreRemoveEvent<PartOf> event) {
+				enableButtons();
+			}
+			@Override
+			public void onFilter(StoreFilterEvent<PartOf> event) {
+				enableButtons();
+			}
+			@Override
+			public void onClear(StoreClearEvent<PartOf> event) {
+				enableButtons();
+			}
+			@Override
+			public void onUpdate(StoreUpdateEvent<PartOf> event) {
+				enableButtons();
+			}
+			@Override
+			public void onDataChange(StoreDataChangeEvent<PartOf> event) {
+				enableButtons();
+			}
+			@Override
+			public void onRecordChange(StoreRecordChangeEvent<PartOf> event) {
+				enableButtons();
+			}
+			@Override
+			public void onSort(StoreSortEvent<PartOf> event) {
+				enableButtons();
+			}
+		});
 		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
 			@Override
 			public void onLoad(LoadCollectionEvent event) {
@@ -112,38 +183,42 @@ public class SelectSinglePartOfView implements IsWidget {
 			@Override
 			public void onSelect(SelectEvent event) {
 				final String value = addPartOfDialog.getValue();
-				final PartOf partOf = new PartOf(); 
-				if(value.startsWith("http")) {
-					final MessageBox box = Alerter.startLoading();
-					toOntologyService.isSupportedIRI(collection, value, new AsyncCallback<Boolean>() {
-						@Override
-						public void onFailure(Throwable caught) {
-							Alerter.failedToCheckIRI(caught);
-							Alerter.stopLoading(box);
-						}
-						@Override
-						public void onSuccess(Boolean result) {
-							if(result) {
-								partOf.setIri(value);
-								addPartOfToStore(partOf);
-								addPartOfDialog.hide();
-							} else {
-								Alerter.unsupportedIRI();
+				if(value == null || value.isEmpty())
+					Alerter.inputRequired();
+				else {
+					final PartOf partOf = new PartOf(); 
+					if(value.startsWith("http")) {
+						final MessageBox box = Alerter.startLoading();
+						toOntologyService.isSupportedIRI(collection, value, new AsyncCallback<Boolean>() {
+							@Override
+							public void onFailure(Throwable caught) {
+								Alerter.failedToCheckIRI(caught);
+								Alerter.stopLoading(box);
 							}
-							Alerter.stopLoading(box);
-						}
-					});
-				/*} else if(ontologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(partOf, classSubmissions) != null) {
-					partOf.setLabel(value);
-					addPartOfToStore(superclass);
-					addPartOfDialog.hide();
-				} else {
-					Alerter.unupportedPartOf();
-				}*/
-				} else {
-					partOf.setLabel(value);
-					addPartOfToStore(partOf);
-					addPartOfDialog.hide();
+							@Override
+							public void onSuccess(Boolean result) {
+								if(result) {
+									partOf.setIri(value);
+									addPartOfToStore(partOf);
+									addPartOfDialog.hide();
+								} else {
+									Alerter.unsupportedIRI();
+								}
+								Alerter.stopLoading(box);
+							}
+						});
+					/*} else if(ontologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(partOf, classSubmissions) != null) {
+						partOf.setLabel(value);
+						addPartOfToStore(superclass);
+						addPartOfDialog.hide();
+					} else {
+						Alerter.unupportedPartOf();
+					}*/
+					} else {
+						partOf.setLabel(value);
+						addPartOfToStore(partOf);
+						addPartOfDialog.hide();
+					}
 				}
 			}
 		});
@@ -153,6 +228,16 @@ public class SelectSinglePartOfView implements IsWidget {
 				store.clear();
 			}
 		});
+	}
+
+	protected void enableButtons() {
+		if(store.size() == 0) {
+			setButton.setEnabled(true);
+			removeButton.setEnabled(false);
+		} else {
+			setButton.setEnabled(false);
+			removeButton.setEnabled(true);
+		}
 	}
 
 	public void addPartOfToStore(final PartOf partOf) {

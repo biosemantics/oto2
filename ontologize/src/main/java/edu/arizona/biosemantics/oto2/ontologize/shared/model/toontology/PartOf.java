@@ -105,6 +105,7 @@ public class PartOf implements HasLabelAndIri, Serializable {
 		return "";
 	}
 	
+	@Override
 	public String getLabelAlternativelyIri() {
 		if(hasLabel())
 			return label;

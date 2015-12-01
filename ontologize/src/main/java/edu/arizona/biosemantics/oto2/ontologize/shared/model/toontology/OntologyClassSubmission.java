@@ -281,6 +281,15 @@ public class OntologyClassSubmission implements HasLabelAndIri, Serializable, Co
 	@Override
 	public boolean hasIri() {
 		return this.hasClassIRI();
+	}
+
+	@Override
+	public String getLabelAlternativelyIri() {
+		if(hasLabel())
+			return getLabel();
+		if(hasIri())
+			return getIri();
+		return "";
 	}	
 
 }

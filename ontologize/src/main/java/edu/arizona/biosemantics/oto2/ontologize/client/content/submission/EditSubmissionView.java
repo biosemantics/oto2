@@ -1,6 +1,8 @@
 package edu.arizona.biosemantics.oto2.ontologize.client.content.submission;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
@@ -23,10 +25,12 @@ import edu.arizona.biosemantics.oto2.ontologize.client.event.CreateOntologySynon
 import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.OntologyClassSubmissionSelectEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.OntologySynonymSubmissionSelectEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.RefreshOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.UpdateOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.UpdateOntologySynonymsSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.HasLabelAndIri;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySynonymSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.PartOf;
@@ -53,6 +57,7 @@ public class EditSubmissionView implements IsWidget {
 	protected Ontology ontology;
 	private OntologySynonymSubmission selectedSynonymSubmission;
 	private OntologyClassSubmission selectedClassSubmission;
+	protected List<OntologyClassSubmission> classSubmissions;
 
 	public EditSubmissionView(EventBus eventBus, boolean showPartOfRelations, boolean showClassIRI, boolean showDefaultSuperclasses, 
 			boolean showOntology, boolean enableOntology, boolean showIRITextFieldForSynonym) {
@@ -85,6 +90,12 @@ public class EditSubmissionView implements IsWidget {
 	}
 
 	private void bindEvents() {
+		eventBus.addHandler(RefreshOntologyClassSubmissionsEvent.TYPE, new RefreshOntologyClassSubmissionsEvent.Handler() {
+			@Override
+			public void onSelect(RefreshOntologyClassSubmissionsEvent event) {
+				EditSubmissionView.this.classSubmissions = event.getOntologyClassSubmissions();
+			}
+		});
 		selectTermView.addSelectTypeHandler(new ValueChangeHandler<Boolean>() {
 			@Override
 			public void onValueChange(ValueChangeEvent<Boolean> event) {
@@ -149,7 +160,8 @@ public class EditSubmissionView implements IsWidget {
 		saveButton.addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
-				if (validateForm()) {
+				boolean valid = validateForm();
+				if (valid) {
 					final MessageBox box = Alerter.startLoading();
 					editSubmission(box);
 				} else {
@@ -238,10 +250,48 @@ public class EditSubmissionView implements IsWidget {
 
 	protected boolean validateForm() {
 		boolean result = true;
+		result &= isCircularFreeSuperclassRelationships();
+		result &= isCircularFreePartOfRelationships();
 		result &= selectTermView.validate();
 		result &= selectRelationsView.validate();
 		result &= selectMetadataView.validate();
 		return result;
+	}
+
+	private boolean isCircularFreePartOfRelationships() {
+		Set<String> visited = new HashSet<String>();
+		visited.add(this.selectTermView.getSubmissionTerm());
+		return isCircularFreePartOfRelationships(visited, selectRelationsView.getPartOfs());
+	}
+
+	private boolean isCircularFreePartOfRelationships(Set<String> visited, List<PartOf> partOfs) {
+		for(PartOf partOf : partOfs) {
+			if(visited.contains(partOf.getLabelAlternativelyIri()))
+				return false;
+			visited.add(partOf.getLabelAlternativelyIri());
+			OntologyClassSubmission submission = OntologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(partOf, classSubmissions);
+			if(submission != null) 
+				return isCircularFreePartOfRelationships(visited, submission.getPartOfs());
+		}
+		return true;
+	}
+
+	private boolean isCircularFreeSuperclassRelationships() {
+		Set<String> visited = new HashSet<String>();
+		visited.add(this.selectTermView.getSubmissionTerm());
+		return isCircularFreeSuperclassRelationships(visited, selectRelationsView.getSuperclasses());
+	}
+
+	private boolean isCircularFreeSuperclassRelationships(Set<String> visited, List<Superclass> superclasses) {
+		for(Superclass superclass : superclasses) {
+			if(visited.contains(superclass.getLabelAlternativelyIri()))
+				return false;
+			visited.add(superclass.getLabelAlternativelyIri());
+			OntologyClassSubmission submission = OntologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(superclass, classSubmissions);
+			if(submission != null) 
+				return isCircularFreeSuperclassRelationships(visited, submission.getSuperclasses());
+		}
+		return true;
 	}
 
 	@Override

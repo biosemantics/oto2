@@ -9,6 +9,8 @@ import com.google.gwt.user.client.ui.Widget;
 import com.google.web.bindery.event.shared.EventBus;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
 import com.sencha.gxt.data.shared.ListStore;
+import com.sencha.gxt.data.shared.Store;
+import com.sencha.gxt.data.shared.Store.StoreFilter;
 import com.sencha.gxt.widget.core.client.ListView;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
@@ -19,6 +21,7 @@ import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent.Selecti
 
 import edu.arizona.biosemantics.oto2.ontologize.client.content.ontologyview.OntologyView;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadCollectionEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.OntologyClassSubmissionSelectEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.RefreshOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Term;
@@ -27,6 +30,7 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.BucketTr
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmissionProperties;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.PartOf;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.PartOfTreeNode;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.TermTreeNode;
 
 public class SuperclassesView implements IsWidget {
@@ -51,6 +55,7 @@ public class SuperclassesView implements IsWidget {
 		this.ontologyView.setSynonymChecked(false);
 		this.ontologyView.setSuperclassChecked(true);
 		this.listStore = new ListStore<OntologyClassSubmission>(ontologyClassSubmissionProperties.key());
+		listStore.setEnableFilters(true);
 		this.listView = new ListView<OntologyClassSubmission, String>(listStore, ontologyClassSubmissionProperties.submissionTerm());
 		this.verticalLayoutContainer = new VerticalLayoutContainer();
 		verticalLayoutContainer.getScrollSupport().setScrollMode(ScrollMode.AUTO);
@@ -83,15 +88,27 @@ public class SuperclassesView implements IsWidget {
 					superclassTextField.setValue(event.getSelection().get(0).getSubmissionTerm());
 			}
 		});
+		eventBus.addHandler(OntologyClassSubmissionSelectEvent.TYPE, new OntologyClassSubmissionSelectEvent.Handler() {
+			@Override
+			public void onSelect(final OntologyClassSubmissionSelectEvent event) {
+				listStore.removeFilters();
+				listStore.addFilter(new StoreFilter<OntologyClassSubmission>() {
+					@Override
+					public boolean select(Store<OntologyClassSubmission> store,	OntologyClassSubmission parent,	OntologyClassSubmission item) {
+						return item.getId() != event.getOntologyClassSubmission().getId();
+					}
+				});
+			}
+		});
 	}
-
+	
 	@Override
 	public Widget asWidget() {
 		return verticalLayoutContainer;
 	}
 
 	public String getValue() {
-		return superclassTextField.getValue().trim();
+		return superclassTextField.getValue() == null ? "" : superclassTextField.getValue().trim();
 	}
 
 	public void setSubmissionType(Type type) {
