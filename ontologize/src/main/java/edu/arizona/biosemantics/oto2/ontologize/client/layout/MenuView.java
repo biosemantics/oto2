@@ -241,7 +241,7 @@ public class MenuView extends MenuBar {
 	private Widget createFileItem() {
 		Menu sub = new Menu();
 		MenuBarItem item = new MenuBarItem("File", sub);
-		MenuItem downloadItem = new MenuItem("Download Ontologies");
+		MenuItem downloadItem = new MenuItem("Download Ontology");
 		downloadItem.addSelectionHandler(new SelectionHandler<Item>() {
 			@Override
 			public void onSelection(SelectionEvent<Item> arg0) {
