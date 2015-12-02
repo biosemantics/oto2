@@ -58,34 +58,45 @@ public class OWLOntologyRetriever  {
 	}
 	
 	private OWLOntology getOWLOntology(OWLClass owlClass, java.util.Collection<Ontology> ontologies) throws Exception {
+		for(Ontology ontology : ontologies) {
+			IRI iri = OntologyFileDAO.createOntologyIRI(ontology);
+			OWLOntology owlOntology = owlOntologyManager.getOntology(iri);
+			if(isOWLOntologyOfClass(owlClass, owlOntology)) {
+				return owlOntology;
+			}
+			
+			java.util.Collection<OWLOntology> referencedOntologies = owlOntologyManager.getImportsClosure(owlOntology);//getReferencedOntologies(owlOntology);
+			for(OWLOntology referencedOntology : referencedOntologies) {
+				if(isOWLOntologyOfClass(owlClass, referencedOntology)) {
+					return referencedOntology;
+				}
+			}
+		}
+		throw new Exception("Could not find ontology for class " + owlClass.getIRI().toString());
+	}
+	
+	private boolean isOWLOntologyOfClass(OWLClass owlClass, OWLOntology owlOntology) {
 		String owlClassIRI = owlClass.getIRI().toString().toLowerCase();
 		String hackyOwlClassIdentifier = owlClassIRI;
 		if(hackyOwlClassIdentifier.contains("_"))
 			hackyOwlClassIdentifier = hackyOwlClassIdentifier.substring(0, hackyOwlClassIdentifier.indexOf("_"));
 		else if(hackyOwlClassIdentifier.contains("#"))
 			hackyOwlClassIdentifier = hackyOwlClassIdentifier.substring(0, hackyOwlClassIdentifier.indexOf("#"));
-
-		for(Ontology ontology : ontologies) {
-			IRI iri = OntologyFileDAO.createOntologyIRI(ontology);
-			OWLOntology owlOntology = owlOntologyManager.getOntology(iri);
-			java.util.Collection<OWLOntology> referencedOntologies = owlOntologyManager.getImportsClosure(owlOntology);//getReferencedOntologies(owlOntology);
-			for(OWLOntology referencedOntology : referencedOntologies) {
-				String ontologyIRI = referencedOntology.getOntologyID().getOntologyIRI().get().toString();
-				String hackyOntologyIdentifier = ontologyIRI;
-				
-				//caro ontology iri is http://purl.obolibrary.org/obo/caro/src/caro.owl, 
-				//while classes would have hacky id http://purl.obolibrary.org/obo/caro
-				// use startswith as sufficient indicator?
-				if(hackyOntologyIdentifier.equals("http://purl.obolibrary.org/obo/caro/src/caro.obo.owl") && 
-						hackyOwlClassIdentifier.equals("http://purl.obolibrary.org/obo/caro"))
-					return referencedOntology;
-				if(hackyOntologyIdentifier.endsWith(".owl"))
-					hackyOntologyIdentifier = hackyOntologyIdentifier.replace(".owl", "");
-				if(hackyOntologyIdentifier.equals(hackyOwlClassIdentifier))
-					return referencedOntology;
-			}
-		}
-		throw new Exception("Could not find ontology for class " + owlClass.getIRI().toString());
+		
+		String ontologyIRI = owlOntology.getOntologyID().getOntologyIRI().get().toString();
+		String hackyOntologyIdentifier = ontologyIRI;
+		
+		//caro ontology iri is http://purl.obolibrary.org/obo/caro/src/caro.owl, 
+		//while classes would have hacky id http://purl.obolibrary.org/obo/caro
+		// use startswith as sufficient indicator?
+		if(hackyOntologyIdentifier.equals("http://purl.obolibrary.org/obo/caro/src/caro.obo.owl") && 
+				hackyOwlClassIdentifier.equals("http://purl.obolibrary.org/obo/caro"))
+			return true;
+		if(hackyOntologyIdentifier.endsWith(".owl"))
+			hackyOntologyIdentifier = hackyOntologyIdentifier.replace(".owl", "");
+		if(hackyOntologyIdentifier.equals(hackyOwlClassIdentifier))
+			return true;
+		return false;
 	}
 	
 	public OWLOntology getPermanentOWLOntology(OWLClass owlClass) throws Exception {

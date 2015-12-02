@@ -236,9 +236,9 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	
 	@Override
 	public void storeLocalOntologiesToFile(Collection collection) throws Exception {
-		for(Ontology ontology : daoManager.getOntologyDBDAO().getLocalOntologiesForCollection(collection)) {	
+		/*for(Ontology ontology : daoManager.getOntologyDBDAO().getLocalOntologiesForCollection(collection)) {	
 			daoManager.getOntologyFileDAO(collection).insertOntology(ontology, true);
-		}
+		}*/
 		List<OntologyClassSubmission> classSubmissions = daoManager.getOntologyClassSubmissionDAO().get(collection);
 		for(OntologyClassSubmission classSubmission : classSubmissions) {
 			if(!classSubmission.getOntology().isBioportalOntology()) {

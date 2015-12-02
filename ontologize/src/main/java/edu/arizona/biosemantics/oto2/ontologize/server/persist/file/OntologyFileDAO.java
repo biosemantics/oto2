@@ -69,9 +69,14 @@ public class OntologyFileDAO extends PermanentOntologyFileDAO {
 			for(Ontology ontology : ontologyDBDAO.getAllOntologiesForCollection(collection)) {
 				if(!permanentOntologies.containsKey(ontology)) {
 					owlOntologyManager.getIRIMappers().add(createMapper(ontology));
-					//try {
-						owlOntologyManager.loadOntologyFromOntologyDocument(getCollectionOntologyFile(ontology));
-					//} catch(UnloadableImportException e) { }
+					File ontologyFile = getCollectionOntologyFile(ontology);
+					if(ontologyFile.exists()) {
+						//try {
+							owlOntologyManager.loadOntologyFromOntologyDocument(getCollectionOntologyFile(ontology));
+						//} catch(UnloadableImportException e) { }
+					} else {
+						this.insertOntology(ontology, true);
+					}
 				}
 			}
 		} catch (QueryException | OWLOntologyCreationException e) {

@@ -147,10 +147,10 @@ public class OntologyClassSubmissionDAO {
 		if(ontologyClassSubmission.hasClassIRI())
 			return ontologyClassSubmission.getClassIRI();
 		if(!ontologyClassSubmission.getOntology().isBioportalOntology()) {
-			return Configuration.etcOntologyBaseIRI + ontologyClassSubmission.getCollectionId() + "/" + ontologyClassSubmission.getOntology().getCreatedInCollectionId() + "/" +  
+			return Configuration.etcOntologyBaseIRI + ontologyClassSubmission.getCollectionId() + "/" +  
 					ontologyClassSubmission.getOntology().getAcronym() + "#" + submissionIdInCollection;
 		} else {
-			return Configuration.etcOntologyBaseIRI + ontologyClassSubmission.getCollectionId() + "/" + ontologyClassSubmission.getOntology().getCreatedInCollectionId() + "/" +  
+			return Configuration.etcOntologyBaseIRI + ontologyClassSubmission.getCollectionId() + "/" + 
 					ontologyClassSubmission.getOntology().getAcronym() + "#" + submissionIdInCollection;
 		}
 	}
