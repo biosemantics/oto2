@@ -90,12 +90,11 @@ public class OntologyClassSubmissionDAO {
 	public OntologyClassSubmission insert(OntologyClassSubmission ontologyClassSubmission) throws Exception  {
 		if(ontologyClassSubmission.hasId()) 
 			this.remove(ontologyClassSubmission);
-		try(Query submissionIdInCollectionQuery = new Query("SELECT COUNT(*) FROM `ontologize_ontologyclasssubmission` WHERE collection = ?")) {
-			submissionIdInCollectionQuery.setParameter(1, ontologyClassSubmission.getCollectionId());
+		try(Query submissionIdInCollectionQuery = new Query("SELECT `id` FROM `ontologize_ontologyclasssubmission` ORDER BY id DESC LIMIT 1")) {
 			submissionIdInCollectionQuery.execute();
 			ResultSet resultSet = submissionIdInCollectionQuery.getResultSet();
 			if(resultSet.next()) {
-				int submissionIdInCollection = resultSet.getInt(1);
+				int submissionIdInCollection = resultSet.getInt(1) + 1;
 				ontologyClassSubmission.setClassIRI(createClassIRI(ontologyClassSubmission, submissionIdInCollection));
 				try(Query insert = new Query("INSERT INTO `ontologize_ontologyclasssubmission` "
 						+ "(`collection`, `term`, `submission_term`, `ontology`, `class_iri`, `definition`, `source`, `sample_sentence`, "
