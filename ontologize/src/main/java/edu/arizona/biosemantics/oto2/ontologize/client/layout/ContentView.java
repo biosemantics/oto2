@@ -161,6 +161,18 @@ public class ContentView extends BorderLayoutContainer {
 	}
 
 	private void bindEvents() {
+		//http://stackoverflow.com/questions/24915856/gxt-3-1-0-sorting-dropdown-missing-from-grid-header
+		tabPanel.addSelectionHandler(new SelectionHandler<Widget>() {
+			@Override
+			public void onSelection(SelectionEvent<Widget> event) {
+				if(event.getSelectedItem().equals(localSubmissionsView.asWidget())) {
+					localSubmissionsView.refreshGridHeaders();
+				} else if(event.getSelectedItem().equals(bioportalSubmissionsView.asWidget())) {
+					bioportalSubmissionsView.refreshGridHeaders();
+				}
+			}
+		});
+		
 		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
 			@Override
 			public void onLoad(LoadCollectionEvent event) {

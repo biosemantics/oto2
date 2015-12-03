@@ -59,4 +59,8 @@ public class LocalSubmissionsView implements IsWidget {
 	public Widget asWidget() {
 		return borderLayoutContainer;
 	}
+
+	public void refreshGridHeaders() {
+		submissionsView.refreshGridHeaders();
+	}
 }

@@ -26,6 +26,7 @@ import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.Grid;
 import com.sencha.gxt.widget.core.client.grid.GridSelectionModel;
+import com.sencha.gxt.widget.core.client.grid.GridView;
 import com.sencha.gxt.widget.core.client.grid.GroupingView;
 import com.sencha.gxt.widget.core.client.info.Info;
 import com.sencha.gxt.widget.core.client.menu.HeaderMenuItem;
@@ -80,7 +81,8 @@ public class SynonymSubmissionsGrid implements IsWidget {
 	protected ColumnConfig<OntologySynonymSubmission, String> submissionTermCol;
 	protected ColumnConfig<OntologySynonymSubmission, String> categoryCol;
 	protected ColumnConfig<OntologySynonymSubmission, String> synonymsCol;
-	protected ColumnConfig<OntologySynonymSubmission, String> classCol;
+	protected ColumnConfig<OntologySynonymSubmission, String> classIriCol;
+	protected ColumnConfig<OntologySynonymSubmission, String> classLabelCol;
 	protected ColumnConfig<OntologySynonymSubmission, String> sampleCol;
 	protected ColumnConfig<OntologySynonymSubmission, String> sourceCol;
 	protected ColumnConfig<OntologySynonymSubmission, String> statusCol;
@@ -99,7 +101,7 @@ public class SynonymSubmissionsGrid implements IsWidget {
 		final GroupingView<OntologySynonymSubmission> groupingView = new GroupingView<OntologySynonymSubmission>();
 		groupingView.setShowGroupedColumn(false);
 		groupingView.setForceFit(true);
-		groupingView.groupBy(ontologyCol);
+		groupingView.groupBy(classLabelCol);
 		
 		grid.setView(groupingView);
 		grid.setContextMenu(createSynonymSubmissionsContextMenu());
@@ -373,9 +375,12 @@ public class SynonymSubmissionsGrid implements IsWidget {
 			}
 		}); */
 		
-		classCol = new ColumnConfig<OntologySynonymSubmission, String>(
-				ontologySynonymSubmissionProperties.classIRI(), 200, "Superclass");
-		classCol.setCell(colorableCell);
+		classIriCol = new ColumnConfig<OntologySynonymSubmission, String>(
+				ontologySynonymSubmissionProperties.classIRI(), 200, "Class IRI");
+		classIriCol.setCell(colorableCell);
+		classLabelCol = new ColumnConfig<OntologySynonymSubmission, String>(
+				ontologySynonymSubmissionProperties.classLabel(), 200, "Class");
+		classLabelCol.setCell(colorableCell);
 		synonymsCol = new ColumnConfig<OntologySynonymSubmission, String>(
 				new ValueProvider<OntologySynonymSubmission, String>() {
 					@Override
@@ -533,6 +538,8 @@ public class SynonymSubmissionsGrid implements IsWidget {
 		columns.add(submissionTermCol);
 		columns.add(categoryCol);
 		columns.add(ontologyCol);
+		columns.add(classLabelCol);
+		columns.add(classIriCol);
 		columns.add(statusCol);
 		columns.add(iriCol);
 		columns.add(sampleCol);
@@ -557,13 +564,23 @@ public class SynonymSubmissionsGrid implements IsWidget {
 	}
 	
 	protected void setHiddenColumns() {
-		termCol.setHidden(true);
+		termCol.setHidden(false);
 		categoryCol.setHidden(true);
+		classLabelCol.setHidden(false);
+		classIriCol.setHidden(true);
 		iriCol.setHidden(true);
 		sampleCol.setHidden(true);
 		sourceCol.setHidden(true);
 		synonymsCol.setHidden(true);
 		userCol.setHidden(true);
 		statusCol.setHidden(true);
+		ontologyCol.setHidden(true);
+	}
+
+
+	public void refreshHeader() {
+		if (grid.getView() != null
+				&& grid.getView().getHeader() != null)
+			grid.getView().getHeader().refresh();
 	}
 }

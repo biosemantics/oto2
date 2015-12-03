@@ -36,6 +36,7 @@ import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.Grid;
 import com.sencha.gxt.widget.core.client.grid.GridSelectionModel;
+import com.sencha.gxt.widget.core.client.grid.GridView;
 import com.sencha.gxt.widget.core.client.grid.GroupingView;
 import com.sencha.gxt.widget.core.client.info.Info;
 import com.sencha.gxt.widget.core.client.menu.HeaderMenuItem;
@@ -126,7 +127,7 @@ public class ClassSubmissionsGrid implements IsWidget {
 		final GroupingView<OntologyClassSubmission> groupingView = new GroupingView<OntologyClassSubmission>();
 		groupingView.setShowGroupedColumn(false);
 		groupingView.setForceFit(true);
-		groupingView.groupBy(ontologyCol);
+		groupingView.groupBy(typeCol);
 		
 		grid.setView(groupingView);
 		grid.setContextMenu(createClassSubmissionsContextMenu());
@@ -773,6 +774,13 @@ public class ClassSubmissionsGrid implements IsWidget {
 		synonymsCol.setHidden(true);
 		userCol.setHidden(true);
 		statusCol.setHidden(true);
+	}
+
+
+	public void refreshHeader() {
+		if (grid.getView() != null
+				&& grid.getView().getHeader() != null)
+			grid.getView().getHeader().refresh();
 	}
 	
 }

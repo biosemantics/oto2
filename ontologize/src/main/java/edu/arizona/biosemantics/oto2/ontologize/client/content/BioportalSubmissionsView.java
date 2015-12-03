@@ -58,4 +58,8 @@ public class BioportalSubmissionsView implements IsWidget {
 	public Widget asWidget() {
 		return borderLayoutContainer;
 	}
+
+	public void refreshGridHeaders() {
+		submissionsView.refreshGridHeaders();
+	}
 }
