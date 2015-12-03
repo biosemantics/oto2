@@ -88,7 +88,17 @@ public class PermanentOntologyFileDAO {
 	
 	protected static File getCollectionOntologyDirectory(Ontology ontology) {
 		return new File(Configuration.collectionOntologyDirectory + File.separator + ontology.getCreatedInCollectionId() + File.separator + ontology.getAcronym());
-	}	
+	}
+	
+	protected static boolean isEtcOntologyIRI(String iri) {
+		if(iri == null)
+			return false;
+		return iri.trim().startsWith(Configuration.etcOntologyBaseIRI);
+	}
+	
+	protected static File getCollectionDirectory(Collection collection) {
+		return new File(Configuration.collectionOntologyDirectory + File.separator + collection.getId());
+	}
 	
 	protected static boolean containsOwlClass(OWLOntology owlOntology, OWLClass owlClass) {
 		return owlOntology.containsEntityInSignature(owlClass);

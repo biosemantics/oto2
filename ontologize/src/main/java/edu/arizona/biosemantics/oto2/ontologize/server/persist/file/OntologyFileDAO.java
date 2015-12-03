@@ -65,28 +65,18 @@ public class OntologyFileDAO extends PermanentOntologyFileDAO {
 	public OntologyFileDAO(Collection collection, OntologyDAO ontologyDBDAO) throws Exception {
 		super(ontologyDBDAO);
 		this.collection = collection;
-		try {
-			for(Ontology ontology : ontologyDBDAO.getAllOntologiesForCollection(collection)) {
-				if(!permanentOntologies.containsKey(ontology)) {
-					owlOntologyManager.getIRIMappers().add(createMapper(ontology));
-					File ontologyFile = getCollectionOntologyFile(ontology);
-					if(ontologyFile.exists()) {
-						//try {
-							owlOntologyManager.loadOntologyFromOntologyDocument(getCollectionOntologyFile(ontology));
-						//} catch(UnloadableImportException e) { }
-					} else {
-						this.insertOntology(ontology, true);
-					}
-				}
-			}
-		} catch (QueryException | OWLOntologyCreationException e) {
-			log(LogLevel.ERROR, "Failed to initialize ontology manager. Relevant ontologies could not be retrieved or created.", e);
-			throw e;
-		}
 	}
 
 	public void insertOntology(Ontology ontology, boolean createFile) throws Exception {	
-		if(createFile) {
+		if(createFile) {					
+			File collectionOntologyDirectory = getCollectionOntologyDirectory(ontology);
+			if(collectionOntologyDirectory.exists()) {
+				for(File child : collectionOntologyDirectory.listFiles())
+					child.delete();
+				collectionOntologyDirectory.delete();
+			}
+			collectionOntologyDirectory.mkdir();
+			
 			OWLOntology owlOntology = null;
 			try {
 				owlOntology = owlOntologyManager.createOntology(IRI.create(ontology.getIri()));
@@ -163,8 +153,8 @@ public class OntologyFileDAO extends PermanentOntologyFileDAO {
 
 	public String insertClassSubmission(OntologyClassSubmission submission) throws Exception {	
 		OWLOntology owlOntology = owlOntologyManager.getOntology(createOntologyIRI(submission));
-		OWLClass owlClass = null;	
-		boolean extractSuperclassModule = submission.hasClassIRI();
+		OWLClass owlClass = null;
+		boolean extractSuperclassModule = submission.hasClassIRI() ? !isEtcOntologyIRI(submission.getClassIRI()) : false;
 		
 		if(extractSuperclassModule) {
 			owlClass = createModuleForSubmissionsClass(collection, submission);
@@ -194,9 +184,9 @@ public class OntologyFileDAO extends PermanentOntologyFileDAO {
 		owlOntologyManager.saveOntology(owlOntology, getLocalOntologyIRI(submission.getOntology()));
 		return owlClass.getIRI().toString();
 	}
-	
+
 	private void addSuperclasses(OntologyClassSubmission submission, OWLClass owlClass) throws Exception {
-		boolean extractedSuperclassModule = submission.hasClassIRI();
+		boolean extractedSuperclassModule = submission.hasClassIRI() ? isEtcOntologyIRI(submission.getClassIRI()) : false;
 		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(submission.getOntology().getIri()));
 		
 		if(submission.hasSuperclasses() && !extractedSuperclassModule){
