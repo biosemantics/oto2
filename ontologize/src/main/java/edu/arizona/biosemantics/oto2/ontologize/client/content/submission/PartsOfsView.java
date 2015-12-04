@@ -34,10 +34,13 @@ import com.sencha.gxt.widget.core.client.tree.Tree;
 import edu.arizona.biosemantics.oto2.ontologize.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize.client.content.candidates.TermTreeNodeIconProvider;
 import edu.arizona.biosemantics.oto2.ontologize.client.content.ontologyview.OntologyView;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.CreateOntologyClassSubmissionEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadCollectionEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.OntologyClassSubmissionSelectEvent;
-import edu.arizona.biosemantics.oto2.ontologize.client.event.RefreshOntologyClassSubmissionsEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.RemoveOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.TermSelectEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.UpdateOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Term;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
@@ -60,6 +63,8 @@ public class PartsOfsView implements IsWidget {
 	private TreeStore<PartOfTreeNode> store;
 	private Tree<PartOfTreeNode, String> tree;
 	private Collection collection;
+
+	protected List<OntologyClassSubmission> classSubmissions;
 	
 	public PartsOfsView(EventBus eventBus) {
 		this.eventBus = eventBus;
@@ -129,12 +134,36 @@ public class PartsOfsView implements IsWidget {
 				PartsOfsView.this.collection = event.getCollection();
 			}
 		});
-		eventBus.addHandler(RefreshOntologyClassSubmissionsEvent.TYPE, new RefreshOntologyClassSubmissionsEvent.Handler() {
+		eventBus.addHandler(LoadOntologyClassSubmissionsEvent.TYPE, new LoadOntologyClassSubmissionsEvent.Handler() {
 			@Override
-			public void onSelect(RefreshOntologyClassSubmissionsEvent event) {
+			public void onSelect(LoadOntologyClassSubmissionsEvent event) {
+				PartsOfsView.this.classSubmissions = event.getOntologyClassSubmissions();
 				loadParts(event.getOntologyClassSubmissions());
 			}
 		});
+		eventBus.addHandler(CreateOntologyClassSubmissionEvent.TYPE, new CreateOntologyClassSubmissionEvent.Handler() {
+			@Override
+			public void onSubmission(CreateOntologyClassSubmissionEvent event) {
+				PartsOfsView.this.classSubmissions.addAll(event.getClassSubmissions());
+				//addParts(event.getClassSubmissions());
+				loadParts(classSubmissions);
+			}
+		});
+		eventBus.addHandler(RemoveOntologyClassSubmissionsEvent.TYPE, new RemoveOntologyClassSubmissionsEvent.Handler() {
+			@Override
+			public void onRemove(RemoveOntologyClassSubmissionsEvent event) {
+				PartsOfsView.this.classSubmissions.removeAll(event.getOntologyClassSubmissions());
+				//removeParts(event.getOntologyClassSubmissions());
+				loadParts(classSubmissions);
+			}
+		});
+		eventBus.addHandler(UpdateOntologyClassSubmissionsEvent.TYPE, new UpdateOntologyClassSubmissionsEvent.Handler() {	
+			@Override
+			public void onUpdate(UpdateOntologyClassSubmissionsEvent event) {
+				loadParts(classSubmissions);
+			}
+		});
+		
 		tree.getSelectionModel().addSelectionChangedHandler(new SelectionChangedHandler<PartOfTreeNode>() {
 			@Override
 			public void onSelectionChanged(SelectionChangedEvent<PartOfTreeNode> event) {
@@ -166,7 +195,11 @@ public class PartsOfsView implements IsWidget {
 
 	protected void loadParts(List<OntologyClassSubmission> result) {
 		store.clear();
-		Map<String, PartOfTreeNode> nodes = new HashMap<String, PartOfTreeNode>();
+		addParts(result);
+	}
+	
+	protected void addParts(List<OntologyClassSubmission> result) {
+				Map<String, PartOfTreeNode> nodes = new HashMap<String, PartOfTreeNode>();
 		for(OntologyClassSubmission submission : result) {
 			PartOfTreeNode partOfTreeNode = new PartOfTreeNode(new PartOf(submission));
 			nodes.put(partOfTreeNode.getId(), partOfTreeNode);
@@ -181,6 +214,13 @@ public class PartsOfsView implements IsWidget {
 		}
 	}
 
+	protected void removeParts(List<OntologyClassSubmission> ontologyClassSubmissions) {
+		for(OntologyClassSubmission submission : ontologyClassSubmissions) {
+			PartOfTreeNode partOfTreeNode = new PartOfTreeNode(new PartOf(submission));
+			store.remove(partOfTreeNode);
+		}
+	}
+	
 	private void popuplateStore(OntologyClassSubmission submission, List<OntologyClassSubmission> submissions, Map<String, PartOfTreeNode> nodes) {
 		PartOfTreeNode partOfTreeNode = new PartOfTreeNode(new PartOf(submission));
 		if(store.findModel(nodes.get(partOfTreeNode.getId())) != null) {

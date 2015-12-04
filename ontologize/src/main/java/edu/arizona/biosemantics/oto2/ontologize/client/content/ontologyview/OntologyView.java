@@ -45,11 +45,16 @@ import com.sencha.gxt.widget.core.client.toolbar.ToolBar;
 
 import edu.arizona.biosemantics.oto2.ontologize.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize.client.content.ontologyview.GraphDemo.Bundle;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.CreateOntologyClassSubmissionEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.CreateOntologyEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.CreateOntologySynonymSubmissionEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadCollectionEvent;
-import edu.arizona.biosemantics.oto2.ontologize.client.event.RefreshOntologyClassSubmissionsEvent;
-import edu.arizona.biosemantics.oto2.ontologize.client.event.RefreshOntologySynonymSubmissionsEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadOntologyClassSubmissionsEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadOntologySynonymSubmissionsEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.RemoveOntologyClassSubmissionsEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.RemoveOntologySynonymSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.SelectOntologyEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.UpdateOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.OntologyProperties;
@@ -247,16 +252,40 @@ public class OntologyView implements IsWidget {
 				//ontologyComboBox.select(event.getOntology());
 			}
 		});
-		eventBus.addHandler(RefreshOntologyClassSubmissionsEvent.TYPE, new RefreshOntologyClassSubmissionsEvent.Handler() {
+		eventBus.addHandler(LoadOntologyClassSubmissionsEvent.TYPE, new LoadOntologyClassSubmissionsEvent.Handler() {
 			@Override
-			public void onSelect(RefreshOntologyClassSubmissionsEvent event) {
+			public void onSelect(LoadOntologyClassSubmissionsEvent event) {
 				classSubmissions = event.getOntologyClassSubmissions();
 			}
 		});
-		eventBus.addHandler(RefreshOntologySynonymSubmissionsEvent.TYPE, new RefreshOntologySynonymSubmissionsEvent.Handler() {
+		eventBus.addHandler(CreateOntologyClassSubmissionEvent.TYPE, new CreateOntologyClassSubmissionEvent.Handler() {
 			@Override
-			public void onSelect(RefreshOntologySynonymSubmissionsEvent event) {
+			public void onSubmission(CreateOntologyClassSubmissionEvent event) {
+				classSubmissions.addAll(event.getClassSubmissions());
+			}
+		});
+		eventBus.addHandler(RemoveOntologyClassSubmissionsEvent.TYPE, new RemoveOntologyClassSubmissionsEvent.Handler() {
+			@Override
+			public void onRemove(RemoveOntologyClassSubmissionsEvent event) {
+				classSubmissions.removeAll(event.getOntologyClassSubmissions());
+			}
+		});
+		eventBus.addHandler(LoadOntologySynonymSubmissionsEvent.TYPE, new LoadOntologySynonymSubmissionsEvent.Handler() {
+			@Override
+			public void onSelect(LoadOntologySynonymSubmissionsEvent event) {
 				synonymSubmissions = event.getOntologySynonymSubmissions();
+			}
+		});
+		eventBus.addHandler(CreateOntologySynonymSubmissionEvent.TYPE, new CreateOntologySynonymSubmissionEvent.Handler() {
+			@Override
+			public void onSubmission(CreateOntologySynonymSubmissionEvent event) {
+				synonymSubmissions.add(event.getSynonymSubmission());
+			}
+		});
+		eventBus.addHandler(RemoveOntologySynonymSubmissionsEvent.TYPE, new RemoveOntologySynonymSubmissionsEvent.Handler() {
+			@Override
+			public void onRemove(RemoveOntologySynonymSubmissionsEvent event) {
+				synonymSubmissions.removeAll(event.getOntologySynonymSubmissions());
 			}
 		});
 		/*ontologyComboBox.addValueChangeHandler(new ValueChangeHandler<Ontology>() {

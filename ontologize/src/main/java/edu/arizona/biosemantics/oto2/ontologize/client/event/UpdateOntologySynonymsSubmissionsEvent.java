@@ -13,7 +13,7 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Ontology
 public class UpdateOntologySynonymsSubmissionsEvent  extends GwtEvent<Handler> {
 
 	public interface Handler extends EventHandler {
-		void onRemove(UpdateOntologySynonymsSubmissionsEvent event);
+		void onUpdate(UpdateOntologySynonymsSubmissionsEvent event);
 	}
 	
     public static Type<Handler> TYPE = new Type<Handler>();
@@ -36,7 +36,7 @@ public class UpdateOntologySynonymsSubmissionsEvent  extends GwtEvent<Handler> {
 
 	@Override
 	protected void dispatch(Handler handler) {
-		handler.onRemove(this);
+		handler.onUpdate(this);
 	}
 
 	public List<OntologySynonymSubmission> getOntologySynonymSubmissions() {

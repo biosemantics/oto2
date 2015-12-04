@@ -38,11 +38,14 @@ import edu.arizona.biosemantics.oto2.ontologize.client.Ontologize;
 import edu.arizona.biosemantics.oto2.ontologize.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize.client.common.ColorableCell;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.AddCommentEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.CreateOntologySynonymSubmissionEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadCollectionEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadOntologySynonymSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.OntologySynonymSubmissionSelectEvent;
-import edu.arizona.biosemantics.oto2.ontologize.client.event.RefreshOntologySynonymSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.RemoveOntologySynonymSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.SetColorEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.UpdateOntologyClassSubmissionsEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.UpdateOntologySynonymsSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Color;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Colorable;
@@ -255,14 +258,30 @@ public class SynonymSubmissionsGrid implements IsWidget {
 	}
 
 	private void bindEvents() {
-		eventBus.addHandler(RefreshOntologySynonymSubmissionsEvent.TYPE, new RefreshOntologySynonymSubmissionsEvent.Handler() {
+		eventBus.addHandler(LoadOntologySynonymSubmissionsEvent.TYPE, new LoadOntologySynonymSubmissionsEvent.Handler() {
 			@Override
-			public void onSelect(RefreshOntologySynonymSubmissionsEvent event) {
+			public void onSelect(LoadOntologySynonymSubmissionsEvent event) {
 				synonymSubmissionStore.clear();
-				for(OntologySynonymSubmission submission : event.getOntologySynonymSubmissions()) {
-					if(!submissionsFilter.isFiltered(submission))
-						synonymSubmissionStore.add(submission);
-				}
+				addSynonymSubmissions(event.getOntologySynonymSubmissions());
+			}
+		});
+		eventBus.addHandler(CreateOntologySynonymSubmissionEvent.TYPE, new CreateOntologySynonymSubmissionEvent.Handler() {
+			@Override
+			public void onSubmission(CreateOntologySynonymSubmissionEvent event) {
+				addSynonymSubmission(event.getSynonymSubmission());
+			}
+		});
+		eventBus.addHandler(RemoveOntologySynonymSubmissionsEvent.TYPE, new RemoveOntologySynonymSubmissionsEvent.Handler() {
+			@Override
+			public void onRemove(RemoveOntologySynonymSubmissionsEvent event) {
+				removeSynonymSubmissions(event.getOntologySynonymSubmissions());
+			}
+		});
+		eventBus.addHandler(UpdateOntologySynonymsSubmissionsEvent.TYPE, new UpdateOntologySynonymsSubmissionsEvent.Handler() {
+			@Override
+			public void onUpdate(UpdateOntologySynonymsSubmissionsEvent event) {
+				for(OntologySynonymSubmission submission : event.getOntologySynonymSubmissions())
+					synonymSubmissionStore.update(submission);
 			}
 		});
 		
@@ -292,6 +311,25 @@ public class SynonymSubmissionsGrid implements IsWidget {
 			}
 		});
 	}
+
+	protected void removeSynonymSubmissions(List<OntologySynonymSubmission> ontologySynonymSubmissions) {
+		for(OntologySynonymSubmission ontologySynonymSubmission : ontologySynonymSubmissions)
+			synonymSubmissionStore.remove(ontologySynonymSubmission);
+	}
+
+
+	protected void addSynonymSubmissions(List<OntologySynonymSubmission> ontologySynonymSubmissions) {
+		for(OntologySynonymSubmission submission : ontologySynonymSubmissions) {
+			addSynonymSubmission(submission);
+		}
+	}
+
+
+	protected void addSynonymSubmission(OntologySynonymSubmission submission) {
+		if(!submissionsFilter.isFiltered(submission))
+			synonymSubmissionStore.add(submission);
+	}
+
 
 	private ColumnModel<OntologySynonymSubmission> createColumnModel(ListStore<OntologySynonymSubmission> synonymSubmissionStore) {
 		IdentityValueProvider<OntologySynonymSubmission> identity = new IdentityValueProvider<OntologySynonymSubmission>();

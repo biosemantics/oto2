@@ -5,19 +5,19 @@ import java.util.List;
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
 
-import edu.arizona.biosemantics.oto2.ontologize.client.event.RefreshOntologyClassSubmissionsEvent.Handler;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadOntologyClassSubmissionsEvent.Handler;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
 
-public class RefreshOntologyClassSubmissionsEvent extends GwtEvent<Handler> {
+public class LoadOntologyClassSubmissionsEvent extends GwtEvent<Handler> {
 
 	public interface Handler extends EventHandler {
-		void onSelect(RefreshOntologyClassSubmissionsEvent event);
+		void onSelect(LoadOntologyClassSubmissionsEvent event);
 	}
 	
     public static Type<Handler> TYPE = new Type<Handler>();
 	private List<OntologyClassSubmission> ontologyClassSubmissions;
     
-    public RefreshOntologyClassSubmissionsEvent(List<OntologyClassSubmission> ontologyClassSubmissions) {
+    public LoadOntologyClassSubmissionsEvent(List<OntologyClassSubmission> ontologyClassSubmissions) {
 		this.ontologyClassSubmissions = ontologyClassSubmissions;
     }
 	

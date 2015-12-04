@@ -59,6 +59,14 @@ public class OntologySynonymSubmission implements HasLabelAndIri, Serializable, 
 		this.user = user;
 		this.synonyms = synonyms;	
 	}
+	
+	public void setClassLabel(String classLabel) {
+		this.classLabel = classLabel;
+	}
+
+	public void setSynonyms(List<Synonym> synonyms) {
+		this.synonyms = synonyms;
+	}
 
 	public int getCollectionId() {
 		return collectionId;

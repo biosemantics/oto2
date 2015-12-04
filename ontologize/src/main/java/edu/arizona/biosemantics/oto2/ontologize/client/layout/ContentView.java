@@ -26,9 +26,8 @@ import edu.arizona.biosemantics.oto2.ontologize.client.content.ontologyview.Onto
 import edu.arizona.biosemantics.oto2.ontologize.client.event.CreateOntologyClassSubmissionEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.CreateOntologySynonymSubmissionEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadCollectionEvent;
-import edu.arizona.biosemantics.oto2.ontologize.client.event.RefreshOntologyClassSubmissionsEvent;
-import edu.arizona.biosemantics.oto2.ontologize.client.event.RefreshOntologySynonymSubmissionsEvent;
-import edu.arizona.biosemantics.oto2.ontologize.client.event.RefreshSubmissionsEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadOntologyClassSubmissionsEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadOntologySynonymSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.RemoveOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.RemoveOntologySynonymSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.UpdateOntologyClassSubmissionsEvent;
@@ -177,57 +176,20 @@ public class ContentView extends BorderLayoutContainer {
 			@Override
 			public void onLoad(LoadCollectionEvent event) {
 				collection = event.getCollection();
-				refreshClassSubmissions();
-				refreshSynonymSubmissions();
+				loadClassSubmissions();
+				loadSynonymSubmissions();
 			}
 		});
-		eventBus.addHandler(CreateOntologyClassSubmissionEvent.TYPE, new CreateOntologyClassSubmissionEvent.Handler() {
-			@Override
-			public void onSubmission(CreateOntologyClassSubmissionEvent event) {
-				refreshClassSubmissions();
-			}
-		});
-		eventBus.addHandler(CreateOntologySynonymSubmissionEvent.TYPE, new CreateOntologySynonymSubmissionEvent.Handler() {
-			@Override
-			public void onSubmission(CreateOntologySynonymSubmissionEvent event) {
-				refreshSynonymSubmissions();
-			}
-		});
-		eventBus.addHandler(RefreshSubmissionsEvent.TYPE, new RefreshSubmissionsEvent.Handler() {
+		/*eventBus.addHandler(RefreshSubmissionsEvent.TYPE, new RefreshSubmissionsEvent.Handler() {
 			@Override
 			public void onSelect(RefreshSubmissionsEvent event) {
 				refreshSynonymSubmissions();
 				refreshClassSubmissions();
 			}
-		});
-		
-		eventBus.addHandler(RemoveOntologyClassSubmissionsEvent.TYPE, new RemoveOntologyClassSubmissionsEvent.Handler() {
-			@Override
-			public void onRemove(RemoveOntologyClassSubmissionsEvent event) {
-				refreshClassSubmissions();
-			}
-		});
-		eventBus.addHandler(RemoveOntologySynonymSubmissionsEvent.TYPE, new RemoveOntologySynonymSubmissionsEvent.Handler() {
-			@Override
-			public void onRemove(RemoveOntologySynonymSubmissionsEvent event) {
-				refreshSynonymSubmissions();
-			}
-		});
-		eventBus.addHandler(UpdateOntologyClassSubmissionsEvent.TYPE, new UpdateOntologyClassSubmissionsEvent.Handler() {
-			@Override
-			public void onUpdate(UpdateOntologyClassSubmissionsEvent event) {
-				refreshClassSubmissions();
-			}
-		});
-		eventBus.addHandler(UpdateOntologySynonymsSubmissionsEvent.TYPE, new UpdateOntologySynonymsSubmissionsEvent.Handler() {
-			@Override
-			public void onRemove(UpdateOntologySynonymsSubmissionsEvent event) {
-				refreshSynonymSubmissions();
-			}
-		});
+		});*/
 	}
 	
-	protected void refreshClassSubmissions() {
+	protected void loadClassSubmissions() {
 		final MessageBox loadingBox = Alerter.startLoading();
 		toOntologyService.getClassSubmissions(collection, new AsyncCallback<List<OntologyClassSubmission>>() {
 			@Override
@@ -237,13 +199,13 @@ public class ContentView extends BorderLayoutContainer {
 			}
 			@Override
 			public void onSuccess(List<OntologyClassSubmission> result) {
-				eventBus.fireEvent(new RefreshOntologyClassSubmissionsEvent(result));
+				eventBus.fireEvent(new LoadOntologyClassSubmissionsEvent(result));
 				Alerter.stopLoading(loadingBox);
 			}
 		});
 	}
 
-	protected void refreshSynonymSubmissions() {
+	protected void loadSynonymSubmissions() {
 		final MessageBox loadingBox = Alerter.startLoading();
 		toOntologyService.getSynonymSubmissions(collection, new AsyncCallback<List<OntologySynonymSubmission>>() {
 			@Override
@@ -254,7 +216,7 @@ public class ContentView extends BorderLayoutContainer {
 			@Override
 			public void onSuccess(List<OntologySynonymSubmission> result) {
 				Alerter.stopLoading(loadingBox);
-				eventBus.fireEvent(new RefreshOntologySynonymSubmissionsEvent(result));
+				eventBus.fireEvent(new LoadOntologySynonymSubmissionsEvent(result));
 			}
 		});
 	}

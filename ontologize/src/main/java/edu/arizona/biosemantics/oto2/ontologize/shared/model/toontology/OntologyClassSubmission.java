@@ -183,7 +183,19 @@ public class OntologyClassSubmission implements HasLabelAndIri, Serializable, Co
 	public List<PartOf> getPartOfs() {
 		return partOfs;
 	}
-	
+		
+	public void setSuperclasses(List<Superclass> superclasses) {
+		this.superclasses = superclasses;
+	}
+
+	public void setSynonyms(List<Synonym> synonyms) {
+		this.synonyms = synonyms;
+	}
+
+	public void setPartOfs(List<PartOf> partOfs) {
+		this.partOfs = partOfs;
+	}
+
 	public void addSynonym(Synonym synonym) {
 		this.synonyms.add(synonym);
 	}

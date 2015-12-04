@@ -51,17 +51,19 @@ import edu.arizona.biosemantics.oto2.ontologize.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize.client.common.ColorableCell;
 import edu.arizona.biosemantics.oto2.ontologize.client.common.ColorableCheckBoxCell;
 import edu.arizona.biosemantics.oto2.ontologize.client.common.ColorableCheckBoxCell.CommentableColorableProvider;
+import edu.arizona.biosemantics.oto2.ontologize.client.content.submission.SelectSuperclassView;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.AddCommentEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.CreateOntologyClassSubmissionEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.CreateOntologyEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadCollectionEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.OntologyClassSubmissionSelectEvent;
-import edu.arizona.biosemantics.oto2.ontologize.client.event.RefreshOntologyClassSubmissionsEvent;
-import edu.arizona.biosemantics.oto2.ontologize.client.event.RefreshOntologySynonymSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.RemoveOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.SelectPartOfEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.SelectSuperclassEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.SelectSynonymEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.SetColorEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.UpdateOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Color;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Colorable;
@@ -144,14 +146,30 @@ public class ClassSubmissionsGrid implements IsWidget {
 	}
 
 	private void bindEvents() {
-		eventBus.addHandler(RefreshOntologyClassSubmissionsEvent.TYPE, new RefreshOntologyClassSubmissionsEvent.Handler() {
+		eventBus.addHandler(LoadOntologyClassSubmissionsEvent.TYPE, new LoadOntologyClassSubmissionsEvent.Handler() {
 			@Override
-			public void onSelect(RefreshOntologyClassSubmissionsEvent event) {
+			public void onSelect(LoadOntologyClassSubmissionsEvent event) {
 				classSubmissionStore.clear();
-				for(OntologyClassSubmission submission : event.getOntologyClassSubmissions()) {
-					if(!submissionsFilter.isFiltered(submission))
-						classSubmissionStore.add(submission);
-				}
+				addClassSubmissions(event.getOntologyClassSubmissions());
+			}
+		});
+		eventBus.addHandler(CreateOntologyClassSubmissionEvent.TYPE, new CreateOntologyClassSubmissionEvent.Handler() {
+			@Override
+			public void onSubmission(CreateOntologyClassSubmissionEvent event) {
+				addClassSubmissions(event.getClassSubmissions());
+			}
+		});
+		eventBus.addHandler(RemoveOntologyClassSubmissionsEvent.TYPE, new RemoveOntologyClassSubmissionsEvent.Handler() {
+			@Override
+			public void onRemove(RemoveOntologyClassSubmissionsEvent event) {
+				removeClassSubmissions(event.getOntologyClassSubmissions());
+			}
+		});
+		eventBus.addHandler(UpdateOntologyClassSubmissionsEvent.TYPE, new UpdateOntologyClassSubmissionsEvent.Handler() {
+			@Override
+			public void onUpdate(UpdateOntologyClassSubmissionsEvent event) {
+				for(OntologyClassSubmission submission : event.getOntologyClassSubmissions())
+					classSubmissionStore.update(submission);
 			}
 		});
 		
@@ -197,6 +215,18 @@ public class ClassSubmissionsGrid implements IsWidget {
 			}
 		});
 
+	}
+
+	protected void removeClassSubmissions(List<OntologyClassSubmission> ontologyClassSubmissions) {
+		for(OntologyClassSubmission ontologyClassSubmission : ontologyClassSubmissions)
+			classSubmissionStore.remove(ontologyClassSubmission);
+	}
+
+	protected void addClassSubmissions(List<OntologyClassSubmission> ontologyClassSubmissions) {
+		for(OntologyClassSubmission submission : ontologyClassSubmissions) {
+			if(!submissionsFilter.isFiltered(submission))
+				classSubmissionStore.add(submission);
+		}
 	}
 
 	private Menu createClassSubmissionsContextMenu() {
