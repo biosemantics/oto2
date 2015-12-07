@@ -1,7 +1,9 @@
 package edu.arizona.biosemantics.oto2.ontologize.client.content.submission;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.google.gwt.core.client.GWT;
@@ -59,7 +61,7 @@ public class EditSubmissionView implements IsWidget {
 	protected Ontology ontology;
 	private OntologySynonymSubmission selectedSynonymSubmission;
 	private OntologyClassSubmission selectedClassSubmission;
-	protected List<OntologyClassSubmission> classSubmissions;
+	private Map<Integer, OntologyClassSubmission> classSubmissions = new HashMap<Integer, OntologyClassSubmission>();
 
 	public EditSubmissionView(EventBus eventBus, boolean showPartOfRelations, boolean showClassIRI, boolean showDefaultSuperclasses, 
 			boolean showOntology, boolean enableOntology, boolean showIRITextFieldForSynonym) {
@@ -95,19 +97,23 @@ public class EditSubmissionView implements IsWidget {
 		eventBus.addHandler(LoadOntologyClassSubmissionsEvent.TYPE, new LoadOntologyClassSubmissionsEvent.Handler() {
 			@Override
 			public void onSelect(LoadOntologyClassSubmissionsEvent event) {
-				EditSubmissionView.this.classSubmissions = event.getOntologyClassSubmissions();
+				classSubmissions.clear();
+				for(OntologyClassSubmission submission : event.getOntologyClassSubmissions())
+					classSubmissions.put(submission.getId(), submission);
 			}
 		});
 		eventBus.addHandler(CreateOntologyClassSubmissionEvent.TYPE, new CreateOntologyClassSubmissionEvent.Handler() {
 			@Override
 			public void onSubmission(CreateOntologyClassSubmissionEvent event) {
-				EditSubmissionView.this.classSubmissions.addAll(event.getClassSubmissions());
+				for(OntologyClassSubmission submission : event.getClassSubmissions())
+					classSubmissions.put(submission.getId(), submission);
 			}
 		});
 		eventBus.addHandler(RemoveOntologyClassSubmissionsEvent.TYPE, new RemoveOntologyClassSubmissionsEvent.Handler() {
 			@Override
 			public void onRemove(RemoveOntologyClassSubmissionsEvent event) {
-				EditSubmissionView.this.classSubmissions.removeAll(event.getOntologyClassSubmissions());
+				for(OntologyClassSubmission submission : event.getOntologyClassSubmissions())
+					classSubmissions.remove(submission.getId());
 			}
 		});
 		
@@ -285,7 +291,7 @@ public class EditSubmissionView implements IsWidget {
 			if(newVisited.contains(partOf.getLabelAlternativelyIri()))
 				return false;
 			newVisited.add(partOf.getLabelAlternativelyIri());
-			OntologyClassSubmission submission = OntologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(partOf, classSubmissions);
+			OntologyClassSubmission submission = OntologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(partOf, classSubmissions.values());
 			if(submission != null) 
 				result &= isCircularFreePartOfRelationships(newVisited, submission.getPartOfs());
 		}
@@ -305,7 +311,7 @@ public class EditSubmissionView implements IsWidget {
 			if(newVisited.contains(superclass.getLabelAlternativelyIri()))
 				return false;
 			newVisited.add(superclass.getLabelAlternativelyIri());
-			OntologyClassSubmission submission = OntologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(superclass, classSubmissions);
+			OntologyClassSubmission submission = OntologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(superclass, classSubmissions.values());
 			if(submission != null) 
 				result &= isCircularFreeSuperclassRelationships(newVisited, submission.getSuperclasses());
 		}

@@ -171,7 +171,7 @@ public class ContentView extends BorderLayoutContainer {
 				}
 			}
 		});
-		
+	
 		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
 			@Override
 			public void onLoad(LoadCollectionEvent event) {

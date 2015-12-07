@@ -64,9 +64,6 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	
 	@Override
 	public List<OntologyClassSubmission> getClassSubmissions(Collection collection) throws Exception {
-		
-		
-		//getClassLabel
 		return daoManager.getOntologyClassSubmissionDAO().get(collection);
 	}
 
@@ -108,7 +105,7 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 		addIRIsToPlainTerms(collection, submission, submissions);
 		submission = daoManager.getOntologyClassSubmissionDAO().insert(submission);
 		this.setPending(submission);
-		submissions.add(0, submission);
+		submissions.add(submission);
 		return submissions;
 	}
 

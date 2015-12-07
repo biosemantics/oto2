@@ -1,7 +1,9 @@
 package edu.arizona.biosemantics.oto2.ontologize.client.content.submission;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.core.client.GWT;
@@ -65,7 +67,7 @@ public class SelectSinglePartOfView implements IsWidget {
 	private EventBus eventBus;
 	private AddPartOfDialog addPartOfDialog;
 
-	protected List<OntologyClassSubmission> classSubmissions;
+	private Map<Integer, OntologyClassSubmission> classSubmissions = new HashMap<Integer, OntologyClassSubmission>();
 	
 	public SelectSinglePartOfView(EventBus eventBus) {
 		this.eventBus = eventBus;
@@ -97,6 +99,29 @@ public class SelectSinglePartOfView implements IsWidget {
 	}
 	
 	private void bindEvents() {
+		eventBus.addHandler(LoadOntologyClassSubmissionsEvent.TYPE, new LoadOntologyClassSubmissionsEvent.Handler() {
+			@Override
+			public void onSelect(LoadOntologyClassSubmissionsEvent event) {
+				classSubmissions.clear();
+				for(OntologyClassSubmission submission : event.getOntologyClassSubmissions())
+					classSubmissions.put(submission.getId(), submission);
+			}
+		});
+		eventBus.addHandler(CreateOntologyClassSubmissionEvent.TYPE, new CreateOntologyClassSubmissionEvent.Handler() {
+			@Override
+			public void onSubmission(CreateOntologyClassSubmissionEvent event) {
+				for(OntologyClassSubmission submission : event.getClassSubmissions())
+					classSubmissions.put(submission.getId(), submission);
+			}
+		});
+		eventBus.addHandler(RemoveOntologyClassSubmissionsEvent.TYPE, new RemoveOntologyClassSubmissionsEvent.Handler() {
+			@Override
+			public void onRemove(RemoveOntologyClassSubmissionsEvent event) {
+				for(OntologyClassSubmission submission : event.getOntologyClassSubmissions())
+					classSubmissions.remove(submission.getId());
+			}
+		});
+		
 		store.addStoreDataChangeHandler(new StoreDataChangeHandler<PartOf>() {
 			@Override
 			public void onDataChange(StoreDataChangeEvent<PartOf> event) {
@@ -167,24 +192,6 @@ public class SelectSinglePartOfView implements IsWidget {
 			@Override
 			public void onSelect(SelectPartOfEvent event) {
 				addPartOfToStore(new PartOf(event.getSubmission()));
-			}
-		});
-		eventBus.addHandler(LoadOntologyClassSubmissionsEvent.TYPE, new LoadOntologyClassSubmissionsEvent.Handler() {
-			@Override
-			public void onSelect(LoadOntologyClassSubmissionsEvent event) {
-				SelectSinglePartOfView.this.classSubmissions = event.getOntologyClassSubmissions();
-			}
-		});
-		eventBus.addHandler(CreateOntologyClassSubmissionEvent.TYPE, new CreateOntologyClassSubmissionEvent.Handler() {
-			@Override
-			public void onSubmission(CreateOntologyClassSubmissionEvent event) {
-				SelectSinglePartOfView.this.classSubmissions.addAll(event.getClassSubmissions());
-			}
-		});
-		eventBus.addHandler(RemoveOntologyClassSubmissionsEvent.TYPE, new RemoveOntologyClassSubmissionsEvent.Handler() {
-			@Override
-			public void onRemove(RemoveOntologyClassSubmissionsEvent event) {
-				SelectSinglePartOfView.this.classSubmissions.removeAll(event.getOntologyClassSubmissions());
 			}
 		});
 		
@@ -258,7 +265,7 @@ public class SelectSinglePartOfView implements IsWidget {
 	public void addPartOfToStore(final PartOf partOf) {
 		store.clear();
 		if(!partOf.hasIri()) {
-			OntologyClassSubmission ontologyClassSubmission = OntologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(partOf, classSubmissions);
+			OntologyClassSubmission ontologyClassSubmission = OntologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(partOf, classSubmissions.values());
 			if(ontologyClassSubmission != null)
 				partOf.setIri(ontologyClassSubmission.getIri());
 			store.add(partOf);

@@ -1,8 +1,10 @@
 package edu.arizona.biosemantics.oto2.ontologize.client.content.submission;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.core.client.GWT;
@@ -67,7 +69,7 @@ public class SelectSuperclassView implements IsWidget {
 	private EventBus eventBus;
 	private Type defaultSuperclass;
 	private AddSuperclassDialog addSuperclassDialog;
-	protected List<OntologyClassSubmission> classSubmissions;
+	private Map<Integer, OntologyClassSubmission> classSubmissions = new HashMap<Integer, OntologyClassSubmission>();
 	private boolean showDefaultSuperclasses;
 	
 	public SelectSuperclassView(EventBus eventBus, boolean showDefaultSuperclasses) {
@@ -156,22 +158,27 @@ public class SelectSuperclassView implements IsWidget {
 				addSuperClassToStore(new Superclass(event.getSubmission()));
 			}
 		});
+		
 		eventBus.addHandler(LoadOntologyClassSubmissionsEvent.TYPE, new LoadOntologyClassSubmissionsEvent.Handler() {
 			@Override
 			public void onSelect(LoadOntologyClassSubmissionsEvent event) {
-				SelectSuperclassView.this.classSubmissions = event.getOntologyClassSubmissions();
+				classSubmissions.clear();
+				for(OntologyClassSubmission submission : event.getOntologyClassSubmissions())
+					classSubmissions.put(submission.getId(), submission);
 			}
 		});
 		eventBus.addHandler(CreateOntologyClassSubmissionEvent.TYPE, new CreateOntologyClassSubmissionEvent.Handler() {
 			@Override
 			public void onSubmission(CreateOntologyClassSubmissionEvent event) {
-				SelectSuperclassView.this.classSubmissions.addAll(event.getClassSubmissions());
+				for(OntologyClassSubmission submission : event.getClassSubmissions())
+					classSubmissions.put(submission.getId(), submission);
 			}
 		});
 		eventBus.addHandler(RemoveOntologyClassSubmissionsEvent.TYPE, new RemoveOntologyClassSubmissionsEvent.Handler() {
 			@Override
 			public void onRemove(RemoveOntologyClassSubmissionsEvent event) {
-				SelectSuperclassView.this.classSubmissions.removeAll(event.getOntologyClassSubmissions());
+				for(OntologyClassSubmission submission : event.getOntologyClassSubmissions())
+					classSubmissions.remove(submission.getId());
 			}
 		});
 		
@@ -257,9 +264,9 @@ public class SelectSuperclassView implements IsWidget {
 
 	public void addSuperClassToStore(final Superclass superclass) {
 		if(!superclass.hasIri()) {
-			OntologyClassSubmission ontologyClassSubmission = OntologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(superclass, classSubmissions);
+			OntologyClassSubmission ontologyClassSubmission = OntologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(superclass, classSubmissions.values());
 			if(ontologyClassSubmission != null) 
-				superclass.setIri(OntologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(superclass, classSubmissions).getIri());
+				superclass.setIri(OntologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(superclass, classSubmissions.values()).getIri());
 			store.add(superclass);
 		} else if(!superclass.hasLabel()) {
 			final MessageBox box = Alerter.startLoading();
