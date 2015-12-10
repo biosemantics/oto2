@@ -2,6 +2,7 @@ package edu.arizona.biosemantics.oto2.ontologize.client.content.submission;
 
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -147,10 +148,7 @@ public class PartsOfsView implements IsWidget {
 		eventBus.addHandler(LoadOntologyClassSubmissionsEvent.TYPE, new LoadOntologyClassSubmissionsEvent.Handler() {
 			@Override
 			public void onSelect(LoadOntologyClassSubmissionsEvent event) {
-				store.clear();
-				for(OntologyClassSubmission submission : event.getOntologyClassSubmissions()) {
-					addNode(submission);
-				}
+				loadSubmissions(event.getOntologyClassSubmissions());
 			}
 		});
 		eventBus.addHandler(CreateOntologyClassSubmissionEvent.TYPE, new CreateOntologyClassSubmissionEvent.Handler() {
@@ -206,8 +204,54 @@ public class PartsOfsView implements IsWidget {
 		});
 	}
 
+	protected void loadSubmissions(List<OntologyClassSubmission> ontologyClassSubmissions) {
+		store.clear();
+		Map<String, List<String>> parentChildParts = new HashMap<String, List<String>>();
+		List<String> roots = new LinkedList<String>();
+		for(OntologyClassSubmission submission : ontologyClassSubmissions) {
+			String part = submission.getLabel();
+			List<PartOf> partOfs = submission.getPartOfs();
+			if(!parentChildParts.containsKey(part))
+				parentChildParts.put(part, new LinkedList<String>());
+			for(PartOf partOf : partOfs) {
+				if(!parentChildParts.containsKey(partOf.getLabel()))
+					parentChildParts.put(partOf.getLabel(), new LinkedList<String>());
+				parentChildParts.get(partOf.getLabel()).add(part);
+			}
+			
+			if(submission.getPartOfs().isEmpty())
+				roots.add(part);
+		}
+		for(String root : roots) {
+			Node node = new Node(root);
+			store.add(node);
+			addNodesFromNode(node, parentChildParts);			
+		}
+	}
+
+	private void addNodesFromNode(Node parentNode, Map<String, List<String>> parentChildParts) {
+		for(String child : parentChildParts.get(parentNode.value)) {
+			Node childNode = new Node(child);
+			store.add(parentNode, new Node(child));
+			addNodesFromNode(childNode, parentChildParts);		
+		}
+	}
+
 	protected void updateNode(OntologyClassSubmission submission) {
 		Node node = new Node(submission.getLabel());
+		Node parent = store.getParent(node);
+		if(submission.getPartOfs().isEmpty()) {
+			if(parent != null) {
+				store.remove(node);
+				store.add(node);
+			}
+		} else {
+			if(parent == null || !parent.value.equals(submission.getPartOfs().get(0).getLabel()))  {
+				Node newParent = new Node(submission.getPartOfs().get(0).getLabel());
+				store.remove(node);
+				store.add(newParent, node);
+			}					
+		}
 		store.update(node);
 	}
 
