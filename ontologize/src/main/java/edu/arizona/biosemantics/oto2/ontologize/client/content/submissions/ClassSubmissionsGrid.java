@@ -10,6 +10,7 @@ import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Widget;
@@ -17,13 +18,22 @@ import com.sencha.gxt.core.client.IdentityValueProvider;
 import com.sencha.gxt.core.client.Style.SelectionMode;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
 import com.sencha.gxt.core.client.util.Format;
+import com.sencha.gxt.core.client.util.Margins;
 import com.sencha.gxt.core.client.util.Params;
 import com.sencha.gxt.core.client.ValueProvider;
+import com.sencha.gxt.data.client.loader.RpcProxy;
 import com.sencha.gxt.data.shared.ListStore;
+import com.sencha.gxt.data.shared.loader.BeforeLoadEvent;
+import com.sencha.gxt.data.shared.loader.BeforeLoadEvent.BeforeLoadHandler;
+import com.sencha.gxt.data.shared.loader.LoadResultListStoreBinding;
+import com.sencha.gxt.data.shared.loader.PagingLoadConfig;
+import com.sencha.gxt.data.shared.loader.PagingLoadResult;
+import com.sencha.gxt.data.shared.loader.PagingLoader;
 import com.sencha.gxt.widget.core.client.box.MultiLinePromptMessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.FlowLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
+import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
 import com.sencha.gxt.widget.core.client.event.BeforeShowEvent;
 import com.sencha.gxt.widget.core.client.event.HideEvent;
 import com.sencha.gxt.widget.core.client.event.BeforeShowEvent.BeforeShowHandler;
@@ -45,6 +55,7 @@ import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent;
 import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent.SelectionChangedHandler;
+import com.sencha.gxt.widget.core.client.toolbar.PagingToolBar;
 
 import edu.arizona.biosemantics.oto2.ontologize.client.Ontologize;
 import edu.arizona.biosemantics.oto2.ontologize.client.common.Alerter;
@@ -77,6 +88,7 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Ontology
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySynonymSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySynonymSubmissionProperties;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.PartOf;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.SubmissionType;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Superclass;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Synonym;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
@@ -86,12 +98,6 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.IToOntolog
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.IToOntologyServiceAsync;
 
 public class ClassSubmissionsGrid implements IsWidget {
-
-	public static interface SubmissionsFilter {
-		
-		public boolean isFiltered(OntologyClassSubmission ontologyClassSubmission);
-		
-	}
 	
 	private OntologyClassSubmissionProperties ontologyClassSubmissionProperties = GWT.create(OntologyClassSubmissionProperties.class);
 	private OntologySynonymSubmissionProperties ontologySynonymSubmissionProperties = GWT.create(OntologySynonymSubmissionProperties.class);
@@ -118,14 +124,51 @@ public class ClassSubmissionsGrid implements IsWidget {
 	protected ColumnConfig<OntologyClassSubmission, String> superClassCol;
 	private ListStore<OntologyClassSubmission> classSubmissionStore =
 			new ListStore<OntologyClassSubmission>(ontologyClassSubmissionProperties.key());
-	private SubmissionsFilter submissionsFilter;
+	private SubmissionType submissionType;
+	private PagingLoader<PagingLoadConfig, PagingLoadResult<OntologyClassSubmission>> loader;
+	private VerticalLayoutContainer verticalLayoutContainer;
 	
-	public ClassSubmissionsGrid(EventBus eventBus, SubmissionsFilter submissionsFilter) {		
+	public ClassSubmissionsGrid(EventBus eventBus, final SubmissionType submissionType) {		
 		this.eventBus = eventBus;
-		this.submissionsFilter = submissionsFilter;
+		this.submissionType = submissionType;
+		
+		RpcProxy<PagingLoadConfig, PagingLoadResult<OntologyClassSubmission>> rpxProxy = new RpcProxy<PagingLoadConfig, PagingLoadResult<OntologyClassSubmission>>() {
+			@Override
+			public void load(PagingLoadConfig loadConfig, AsyncCallback<PagingLoadResult<OntologyClassSubmission>> callback) {
+				if(collection != null) {
+					toOntologyService.getClassSubmissions(collection, loadConfig, submissionType, callback);
+				}
+			}
+		};
+		loader = new PagingLoader<PagingLoadConfig, PagingLoadResult<OntologyClassSubmission>>(rpxProxy);
+	    //loader.setRemoteSort(true);
+	    loader.addLoadHandler(new LoadResultListStoreBinding<PagingLoadConfig, OntologyClassSubmission, PagingLoadResult<OntologyClassSubmission>>(classSubmissionStore));
 		
 		grid = new Grid<OntologyClassSubmission>(classSubmissionStore, createColumnModel(classSubmissionStore));
-		
+		//grid.setLoadMask(true);
+	    
+	    /*final CheckBox warnLoad = new CheckBox();
+	    warnLoad.setBoxLabel("Warn before loading new data");
+	    warnLoad.setValue(false);*/
+	    
+		// If the warn checkbox is active, then present a warning and stop any
+		// load
+		// after the first if the user clicks cancel
+		/*loader.addBeforeLoadHandler(new BeforeLoadHandler<PagingLoadConfig>() {
+			boolean initialLoad = true;
+			@Override
+			public void onBeforeLoad(BeforeLoadEvent<PagingLoadConfig> event) {
+				if (!initialLoad && warnLoad.getValue()) {
+					event.setCancelled(!Window.confirm("Are you sure you want to do that?"));
+				}
+				initialLoad = false;
+			}
+		});*/
+	    
+	    final PagingToolBar toolBar = new PagingToolBar(50);
+	    toolBar.setBorders(false);
+	    toolBar.bind(loader);
+	    
 		final GroupingView<OntologyClassSubmission> groupingView = new GroupingView<OntologyClassSubmission>();
 		groupingView.setShowGroupedColumn(false);
 		groupingView.setForceFit(true);
@@ -142,6 +185,11 @@ public class ClassSubmissionsGrid implements IsWidget {
 		
 		//classSubmissionStore.remove.
 		
+		verticalLayoutContainer = new VerticalLayoutContainer();
+		verticalLayoutContainer.add(grid, new VerticalLayoutData(1, 1));
+		verticalLayoutContainer.add(toolBar, new VerticalLayoutData(1, -1));
+		//verticalLayoutContainer.add(warnLoad, new VerticalLayoutData(-1, -1, new Margins(0, 0, 3, 3)));
+		
 		bindEvents();
 	}
 
@@ -149,27 +197,25 @@ public class ClassSubmissionsGrid implements IsWidget {
 		eventBus.addHandler(LoadOntologyClassSubmissionsEvent.TYPE, new LoadOntologyClassSubmissionsEvent.Handler() {
 			@Override
 			public void onSelect(LoadOntologyClassSubmissionsEvent event) {
-				classSubmissionStore.clear();
-				addClassSubmissions(event.getOntologyClassSubmissions());
+				
 			}
 		});
 		eventBus.addHandler(CreateOntologyClassSubmissionEvent.TYPE, new CreateOntologyClassSubmissionEvent.Handler() {
 			@Override
 			public void onSubmission(CreateOntologyClassSubmissionEvent event) {
-				addClassSubmissions(event.getClassSubmissions());
+				loader.load();
 			}
 		});
 		eventBus.addHandler(RemoveOntologyClassSubmissionsEvent.TYPE, new RemoveOntologyClassSubmissionsEvent.Handler() {
 			@Override
 			public void onRemove(RemoveOntologyClassSubmissionsEvent event) {
-				removeClassSubmissions(event.getOntologyClassSubmissions());
+				loader.load();
 			}
 		});
 		eventBus.addHandler(UpdateOntologyClassSubmissionsEvent.TYPE, new UpdateOntologyClassSubmissionsEvent.Handler() {
 			@Override
 			public void onUpdate(UpdateOntologyClassSubmissionsEvent event) {
-				for(OntologyClassSubmission submission : event.getOntologyClassSubmissions())
-					classSubmissionStore.update(submission);
+				loader.load();
 			}
 		});
 		
@@ -177,6 +223,7 @@ public class ClassSubmissionsGrid implements IsWidget {
 			@Override
 			public void onLoad(LoadCollectionEvent event) {
 				ClassSubmissionsGrid.this.collection = event.getCollection();
+				loader.load();
 				/*toOntologyService.getOntologies(collection, new AsyncCallback<List<Ontology>>() {
 					@Override
 					public void onFailure(Throwable caught) {
@@ -216,19 +263,7 @@ public class ClassSubmissionsGrid implements IsWidget {
 		});
 
 	}
-
-	protected void removeClassSubmissions(List<OntologyClassSubmission> ontologyClassSubmissions) {
-		for(OntologyClassSubmission ontologyClassSubmission : ontologyClassSubmissions)
-			classSubmissionStore.remove(ontologyClassSubmission);
-	}
-
-	protected void addClassSubmissions(List<OntologyClassSubmission> ontologyClassSubmissions) {
-		for(OntologyClassSubmission submission : ontologyClassSubmissions) {
-			if(!submissionsFilter.isFiltered(submission))
-				classSubmissionStore.add(submission);
-		}
-	}
-
+	
 	private Menu createClassSubmissionsContextMenu() {
 		final Menu menu = new Menu();
 		menu.addBeforeShowHandler(new BeforeShowHandler() {
@@ -454,7 +489,7 @@ public class ClassSubmissionsGrid implements IsWidget {
 
 	@Override
 	public Widget asWidget() {
-		return grid;
+		return verticalLayoutContainer;
 	}
 
 	public GridSelectionModel<OntologyClassSubmission> getSelectionModel() {

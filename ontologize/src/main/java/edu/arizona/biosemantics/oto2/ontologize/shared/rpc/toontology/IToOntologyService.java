@@ -5,12 +5,15 @@ import java.util.List;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
+import com.sencha.gxt.data.shared.loader.PagingLoadConfig;
+import com.sencha.gxt.data.shared.loader.PagingLoadResult;
 
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.db.Query.QueryException;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySynonymSubmission;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.SubmissionType;
 
 @RemoteServiceRelativePath("ontologize_toOntology")
 public interface IToOntologyService extends RemoteService {
@@ -52,4 +55,6 @@ public interface IToOntologyService extends RemoteService {
 	public void storeLocalOntologiesToFile(Collection collection) throws Exception;
 	
 	public boolean isSupportedIRI(Collection collection, String iri) throws Exception;
+	
+	public PagingLoadResult<OntologyClassSubmission> getClassSubmissions(Collection collection, PagingLoadConfig loadConfig, SubmissionType submissionType) throws Exception;
 }

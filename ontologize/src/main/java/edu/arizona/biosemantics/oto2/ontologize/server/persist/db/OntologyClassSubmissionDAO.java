@@ -7,6 +7,9 @@ import java.util.List;
 
 import org.semanticweb.owlapi.model.IRI;
 
+import com.sencha.gxt.data.shared.loader.PagingLoadConfig;
+import com.sencha.gxt.data.shared.loader.PagingLoadResult;
+
 import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.ontologize.server.Configuration;
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.db.Query.QueryException;
@@ -15,10 +18,12 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Term;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.ClassSubmissionsPagingLoadResult;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmissionStatus;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.PartOf;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.StatusEnum;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.SubmissionType;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Superclass;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Synonym;
 
@@ -382,6 +387,38 @@ public class OntologyClassSubmissionDAO {
 			log(LogLevel.ERROR, "Query Exception", e);
 			throw new QueryException(e);
 		}
+	}
+
+	public PagingLoadResult<OntologyClassSubmission> get(Collection collection, PagingLoadConfig loadConfig, SubmissionType submissionType) throws Exception {
+		List<OntologyClassSubmission> data = new LinkedList<OntologyClassSubmission>();
+		try(Query query = new Query("SELECT * FROM ontologize_ontologyclasssubmission s, ontologize_ontology o WHERE s.collection = ? "
+				+ " AND s.ontology = o.id AND o.bioportal_ontology = ? LIMIT ? OFFSET ?")) {
+			query.setParameter(1, collection.getId());
+			query.setParameter(2, submissionType == SubmissionType.BIOPORTAL ? 1 : 0);
+			query.setParameter(3, loadConfig.getLimit());
+			query.setParameter(4, loadConfig.getOffset());
+			ResultSet resultSet = query.execute();
+			while(resultSet.next()) {
+				data.add(createClassSubmission(resultSet));
+			}
+		} catch(QueryException | SQLException e) {
+			e.printStackTrace();
+			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
+		}
+		int count = 0;
+		try(Query query = new Query("SELECT COUNT(s.id) FROM ontologize_ontologyclasssubmission s, ontologize_ontology o WHERE s.collection = ? "
+				+ " AND s.ontology = o.id AND o.bioportal_ontology = ?")) {
+			query.setParameter(1, collection.getId());
+			query.setParameter(2, submissionType == SubmissionType.BIOPORTAL ? 1 : 0);
+			ResultSet resultSet = query.execute();
+			while(resultSet.next()) {
+				count = resultSet.getInt(1);
+			}
+		}
+		
+		ClassSubmissionsPagingLoadResult result = new ClassSubmissionsPagingLoadResult(data, count, loadConfig.getOffset());
+		return result;
 	}
 
 

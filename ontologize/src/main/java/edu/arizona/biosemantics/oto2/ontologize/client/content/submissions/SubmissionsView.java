@@ -10,6 +10,7 @@ import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.widget.core.client.TabPanel;
 
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.SubmissionType;
 
 public class SubmissionsView implements IsWidget {
 
@@ -19,14 +20,13 @@ public class SubmissionsView implements IsWidget {
 	private ClassSubmissionsGrid classSubmissionsGrid;
 	private SynonymSubmissionsGrid synonymSubmissionGrid;
 
-	public SubmissionsView(EventBus eventBus, ClassSubmissionsGrid.SubmissionsFilter classSubmissionFilter, 
-			SynonymSubmissionsGrid.SubmissionsFilter synonymSubmissionFilter) {
+	public SubmissionsView(EventBus eventBus, SubmissionType submissionType) {
 		this.eventBus = eventBus;
 		//tabPanel = new TabPanel(GWT.<TabPanelAppearance> create(TabPanelBottomAppearance.class));
 		tabPanel = new TabPanel();
 
-		classSubmissionsGrid = new ClassSubmissionsGrid(eventBus, classSubmissionFilter);
-		synonymSubmissionGrid = new SynonymSubmissionsGrid(eventBus, synonymSubmissionFilter);
+		classSubmissionsGrid = new ClassSubmissionsGrid(eventBus, submissionType);
+		synonymSubmissionGrid = new SynonymSubmissionsGrid(eventBus, submissionType);
 		
 		tabPanel.add(classSubmissionsGrid, "Class");
 		tabPanel.add(synonymSubmissionGrid, "Synonym");

@@ -57,6 +57,7 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Ontology
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySynonymSubmissionProperties;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySynonymSubmissionStatus;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySynonymSubmissionStatusProperties;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.SubmissionType;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Synonym;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.ICollectionService;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.ICollectionServiceAsync;
@@ -93,11 +94,11 @@ public class SynonymSubmissionsGrid implements IsWidget {
 	protected ColumnConfig<OntologySynonymSubmission, String> userCol;
 	private ListStore<OntologySynonymSubmission> synonymSubmissionStore =
 			new ListStore<OntologySynonymSubmission>(ontologySynonymSubmissionProperties.key());
-	private SubmissionsFilter submissionsFilter;
+	private SubmissionType submissionType;
 	
-	public SynonymSubmissionsGrid(EventBus eventBus, SubmissionsFilter submissionsFilter) {
+	public SynonymSubmissionsGrid(EventBus eventBus, SubmissionType submissionType) {
 		this.eventBus = eventBus;
-		this.submissionsFilter = submissionsFilter;
+		this.submissionType = submissionType;
 
 		grid = new Grid<OntologySynonymSubmission>(synonymSubmissionStore, createColumnModel(synonymSubmissionStore));
 		
@@ -326,7 +327,7 @@ public class SynonymSubmissionsGrid implements IsWidget {
 
 
 	protected void addSynonymSubmission(OntologySynonymSubmission submission) {
-		if(!submissionsFilter.isFiltered(submission))
+		//if(!submissionsFilter.isFiltered(submission))
 			synonymSubmissionStore.add(submission);
 	}
 

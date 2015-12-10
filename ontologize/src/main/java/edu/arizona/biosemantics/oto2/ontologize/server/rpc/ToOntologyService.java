@@ -7,8 +7,13 @@ import java.util.concurrent.ExecutionException;
 
 import org.semanticweb.owlapi.model.OWLClass;
 
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import com.google.inject.Inject;
+import com.sencha.gxt.data.shared.loader.ListLoadResult;
+import com.sencha.gxt.data.shared.loader.PagingLoadConfig;
+import com.sencha.gxt.data.shared.loader.PagingLoadResult;
+import com.sencha.gxt.data.shared.loader.PagingLoadResultBean;
 
 import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.ontologize.server.Configuration;
@@ -27,6 +32,7 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Ontology
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySynonymSubmissionStatus;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.PartOf;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.StatusEnum;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.SubmissionType;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Superclass;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Synonym;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.IToOntologyService;
@@ -273,5 +279,10 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 			return true;
 		else
 			return daoManager.getPermanentOntologyFileDAO().contains(collection, iri);
+	}
+	
+	@Override
+	public PagingLoadResult<OntologyClassSubmission> getClassSubmissions(Collection collection, PagingLoadConfig loadConfig, SubmissionType submissionType) throws Exception {
+		return daoManager.getOntologyClassSubmissionDAO().get(collection, loadConfig, submissionType);
 	}
 }

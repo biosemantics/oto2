@@ -14,6 +14,7 @@ import edu.arizona.biosemantics.oto2.ontologize.client.content.submissions.Submi
 import edu.arizona.biosemantics.oto2.ontologize.client.content.submissions.SynonymSubmissionsGrid;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySynonymSubmission;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.SubmissionType;
 
 public class BioportalSubmissionsView implements IsWidget {
 
@@ -22,17 +23,7 @@ public class BioportalSubmissionsView implements IsWidget {
 	private EditSubmissionView editSubmissionView;
 
 	public BioportalSubmissionsView(EventBus eventBus) {
-		submissionsView = new SubmissionsView(eventBus, new ClassSubmissionsGrid.SubmissionsFilter() {
-			@Override
-			public boolean isFiltered(OntologyClassSubmission ontologyClassSubmission) {
-				return !ontologyClassSubmission.getOntology().isBioportalOntology();
-			}
-		}, new SynonymSubmissionsGrid.SubmissionsFilter() {
-			@Override
-			public boolean isFiltered(OntologySynonymSubmission ontologySynonymSubmission) {
-				return !ontologySynonymSubmission.getOntology().isBioportalOntology();
-			}
-		});
+		submissionsView = new SubmissionsView(eventBus, SubmissionType.BIOPORTAL);
 		editSubmissionView = new EditSubmissionView(eventBus, false, false, false, true, false, true);
 			
 		borderLayoutContainer = new BorderLayoutContainer();
