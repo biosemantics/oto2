@@ -58,4 +58,6 @@ public interface IToOntologyService extends RemoteService {
 	public boolean isSupportedIRI(Collection collection, String iri) throws Exception;
 	
 	public PagingLoadResult<OntologyClassSubmission> getClassSubmissions(Collection collection, FilterPagingLoadConfig loadConfig, SubmissionType submissionType) throws Exception;
+	
+	public PagingLoadResult<OntologySynonymSubmission> getSynonymSubmissions(Collection collection, FilterPagingLoadConfig loadConfig, SubmissionType submissionType) throws Exception;
 }

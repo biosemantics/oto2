@@ -15,8 +15,18 @@ import com.sencha.gxt.core.client.Style.SelectionMode;
 import com.sencha.gxt.core.client.util.Format;
 import com.sencha.gxt.core.client.util.Params;
 import com.sencha.gxt.core.client.ValueProvider;
+import com.sencha.gxt.data.client.loader.RpcProxy;
 import com.sencha.gxt.data.shared.ListStore;
+import com.sencha.gxt.data.shared.SortDir;
+import com.sencha.gxt.data.shared.SortInfoBean;
+import com.sencha.gxt.data.shared.loader.FilterPagingLoadConfig;
+import com.sencha.gxt.data.shared.loader.FilterPagingLoadConfigBean;
+import com.sencha.gxt.data.shared.loader.LoadResultListStoreBinding;
+import com.sencha.gxt.data.shared.loader.PagingLoadResult;
+import com.sencha.gxt.data.shared.loader.PagingLoader;
 import com.sencha.gxt.widget.core.client.box.MultiLinePromptMessageBox;
+import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
+import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
 import com.sencha.gxt.widget.core.client.event.BeforeShowEvent;
 import com.sencha.gxt.widget.core.client.event.HideEvent;
 import com.sencha.gxt.widget.core.client.event.BeforeShowEvent.BeforeShowHandler;
@@ -28,20 +38,26 @@ import com.sencha.gxt.widget.core.client.grid.Grid;
 import com.sencha.gxt.widget.core.client.grid.GridSelectionModel;
 import com.sencha.gxt.widget.core.client.grid.GridView;
 import com.sencha.gxt.widget.core.client.grid.GroupingView;
+import com.sencha.gxt.widget.core.client.grid.filters.GridFilters;
+import com.sencha.gxt.widget.core.client.grid.filters.StringFilter;
 import com.sencha.gxt.widget.core.client.info.Info;
 import com.sencha.gxt.widget.core.client.menu.HeaderMenuItem;
 import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
+import com.sencha.gxt.widget.core.client.toolbar.PagingToolBar;
 
 import edu.arizona.biosemantics.oto2.ontologize.client.Ontologize;
 import edu.arizona.biosemantics.oto2.ontologize.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize.client.common.ColorableCell;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.AddCommentEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.CreateOntologyClassSubmissionEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.CreateOntologySynonymSubmissionEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadCollectionEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadOntologySynonymSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.OntologySynonymSubmissionSelectEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.RemoveOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.RemoveOntologySynonymSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.SetColorEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.UpdateOntologyClassSubmissionsEvent;
@@ -95,12 +111,27 @@ public class SynonymSubmissionsGrid implements IsWidget {
 	private ListStore<OntologySynonymSubmission> synonymSubmissionStore =
 			new ListStore<OntologySynonymSubmission>(ontologySynonymSubmissionProperties.key());
 	private SubmissionType submissionType;
+	private PagingLoader<FilterPagingLoadConfig, PagingLoadResult<OntologySynonymSubmission>> remoteLoader;
+	private VerticalLayoutContainer verticalLayoutContainer;
 	
-	public SynonymSubmissionsGrid(EventBus eventBus, SubmissionType submissionType) {
+	public SynonymSubmissionsGrid(EventBus eventBus, final SubmissionType submissionType) {
 		this.eventBus = eventBus;
 		this.submissionType = submissionType;
-
+		
+		RpcProxy<FilterPagingLoadConfig, PagingLoadResult<OntologySynonymSubmission>> rpcProxy = new RpcProxy<FilterPagingLoadConfig, PagingLoadResult<OntologySynonymSubmission>>() {
+			@Override
+			public void load(FilterPagingLoadConfig loadConfig, AsyncCallback<PagingLoadResult<OntologySynonymSubmission>> callback) {
+				toOntologyService.getSynonymSubmissions(collection, loadConfig, submissionType, callback);
+			}
+		};
+		remoteLoader = new PagingLoader<FilterPagingLoadConfig, PagingLoadResult<OntologySynonymSubmission>>(rpcProxy);
+		remoteLoader.useLoadConfig(new FilterPagingLoadConfigBean());
+		remoteLoader.setRemoteSort(true);
+		remoteLoader.addLoadHandler(new LoadResultListStoreBinding<FilterPagingLoadConfig, 
+				OntologySynonymSubmission, PagingLoadResult<OntologySynonymSubmission>>(synonymSubmissionStore));
+		remoteLoader.addSortInfo(new SortInfoBean(ontologySynonymSubmissionProperties.submissionTerm(), SortDir.ASC));
 		grid = new Grid<OntologySynonymSubmission>(synonymSubmissionStore, createColumnModel(synonymSubmissionStore));
+		grid.setLoader(remoteLoader);
 		
 		final GroupingView<OntologySynonymSubmission> groupingView = new GroupingView<OntologySynonymSubmission>();
 		groupingView.setShowGroupedColumn(false);
@@ -115,6 +146,21 @@ public class SynonymSubmissionsGrid implements IsWidget {
 		//grid.setBorders(false);
 		grid.getView().setStripeRows(true);
 		grid.getView().setColumnLines(true);
+		
+		StringFilter<OntologySynonymSubmission> submissionTermFilter = new StringFilter<OntologySynonymSubmission>(ontologySynonymSubmissionProperties.submissionTerm());
+		//StringFilter<OntologySynonymSubmission> nameFilter = new StringFilter<OntologySynonymSubmission>(ontologySynonymSubmissionProperties.classLabel());
+	    
+		GridFilters<OntologySynonymSubmission> filters = new GridFilters<OntologySynonymSubmission>(remoteLoader);
+	    filters.initPlugin(grid);
+	    filters.addFilter(submissionTermFilter);
+	    
+		final PagingToolBar toolBar = new PagingToolBar(25);
+	    toolBar.setBorders(false);
+	    toolBar.bind(remoteLoader);
+		
+		verticalLayoutContainer = new VerticalLayoutContainer();
+		verticalLayoutContainer.add(grid, new VerticalLayoutData(1, 1));
+		verticalLayoutContainer.add(toolBar, new VerticalLayoutData(1, -1));
 		
 		bindEvents();
 	}
@@ -259,30 +305,28 @@ public class SynonymSubmissionsGrid implements IsWidget {
 	}
 
 	private void bindEvents() {
-		eventBus.addHandler(LoadOntologySynonymSubmissionsEvent.TYPE, new LoadOntologySynonymSubmissionsEvent.Handler() {
+		eventBus.addHandler(LoadOntologyClassSubmissionsEvent.TYPE, new LoadOntologyClassSubmissionsEvent.Handler() {
 			@Override
-			public void onSelect(LoadOntologySynonymSubmissionsEvent event) {
-				synonymSubmissionStore.clear();
-				addSynonymSubmissions(event.getOntologySynonymSubmissions());
+			public void onSelect(LoadOntologyClassSubmissionsEvent event) {
+				
 			}
 		});
-		eventBus.addHandler(CreateOntologySynonymSubmissionEvent.TYPE, new CreateOntologySynonymSubmissionEvent.Handler() {
+		eventBus.addHandler(CreateOntologyClassSubmissionEvent.TYPE, new CreateOntologyClassSubmissionEvent.Handler() {
 			@Override
-			public void onSubmission(CreateOntologySynonymSubmissionEvent event) {
-				addSynonymSubmission(event.getSynonymSubmission());
+			public void onSubmission(CreateOntologyClassSubmissionEvent event) {
+				remoteLoader.load();
 			}
 		});
-		eventBus.addHandler(RemoveOntologySynonymSubmissionsEvent.TYPE, new RemoveOntologySynonymSubmissionsEvent.Handler() {
+		eventBus.addHandler(RemoveOntologyClassSubmissionsEvent.TYPE, new RemoveOntologyClassSubmissionsEvent.Handler() {
 			@Override
-			public void onRemove(RemoveOntologySynonymSubmissionsEvent event) {
-				removeSynonymSubmissions(event.getOntologySynonymSubmissions());
+			public void onRemove(RemoveOntologyClassSubmissionsEvent event) {
+				remoteLoader.load();
 			}
 		});
-		eventBus.addHandler(UpdateOntologySynonymsSubmissionsEvent.TYPE, new UpdateOntologySynonymsSubmissionsEvent.Handler() {
+		eventBus.addHandler(UpdateOntologyClassSubmissionsEvent.TYPE, new UpdateOntologyClassSubmissionsEvent.Handler() {
 			@Override
-			public void onUpdate(UpdateOntologySynonymsSubmissionsEvent event) {
-				for(OntologySynonymSubmission submission : event.getOntologySynonymSubmissions())
-					synonymSubmissionStore.update(submission);
+			public void onUpdate(UpdateOntologyClassSubmissionsEvent event) {
+				remoteLoader.load();
 			}
 		});
 		
@@ -290,6 +334,7 @@ public class SynonymSubmissionsGrid implements IsWidget {
 			@Override
 			public void onLoad(LoadCollectionEvent event) {
 				SynonymSubmissionsGrid.this.collection = event.getCollection();
+				remoteLoader.load();
 			}
 		});
 		getSelectionModel().addSelectionHandler(new SelectionHandler<OntologySynonymSubmission>() {
@@ -311,24 +356,6 @@ public class SynonymSubmissionsGrid implements IsWidget {
 				}
 			}
 		});
-	}
-
-	protected void removeSynonymSubmissions(List<OntologySynonymSubmission> ontologySynonymSubmissions) {
-		for(OntologySynonymSubmission ontologySynonymSubmission : ontologySynonymSubmissions)
-			synonymSubmissionStore.remove(ontologySynonymSubmission);
-	}
-
-
-	protected void addSynonymSubmissions(List<OntologySynonymSubmission> ontologySynonymSubmissions) {
-		for(OntologySynonymSubmission submission : ontologySynonymSubmissions) {
-			addSynonymSubmission(submission);
-		}
-	}
-
-
-	protected void addSynonymSubmission(OntologySynonymSubmission submission) {
-		//if(!submissionsFilter.isFiltered(submission))
-			synonymSubmissionStore.add(submission);
 	}
 
 
@@ -594,7 +621,7 @@ public class SynonymSubmissionsGrid implements IsWidget {
 
 	@Override
 	public Widget asWidget() {
-		return grid;
+		return verticalLayoutContainer;
 	}
 
 
@@ -603,14 +630,15 @@ public class SynonymSubmissionsGrid implements IsWidget {
 	}
 	
 	protected void setHiddenColumns() {
-		termCol.setHidden(false);
+		termCol.setHidden(true);
+		submissionTermCol.setHidden(false);
 		categoryCol.setHidden(true);
 		classLabelCol.setHidden(false);
 		classIriCol.setHidden(true);
 		iriCol.setHidden(true);
 		sampleCol.setHidden(true);
 		sourceCol.setHidden(true);
-		synonymsCol.setHidden(true);
+		synonymsCol.setHidden(false);
 		userCol.setHidden(true);
 		statusCol.setHidden(true);
 		ontologyCol.setHidden(true);

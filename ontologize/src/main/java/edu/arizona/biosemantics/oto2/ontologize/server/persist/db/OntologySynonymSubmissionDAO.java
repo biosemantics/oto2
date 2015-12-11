@@ -5,6 +5,11 @@ import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.sencha.gxt.data.shared.SortInfo;
+import com.sencha.gxt.data.shared.loader.FilterConfig;
+import com.sencha.gxt.data.shared.loader.FilterPagingLoadConfig;
+import com.sencha.gxt.data.shared.loader.PagingLoadResult;
+
 import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.ontologize.server.Configuration;
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.db.Query.QueryException;
@@ -12,11 +17,14 @@ import edu.arizona.biosemantics.oto2.ontologize.server.persist.file.PermanentOnt
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Term;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.ClassSubmissionsPagingLoadResult;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySynonymSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologySynonymSubmissionStatus;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.StatusEnum;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.SubmissionType;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Synonym;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.SynonymSubmissionsPagingLoadResult;
 
 public class OntologySynonymSubmissionDAO {
 
@@ -265,5 +273,84 @@ public class OntologySynonymSubmissionDAO {
 			}
 		}
 	}
+
+	public PagingLoadResult<OntologySynonymSubmission> get(Collection collection, FilterPagingLoadConfig loadConfig, SubmissionType submissionType) throws Exception {
+		int count = 0;
+		List<OntologySynonymSubmission> data = new LinkedList<OntologySynonymSubmission>();
+		
+		if(collection != null) {
+			String filterSQL = "";
+			for(FilterConfig filter : loadConfig.getFilters()) {
+				if(filter.getComparison().equals("contains") && filter.getType().equals("string")) {
+					String dbField = getDBField(filter.getField());
+					if(dbField != null)
+						filterSQL += " AND " + dbField + " LIKE '%" + filter.getValue() + "%'";
+				}
+			}
+			String sortSQL = "";
+			for(SortInfo sortInfo : loadConfig.getSortInfo()) {
+				String dbField = getDBField(sortInfo.getSortField());
+				if(dbField != null)
+					sortSQL += " ORDER BY " + dbField + " " + sortInfo.getSortDir().toString();
+			}
+			
+			try(Query query = new Query("SELECT * FROM ontologize_ontologysynonymsubmission s, ontologize_ontology o WHERE s.collection = ? "
+					+ " AND s.ontology = o.id AND o.bioportal_ontology = ? " + filterSQL + " " + sortSQL + " LIMIT ? OFFSET ?")) {
+				query.setParameter(1, collection.getId());
+				query.setParameter(2, submissionType == SubmissionType.BIOPORTAL ? 1 : 0);
+				query.setParameter(3, loadConfig.getLimit());
+				query.setParameter(4, loadConfig.getOffset());
+				ResultSet resultSet = query.execute();
+				while(resultSet.next()) {
+					data.add(createSynonymSubmission(resultSet));
+				}
+			} catch(QueryException | SQLException e) {
+				e.printStackTrace();
+				log(LogLevel.ERROR, "Query Exception", e);
+				throw new QueryException(e);
+			}
+			
+			try(Query query = new Query("SELECT COUNT(s.id) FROM ontologize_ontologysynonymsubmission s, ontologize_ontology o WHERE s.collection = ? "
+					+ " AND s.ontology = o.id AND o.bioportal_ontology = ? " + filterSQL)) {
+				query.setParameter(1, collection.getId());
+				query.setParameter(2, submissionType == SubmissionType.BIOPORTAL ? 1 : 0);
+				ResultSet resultSet = query.execute();
+				while(resultSet.next()) {
+					count = resultSet.getInt(1);
+				}
+			}
+		}
+		
+		SynonymSubmissionsPagingLoadResult result = new SynonymSubmissionsPagingLoadResult(data, count, loadConfig.getOffset());
+		return result;
+	}
+
+	private String getDBField(String field) {      
+	    switch(field) {
+	    case "id":
+	    	return "id";
+	    case "term":
+	    	return "term";
+	    case "collection":
+	    	return "collection";
+    	case "submissionTerm":
+	    	return "submission_term";
+    	case "ontology":
+    		return "ontology";
+    	case "classIri":
+    		return "class_iri";
+    	case "synonyms":
+    		return "synonyms";
+    	case "source":
+    		return "source";
+    	case "sampleSentence":
+    		return "sample_sentence";
+    	case "user":
+    		return "user";
+	    default:
+	    	return null;
+	    }
+	}
+
 	
 }

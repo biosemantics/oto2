@@ -57,4 +57,6 @@ public interface IToOntologyServiceAsync {
 
 	public void getClassSubmissions(Collection collection, FilterPagingLoadConfig loadConfig, SubmissionType submissionType, AsyncCallback<PagingLoadResult<OntologyClassSubmission>> callback);
 
+	public void getSynonymSubmissions(Collection collection, FilterPagingLoadConfig loadConfig, SubmissionType submissionType, AsyncCallback<PagingLoadResult<OntologySynonymSubmission>> callback);
+
 }

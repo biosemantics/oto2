@@ -459,6 +459,8 @@ public class OntologyClassSubmissionDAO {
     		return "class_iri";
     	case "definition":
     		return "definition";
+    	case "source":
+    		return "source";
     	case "sampleSentence":
     		return "sample_sentence";
     	case "user":

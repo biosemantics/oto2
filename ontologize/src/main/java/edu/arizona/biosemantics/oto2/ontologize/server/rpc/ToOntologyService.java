@@ -112,7 +112,6 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 		addIRIsToPlainTerms(collection, submission, submissions);
 		submission = daoManager.getOntologyClassSubmissionDAO().insert(submission);
 		
-		if(submission.getOntology().isBioportalOntology())
 		this.setNew(submission);
 		submissions.add(submission);
 		return submissions;
@@ -291,5 +290,10 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	@Override
 	public PagingLoadResult<OntologyClassSubmission> getClassSubmissions(Collection collection, FilterPagingLoadConfig loadConfig, SubmissionType submissionType) throws Exception {
 		return daoManager.getOntologyClassSubmissionDAO().get(collection, loadConfig, submissionType);
+	}
+
+	@Override
+	public PagingLoadResult<OntologySynonymSubmission> getSynonymSubmissions(Collection collection, FilterPagingLoadConfig loadConfig, SubmissionType submissionType) throws Exception {
+		return daoManager.getOntologySynonymSubmissionDAO().get(collection, loadConfig, submissionType);
 	}
 }
