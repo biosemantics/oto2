@@ -1,10 +1,13 @@
 package edu.arizona.biosemantics.oto2.ontologize.client.content.submissions;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.core.client.Scheduler;
+import com.google.gwt.core.client.Scheduler.ScheduledCommand;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
@@ -23,8 +26,16 @@ import com.sencha.gxt.core.client.util.Params;
 import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.data.client.loader.RpcProxy;
 import com.sencha.gxt.data.shared.ListStore;
+import com.sencha.gxt.data.shared.SortDir;
+import com.sencha.gxt.data.shared.SortInfo;
+import com.sencha.gxt.data.shared.SortInfoBean;
+import com.sencha.gxt.data.shared.Store.StoreSortInfo;
 import com.sencha.gxt.data.shared.loader.BeforeLoadEvent;
 import com.sencha.gxt.data.shared.loader.BeforeLoadEvent.BeforeLoadHandler;
+import com.sencha.gxt.data.shared.loader.FilterConfig;
+import com.sencha.gxt.data.shared.loader.FilterConfigBean;
+import com.sencha.gxt.data.shared.loader.FilterPagingLoadConfig;
+import com.sencha.gxt.data.shared.loader.FilterPagingLoadConfigBean;
 import com.sencha.gxt.data.shared.loader.LoadResultListStoreBinding;
 import com.sencha.gxt.data.shared.loader.PagingLoadConfig;
 import com.sencha.gxt.data.shared.loader.PagingLoadResult;
@@ -48,6 +59,8 @@ import com.sencha.gxt.widget.core.client.grid.Grid;
 import com.sencha.gxt.widget.core.client.grid.GridSelectionModel;
 import com.sencha.gxt.widget.core.client.grid.GridView;
 import com.sencha.gxt.widget.core.client.grid.GroupingView;
+import com.sencha.gxt.widget.core.client.grid.filters.GridFilters;
+import com.sencha.gxt.widget.core.client.grid.filters.StringFilter;
 import com.sencha.gxt.widget.core.client.info.Info;
 import com.sencha.gxt.widget.core.client.menu.HeaderMenuItem;
 import com.sencha.gxt.widget.core.client.menu.Item;
@@ -125,49 +138,27 @@ public class ClassSubmissionsGrid implements IsWidget {
 	private ListStore<OntologyClassSubmission> classSubmissionStore =
 			new ListStore<OntologyClassSubmission>(ontologyClassSubmissionProperties.key());
 	private SubmissionType submissionType;
-	private PagingLoader<PagingLoadConfig, PagingLoadResult<OntologyClassSubmission>> loader;
 	private VerticalLayoutContainer verticalLayoutContainer;
+	private PagingLoader<FilterPagingLoadConfig, PagingLoadResult<OntologyClassSubmission>> remoteLoader;
 	
 	public ClassSubmissionsGrid(EventBus eventBus, final SubmissionType submissionType) {		
 		this.eventBus = eventBus;
 		this.submissionType = submissionType;
 		
-		RpcProxy<PagingLoadConfig, PagingLoadResult<OntologyClassSubmission>> rpxProxy = new RpcProxy<PagingLoadConfig, PagingLoadResult<OntologyClassSubmission>>() {
+		RpcProxy<FilterPagingLoadConfig, PagingLoadResult<OntologyClassSubmission>> rpcProxy = new RpcProxy<FilterPagingLoadConfig, PagingLoadResult<OntologyClassSubmission>>() {
 			@Override
-			public void load(PagingLoadConfig loadConfig, AsyncCallback<PagingLoadResult<OntologyClassSubmission>> callback) {
-				if(collection != null) {
-					toOntologyService.getClassSubmissions(collection, loadConfig, submissionType, callback);
-				}
+			public void load(FilterPagingLoadConfig loadConfig, AsyncCallback<PagingLoadResult<OntologyClassSubmission>> callback) {
+				toOntologyService.getClassSubmissions(collection, loadConfig, submissionType, callback);
 			}
 		};
-		loader = new PagingLoader<PagingLoadConfig, PagingLoadResult<OntologyClassSubmission>>(rpxProxy);
-	    //loader.setRemoteSort(true);
-	    loader.addLoadHandler(new LoadResultListStoreBinding<PagingLoadConfig, OntologyClassSubmission, PagingLoadResult<OntologyClassSubmission>>(classSubmissionStore));
-		
+		remoteLoader = new PagingLoader<FilterPagingLoadConfig, PagingLoadResult<OntologyClassSubmission>>(rpcProxy);
+		remoteLoader.useLoadConfig(new FilterPagingLoadConfigBean());
+		remoteLoader.setRemoteSort(true);
+		remoteLoader.addLoadHandler(new LoadResultListStoreBinding<FilterPagingLoadConfig, 
+				OntologyClassSubmission, PagingLoadResult<OntologyClassSubmission>>(classSubmissionStore));
+		remoteLoader.addSortInfo(new SortInfoBean(ontologyClassSubmissionProperties.submissionTerm(), SortDir.ASC));
 		grid = new Grid<OntologyClassSubmission>(classSubmissionStore, createColumnModel(classSubmissionStore));
-		//grid.setLoadMask(true);
-	    
-	    /*final CheckBox warnLoad = new CheckBox();
-	    warnLoad.setBoxLabel("Warn before loading new data");
-	    warnLoad.setValue(false);*/
-	    
-		// If the warn checkbox is active, then present a warning and stop any
-		// load
-		// after the first if the user clicks cancel
-		/*loader.addBeforeLoadHandler(new BeforeLoadHandler<PagingLoadConfig>() {
-			boolean initialLoad = true;
-			@Override
-			public void onBeforeLoad(BeforeLoadEvent<PagingLoadConfig> event) {
-				if (!initialLoad && warnLoad.getValue()) {
-					event.setCancelled(!Window.confirm("Are you sure you want to do that?"));
-				}
-				initialLoad = false;
-			}
-		});*/
-	    
-	    final PagingToolBar toolBar = new PagingToolBar(50);
-	    toolBar.setBorders(false);
-	    toolBar.bind(loader);
+		grid.setLoader(remoteLoader);
 	    
 		final GroupingView<OntologyClassSubmission> groupingView = new GroupingView<OntologyClassSubmission>();
 		groupingView.setShowGroupedColumn(false);
@@ -183,12 +174,19 @@ public class ClassSubmissionsGrid implements IsWidget {
 		grid.getView().setStripeRows(true);
 		grid.getView().setColumnLines(true);
 		
-		//classSubmissionStore.remove.
+		StringFilter<OntologyClassSubmission> nameFilter = new StringFilter<OntologyClassSubmission>(ontologyClassSubmissionProperties.submissionTerm());
+	    
+		GridFilters<OntologyClassSubmission> filters = new GridFilters<OntologyClassSubmission>(remoteLoader);
+	    filters.initPlugin(grid);
+	    filters.addFilter(nameFilter);
+	    
+		final PagingToolBar toolBar = new PagingToolBar(25);
+	    toolBar.setBorders(false);
+	    toolBar.bind(remoteLoader);
 		
 		verticalLayoutContainer = new VerticalLayoutContainer();
 		verticalLayoutContainer.add(grid, new VerticalLayoutData(1, 1));
 		verticalLayoutContainer.add(toolBar, new VerticalLayoutData(1, -1));
-		//verticalLayoutContainer.add(warnLoad, new VerticalLayoutData(-1, -1, new Margins(0, 0, 3, 3)));
 		
 		bindEvents();
 	}
@@ -203,19 +201,19 @@ public class ClassSubmissionsGrid implements IsWidget {
 		eventBus.addHandler(CreateOntologyClassSubmissionEvent.TYPE, new CreateOntologyClassSubmissionEvent.Handler() {
 			@Override
 			public void onSubmission(CreateOntologyClassSubmissionEvent event) {
-				loader.load();
+				remoteLoader.load();
 			}
 		});
 		eventBus.addHandler(RemoveOntologyClassSubmissionsEvent.TYPE, new RemoveOntologyClassSubmissionsEvent.Handler() {
 			@Override
 			public void onRemove(RemoveOntologyClassSubmissionsEvent event) {
-				loader.load();
+				remoteLoader.load();
 			}
 		});
 		eventBus.addHandler(UpdateOntologyClassSubmissionsEvent.TYPE, new UpdateOntologyClassSubmissionsEvent.Handler() {
 			@Override
 			public void onUpdate(UpdateOntologyClassSubmissionsEvent event) {
-				loader.load();
+				remoteLoader.load();
 			}
 		});
 		
@@ -223,7 +221,7 @@ public class ClassSubmissionsGrid implements IsWidget {
 			@Override
 			public void onLoad(LoadCollectionEvent event) {
 				ClassSubmissionsGrid.this.collection = event.getCollection();
-				loader.load();
+				remoteLoader.load();
 				/*toOntologyService.getOntologies(collection, new AsyncCallback<List<Ontology>>() {
 					@Override
 					public void onFailure(Throwable caught) {

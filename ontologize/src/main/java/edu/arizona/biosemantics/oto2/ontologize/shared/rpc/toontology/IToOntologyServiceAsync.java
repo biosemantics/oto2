@@ -3,6 +3,7 @@ package edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology;
 import java.util.List;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.sencha.gxt.data.shared.loader.FilterPagingLoadConfig;
 import com.sencha.gxt.data.shared.loader.PagingLoadConfig;
 import com.sencha.gxt.data.shared.loader.PagingLoadResult;
 
@@ -54,6 +55,6 @@ public interface IToOntologyServiceAsync {
 	
 	public void isSupportedIRI(Collection collection, String iri, AsyncCallback<Boolean> callback);
 
-	public void getClassSubmissions(Collection collection, PagingLoadConfig loadConfig, SubmissionType submissionType, AsyncCallback<PagingLoadResult<OntologyClassSubmission>> callback);
+	public void getClassSubmissions(Collection collection, FilterPagingLoadConfig loadConfig, SubmissionType submissionType, AsyncCallback<PagingLoadResult<OntologyClassSubmission>> callback);
 
 }

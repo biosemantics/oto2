@@ -10,6 +10,7 @@ import org.semanticweb.owlapi.model.OWLClass;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import com.google.inject.Inject;
+import com.sencha.gxt.data.shared.loader.FilterPagingLoadConfig;
 import com.sencha.gxt.data.shared.loader.ListLoadResult;
 import com.sencha.gxt.data.shared.loader.PagingLoadConfig;
 import com.sencha.gxt.data.shared.loader.PagingLoadResult;
@@ -110,7 +111,9 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 		List<OntologyClassSubmission> submissions = new LinkedList<OntologyClassSubmission>();
 		addIRIsToPlainTerms(collection, submission, submissions);
 		submission = daoManager.getOntologyClassSubmissionDAO().insert(submission);
-		this.setPending(submission);
+		
+		if(submission.getOntology().isBioportalOntology())
+		this.setNew(submission);
 		submissions.add(submission);
 		return submissions;
 	}
@@ -153,7 +156,7 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	@Override
 	public OntologySynonymSubmission createSynonymSubmission(Collection collection, OntologySynonymSubmission submission) throws Exception {
 		submission = daoManager.getOntologySynonymSubmissionDAO().insert(submission);
-		this.setPending(submission);
+		this.setNew(submission);
 		return submission;
 	}
 	
@@ -201,6 +204,10 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	
 	private void setRejected(OntologySubmission submission) throws QueryException {
 		this.setStatus(submission, StatusEnum.REJECTED);
+	}
+	
+	private void setNew(OntologySubmission submission) throws QueryException {
+		this.setStatus(submission, StatusEnum.NEW);
 	}
 	
 	private void setStatus(OntologySubmission submission, String classIRI, StatusEnum status) throws QueryException {
@@ -282,7 +289,7 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	}
 	
 	@Override
-	public PagingLoadResult<OntologyClassSubmission> getClassSubmissions(Collection collection, PagingLoadConfig loadConfig, SubmissionType submissionType) throws Exception {
+	public PagingLoadResult<OntologyClassSubmission> getClassSubmissions(Collection collection, FilterPagingLoadConfig loadConfig, SubmissionType submissionType) throws Exception {
 		return daoManager.getOntologyClassSubmissionDAO().get(collection, loadConfig, submissionType);
 	}
 }

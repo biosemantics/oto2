@@ -5,6 +5,7 @@ import java.util.List;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
+import com.sencha.gxt.data.shared.loader.FilterPagingLoadConfig;
 import com.sencha.gxt.data.shared.loader.PagingLoadConfig;
 import com.sencha.gxt.data.shared.loader.PagingLoadResult;
 
@@ -56,5 +57,5 @@ public interface IToOntologyService extends RemoteService {
 	
 	public boolean isSupportedIRI(Collection collection, String iri) throws Exception;
 	
-	public PagingLoadResult<OntologyClassSubmission> getClassSubmissions(Collection collection, PagingLoadConfig loadConfig, SubmissionType submissionType) throws Exception;
+	public PagingLoadResult<OntologyClassSubmission> getClassSubmissions(Collection collection, FilterPagingLoadConfig loadConfig, SubmissionType submissionType) throws Exception;
 }

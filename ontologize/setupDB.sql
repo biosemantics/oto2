@@ -211,3 +211,4 @@ INSERT INTO `ontologize_ontology_taxongroup` (`ontology`, `taxongroup`) VALUES (
 INSERT INTO `ontologize_status` (`id`, `name`, `created`) VALUES (1, 'accepted', '2015-04-21 10:57:55');
 INSERT INTO `ontologize_status` (`id`, `name`, `created`) VALUES (2, 'pending', '2015-04-21 10:58:05');
 INSERT INTO `ontologize_status` (`id`, `name`, `created`) VALUES (3, 'rejected', '2015-04-21 10:58:13');
+INSERT INTO `ontologize_status` (`id`, `name`, `created`) VALUES (4, 'new', '2015-04-21 10:58:13');

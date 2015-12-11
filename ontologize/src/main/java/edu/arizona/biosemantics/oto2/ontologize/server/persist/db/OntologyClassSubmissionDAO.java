@@ -7,6 +7,9 @@ import java.util.List;
 
 import org.semanticweb.owlapi.model.IRI;
 
+import com.sencha.gxt.data.shared.SortInfo;
+import com.sencha.gxt.data.shared.loader.FilterConfig;
+import com.sencha.gxt.data.shared.loader.FilterPagingLoadConfig;
 import com.sencha.gxt.data.shared.loader.PagingLoadConfig;
 import com.sencha.gxt.data.shared.loader.PagingLoadResult;
 
@@ -389,36 +392,80 @@ public class OntologyClassSubmissionDAO {
 		}
 	}
 
-	public PagingLoadResult<OntologyClassSubmission> get(Collection collection, PagingLoadConfig loadConfig, SubmissionType submissionType) throws Exception {
-		List<OntologyClassSubmission> data = new LinkedList<OntologyClassSubmission>();
-		try(Query query = new Query("SELECT * FROM ontologize_ontologyclasssubmission s, ontologize_ontology o WHERE s.collection = ? "
-				+ " AND s.ontology = o.id AND o.bioportal_ontology = ? LIMIT ? OFFSET ?")) {
-			query.setParameter(1, collection.getId());
-			query.setParameter(2, submissionType == SubmissionType.BIOPORTAL ? 1 : 0);
-			query.setParameter(3, loadConfig.getLimit());
-			query.setParameter(4, loadConfig.getOffset());
-			ResultSet resultSet = query.execute();
-			while(resultSet.next()) {
-				data.add(createClassSubmission(resultSet));
-			}
-		} catch(QueryException | SQLException e) {
-			e.printStackTrace();
-			log(LogLevel.ERROR, "Query Exception", e);
-			throw new QueryException(e);
-		}
+	public PagingLoadResult<OntologyClassSubmission> get(Collection collection, FilterPagingLoadConfig loadConfig, SubmissionType submissionType) throws Exception {
 		int count = 0;
-		try(Query query = new Query("SELECT COUNT(s.id) FROM ontologize_ontologyclasssubmission s, ontologize_ontology o WHERE s.collection = ? "
-				+ " AND s.ontology = o.id AND o.bioportal_ontology = ?")) {
-			query.setParameter(1, collection.getId());
-			query.setParameter(2, submissionType == SubmissionType.BIOPORTAL ? 1 : 0);
-			ResultSet resultSet = query.execute();
-			while(resultSet.next()) {
-				count = resultSet.getInt(1);
+		List<OntologyClassSubmission> data = new LinkedList<OntologyClassSubmission>();
+		
+		if(collection != null) {
+			String filterSQL = "";
+			for(FilterConfig filter : loadConfig.getFilters()) {
+				if(filter.getComparison().equals("contains") && filter.getType().equals("string")) {
+					String dbField = getDBField(filter.getField());
+					if(dbField != null)
+						filterSQL += " AND " + dbField + " LIKE '%" + filter.getValue() + "%'";
+				}
+			}
+			String sortSQL = "";
+			for(SortInfo sortInfo : loadConfig.getSortInfo()) {
+				String dbField = getDBField(sortInfo.getSortField());
+				if(dbField != null)
+					sortSQL += " ORDER BY " + dbField + " " + sortInfo.getSortDir().toString();
+			}
+			
+			try(Query query = new Query("SELECT * FROM ontologize_ontologyclasssubmission s, ontologize_ontology o WHERE s.collection = ? "
+					+ " AND s.ontology = o.id AND o.bioportal_ontology = ? " + filterSQL + " " + sortSQL + " LIMIT ? OFFSET ?")) {
+				query.setParameter(1, collection.getId());
+				query.setParameter(2, submissionType == SubmissionType.BIOPORTAL ? 1 : 0);
+				query.setParameter(3, loadConfig.getLimit());
+				query.setParameter(4, loadConfig.getOffset());
+				ResultSet resultSet = query.execute();
+				while(resultSet.next()) {
+					data.add(createClassSubmission(resultSet));
+				}
+			} catch(QueryException | SQLException e) {
+				e.printStackTrace();
+				log(LogLevel.ERROR, "Query Exception", e);
+				throw new QueryException(e);
+			}
+			
+			try(Query query = new Query("SELECT COUNT(s.id) FROM ontologize_ontologyclasssubmission s, ontologize_ontology o WHERE s.collection = ? "
+					+ " AND s.ontology = o.id AND o.bioportal_ontology = ? " + filterSQL)) {
+				query.setParameter(1, collection.getId());
+				query.setParameter(2, submissionType == SubmissionType.BIOPORTAL ? 1 : 0);
+				ResultSet resultSet = query.execute();
+				while(resultSet.next()) {
+					count = resultSet.getInt(1);
+				}
 			}
 		}
 		
 		ClassSubmissionsPagingLoadResult result = new ClassSubmissionsPagingLoadResult(data, count, loadConfig.getOffset());
 		return result;
+	}
+
+	private String getDBField(String field) {      
+	    switch(field) {
+	    case "id":
+	    	return "id";
+	    case "term":
+	    	return "term";
+	    case "collection":
+	    	return "collection";
+    	case "submissionTerm":
+	    	return "submission_term";
+    	case "ontology":
+    		return "ontology";
+    	case "classIri":
+    		return "class_iri";
+    	case "definition":
+    		return "definition";
+    	case "sampleSentence":
+    		return "sample_sentence";
+    	case "user":
+    		return "user";
+	    default:
+	    	return null;
+	    }
 	}
 
 

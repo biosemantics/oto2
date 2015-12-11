@@ -2,7 +2,7 @@ package edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology;
 
 public enum StatusEnum {
 
-	ACCEPTED("accepted"), PENDING("pending"), REJECTED("rejected");
+	ACCEPTED("accepted"), PENDING("pending"), REJECTED("rejected"), NEW("new");
 	
 	private String displayName;
 
