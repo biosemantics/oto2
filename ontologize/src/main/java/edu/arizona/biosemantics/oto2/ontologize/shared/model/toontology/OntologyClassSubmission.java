@@ -1,6 +1,7 @@
 package edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -28,12 +29,14 @@ public class OntologyClassSubmission implements HasLabelAndIri, Serializable, Co
 	private List<PartOf> partOfs = new LinkedList<PartOf>();
 	private String user;
 	private List<OntologyClassSubmissionStatus> submissionStatuses = new LinkedList<OntologyClassSubmissionStatus>();
+	private Date lastUpdated;
+	private Date created;
 	
 	public OntologyClassSubmission() { }
 	
 	public OntologyClassSubmission(int id, int collectionId, Term term, String submissionTerm, Ontology ontology, String classIRI,
 			List<Superclass> superclasses, String definition, List<Synonym> synonyms, String source, String sampleSentence, 
-			List<PartOf> partOfs, String user, List<OntologyClassSubmissionStatus> submissionStatuses) { 
+			List<PartOf> partOfs, String user, List<OntologyClassSubmissionStatus> submissionStatuses, Date lastUpdated, Date created) { 
 		this.id = id;
 		this.collectionId = collectionId;
 		this.term = term;
@@ -48,6 +51,8 @@ public class OntologyClassSubmission implements HasLabelAndIri, Serializable, Co
 		this.partOfs = partOfs;
 		this.user = user;
 		this.submissionStatuses = submissionStatuses;
+		this.lastUpdated = lastUpdated;
+		this.created = created;
 	}
 	
 	public OntologyClassSubmission(int collectionId, Term term, String submissionTerm, Ontology ontology, String classIRI,
@@ -302,6 +307,14 @@ public class OntologyClassSubmission implements HasLabelAndIri, Serializable, Co
 		if(hasIri())
 			return getIri();
 		return "";
+	}
+
+	public Date getLastUpdated() {
+		return lastUpdated;
+	}
+
+	public Date getCreated() {
+		return created;
 	}	
 
 }

@@ -2,6 +2,8 @@ package edu.arizona.biosemantics.oto2.ontologize.server.persist.db;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -59,6 +61,7 @@ public class OntologyClassSubmissionDAO {
 	
 	private OntologyClassSubmission createClassSubmission(ResultSet result) throws Exception {
 		int id = result.getInt("id");
+		System.out.println(id);
 		int collectionId = result.getInt("collection");
 		int termId = result.getInt("term");
 		Term term = null;
@@ -71,6 +74,8 @@ public class OntologyClassSubmissionDAO {
 		String source = result.getString("source");
 		String sampleSentence = result.getString("sample_sentence");
 		String user = result.getString("user");
+		Date created = result.getTimestamp("created");
+		Date lastUpdated = result.getTimestamp("lastupdated");
 		
 		List<OntologyClassSubmissionStatus> ontologyClassSubmissionStatuses = ontologyClassSubmissionStatusDAO.getStatusOfOntologyClassSubmission(id);
 		OntologyClassSubmissionStatus mostRecentStatus = ontologyClassSubmissionStatuses.get(ontologyClassSubmissionStatuses.size() - 1);
@@ -92,7 +97,7 @@ public class OntologyClassSubmissionDAO {
 		return new OntologyClassSubmission(id, collectionId, 
 				term, submission_term, ontology, classIRI, ontologyClassSubmissionSuperclassDAO.getSuperclasses(id), 
 				definition, ontologyClassSubmissionSynonymDAO.getSynonyms(id), source, sampleSentence,
-				ontologyClassSubmissionPartOfDAO.getPartOfs(id), user, ontologyClassSubmissionStatuses);
+				ontologyClassSubmissionPartOfDAO.getPartOfs(id), user, ontologyClassSubmissionStatuses, lastUpdated, created);
 	}
 
 	public OntologyClassSubmission insert(OntologyClassSubmission ontologyClassSubmission) throws Exception  {
@@ -108,8 +113,8 @@ public class OntologyClassSubmissionDAO {
 			ontologyClassSubmission.setClassIRI(createClassIRI(ontologyClassSubmission, submissionIdInCollection));
 			try(Query insert = new Query("INSERT INTO `ontologize_ontologyclasssubmission` "
 					+ "(`collection`, `term`, `submission_term`, `ontology`, `class_iri`, `definition`, `source`, `sample_sentence`, "
-					+ "`user`)"
-					+ " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+					+ "`user`, `lastupdated`)"
+					+ " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
 				insert.setParameter(1, ontologyClassSubmission.getCollectionId());
 				if(ontologyClassSubmission.getTerm() == null)
 					insert.setParameterNull(2, java.sql.Types.BIGINT);
@@ -122,6 +127,7 @@ public class OntologyClassSubmissionDAO {
 				insert.setParameter(7, ontologyClassSubmission.getSource());
 				insert.setParameter(8, ontologyClassSubmission.getSampleSentence());
 				insert.setParameter(9, ontologyClassSubmission.getUser());
+				insert.setParameter(10, new Timestamp(new Date().getTime()));
 				insert.execute();
 				ResultSet generatedKeys = insert.getGeneratedKeys();
 				generatedKeys.next();
@@ -165,7 +171,7 @@ public class OntologyClassSubmissionDAO {
 		try(Query query = new Query("UPDATE ontologize_ontologyclasssubmission SET collection = ?,"
 				+ " term = ?, submission_term = ?,"
 				+ " ontology = ?, class_iri = ?, definition = ?, source = ?, sample_sentence = ?, "
-				+ "user = ? WHERE id = ?")) {
+				+ "user = ?, lastupdated = ? WHERE id = ?")) {
 			query.setParameter(1, ontologyClassSubmission.getCollectionId());
 			if(ontologyClassSubmission.getTerm() == null)
 				query.setParameterNull(2, java.sql.Types.BIGINT);
@@ -178,7 +184,8 @@ public class OntologyClassSubmissionDAO {
 			query.setParameter(7, ontologyClassSubmission.getSource());
 			query.setParameter(8, ontologyClassSubmission.getSampleSentence());
 			query.setParameter(9, ontologyClassSubmission.getUser());
-			query.setParameter(10, ontologyClassSubmission.getId());
+			query.setParameter(10, new Timestamp(new Date().getTime()));
+			query.setParameter(11, ontologyClassSubmission.getId());
 			query.execute();
 			
 			ontologyClassSubmissionStatusDAO.update(ontologyClassSubmission.getSubmissionStatuses());

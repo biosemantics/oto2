@@ -13,6 +13,8 @@ import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.i18n.client.DateTimeFormat;
+import com.google.gwt.i18n.client.DateTimeFormat.PredefinedFormat;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
@@ -114,6 +116,7 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.IToOntolog
 
 public class ClassSubmissionsGrid implements IsWidget {
 	
+	private DateTimeFormat dateTimeFormat = DateTimeFormat.getFormat(PredefinedFormat.DATE_TIME_MEDIUM);
 	private OntologyClassSubmissionProperties ontologyClassSubmissionProperties = GWT.create(OntologyClassSubmissionProperties.class);
 	private OntologySynonymSubmissionProperties ontologySynonymSubmissionProperties = GWT.create(OntologySynonymSubmissionProperties.class);
 	private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
@@ -135,6 +138,8 @@ public class ClassSubmissionsGrid implements IsWidget {
 	protected ColumnConfig<OntologyClassSubmission, String> iriCol;
 	protected ColumnConfig<OntologyClassSubmission, String> submissionTermCol;
 	protected ColumnConfig<OntologyClassSubmission, String> superClassCol;
+	protected ColumnConfig<OntologyClassSubmission, String> createdCol;
+	protected ColumnConfig<OntologyClassSubmission, String> updatedCol;
 	private ListStore<OntologyClassSubmission> classSubmissionStore =
 			new ListStore<OntologyClassSubmission>(ontologyClassSubmissionProperties.key());
 	private SubmissionType submissionType;
@@ -697,6 +702,37 @@ public class ClassSubmissionsGrid implements IsWidget {
 				ontologyClassSubmissionProperties.user(), 200, "User");
 		userCol.setCell(colorableCell);
 		
+		createdCol = new ColumnConfig<OntologyClassSubmission, String>(
+				new ValueProvider<OntologyClassSubmission, String>() {
+					@Override
+					public String getValue(OntologyClassSubmission object) {
+						return dateTimeFormat.format(object.getCreated());
+					}
+					@Override
+					public void setValue(OntologyClassSubmission object, String value) {	}
+					@Override
+					public String getPath() {
+						return "created";
+					}
+					
+				}, 200, "Created");
+		createdCol.setCell(colorableCell);
+		updatedCol = new ColumnConfig<OntologyClassSubmission, String>(
+				new ValueProvider<OntologyClassSubmission, String>() {
+					@Override
+					public String getValue(OntologyClassSubmission object) {
+						return dateTimeFormat.format(object.getCreated());
+					}
+					@Override
+					public void setValue(OntologyClassSubmission object, String value) {	}
+					@Override
+					public String getPath() {
+						return "lastUpdated";
+					}
+					
+				}, 200, "Updated");
+		updatedCol.setCell(colorableCell);
+		
 		List<ColumnConfig<OntologyClassSubmission, ?>> columns = new ArrayList<ColumnConfig<OntologyClassSubmission, ?>>();
 		columns.add(checkBoxSelectionModel.getColumn());
 		columns.add(termCol);
@@ -715,6 +751,8 @@ public class ClassSubmissionsGrid implements IsWidget {
 		columns.add(sourceCol);
 		columns.add(synonymsCol);
 		columns.add(userCol);
+		columns.add(createdCol);
+		columns.add(updatedCol);
 		
 		setHiddenColumns();
 		
@@ -817,6 +855,8 @@ public class ClassSubmissionsGrid implements IsWidget {
 		synonymsCol.setHidden(true);
 		userCol.setHidden(true);
 		statusCol.setHidden(true);
+		createdCol.setHidden(false);
+		updatedCol.setHidden(true);
 	}
 
 

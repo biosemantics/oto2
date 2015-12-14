@@ -1,5 +1,6 @@
 package edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology;
 
+import java.util.Date;
 import java.util.List;
 
 import com.google.gwt.editor.client.Editor.Path;
@@ -45,5 +46,9 @@ public interface OntologyClassSubmissionProperties extends PropertyAccess<Ontolo
 	  ValueProvider<OntologyClassSubmission, String> classIRI();
 
 	  ValueProvider<OntologyClassSubmission, Type> type();
+	  
+	  ValueProvider<OntologyClassSubmission, Date> lastUpdated();
+
+	  ValueProvider<OntologyClassSubmission, Date> created();
 	
 }

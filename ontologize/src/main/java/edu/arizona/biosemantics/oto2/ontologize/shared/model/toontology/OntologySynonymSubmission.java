@@ -1,6 +1,7 @@
 package edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -26,12 +27,14 @@ public class OntologySynonymSubmission implements HasLabelAndIri, Serializable, 
 	private String user;
 	private List<OntologySynonymSubmissionStatus> submissionStatuses = new LinkedList<OntologySynonymSubmissionStatus>();
 	private Type type;
+	private Date lastUpdated;
+	private Date created;
 
 	public OntologySynonymSubmission() { }
 	
 	public OntologySynonymSubmission(int id, int collectionId, Term term, String submissionTerm, Ontology ontology, 
 			String classIRI, String classLabel, List<Synonym> synonyms, String source, String sampleSentence,  
-			String user, List<OntologySynonymSubmissionStatus> submissionStatuses) { 
+			String user, List<OntologySynonymSubmissionStatus> submissionStatuses, Date lastUpdated, Date created) { 
 		this.id = id;
 		this.collectionId = collectionId;
 		this.term = term;
@@ -44,6 +47,8 @@ public class OntologySynonymSubmission implements HasLabelAndIri, Serializable, 
 		this.user = user;
 		this.submissionStatuses = submissionStatuses;
 		this.synonyms = synonyms;
+		this.lastUpdated = lastUpdated;
+		this.created = created;
 	}
 	
 	public OntologySynonymSubmission(int collectionId, Term term, String submissionTerm, Ontology ontology, 
@@ -265,4 +270,14 @@ public class OntologySynonymSubmission implements HasLabelAndIri, Serializable, 
 			return getIri();
 		return "";
 	}
+
+	public Date getLastUpdated() {
+		return lastUpdated;
+	}
+
+	public Date getCreated() {
+		return created;
+	}
+	
+	
 }

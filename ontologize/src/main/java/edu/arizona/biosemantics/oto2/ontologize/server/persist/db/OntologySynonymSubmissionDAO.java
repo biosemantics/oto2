@@ -2,6 +2,8 @@ package edu.arizona.biosemantics.oto2.ontologize.server.persist.db;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -83,12 +85,14 @@ public class OntologySynonymSubmissionDAO {
 		String source = result.getString("source");
 		String sampleSentence = result.getString("sample_sentence");
 		String user = result.getString("user");
+		Date created = result.getTimestamp("created");
+		Date lastUpdated = result.getTimestamp("lastupdated");
 		
 		Ontology ontology = ontologyDAO.get(ontologyId);
 		List<OntologySynonymSubmissionStatus> ontologysynonymSubmissionStatuses = ontologySynonymSubmissionStatusDAO.getStatusOfOntologySynonymSubmission(id);
 		return new OntologySynonymSubmission(id, collectionId, term, submissionTerm, ontology, classIRI, getLabel(classIRI),
 				ontologySynonymSubmissionSynonymDAO.getSynonyms(id), 
-				source, sampleSentence,	user, ontologysynonymSubmissionStatuses);
+				source, sampleSentence,	user, ontologysynonymSubmissionStatuses, lastUpdated, created);
 	}
 
 	public OntologySynonymSubmission insert(OntologySynonymSubmission ontologySynonymSubmission) throws QueryException  {
@@ -109,6 +113,7 @@ public class OntologySynonymSubmissionDAO {
 			insert.setParameter(6, ontologySynonymSubmission.getSource());
 			insert.setParameter(7, ontologySynonymSubmission.getSampleSentence());
 			insert.setParameter(8, ontologySynonymSubmission.getUser());
+			insert.setParameter(9, new Timestamp(new Date().getTime()));
 			insert.execute();
 			ResultSet generatedKeys = insert.getGeneratedKeys();
 			generatedKeys.next();
@@ -129,7 +134,7 @@ public class OntologySynonymSubmissionDAO {
 	public void update(OntologySynonymSubmission ontologySynonymSubmission) throws QueryException  {		
 		try(Query query = new Query("UPDATE ontologize_ontologysynonymsubmission SET collection = ?, term = ?, "
 				+ "submission_term = ?, ontology = ?, class_iri = ?, source = ?, sample_sentence = ?, "
-				+ "user = ? WHERE id = ?")) {
+				+ "user = ?, lastupdated = ? WHERE id = ?")) {
 			ontologySynonymSubmission.setCollectionId(ontologySynonymSubmission.getCollectionId());
 			query.setParameter(1, ontologySynonymSubmission.getCollectionId());
 			if(ontologySynonymSubmission.getTerm() == null)
@@ -142,7 +147,8 @@ public class OntologySynonymSubmissionDAO {
 			query.setParameter(6, ontologySynonymSubmission.getSource());
 			query.setParameter(7, ontologySynonymSubmission.getSampleSentence());
 			query.setParameter(8, ontologySynonymSubmission.getUser());
-			query.setParameter(9, ontologySynonymSubmission.getId());
+			query.setParameter(9, new Timestamp(new Date().getTime()));
+			query.setParameter(10, ontologySynonymSubmission.getId());
 			query.execute();
 			
 			ontologySynonymSubmissionStatusDAO.update(ontologySynonymSubmission.getSubmissionStatuses());

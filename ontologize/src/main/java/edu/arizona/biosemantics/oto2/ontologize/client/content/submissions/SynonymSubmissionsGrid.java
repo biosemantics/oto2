@@ -7,6 +7,8 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.i18n.client.DateTimeFormat;
+import com.google.gwt.i18n.client.DateTimeFormat.PredefinedFormat;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.IsWidget;
@@ -89,7 +91,8 @@ public class SynonymSubmissionsGrid implements IsWidget {
 		public boolean isFiltered(OntologySynonymSubmission ontologySynonymSubmission);
 		
 	}
-	
+
+	private DateTimeFormat dateTimeFormat = DateTimeFormat.getFormat(PredefinedFormat.DATE_TIME_MEDIUM);
 	private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
 	private IToOntologyServiceAsync toOntologyService = GWT.create(IToOntologyService.class);
 	private ColumnConfig<OntologySynonymSubmission, String> ontologyCol;
@@ -109,6 +112,8 @@ public class SynonymSubmissionsGrid implements IsWidget {
 	protected ColumnConfig<OntologySynonymSubmission, String> statusCol;
 	protected ColumnConfig<OntologySynonymSubmission, String> iriCol;
 	protected ColumnConfig<OntologySynonymSubmission, String> userCol;
+	protected ColumnConfig<OntologySynonymSubmission, String> createdCol;
+	protected ColumnConfig<OntologySynonymSubmission, String> updatedCol;
 	private ListStore<OntologySynonymSubmission> synonymSubmissionStore =
 			new ListStore<OntologySynonymSubmission>(ontologySynonymSubmissionProperties.key());
 	private SubmissionType submissionType;
@@ -514,6 +519,38 @@ public class SynonymSubmissionsGrid implements IsWidget {
 				ontologySynonymSubmissionProperties.user(), 200, "User");
 		userCol.setCell(colorableCell);
 		
+		createdCol = new ColumnConfig<OntologySynonymSubmission, String>(
+				new ValueProvider<OntologySynonymSubmission, String>() {
+					@Override
+					public String getValue(OntologySynonymSubmission object) {
+						return dateTimeFormat.format(object.getCreated());
+					}
+					@Override
+					public void setValue(OntologySynonymSubmission object, String value) {	}
+					@Override
+					public String getPath() {
+						return "created";
+					}
+					
+				}, 200, "Created");
+		createdCol.setCell(colorableCell);
+		updatedCol = new ColumnConfig<OntologySynonymSubmission, String>(
+				new ValueProvider<OntologySynonymSubmission, String>() {
+					@Override
+					public String getValue(OntologySynonymSubmission object) {
+						return dateTimeFormat.format(object.getCreated());
+					}
+					@Override
+					public void setValue(OntologySynonymSubmission object, String value) {	}
+					@Override
+					public String getPath() {
+						return "lastUpdated";
+					}
+					
+				}, 200, "Updated");
+		updatedCol.setCell(colorableCell);
+
+		
 //		ValueProvider<Articulation, String> commentValueProvider = new ValueProvider<Articulation, String>() {
 //			@Override
 //			public String getValue(Articulation object) {
@@ -609,6 +646,8 @@ public class SynonymSubmissionsGrid implements IsWidget {
 		columns.add(sourceCol);
 		columns.add(synonymsCol);
 		columns.add(userCol);
+		columns.add(createdCol);
+		columns.add(updatedCol);
 		
 		setHiddenColumns();
 		
@@ -639,6 +678,8 @@ public class SynonymSubmissionsGrid implements IsWidget {
 		userCol.setHidden(true);
 		statusCol.setHidden(true);
 		ontologyCol.setHidden(true);
+		createdCol.setHidden(false);
+		updatedCol.setHidden(true);
 	}
 
 

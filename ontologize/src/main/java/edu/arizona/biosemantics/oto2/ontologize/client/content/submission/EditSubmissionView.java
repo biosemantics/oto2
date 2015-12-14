@@ -186,7 +186,8 @@ public class EditSubmissionView implements IsWidget {
 							for(OntologyClassSubmission submission : result) {
 								resultText += submission.getSubmissionTerm() + "<br>";
 							}
-							Info.display(SafeHtmlUtils.fromSafeConstant("Class created"), SafeHtmlUtils.fromSafeConstant(resultText));
+							if(!result.isEmpty())
+								Info.display(SafeHtmlUtils.fromSafeConstant("Class created"), SafeHtmlUtils.fromSafeConstant(resultText));
 							Info.display(SafeHtmlUtils.fromSafeConstant("Class updated"), SafeHtmlUtils.fromSafeConstant(submission.getSubmissionTerm()));
 						}
 					});
