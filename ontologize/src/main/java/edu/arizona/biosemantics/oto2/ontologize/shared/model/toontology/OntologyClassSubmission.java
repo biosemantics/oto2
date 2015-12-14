@@ -5,7 +5,6 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
-import edu.arizona.biosemantics.oto2.ontologize.shared.log.TypeFromSuperclasses;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Colorable;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Commentable;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;

@@ -18,7 +18,6 @@ import com.sencha.gxt.data.shared.loader.PagingLoadResult;
 import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.ontologize.server.Configuration;
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.db.Query.QueryException;
-import edu.arizona.biosemantics.oto2.ontologize.shared.log.TypeFromSuperclasses;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Term;
@@ -31,6 +30,7 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.StatusEn
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.SubmissionType;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Superclass;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Synonym;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.TypeFromSuperclasses;
 
 public class OntologyClassSubmissionDAO {
 

@@ -1,9 +1,8 @@
-package edu.arizona.biosemantics.oto2.ontologize.shared.log;
+package edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology;
 
 import java.util.List;
 
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
-import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Superclass;
 
 public class TypeFromSuperclasses {
 
