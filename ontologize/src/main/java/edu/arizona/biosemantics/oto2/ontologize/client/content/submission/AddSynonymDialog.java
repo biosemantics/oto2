@@ -12,6 +12,7 @@ import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent;
 import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent.SelectionChangedHandler;
 
 import edu.arizona.biosemantics.oto2.ontologize.client.content.candidates.TermsView;
+import edu.arizona.biosemantics.oto2.ontologize.client.layout.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.TermTreeNode;
@@ -21,10 +22,8 @@ public class AddSynonymDialog extends Dialog {
 
 	private TermsView termsView;
 	private TextField termField;
-	private EventBus eventBus;
 	
-	public AddSynonymDialog(EventBus eventBus) {
-		this.eventBus = eventBus;
+	public AddSynonymDialog() {
 		this.setHeadingText("Add Synonym");
 		this.setHeight(400);
 		this.setWidth(400);
@@ -32,7 +31,7 @@ public class AddSynonymDialog extends Dialog {
 		this.setOnEsc(true);
 		this.setModal(true);
 		
-		termsView = new TermsView(eventBus);
+		termsView = new TermsView(ModelController.getCollection());
 		termField = new TextField();
 		
 		VerticalLayoutContainer vlp = new VerticalLayoutContainer();
@@ -59,13 +58,5 @@ public class AddSynonymDialog extends Dialog {
 	
 	public String getValue() {
 		return termField.getValue();
-	}
-
-	public void setCollection(Collection collection) {
-		termsView.setCollection(collection);
-	}
-
-	public void setSubmissionType(Type type) {
-		
 	}
 }

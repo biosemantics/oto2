@@ -36,10 +36,6 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.IToOntolog
 public class MenuView extends MenuBar {
 
 	private EventBus eventBus;
-	private Collection collection;
-	private IToOntologyServiceAsync toOntologyService = GWT.create(IToOntologyService.class);
-	private List<Ontology> permanentOntologies = new LinkedList<Ontology>();
-	private List<Ontology> localOntologies = new LinkedList<Ontology>();
 
 	public MenuView(EventBus eventBus) {
 		this.eventBus = eventBus;
@@ -51,38 +47,7 @@ public class MenuView extends MenuBar {
 	}
 
 	private void bindEvents() {
-		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
-			@Override
-			public void onLoad(LoadCollectionEvent event) {
-				collection = event.getCollection();
-				toOntologyService.getPermanentOntologies(collection, new AsyncCallback<List<Ontology>>() {
-					@Override
-					public void onFailure(Throwable caught) {
-						
-					}
-					@Override
-					public void onSuccess(List<Ontology> result) {
-						permanentOntologies = result;
-					}
-				});
-				toOntologyService.getLocalOntologies(collection, new AsyncCallback<List<Ontology>>() {
-					@Override
-					public void onFailure(Throwable caught) {
-						
-					}
-					@Override
-					public void onSuccess(List<Ontology> result) {
-						localOntologies = result;
-					}
-				});
-			}
-		});
-		eventBus.addHandler(CreateOntologyEvent.TYPE, new CreateOntologyEvent.Handler() {
-			@Override
-			public void onCreate(CreateOntologyEvent event) {
-				localOntologies.add(event.getOntology());
-			}
-		});
+
 	}
 	
 	protected void addItems() {
@@ -107,7 +72,7 @@ public class MenuView extends MenuBar {
 			@Override
 			public void onBeforeShow(BeforeShowEvent event) {
 				browseSub.clear();
-				for(final Ontology ontology : permanentOntologies) {
+				for(final Ontology ontology : ModelController.getPermanentOntologies()) {
 					MenuItem ontologyItem = new MenuItem(ontology.getAcronym());
 					ontologyItem.addSelectionHandler(new SelectionHandler<Item>() {
 						@Override
@@ -193,7 +158,7 @@ public class MenuView extends MenuBar {
 		colorSettingsItem.addSelectionHandler(new SelectionHandler<Item>() {
 			@Override
 			public void onSelection(SelectionEvent<Item> arg0) {
-				ColorSettingsDialog dialog = new ColorSettingsDialog(eventBus, collection);
+				ColorSettingsDialog dialog = new ColorSettingsDialog(eventBus, ModelController.getCollection());
 				dialog.show();
 			}
 		});
@@ -203,7 +168,7 @@ public class MenuView extends MenuBar {
 		colorsItem.addSelectionHandler(new SelectionHandler<Item>() {
 			@Override
 			public void onSelection(SelectionEvent<Item> arg0) {
-				ColorsDialog dialog = new ColorsDialog(eventBus, collection);
+				ColorsDialog dialog = new ColorsDialog(eventBus);
 				dialog.show();
 			}
 		});
@@ -212,7 +177,7 @@ public class MenuView extends MenuBar {
 		commentsItem.addSelectionHandler(new SelectionHandler<Item>() {
 			@Override
 			public void onSelection(SelectionEvent<Item> arg0) {
-				CommentsDialog dialog = new CommentsDialog(eventBus, collection);
+				CommentsDialog dialog = new CommentsDialog(eventBus);
 				dialog.show();
 			}
 		});
@@ -245,7 +210,7 @@ public class MenuView extends MenuBar {
 		downloadItem.addSelectionHandler(new SelectionHandler<Item>() {
 			@Override
 			public void onSelection(SelectionEvent<Item> arg0) {
-				eventBus.fireEvent(new DownloadEvent(collection));
+				eventBus.fireEvent(new DownloadEvent(ModelController.getCollection()));
 			}
 		});
 		sub.add(downloadItem);

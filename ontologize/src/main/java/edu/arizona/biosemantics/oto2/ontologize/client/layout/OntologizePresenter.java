@@ -22,11 +22,11 @@ public class OntologizePresenter {
 	private Collection collection;
 	private OntologizeView view;
 	private EventBus eventBus;
-	private ModelControler modelControler;
+	private ModelController modelControler;
 	
 	public OntologizePresenter(EventBus eventBus) {
 		this.eventBus = eventBus;
-		modelControler = new ModelControler(eventBus);
+		modelControler = new ModelController(eventBus);
 		
 		bindEvents();
 	}

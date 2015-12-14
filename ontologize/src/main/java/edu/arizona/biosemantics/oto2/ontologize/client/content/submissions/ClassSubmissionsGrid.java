@@ -13,6 +13,7 @@ import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.IsWidget;
@@ -88,6 +89,7 @@ import edu.arizona.biosemantics.oto2.ontologize.client.event.SelectSuperclassEve
 import edu.arizona.biosemantics.oto2.ontologize.client.event.SelectSynonymEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.SetColorEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.UpdateOntologyClassSubmissionsEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.layout.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Color;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Colorable;
@@ -117,14 +119,12 @@ public class ClassSubmissionsGrid implements IsWidget {
 	private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
 	private IToOntologyServiceAsync toOntologyService = GWT.create(IToOntologyService.class);
 	private EventBus eventBus;
-	private Collection collection;
 	private Grid<OntologyClassSubmission> grid;
 	private ColumnConfig<OntologyClassSubmission, String> ontologyCol;
 	private CheckBoxSelectionModel<OntologyClassSubmission> checkBoxSelectionModel;
 	protected ColumnConfig<OntologyClassSubmission, String> termCol;
 	protected ColumnConfig<OntologyClassSubmission, String> categoryCol;
 	protected ColumnConfig<OntologyClassSubmission, String> definitionCol;
-	//private List<Ontology> ontologies;
 	protected ColumnConfig<OntologyClassSubmission, String> sourceCol;
 	protected ColumnConfig<OntologyClassSubmission, String> sampleCol;
 	protected ColumnConfig<OntologyClassSubmission, String> synonymsCol;
@@ -148,7 +148,7 @@ public class ClassSubmissionsGrid implements IsWidget {
 		RpcProxy<FilterPagingLoadConfig, PagingLoadResult<OntologyClassSubmission>> rpcProxy = new RpcProxy<FilterPagingLoadConfig, PagingLoadResult<OntologyClassSubmission>>() {
 			@Override
 			public void load(FilterPagingLoadConfig loadConfig, AsyncCallback<PagingLoadResult<OntologyClassSubmission>> callback) {
-				toOntologyService.getClassSubmissions(collection, loadConfig, submissionType, callback);
+				toOntologyService.getClassSubmissions(ModelController.getCollection(), loadConfig, submissionType, callback);
 			}
 		};
 		remoteLoader = new PagingLoader<FilterPagingLoadConfig, PagingLoadResult<OntologyClassSubmission>>(rpcProxy);
@@ -192,12 +192,6 @@ public class ClassSubmissionsGrid implements IsWidget {
 	}
 
 	private void bindEvents() {
-		eventBus.addHandler(LoadOntologyClassSubmissionsEvent.TYPE, new LoadOntologyClassSubmissionsEvent.Handler() {
-			@Override
-			public void onSelect(LoadOntologyClassSubmissionsEvent event) {
-				
-			}
-		});
 		eventBus.addHandler(CreateOntologyClassSubmissionEvent.TYPE, new CreateOntologyClassSubmissionEvent.Handler() {
 			@Override
 			public void onSubmission(CreateOntologyClassSubmissionEvent event) {
@@ -220,18 +214,7 @@ public class ClassSubmissionsGrid implements IsWidget {
 		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
 			@Override
 			public void onLoad(LoadCollectionEvent event) {
-				ClassSubmissionsGrid.this.collection = event.getCollection();
 				remoteLoader.load();
-				/*toOntologyService.getOntologies(collection, new AsyncCallback<List<Ontology>>() {
-					@Override
-					public void onFailure(Throwable caught) {
-						Alerter.failedToGetOntologies();
-					}
-					@Override
-					public void onSuccess(List<Ontology> result) {
-						ontologies = new LinkedList<Ontology>(result);
-					}
-				});*/
 			}
 		});
 		
@@ -247,12 +230,6 @@ public class ClassSubmissionsGrid implements IsWidget {
 				}
 			}
 		});
-		/*eventBus.addHandler(CreateOntologyEvent.TYPE, new CreateOntologyEvent.Handler() {
-			@Override
-			public void onCreate(CreateOntologyEvent event) {
-				ontologies.add(event.getOntology());
-			}
-		});*/
 		getSelectionModel().addSelectionHandler(new SelectionHandler<OntologyClassSubmission>() {
 			@Override
 			public void onSelection(SelectionEvent<OntologyClassSubmission> event) {
@@ -274,7 +251,7 @@ public class ClassSubmissionsGrid implements IsWidget {
 					menu.add(createRemoveItem(selected));
 					menu.add(new HeaderMenuItem("Annotation"));
 					menu.add(createCommentItem(selected));
-					if(!collection.getColors().isEmpty()) {
+					if(!ModelController.getCollection().getColors().isEmpty()) {
 						menu.add(createColorizeItem(selected));
 					} 
 				} 
@@ -289,8 +266,8 @@ public class ClassSubmissionsGrid implements IsWidget {
 				offItem.addSelectionHandler(new SelectionHandler<Item>() {
 					@Override
 					public void onSelection(SelectionEvent<Item> event) {
-						collection.setColorizations((java.util.Collection)selected, null);
-						collectionService.update(collection, new AsyncCallback<Void>() {
+						ModelController.getCollection().setColorizations((java.util.Collection)selected, null);
+						collectionService.update(ModelController.getCollection(), new AsyncCallback<Void>() {
 							@Override
 							public void onFailure(Throwable caught) {
 								Alerter.failedToSetColor();
@@ -303,14 +280,14 @@ public class ClassSubmissionsGrid implements IsWidget {
 					}
 				});
 				colorMenu.add(offItem);
-				for(final Color color : collection.getColors()) {
+				for(final Color color : ModelController.getCollection().getColors()) {
 					MenuItem colorItem = new MenuItem(color.getUse());
 					colorItem.getElement().getStyle().setProperty("backgroundColor", "#" + color.getHex());
 					colorItem.addSelectionHandler(new SelectionHandler<Item>() {
 						@Override
 						public void onSelection(SelectionEvent<Item> event) {
-							collection.setColorizations((java.util.Collection)selected, color);
-							collectionService.update(collection, new AsyncCallback<Void>() {
+							ModelController.getCollection().setColorizations((java.util.Collection)selected, color);
+							collectionService.update(ModelController.getCollection(), new AsyncCallback<Void>() {
 								@Override
 								public void onFailure(Throwable caught) {
 									caught.printStackTrace();
@@ -342,8 +319,8 @@ public class ClassSubmissionsGrid implements IsWidget {
 							@Override
 							public void onHide(HideEvent event) {
 								final Comment newComment = new Comment(Ontologize.user, box.getValue());
-								collection.addComments((java.util.Collection)selected, newComment);
-								collectionService.update(collection, new AsyncCallback<Void>() {
+								ModelController.getCollection().addComments((java.util.Collection)selected, newComment);
+								collectionService.update(ModelController.getCollection(), new AsyncCallback<Void>() {
 									@Override
 									public void onFailure(Throwable caught) {
 										Alerter.addCommentFailed(caught);
@@ -464,8 +441,10 @@ public class ClassSubmissionsGrid implements IsWidget {
 				deleteItem.addSelectionHandler(new SelectionHandler<Item>() {
 					@Override
 					public void onSelection(SelectionEvent<Item> event) {
+						String resultText = "";
 						for(OntologyClassSubmission submission : grid.getSelectionModel().getSelectedItems()) {
-							toOntologyService.removeClassSubmission(collection, 
+							resultText += submission.getSubmissionTerm() + "<br>";
+							toOntologyService.removeClassSubmission(ModelController.getCollection(), 
 									submission, new AsyncCallback<Void>() {
 								@Override
 								public void onFailure(Throwable caught) {
@@ -477,6 +456,7 @@ public class ClassSubmissionsGrid implements IsWidget {
 								}
 							});
 						}
+						Info.display(SafeHtmlUtils.fromSafeConstant("Class removed"), SafeHtmlUtils.fromSafeConstant(resultText));
 					}
 				});
 				return deleteItem;
@@ -500,7 +480,7 @@ public class ClassSubmissionsGrid implements IsWidget {
 				identity);
 		checkBoxSelectionModel.setSelectionMode(SelectionMode.MULTI);
 
-		ColorableCell colorableCell = new ColorableCell(eventBus, collection);
+		ColorableCell colorableCell = new ColorableCell();
 		colorableCell.setCommentColorizableObjectsStore(classSubmissionStore, new ColorableCell.CommentableColorableProvider() {
 			@Override
 			public Colorable provideColorable(Object source) {

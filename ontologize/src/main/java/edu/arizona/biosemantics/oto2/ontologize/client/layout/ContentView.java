@@ -48,7 +48,6 @@ public class ContentView extends BorderLayoutContainer {
 	//private TermsView termsView;
 	//private LabelsView labelsView;
 	private TermInfoView termInfoView;
-	private Collection collection;
 	private EventBus eventBus;
 	private TabPanel tabPanel;
 	private CreateLocalSubmissionView createLocalSubmissionView;
@@ -171,15 +170,6 @@ public class ContentView extends BorderLayoutContainer {
 				}
 			}
 		});
-	
-		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
-			@Override
-			public void onLoad(LoadCollectionEvent event) {
-				collection = event.getCollection();
-				loadClassSubmissions();
-				loadSynonymSubmissions();
-			}
-		});
 		/*eventBus.addHandler(RefreshSubmissionsEvent.TYPE, new RefreshSubmissionsEvent.Handler() {
 			@Override
 			public void onSelect(RefreshSubmissionsEvent event) {
@@ -187,37 +177,5 @@ public class ContentView extends BorderLayoutContainer {
 				refreshClassSubmissions();
 			}
 		});*/
-	}
-	
-	protected void loadClassSubmissions() {
-		final MessageBox loadingBox = Alerter.startLoading();
-		toOntologyService.getClassSubmissions(collection, new AsyncCallback<List<OntologyClassSubmission>>() {
-			@Override
-			public void onFailure(Throwable caught) {
-				Alerter.stopLoading(loadingBox);
-				Alerter.failedToRefreshSubmissions();
-			}
-			@Override
-			public void onSuccess(List<OntologyClassSubmission> result) {
-				eventBus.fireEvent(new LoadOntologyClassSubmissionsEvent(result));
-				Alerter.stopLoading(loadingBox);
-			}
-		});
-	}
-
-	protected void loadSynonymSubmissions() {
-		final MessageBox loadingBox = Alerter.startLoading();
-		toOntologyService.getSynonymSubmissions(collection, new AsyncCallback<List<OntologySynonymSubmission>>() {
-			@Override
-			public void onFailure(Throwable caught) {
-				Alerter.stopLoading(loadingBox);
-				Alerter.failedToRefreshSubmissions();
-			}
-			@Override
-			public void onSuccess(List<OntologySynonymSubmission> result) {
-				Alerter.stopLoading(loadingBox);
-				eventBus.fireEvent(new LoadOntologySynonymSubmissionsEvent(result));
-			}
-		});
 	}
 }

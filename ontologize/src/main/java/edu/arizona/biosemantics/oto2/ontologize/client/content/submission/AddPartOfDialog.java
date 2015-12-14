@@ -14,6 +14,7 @@ import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent.Selecti
 import edu.arizona.biosemantics.oto2.ontologize.client.content.candidates.TermsView;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.PartOf;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.TermTreeNode;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.TextTreeNode;
@@ -21,7 +22,7 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.TextTree
 public class AddPartOfDialog extends Dialog {
 	private PartsOfsView partsView;
 
-	public AddPartOfDialog(EventBus eventBus) {
+	public AddPartOfDialog(EventBus eventBus, OntologyClassSubmission selected, Type type) {
 		this.setHeadingText("Add Part Of");
 		this.setHeight(600);
 		this.setWidth(800);
@@ -29,7 +30,7 @@ public class AddPartOfDialog extends Dialog {
 		this.setOnEsc(true);
 		this.setModal(true);
 		
-		partsView = new PartsOfsView(eventBus);
+		partsView = new PartsOfsView(eventBus, selected, type);
 		
 		VerticalLayoutContainer vlp = new VerticalLayoutContainer();
 		vlp.getScrollSupport().setScrollMode(ScrollMode.AUTO);
@@ -37,17 +38,9 @@ public class AddPartOfDialog extends Dialog {
 		
 		vlp.add(partsView, new VerticalLayoutData(780, 540));
 		
-		bindEvents();
-	}
-	
-	private void bindEvents() {
 	}
 	
 	public String getValue() {
 		return partsView.getValue();
-	}
-
-	public void setSubmissionType(Type type) {
-		partsView.setSubmissionType(type);
 	}
 }

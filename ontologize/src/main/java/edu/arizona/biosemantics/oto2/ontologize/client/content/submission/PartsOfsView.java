@@ -37,6 +37,7 @@ import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadOntologyClassSu
 import edu.arizona.biosemantics.oto2.ontologize.client.event.OntologyClassSubmissionSelectEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.RemoveOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.UpdateOntologyClassSubmissionsEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.layout.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
@@ -67,18 +68,16 @@ public class PartsOfsView implements IsWidget {
 	}
 	
 	private static final NodeProperties nodeProperties = GWT.create(NodeProperties.class);
-	
-	private EventBus eventBus;
-	
+		
 	private VerticalLayoutContainer verticalLayoutContainer;
 	private OntologyView ontologyView;
 	private TextField partOfTextField = new TextField();
 	private TreeStore<Node> store;
 	private Tree<Node, String> tree;
-	private Collection collection;
+	private OntologyClassSubmission selected;
 	
-	public PartsOfsView(EventBus eventBus) {
-		this.eventBus = eventBus;
+	public PartsOfsView(EventBus eventBus, final OntologyClassSubmission selected, Type type) {
+		this.selected = selected;
 		store = new TreeStore<Node>(nodeProperties.key());
 		store.setAutoCommit(true);
 		store.setEnableFilters(true);
@@ -134,48 +133,27 @@ public class PartsOfsView implements IsWidget {
 		verticalLayoutContainer.add(new FieldLabel(ontologyView, "Ontology View"), new VerticalLayoutData(1, 400));
 		verticalLayoutContainer.add(new FieldLabel(tree, "Candidate Bearers"), new VerticalLayoutData(1, 100));
 		verticalLayoutContainer.add(new FieldLabel(partOfTextField, "New Bearer"), new VerticalLayoutData(1, 1));
+
+		this.setSubmissionType(type);
+		loadSubmissions(ModelController.getClassSubmissions().values());
+		store.addFilter(new StoreFilter<Node>() {
+			@Override
+			public boolean select(Store<Node> store, Node parent, Node item) {
+				Node node = new Node(selected.getLabel());
+				Node child = item;
+				while((parent = tree.getStore().getParent(child)) != null) {
+					if(parent.value.equals(node.value))
+						return false;
+					child = parent;
+				}
+				return !item.value.equals(node.value);
+			}
+		});
 		
 		bindEvents();
 	}
 	
-	private void bindEvents() {
-		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
-			@Override
-			public void onLoad(LoadCollectionEvent event) {
-				PartsOfsView.this.collection = event.getCollection();
-			}
-		});
-		eventBus.addHandler(LoadOntologyClassSubmissionsEvent.TYPE, new LoadOntologyClassSubmissionsEvent.Handler() {
-			@Override
-			public void onSelect(LoadOntologyClassSubmissionsEvent event) {
-				loadSubmissions(event.getOntologyClassSubmissions());
-			}
-		});
-		eventBus.addHandler(CreateOntologyClassSubmissionEvent.TYPE, new CreateOntologyClassSubmissionEvent.Handler() {
-			@Override
-			public void onSubmission(CreateOntologyClassSubmissionEvent event) {
-				for(OntologyClassSubmission submission : event.getClassSubmissions()) {
-					addNode(submission);
-				}
-			}
-		});
-		eventBus.addHandler(RemoveOntologyClassSubmissionsEvent.TYPE, new RemoveOntologyClassSubmissionsEvent.Handler() {
-			@Override
-			public void onRemove(RemoveOntologyClassSubmissionsEvent event) {
-				for(OntologyClassSubmission submission : event.getOntologyClassSubmissions()) {
-					removeNode(submission);
-				}
-			}
-		});
-		eventBus.addHandler(UpdateOntologyClassSubmissionsEvent.TYPE, new UpdateOntologyClassSubmissionsEvent.Handler() {	
-			@Override
-			public void onUpdate(UpdateOntologyClassSubmissionsEvent event) {
-				for(OntologyClassSubmission submission : event.getOntologyClassSubmissions()) {
-					updateNode(submission);
-				}
-			}
-		});
-		
+	private void bindEvents() {	
 		tree.getSelectionModel().addSelectionChangedHandler(new SelectionChangedHandler<Node>() {
 			@Override
 			public void onSelectionChanged(SelectionChangedEvent<Node> event) {
@@ -183,28 +161,9 @@ public class PartsOfsView implements IsWidget {
 					partOfTextField.setValue(event.getSelection().get(0).value);//.getPartOf().getLabel());
 			}
 		});
-		eventBus.addHandler(OntologyClassSubmissionSelectEvent.TYPE, new OntologyClassSubmissionSelectEvent.Handler() {
-			@Override
-			public void onSelect(final OntologyClassSubmissionSelectEvent event) {
-				store.removeFilters();
-				store.addFilter(new StoreFilter<Node>() {
-					@Override
-					public boolean select(Store<Node> store, Node parent, Node item) {
-						Node node = new Node(event.getOntologyClassSubmission().getLabel());
-						Node child = item;
-						while((parent = tree.getStore().getParent(child)) != null) {
-							if(parent.value.equals(node.value))
-								return false;
-							child = parent;
-						}
-						return !item.value.equals(node.value);
-					}
-				});
-			}
-		});
 	}
 
-	protected void loadSubmissions(List<OntologyClassSubmission> ontologyClassSubmissions) {
+	protected void loadSubmissions(java.util.Collection<OntologyClassSubmission> ontologyClassSubmissions) {
 		store.clear();
 		Map<String, List<String>> parentChildParts = new HashMap<String, List<String>>();
 		List<String> roots = new LinkedList<String>();
@@ -234,45 +193,6 @@ public class PartsOfsView implements IsWidget {
 			Node childNode = new Node(child);
 			store.add(parentNode, new Node(child));
 			addNodesFromNode(childNode, parentChildParts);		
-		}
-	}
-
-	protected void updateNode(OntologyClassSubmission submission) {
-		Node node = new Node(submission.getLabel());
-		Node parent = store.getParent(node);
-		if(submission.getPartOfs().isEmpty()) {
-			if(parent != null) {
-				store.remove(node);
-				store.add(node);
-			}
-		} else {
-			if(parent == null || !parent.value.equals(submission.getPartOfs().get(0).getLabel()))  {
-				Node newParent = new Node(submission.getPartOfs().get(0).getLabel());
-				store.remove(node);
-				store.add(newParent, node);
-			}					
-		}
-		store.update(node);
-	}
-
-	protected void removeNode(OntologyClassSubmission submission) {
-		Node node = new Node(submission.getLabel());
-		store.remove(node);
-	}
-
-	protected void addNode(OntologyClassSubmission submission) {
-		Node node = new Node(submission.getLabel());
-		if(store.findModel(node) != null) {
-			return;
-		} else {
-			if(submission.getPartOfs().isEmpty()) {
-				store.add(node);
-			} else {
-				for(PartOf partOf : submission.getPartOfs()) {
-					Node parent = new Node(partOf.getLabel());
-					store.add(parent, node);
-				}
-			}
 		}
 	}
 

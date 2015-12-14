@@ -19,10 +19,8 @@ public class SelectSubmissionTypeView implements IsWidget {
 	private Radio isClassRadio = new Radio();
 	private Radio isSynonymRadio = new Radio();
 	private ToggleGroup classSynonymGroup;
-	private EventBus eventBus;
 
-	public SelectSubmissionTypeView(EventBus eventBus) {
-		this.eventBus = eventBus;
+	public SelectSubmissionTypeView() {
 		
 		formContainer = new VerticalLayoutContainer();
 		isClassRadio.setBoxLabel("Class");

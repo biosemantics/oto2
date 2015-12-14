@@ -54,6 +54,7 @@ import edu.arizona.biosemantics.oto2.ontologize.client.event.RemoveOntologySynon
 import edu.arizona.biosemantics.oto2.ontologize.client.event.SetColorEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.TermMarkUselessEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.TermSelectEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.layout.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Color;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Comment;
@@ -109,7 +110,7 @@ public class CandidateTermsView implements IsWidget {
 				this.add(new HeaderMenuItem("Annotation"));
 				this.add(createComment(selected));
 				
-				if(!collection.getColors().isEmpty()) {
+				if(!ModelController.getCollection().getColors().isEmpty()) {
 					this.add(createColorize(selected));
 				} 
 			}
@@ -125,8 +126,8 @@ public class CandidateTermsView implements IsWidget {
 			offItem.addSelectionHandler(new SelectionHandler<Item>() {
 				@Override
 				public void onSelection(SelectionEvent<Item> event) {
-					collection.setColorizations((java.util.Collection)selected, null);
-					collectionService.update(collection, new AsyncCallback<Void>() {
+					ModelController.getCollection().setColorizations((java.util.Collection)selected, null);
+					collectionService.update(ModelController.getCollection(), new AsyncCallback<Void>() {
 						@Override
 						public void onFailure(Throwable caught) {
 							Alerter.failedToSetColor();
@@ -139,14 +140,14 @@ public class CandidateTermsView implements IsWidget {
 				}
 			});
 			colorMenu.add(offItem);
-			for(final Color color : collection.getColors()) {
+			for(final Color color : ModelController.getCollection().getColors()) {
 				MenuItem colorItem = new MenuItem(color.getUse());
 				colorItem.getElement().getStyle().setProperty("backgroundColor", "#" + color.getHex());
 				colorItem.addSelectionHandler(new SelectionHandler<Item>() {
 					@Override
 					public void onSelection(SelectionEvent<Item> event) {
-						collection.setColorizations((java.util.Collection)selected, color);
-						collectionService.update(collection, new AsyncCallback<Void>() {
+						ModelController.getCollection().setColorizations((java.util.Collection)selected, color);
+						collectionService.update(ModelController.getCollection(), new AsyncCallback<Void>() {
 							@Override
 							public void onFailure(Throwable caught) {
 								Alerter.failedToSetColor();
@@ -176,8 +177,8 @@ public class CandidateTermsView implements IsWidget {
 						@Override
 						public void onHide(HideEvent event) {
 							final Comment newComment = new Comment(Ontologize.user, box.getValue());
-							collection.addComments((java.util.Collection)selected, newComment);
-							collectionService.update(collection, new AsyncCallback<Void>() {
+							ModelController.getCollection().addComments((java.util.Collection)selected, newComment);
+							collectionService.update(ModelController.getCollection(), new AsyncCallback<Void>() {
 								@Override
 								public void onFailure(Throwable caught) {
 									Alerter.addCommentFailed(caught);
@@ -205,7 +206,7 @@ public class CandidateTermsView implements IsWidget {
 			rename.addSelectionHandler(new SelectionHandler<Item>() {
 				@Override
 				public void onSelection(SelectionEvent<Item> event) {
-					Alerter.dialogRename(eventBus, term, collection);
+					Alerter.dialogRename(eventBus, term, ModelController.getCollection());
 				}
 			});
 			return rename;
@@ -250,7 +251,6 @@ public class CandidateTermsView implements IsWidget {
 	private AllowSurpressSelectEventsTreeSelectionModel<TextTreeNode> termTreeSelectionModel = 
 			new AllowSurpressSelectEventsTreeSelectionModel<TextTreeNode>();
 	
-	protected Collection collection;
 	private VerticalLayoutContainer vertical;
 	private TermsView termsView;
 	
@@ -285,15 +285,7 @@ public class CandidateTermsView implements IsWidget {
 					}
 				});
 			}
-		});*/
-		
-		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
-			@Override
-			public void onLoad(LoadCollectionEvent event) {
-				collection = event.getCollection();
-			}
-		});
-		
+		});*/		
 		termTreeSelectionModel.addSelectionHandler(new SelectionHandler<TextTreeNode>() {
 			@Override
 			public void onSelection(SelectionEvent<TextTreeNode> event) {

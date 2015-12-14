@@ -26,6 +26,7 @@ import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadOntologyClassSu
 import edu.arizona.biosemantics.oto2.ontologize.client.event.OntologyClassSubmissionSelectEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.RemoveOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.UpdateOntologyClassSubmissionsEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.layout.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Term;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
@@ -36,8 +37,8 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.PartOf;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.PartOfTreeNode;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.TermTreeNode;
 
-public class SuperclassesView implements IsWidget {
 
+public class SuperclassesView implements IsWidget {
 	private OntologyClassSubmissionProperties ontologyClassSubmissionProperties = GWT.create(OntologyClassSubmissionProperties.class);
 	
 	private VerticalLayoutContainer verticalLayoutContainer;
@@ -47,12 +48,10 @@ public class SuperclassesView implements IsWidget {
 	private ListStore<OntologyClassSubmission> listStore;
 	private ListView<OntologyClassSubmission, String> listView;
 
-	private EventBus eventBus;
+	private OntologyClassSubmission selected;
 
-	private Collection collection; 
-
-	public SuperclassesView(EventBus eventBus) {
-		this.eventBus = eventBus;
+	public SuperclassesView(EventBus eventBus, final OntologyClassSubmission selected, Type type) {
+		this.selected = selected;
 		this.ontologyView = new OntologyView(eventBus);
 		this.ontologyView.setPartOfChecked(false);
 		this.ontologyView.setSynonymChecked(false);
@@ -67,62 +66,24 @@ public class SuperclassesView implements IsWidget {
 		verticalLayoutContainer.add(new FieldLabel(listView, "Candidate Superclasses"), new VerticalLayoutData(1, 100));
 		verticalLayoutContainer.add(new FieldLabel(superclassTextField, "New Superclass"), new VerticalLayoutData(1, 1));
 		
+		listStore.addAll(ModelController.getClassSubmissions().values());
+		listStore.addFilter(new StoreFilter<OntologyClassSubmission>() {
+			@Override
+			public boolean select(Store<OntologyClassSubmission> store,	OntologyClassSubmission parent,	OntologyClassSubmission item) {
+				return item.getId() != selected.getId();
+			}
+		});
+		this.setSubmissionType(type);
+		
 		bindEvents();
 	}
 
-	private void bindEvents() {
-		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
-			@Override
-			public void onLoad(LoadCollectionEvent event) {
-				SuperclassesView.this.collection = event.getCollection();
-			}
-		});
-		eventBus.addHandler(LoadOntologyClassSubmissionsEvent.TYPE, new LoadOntologyClassSubmissionsEvent.Handler() {
-			@Override
-			public void onSelect(LoadOntologyClassSubmissionsEvent event) {
-				listStore.clear();
-				listStore.addAll(event.getOntologyClassSubmissions());
-			}
-		});
-		eventBus.addHandler(CreateOntologyClassSubmissionEvent.TYPE, new CreateOntologyClassSubmissionEvent.Handler() {
-			@Override
-			public void onSubmission(CreateOntologyClassSubmissionEvent event) {
-				listStore.addAll(event.getClassSubmissions());
-			}
-		});
-		eventBus.addHandler(RemoveOntologyClassSubmissionsEvent.TYPE, new RemoveOntologyClassSubmissionsEvent.Handler() {
-			@Override
-			public void onRemove(RemoveOntologyClassSubmissionsEvent event) {
-				for(OntologyClassSubmission submission : event.getOntologyClassSubmissions()) {
-					listStore.remove(submission);
-				}
-			}
-		});
-		eventBus.addHandler(UpdateOntologyClassSubmissionsEvent.TYPE, new UpdateOntologyClassSubmissionsEvent.Handler() {
-			@Override
-			public void onUpdate(UpdateOntologyClassSubmissionsEvent event) {
-				for(OntologyClassSubmission submission : event.getOntologyClassSubmissions())
-					listStore.update(submission);
-			}
-		});
-		
+	private void bindEvents() {		
 		listView.getSelectionModel().addSelectionChangedHandler(new SelectionChangedHandler<OntologyClassSubmission>() {
 			@Override
 			public void onSelectionChanged(SelectionChangedEvent<OntologyClassSubmission> event) {
 				if(event.getSelection().size() == 1)
 					superclassTextField.setValue(event.getSelection().get(0).getSubmissionTerm());
-			}
-		});
-		eventBus.addHandler(OntologyClassSubmissionSelectEvent.TYPE, new OntologyClassSubmissionSelectEvent.Handler() {
-			@Override
-			public void onSelect(final OntologyClassSubmissionSelectEvent event) {
-				listStore.removeFilters();
-				listStore.addFilter(new StoreFilter<OntologyClassSubmission>() {
-					@Override
-					public boolean select(Store<OntologyClassSubmission> store,	OntologyClassSubmission parent,	OntologyClassSubmission item) {
-						return item.getId() != event.getOntologyClassSubmission().getId();
-					}
-				});
 			}
 		});
 	}

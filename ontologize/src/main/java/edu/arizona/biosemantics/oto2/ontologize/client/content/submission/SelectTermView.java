@@ -29,10 +29,12 @@ import com.sencha.gxt.widget.core.client.form.Validator;
 import edu.arizona.biosemantics.oto2.ontologize.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.CreateOntologyClassSubmissionEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadCollectionEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadOntologiesEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.RemoveOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.SelectSynonymEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.TermSelectEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.UpdateOntologyClassSubmissionsEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.layout.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.OntologyProperties;
@@ -68,7 +70,6 @@ public class SelectTermView implements IsWidget {
 		}
 	});
 	private TextField submissionTermField = new TextField();
-	protected Collection collection;
 	private FieldValidator fieldValidator = new FieldValidator();
 	protected Ontology ontology;
 	private boolean bindTermSelectEvent;
@@ -103,7 +104,7 @@ public class SelectTermView implements IsWidget {
 		    formContainer.add(new FieldLabel(selectOntologyView, "Ontology *"), new VerticalLayoutData(1, -1));
 	    }
 	    
-	   	selectSubmissionTypeView = new SelectSubmissionTypeView(eventBus);
+	   	selectSubmissionTypeView = new SelectSubmissionTypeView();
 	   	formContainer.add(selectSubmissionTypeView);
 	    classIRIComboBox = new ComboBox<SynonymClass>(classIRIStore, new LabelProvider<SynonymClass>() {
 			@Override
@@ -143,30 +144,24 @@ public class SelectTermView implements IsWidget {
 					setTerm(event.getTerm());
 				}
 			});
+		eventBus.addHandler(LoadOntologiesEvent.TYPE, new LoadOntologiesEvent.Handler() {
+			@Override
+			public void onLoad(LoadOntologiesEvent event) {
+				if(!ModelController.getOntologies().isEmpty())
+					SelectTermView.this.ontology = ModelController.getOntologies().get(0);
+				fillClassIRIStore(ontology);
+			}
+		});
 		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
 			@Override
-			public void onLoad(LoadCollectionEvent event) {
-				SelectTermView.this.collection = event.getCollection();
-				
-				toOntologyService.getLocalOntologies(collection, new AsyncCallback<List<Ontology>>() {
-					@Override
-					public void onFailure(Throwable caught) {
-						Alerter.getOntologiesFailed(caught);
-					}
-					@Override
-					public void onSuccess(List<Ontology> result) {
-						SelectTermView.this.ontology = result.get(0);
-						fillClassIRIStore(ontology);
-					}
-				});
-				
+			public void onLoad(LoadCollectionEvent event) {			
 				refreshTerms();
 			}
 		});
 		classIRIField.addValueChangeHandler(new ValueChangeHandler<String>() {
 			@Override
 			public void onValueChange(ValueChangeEvent<String> event) {
-				toOntologyService.isSupportedIRI(collection, event.getValue().trim(), new AsyncCallback<Boolean>() {
+				toOntologyService.isSupportedIRI(ModelController.getCollection(), event.getValue().trim(), new AsyncCallback<Boolean>() {
 					@Override
 					public void onFailure(Throwable caught) {
 						Alerter.failedToCheckIRI(caught);
@@ -243,7 +238,7 @@ public class SelectTermView implements IsWidget {
 	
 	protected void fillClassIRIStore(Ontology ontology) {
 		final MessageBox box = Alerter.startLoading();
-		toOntologyService.getClassSubmissions(collection, ontology, new AsyncCallback<List<OntologyClassSubmission>>() {
+		toOntologyService.getClassSubmissions(ModelController.getCollection(), ontology, new AsyncCallback<List<OntologyClassSubmission>>() {
 			@Override
 			public void onFailure(Throwable caught) {
 				Alerter.stopLoading(box);
@@ -260,7 +255,7 @@ public class SelectTermView implements IsWidget {
 
 	protected void refreshTerms() {
 		termStore.clear();
-		termStore.addAll(collection.getTerms());
+		termStore.addAll(ModelController.getCollection().getTerms());
 	}
 
 	protected void setTerm(Term term) {
@@ -284,6 +279,12 @@ public class SelectTermView implements IsWidget {
 	
 	public String getSubmissionTerm() {
 		return submissionTermField.getText().trim();
+	}
+	
+	public String getClassLabel() {
+		if(isSynonym() && !showIRITextFieldForSynonym)
+			return this.classIRIComboBox.getValue().getLabel().trim();
+		return this.classIRIField.getText().trim();
 	}
 	
 	public String getClassIRI() {
@@ -411,4 +412,6 @@ public class SelectTermView implements IsWidget {
 	public Type getType() {
 		return selectTypeView.getType();
 	}
+
+
 }

@@ -45,8 +45,10 @@ import edu.arizona.biosemantics.oto2.ontologize.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.CreateOntologyClassSubmissionEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadOntologyClassSubmissionsEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.OntologyClassSubmissionSelectEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.RemoveOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.SelectSuperclassEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.layout.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
@@ -65,18 +67,18 @@ public class SelectSuperclassView implements IsWidget {
 	private TextButton add = new TextButton("Add");
 	private TextButton remove = new TextButton("Remove");
 	private TextButton clear = new TextButton("Clear");
-	protected Collection collection;
 	private EventBus eventBus;
 	private Type defaultSuperclass;
-	private AddSuperclassDialog addSuperclassDialog;
-	private Map<Integer, OntologyClassSubmission> classSubmissions = new HashMap<Integer, OntologyClassSubmission>();
 	private boolean showDefaultSuperclasses;
+
+	protected OntologyClassSubmission selectedClassSubmission;
+
+	private Type submissionType;
 	
 	public SelectSuperclassView(EventBus eventBus, boolean showDefaultSuperclasses) {
 		this.eventBus = eventBus;
 		this.showDefaultSuperclasses = showDefaultSuperclasses;
 		
-		addSuperclassDialog = new AddSuperclassDialog(eventBus);
 		store = new ListStore<Superclass>(new ModelKeyProvider<Superclass>() {
 			@Override
 			public String getKey(Superclass item) {
@@ -146,12 +148,6 @@ public class SelectSuperclassView implements IsWidget {
 				enableButtons();
 			}
 		});
-		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
-			@Override
-			public void onLoad(LoadCollectionEvent event) {
-				SelectSuperclassView.this.collection = event.getCollection();
-			}
-		});
 		eventBus.addHandler(SelectSuperclassEvent.TYPE, new SelectSuperclassEvent.Handler() {
 			@Override
 			public void onSelect(SelectSuperclassEvent event) {
@@ -159,78 +155,63 @@ public class SelectSuperclassView implements IsWidget {
 			}
 		});
 		
-		eventBus.addHandler(LoadOntologyClassSubmissionsEvent.TYPE, new LoadOntologyClassSubmissionsEvent.Handler() {
-			@Override
-			public void onSelect(LoadOntologyClassSubmissionsEvent event) {
-				classSubmissions.clear();
-				for(OntologyClassSubmission submission : event.getOntologyClassSubmissions())
-					classSubmissions.put(submission.getId(), submission);
-			}
-		});
-		eventBus.addHandler(CreateOntologyClassSubmissionEvent.TYPE, new CreateOntologyClassSubmissionEvent.Handler() {
-			@Override
-			public void onSubmission(CreateOntologyClassSubmissionEvent event) {
-				for(OntologyClassSubmission submission : event.getClassSubmissions())
-					classSubmissions.put(submission.getId(), submission);
-			}
-		});
-		eventBus.addHandler(RemoveOntologyClassSubmissionsEvent.TYPE, new RemoveOntologyClassSubmissionsEvent.Handler() {
-			@Override
-			public void onRemove(RemoveOntologyClassSubmissionsEvent event) {
-				for(OntologyClassSubmission submission : event.getOntologyClassSubmissions())
-					classSubmissions.remove(submission.getId());
-			}
-		});
-		
 		add.addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
-				addSuperclassDialog.show();
+				final AddSuperclassDialog dialog = new AddSuperclassDialog(eventBus, selectedClassSubmission, submissionType);
+				dialog.show();
+				
+				dialog.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
+					@Override
+					public void onSelect(SelectEvent event) {
+						final String value = dialog.getValue();
+						if(value == null || value.isEmpty()) 
+							Alerter.inputRequired();
+						else {
+							final Superclass superclass = new Superclass();
+							if(value.startsWith("http")) {
+								final MessageBox box = Alerter.startLoading();
+								toOntologyService.isSupportedIRI(ModelController.getCollection(), value, new AsyncCallback<Boolean>() {
+									@Override
+									public void onFailure(Throwable caught) {
+										Alerter.failedToCheckIRI(caught);
+										Alerter.stopLoading(box);
+									}
+									@Override
+									public void onSuccess(Boolean result) {
+										if(result) {
+											superclass.setIri(value);
+											addSuperClassToStore(superclass);
+											dialog.hide();
+										} else {
+											Alerter.unsupportedIRI();
+										}
+										Alerter.stopLoading(box);
+									}
+								});
+							/*} else if(ontologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(superclass, classSubmissions) != null) {
+								superclass.setLabel(value);
+								addSuperClassToStore(superclass);
+								addSuperclassDialog.hide();
+							} else {
+								Alerter.unupportedSuperclass();
+							}*/
+							
+							//allow creation of superclass submissions 'on the fly'
+							} else {
+								superclass.setLabel(value);
+								addSuperClassToStore(superclass);
+								dialog.hide();
+							}
+						}
+					}
+				});
 			}
 		});
-		addSuperclassDialog.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
+		eventBus.addHandler(OntologyClassSubmissionSelectEvent.TYPE, new OntologyClassSubmissionSelectEvent.Handler() {
 			@Override
-			public void onSelect(SelectEvent event) {
-				final String value = addSuperclassDialog.getValue();
-				if(value == null || value.isEmpty()) 
-					Alerter.inputRequired();
-				else {
-					final Superclass superclass = new Superclass();
-					if(value.startsWith("http")) {
-						final MessageBox box = Alerter.startLoading();
-						toOntologyService.isSupportedIRI(collection, value, new AsyncCallback<Boolean>() {
-							@Override
-							public void onFailure(Throwable caught) {
-								Alerter.failedToCheckIRI(caught);
-								Alerter.stopLoading(box);
-							}
-							@Override
-							public void onSuccess(Boolean result) {
-								if(result) {
-									superclass.setIri(value);
-									addSuperClassToStore(superclass);
-									addSuperclassDialog.hide();
-								} else {
-									Alerter.unsupportedIRI();
-								}
-								Alerter.stopLoading(box);
-							}
-						});
-					/*} else if(ontologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(superclass, classSubmissions) != null) {
-						superclass.setLabel(value);
-						addSuperClassToStore(superclass);
-						addSuperclassDialog.hide();
-					} else {
-						Alerter.unupportedSuperclass();
-					}*/
-					
-					//allow creation of superclass submissions 'on the fly'
-					} else {
-						superclass.setLabel(value);
-						addSuperClassToStore(superclass);
-						addSuperclassDialog.hide();
-					}
-				}
+			public void onSelect(OntologyClassSubmissionSelectEvent event) {
+				SelectSuperclassView.this.selectedClassSubmission = event.getOntologyClassSubmission();
 			}
 		});
 		remove.addSelectHandler(new SelectHandler() {
@@ -264,13 +245,13 @@ public class SelectSuperclassView implements IsWidget {
 
 	public void addSuperClassToStore(final Superclass superclass) {
 		if(!superclass.hasIri()) {
-			OntologyClassSubmission ontologyClassSubmission = OntologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(superclass, classSubmissions.values());
+			OntologyClassSubmission ontologyClassSubmission = OntologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(superclass, ModelController.getClassSubmissions().values());
 			if(ontologyClassSubmission != null) 
-				superclass.setIri(OntologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(superclass, classSubmissions.values()).getIri());
+				superclass.setIri(OntologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(superclass, ModelController.getClassSubmissions().values()).getIri());
 			store.add(superclass);
 		} else if(!superclass.hasLabel()) {
 			final MessageBox box = Alerter.startLoading();
-			toOntologyService.getClassLabel(collection, superclass.getIri(), new AsyncCallback<String>() {
+			toOntologyService.getClassLabel(ModelController.getCollection(), superclass.getIri(), new AsyncCallback<String>() {
 				@Override
 				public void onFailure(Throwable caught) {
 					Alerter.failedToGetClassLabel();
@@ -315,14 +296,14 @@ public class SelectSuperclassView implements IsWidget {
 	}
 
 	public void setSubmissionType(Type type) {
+		this.submissionType = type;
 		setSuperclassType(type);
-		addSuperclassDialog.setSubmissionType(type);
 	}
 
 	private void setSuperclassType(Type type) {
 		//remove old
 		for(Superclass superclass : new ArrayList<Superclass>(this.store.getAll())) {
-			if(defaultSuperclass != null && superclass.getIri().equals(defaultSuperclass.getIRI())) 
+			if(defaultSuperclass != null && superclass.getIri() != null && superclass.getIri().equals(defaultSuperclass.getIRI())) 
 				store.remove(superclass);
 		}
 		//add new

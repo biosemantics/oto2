@@ -9,13 +9,14 @@ import com.sencha.gxt.widget.core.client.form.FieldLabel;
 
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
+import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.PartOf;
 
 public class AddSuperclassDialog extends Dialog {
 	
 	private SuperclassesView superclassesView;
 
-	public AddSuperclassDialog(EventBus eventBus) {
+	public AddSuperclassDialog(EventBus eventBus, OntologyClassSubmission selected, Type type) {
 		this.setHeadingText("Add Superclass");
 		this.setHeight(600);
 		this.setWidth(800);
@@ -23,25 +24,16 @@ public class AddSuperclassDialog extends Dialog {
 		this.setOnEsc(true);
 		this.setModal(true);
 		
-		superclassesView = new SuperclassesView(eventBus);
+		superclassesView = new SuperclassesView(eventBus, selected, type);
 		
 		VerticalLayoutContainer vlp = new VerticalLayoutContainer();
 		vlp.getScrollSupport().setScrollMode(ScrollMode.AUTO);
 		this.setWidget(vlp);
 		
 		vlp.add(superclassesView, new VerticalLayoutData(780, 540));
-		
-		bindEvents();
-	}
-	
-	private void bindEvents() {
 	}
 	
 	public String getValue() {
 		return superclassesView.getValue();
-	}
-
-	public void setSubmissionType(Type type) {
-		superclassesView.setSubmissionType(type);
 	}
 }

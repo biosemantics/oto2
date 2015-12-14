@@ -9,7 +9,13 @@ import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.Window.Location;
 import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.google.gwt.user.client.ui.RootLayoutPanel;
 import com.google.gwt.user.client.ui.RootPanel;
+import com.sencha.gxt.core.client.IdentityValueProvider;
+import com.sencha.gxt.data.shared.ListStore;
+import com.sencha.gxt.data.shared.ModelKeyProvider;
+import com.sencha.gxt.widget.core.client.ListView;
+import com.sencha.gxt.widget.core.client.container.BorderLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.Viewport;
 
 import edu.arizona.biosemantics.common.biology.TaxonGroup;
@@ -27,8 +33,25 @@ public class StandAlone implements EntryPoint {
 	private IToOntologyServiceAsync toOntologyService = GWT.create(IToOntologyService.class);
 	
 	public void onModuleLoad() {		
-		int collectionId = 116;
-		String secret = "my secret";
+		
+		/*ListStore<String> store = new ListStore<String>(new ModelKeyProvider<String>() {
+			@Override
+			public String getKey(String item) {
+				return item;
+			}
+		});
+		ListView<String, String> list = new ListView<String, String>(store, new IdentityValueProvider<String>());
+		for(int i=0; i<10000; i++)
+			store.add("i" +i);
+		
+		BorderLayoutContainer borderLayoutContainer = new BorderLayoutContainer();
+		borderLayoutContainer.setWestWidget(list);
+		
+		RootLayoutPanel.get().add(borderLayoutContainer);*/
+		
+		
+		int collectionId = 1;
+		String secret = "";//"my secret";
 		
 		/*Collection collection = new Collection();
 		collection.setId(collectionId);

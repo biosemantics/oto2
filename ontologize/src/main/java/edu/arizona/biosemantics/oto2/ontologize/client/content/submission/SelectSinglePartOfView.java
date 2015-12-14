@@ -43,8 +43,10 @@ import edu.arizona.biosemantics.oto2.ontologize.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.CreateOntologyClassSubmissionEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadOntologyClassSubmissionsEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.OntologyClassSubmissionSelectEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.RemoveOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.SelectPartOfEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.layout.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;
@@ -62,16 +64,12 @@ public class SelectSinglePartOfView implements IsWidget {
 	private ListStore<PartOf> store;
 	private TextButton setButton = new TextButton("Add");
 	private TextButton removeButton = new TextButton("Clear");
-
-	protected Collection collection;
 	private EventBus eventBus;
-	private AddPartOfDialog addPartOfDialog;
-
-	private Map<Integer, OntologyClassSubmission> classSubmissions = new HashMap<Integer, OntologyClassSubmission>();
+	protected OntologyClassSubmission selectedClassSubmission;
+	private Type submissionType;
 	
 	public SelectSinglePartOfView(EventBus eventBus) {
 		this.eventBus = eventBus;
-		addPartOfDialog = new AddPartOfDialog(eventBus);
 		store = new ListStore<PartOf>(new ModelKeyProvider<PartOf>() {
 			@Override
 			public String getKey(PartOf item) {
@@ -98,30 +96,7 @@ public class SelectSinglePartOfView implements IsWidget {
 	    bindEvents();
 	}
 	
-	private void bindEvents() {
-		eventBus.addHandler(LoadOntologyClassSubmissionsEvent.TYPE, new LoadOntologyClassSubmissionsEvent.Handler() {
-			@Override
-			public void onSelect(LoadOntologyClassSubmissionsEvent event) {
-				classSubmissions.clear();
-				for(OntologyClassSubmission submission : event.getOntologyClassSubmissions())
-					classSubmissions.put(submission.getId(), submission);
-			}
-		});
-		eventBus.addHandler(CreateOntologyClassSubmissionEvent.TYPE, new CreateOntologyClassSubmissionEvent.Handler() {
-			@Override
-			public void onSubmission(CreateOntologyClassSubmissionEvent event) {
-				for(OntologyClassSubmission submission : event.getClassSubmissions())
-					classSubmissions.put(submission.getId(), submission);
-			}
-		});
-		eventBus.addHandler(RemoveOntologyClassSubmissionsEvent.TYPE, new RemoveOntologyClassSubmissionsEvent.Handler() {
-			@Override
-			public void onRemove(RemoveOntologyClassSubmissionsEvent event) {
-				for(OntologyClassSubmission submission : event.getOntologyClassSubmissions())
-					classSubmissions.remove(submission.getId());
-			}
-		});
-		
+	private void bindEvents() {		
 		store.addStoreDataChangeHandler(new StoreDataChangeHandler<PartOf>() {
 			@Override
 			public void onDataChange(StoreDataChangeEvent<PartOf> event) {
@@ -182,10 +157,10 @@ public class SelectSinglePartOfView implements IsWidget {
 				enableButtons();
 			}
 		});
-		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
+		eventBus.addHandler(OntologyClassSubmissionSelectEvent.TYPE, new OntologyClassSubmissionSelectEvent.Handler() {
 			@Override
-			public void onLoad(LoadCollectionEvent event) {
-				SelectSinglePartOfView.this.collection = event.getCollection();
+			public void onSelect(OntologyClassSubmissionSelectEvent event) {
+				SelectSinglePartOfView.this.selectedClassSubmission = event.getOntologyClassSubmission();
 			}
 		});
 		eventBus.addHandler(SelectPartOfEvent.TYPE, new SelectPartOfEvent.Handler() {
@@ -198,50 +173,52 @@ public class SelectSinglePartOfView implements IsWidget {
 		setButton.addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
-				addPartOfDialog.show();
-			}
-		});
-		addPartOfDialog.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
-			@Override
-			public void onSelect(SelectEvent event) {
-				final String value = addPartOfDialog.getValue();
-				if(value == null || value.isEmpty())
-					Alerter.inputRequired();
-				else {
-					final PartOf partOf = new PartOf(); 
-					if(value.startsWith("http")) {
-						final MessageBox box = Alerter.startLoading();
-						toOntologyService.isSupportedIRI(collection, value, new AsyncCallback<Boolean>() {
-							@Override
-							public void onFailure(Throwable caught) {
-								Alerter.failedToCheckIRI(caught);
-								Alerter.stopLoading(box);
+				final AddPartOfDialog dialog = new AddPartOfDialog(eventBus, selectedClassSubmission, submissionType);
+				dialog.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
+					@Override
+					public void onSelect(SelectEvent event) {
+						final String value = dialog.getValue();
+						if(value == null || value.isEmpty())
+							Alerter.inputRequired();
+						else {
+							final PartOf partOf = new PartOf(); 
+							if(value.startsWith("http")) {
+								final MessageBox box = Alerter.startLoading();
+								toOntologyService.isSupportedIRI(ModelController.getCollection(), value, new AsyncCallback<Boolean>() {
+									@Override
+									public void onFailure(Throwable caught) {
+										Alerter.failedToCheckIRI(caught);
+										Alerter.stopLoading(box);
+									}
+									@Override
+									public void onSuccess(Boolean result) {
+										if(result) {
+											partOf.setIri(value);
+											addPartOfToStore(partOf);
+											dialog.hide();
+										} else {
+											Alerter.unsupportedIRI();
+										}
+										Alerter.stopLoading(box);
+									}
+								});
+							/*} else if(ontologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(partOf, classSubmissions) != null) {
+								partOf.setLabel(value);
+								addPartOfToStore(superclass);
+								addPartOfDialog.hide();
+							} else {
+								Alerter.unupportedPartOf();
+							}*/
+							} else {
+								partOf.setLabel(value);
+								addPartOfToStore(partOf);
+								dialog.hide();
 							}
-							@Override
-							public void onSuccess(Boolean result) {
-								if(result) {
-									partOf.setIri(value);
-									addPartOfToStore(partOf);
-									addPartOfDialog.hide();
-								} else {
-									Alerter.unsupportedIRI();
-								}
-								Alerter.stopLoading(box);
-							}
-						});
-					/*} else if(ontologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(partOf, classSubmissions) != null) {
-						partOf.setLabel(value);
-						addPartOfToStore(superclass);
-						addPartOfDialog.hide();
-					} else {
-						Alerter.unupportedPartOf();
-					}*/
-					} else {
-						partOf.setLabel(value);
-						addPartOfToStore(partOf);
-						addPartOfDialog.hide();
+						}
 					}
-				}
+				});
+				
+				dialog.show();
 			}
 		});
 		removeButton.addSelectHandler(new SelectHandler() {
@@ -265,13 +242,13 @@ public class SelectSinglePartOfView implements IsWidget {
 	public void addPartOfToStore(final PartOf partOf) {
 		store.clear();
 		if(!partOf.hasIri()) {
-			OntologyClassSubmission ontologyClassSubmission = OntologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(partOf, classSubmissions.values());
+			OntologyClassSubmission ontologyClassSubmission = OntologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(partOf, ModelController.getClassSubmissions().values());
 			if(ontologyClassSubmission != null)
 				partOf.setIri(ontologyClassSubmission.getIri());
 			store.add(partOf);
 		} else if(!partOf.hasLabel()) {
 			final MessageBox box = Alerter.startLoading();
-			toOntologyService.getClassLabel(collection, partOf.getIri(), new AsyncCallback<String>() {
+			toOntologyService.getClassLabel(ModelController.getCollection(), partOf.getIri(), new AsyncCallback<String>() {
 				@Override
 				public void onFailure(Throwable caught) {
 					Alerter.failedToGetClassLabel();
@@ -307,8 +284,8 @@ public class SelectSinglePartOfView implements IsWidget {
 	public void clear() {
 		store.clear();
 	}
-
+	
 	public void setSubmissionType(Type type) {
-		this.addPartOfDialog.setSubmissionType(type);
+		this.submissionType = type;
 	}
 }

@@ -47,20 +47,14 @@ public class SelectSynonymsView implements IsWidget {
 
 	private SynonymProperties synonymProperties = GWT.create(SynonymProperties.class);
 	private VerticalLayoutContainer formContainer;
-	private EventBus eventBus;
 	
 	private ListView<Synonym, String> listView;
 	private ListStore<Synonym> store;
 	private TextButton add = new TextButton("Add");
 	private TextButton remove = new TextButton("Remove");
 	private TextButton clear = new TextButton("Clear");
-	protected Collection collection;
-	private AddSynonymDialog addSynonymDialog;
 
-	public SelectSynonymsView(EventBus eventBus) {
-		this.eventBus = eventBus;
-		this.addSynonymDialog = new AddSynonymDialog(eventBus);
-
+	public SelectSynonymsView() {
 		formContainer = new VerticalLayoutContainer();
 		store = new ListStore<Synonym>(new ModelKeyProvider<Synonym>() {
 			@Override
@@ -125,26 +119,19 @@ public class SelectSynonymsView implements IsWidget {
 			public void onSort(StoreSortEvent<Synonym> event) {
 				enableButtons();
 			}
-		});
-		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
-			@Override
-			public void onLoad(LoadCollectionEvent event) {
-				SelectSynonymsView.this.collection = event.getCollection();
-			}
-		});
-		
+		});		
 		add.addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
-				addSynonymDialog.setCollection(collection);
-				addSynonymDialog.show();
-			}
-		});
-		addSynonymDialog.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
-			@Override
-			public void onSelect(SelectEvent event) {
-				store.add(new Synonym(addSynonymDialog.getValue()));
-				addSynonymDialog.hide();
+				final AddSynonymDialog dialog = new AddSynonymDialog();
+				dialog.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
+					@Override
+					public void onSelect(SelectEvent event) {
+						store.add(new Synonym(dialog.getValue()));
+						dialog.hide();
+					}
+				});
+				dialog.show();
 			}
 		});
 		remove.addSelectHandler(new SelectHandler() {
@@ -188,8 +175,9 @@ public class SelectSynonymsView implements IsWidget {
 		store.clear();
 		store.addAll(synonyms);
 	}
-	
+
 	public void setSubmissionType(Type type) {
-		addSynonymDialog.setSubmissionType(type);
+		// TODO Auto-generated method stub
+		
 	}
 }

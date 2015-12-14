@@ -49,12 +49,14 @@ import edu.arizona.biosemantics.oto2.ontologize.client.event.CreateOntologyClass
 import edu.arizona.biosemantics.oto2.ontologize.client.event.CreateOntologyEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.CreateOntologySynonymSubmissionEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadCollectionEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadOntologiesEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadOntologySynonymSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.RemoveOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.RemoveOntologySynonymSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.SelectOntologyEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.UpdateOntologyClassSubmissionsEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.layout.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.OntologyProperties;
@@ -136,10 +138,6 @@ public class OntologyView implements IsWidget {
 	private IToOntologyServiceAsync toOntologyService = GWT.create(IToOntologyService.class);
 	private OntologyProperties ontologyProperties = GWT.create(OntologyProperties.class);
 	private FlowLayoutContainer visualizationContainer = new FlowLayoutContainer();
-	private EventBus eventBus;
-	private Collection collection;
-	private Map<Integer, OntologyClassSubmission> classSubmissions = new HashMap<Integer, OntologyClassSubmission>();
-	private Map<Integer, OntologySynonymSubmission> synonymSubmissions = new HashMap<Integer, OntologySynonymSubmission>();
 	private VerticalLayoutContainer verticalLayoutContainer;
 	private ListStore<Ontology> ontologyStore;
 	//private ComboBox<Ontology> ontologyComboBox;
@@ -150,14 +148,18 @@ public class OntologyView implements IsWidget {
 	private CheckBox qualityCheckBox;
 	protected Ontology ontology;
 	private TextButton refreshButton = new TextButton("Refresh");
+	private EventBus eventBus;
 	
 	public OntologyView(EventBus eventBus) {
 		this.eventBus = eventBus;
-
+		
 		verticalLayoutContainer = new VerticalLayoutContainer();
 		verticalLayoutContainer.add(createToolBar(),new VerticalLayoutData(1,-1));
 		verticalLayoutContainer.add(visualizationContainer, new VerticalLayoutData(1, 1));	
 	    visualizationContainer.setScrollMode(ScrollMode.ALWAYS);	
+	    
+	    //ontologyStore.addAll(ModelController.getOntologies());
+		//setOntology(ModelController.getOntologies().get(0));
 	    
 		bindEvents();
 	}
@@ -217,82 +219,13 @@ public class OntologyView implements IsWidget {
 	}
 
 	private void bindEvents() {
-		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
+		eventBus.addHandler(LoadOntologiesEvent.TYPE, new LoadOntologiesEvent.Handler() {
 			@Override
-			public void onLoad(LoadCollectionEvent event) {
-				collection = event.getCollection();
-				
-				toOntologyService.getLocalOntologies(collection, new AsyncCallback<List<Ontology>>() {
-					@Override
-					public void onFailure(Throwable caught) {
-						Alerter.getOntologiesFailed(caught);
-					}
-
-					@Override
-					public void onSuccess(List<Ontology> result) {
-						ontologyStore.clear();
-						ontologyStore.addAll(result);
-						if(result.size() == 1) {
-							setOntology(result.get(0));
-						}
-						setOntology(result.get(0));
-					}
-				});
-			}
-		});
-		eventBus.addHandler(CreateOntologyEvent.TYPE, new CreateOntologyEvent.Handler() {
-			@Override
-			public void onCreate(CreateOntologyEvent event) {
-				//ontologyStore.add(event.getOntology());
-			}
-		});
-		eventBus.addHandler(SelectOntologyEvent.TYPE, new SelectOntologyEvent.Handler() {
-			@Override
-			public void onSelect(SelectOntologyEvent event) {
-				//ontologyComboBox.select(event.getOntology());
-			}
-		});
-		eventBus.addHandler(LoadOntologyClassSubmissionsEvent.TYPE, new LoadOntologyClassSubmissionsEvent.Handler() {
-			@Override
-			public void onSelect(LoadOntologyClassSubmissionsEvent event) {
-				classSubmissions.clear();
-				for(OntologyClassSubmission submission : event.getOntologyClassSubmissions())
-					classSubmissions.put(submission.getId(), submission);
-			}
-		});
-		eventBus.addHandler(CreateOntologyClassSubmissionEvent.TYPE, new CreateOntologyClassSubmissionEvent.Handler() {
-			@Override
-			public void onSubmission(CreateOntologyClassSubmissionEvent event) {
-				for(OntologyClassSubmission submission : event.getClassSubmissions())
-					classSubmissions.put(submission.getId(), submission);
-			}
-		});
-		eventBus.addHandler(RemoveOntologyClassSubmissionsEvent.TYPE, new RemoveOntologyClassSubmissionsEvent.Handler() {
-			@Override
-			public void onRemove(RemoveOntologyClassSubmissionsEvent event) {
-				for(OntologyClassSubmission submission : event.getOntologyClassSubmissions())
-					classSubmissions.remove(submission.getId());
-			}
-		});
-		eventBus.addHandler(LoadOntologySynonymSubmissionsEvent.TYPE, new LoadOntologySynonymSubmissionsEvent.Handler() {
-			@Override
-			public void onSelect(LoadOntologySynonymSubmissionsEvent event) {
-				synonymSubmissions.clear();
-				for(OntologySynonymSubmission submission : event.getOntologySynonymSubmissions())
-					synonymSubmissions.put(submission.getId(), submission);
-			}
-		});
-		eventBus.addHandler(CreateOntologySynonymSubmissionEvent.TYPE, new CreateOntologySynonymSubmissionEvent.Handler() {
-			@Override
-			public void onSubmission(CreateOntologySynonymSubmissionEvent event) {
-				synonymSubmissions.put(event.getSynonymSubmission().getId(), event.getSynonymSubmission());
-			}
-		});
-		eventBus.addHandler(RemoveOntologySynonymSubmissionsEvent.TYPE, new RemoveOntologySynonymSubmissionsEvent.Handler() {
-			@Override
-			public void onRemove(RemoveOntologySynonymSubmissionsEvent event) {
-				for(OntologySynonymSubmission submission : event.getOntologySynonymSubmissions())
-					synonymSubmissions.remove(submission.getId());
+			public void onLoad(LoadOntologiesEvent event) {
+				ontologyStore.clear();
+				ontologyStore.addAll(event.getOntologies());
+				if(!event.getOntologies().isEmpty())
+					setOntology(event.getOntologies().get(0));
 			}
 		});
 		/*ontologyComboBox.addValueChangeHandler(new ValueChangeHandler<Ontology>() {
@@ -356,7 +289,7 @@ public class OntologyView implements IsWidget {
 	}
 
 	private void createNodesOfSubmissions(Ontology ontology, Map<String, Integer> nodeIds, JsArray<Node> nodes) {
-		for(OntologyClassSubmission submission : classSubmissions.values()) {
+		for(OntologyClassSubmission submission : ModelController.getClassSubmissions().values()) {
 			if(submission.getOntology().equals(ontology)) {
 				if(submissionTypeValid(submission)) {
 					Node node = Node.createObject().cast();
@@ -390,7 +323,7 @@ public class OntologyView implements IsWidget {
 			}
 		}
 		
-		for(OntologySynonymSubmission submission : synonymSubmissions.values()) {
+		for(OntologySynonymSubmission submission : ModelController.getSynonymSubmissions().values()) {
 			if(submission.getOntology().equals(ontology)) {
 				if(nodeIds.containsKey(submission.getClassIRI())) {
 					Node node = Node.createObject().cast();
@@ -424,7 +357,7 @@ public class OntologyView implements IsWidget {
 	}
 
 	private void createPartOfLinks(Ontology ontology, Map<String, Integer> nodeIds, JsArray<Link> links) {
-		for(OntologyClassSubmission submission : classSubmissions.values()) {
+		for(OntologyClassSubmission submission : ModelController.getClassSubmissions().values()) {
 			if(submission.getOntology().equals(ontology)) {
 				if(submissionTypeValid(submission)) {
 					for(PartOf partOf : submission.getPartOfs()) {
@@ -442,7 +375,7 @@ public class OntologyView implements IsWidget {
 	}
 
 	private void createSynonymLinks(Ontology ontology, Map<String, Integer> nodeIds, JsArray<Link> links) {
-		for(OntologySynonymSubmission submission : synonymSubmissions.values()) {
+		for(OntologySynonymSubmission submission : ModelController.getSynonymSubmissions().values()) {
 			if(submission.getOntology().equals(ontology)) {
 				if(nodeIds.containsKey(submission.getClassIRI())) {
 					Link link = Link.createObject().cast();
@@ -459,7 +392,7 @@ public class OntologyView implements IsWidget {
 				}
 			}
 		}
-		for(OntologyClassSubmission submission : classSubmissions.values()) {
+		for(OntologyClassSubmission submission : ModelController.getClassSubmissions().values()) {
 			if(submission.getOntology().equals(ontology)) {
 				if(submissionTypeValid(submission)) {
 					for(Synonym synonym : submission.getSynonyms()) {
@@ -475,7 +408,7 @@ public class OntologyView implements IsWidget {
 	}
 
 	private void createSuperclassLinks(Ontology ontology, Map<String, Integer> nodeIds, JsArray<Link> links) {				
-		for(OntologyClassSubmission submission : classSubmissions.values()) {
+		for(OntologyClassSubmission submission : ModelController.getClassSubmissions().values()) {
 			if(submission.getOntology().equals(ontology)) {
 				if(submissionTypeValid(submission)) {
 					if(submission.hasSuperclasses()) {

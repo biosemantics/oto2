@@ -13,6 +13,7 @@ import com.sencha.gxt.widget.core.client.form.ComboBox;
 
 import edu.arizona.biosemantics.oto2.ontologize.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadCollectionEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.layout.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.OntologyProperties;
@@ -27,7 +28,6 @@ public class SelectOntologyView implements IsWidget {
 	private ComboBox<Ontology> ontologyComboBox;
 	private ListStore<Ontology> ontologiesStore = new ListStore<Ontology>(ontologyProperties.key());
 	private EventBus eventBus;
-	private Collection collection;
 	
 	public SelectOntologyView(EventBus eventBus) {
 		this.eventBus = eventBus;
@@ -44,16 +44,14 @@ public class SelectOntologyView implements IsWidget {
 	private void bindEvents() {
 		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
 			@Override
-			public void onLoad(LoadCollectionEvent event) {
-				SelectOntologyView.this.collection = event.getCollection();
-				
+			public void onLoad(LoadCollectionEvent event) {				
 				refreshOntologies(null);
 			}
 		});
 	}
 	
 	private void refreshOntologies(final Ontology ontologyToSelect) {
-		toOntologyService.getPermanentOntologies(collection, new AsyncCallback<List<Ontology>>() {
+		toOntologyService.getPermanentOntologies(ModelController.getCollection(), new AsyncCallback<List<Ontology>>() {
 			@Override
 			public void onFailure(Throwable caught) {
 				Alerter.getOntologiesFailed(caught);

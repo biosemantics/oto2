@@ -10,6 +10,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Widget;
@@ -19,6 +20,7 @@ import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.CardLayoutContainer;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
+import com.sencha.gxt.widget.core.client.info.Info;
 
 import edu.arizona.biosemantics.oto2.ontologize.client.Ontologize;
 import edu.arizona.biosemantics.oto2.ontologize.client.common.Alerter;
@@ -31,6 +33,7 @@ import edu.arizona.biosemantics.oto2.ontologize.client.event.OntologySynonymSubm
 import edu.arizona.biosemantics.oto2.ontologize.client.event.RemoveOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.UpdateOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.UpdateOntologySynonymsSubmissionsEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.layout.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
@@ -57,11 +60,8 @@ public class EditSubmissionView implements IsWidget {
 	private TextButton saveButton = new TextButton("Save");
 	private SelectRelationsView selectRelationsView;
 	private SelectMetadataView selectMetadataView;
-	protected Collection collection;
-	protected Ontology ontology;
 	private OntologySynonymSubmission selectedSynonymSubmission;
 	private OntologyClassSubmission selectedClassSubmission;
-	private Map<Integer, OntologyClassSubmission> classSubmissions = new HashMap<Integer, OntologyClassSubmission>();
 
 	public EditSubmissionView(EventBus eventBus, boolean showPartOfRelations, boolean showClassIRI, boolean showDefaultSuperclasses, 
 			boolean showOntology, boolean enableOntology, boolean showIRITextFieldForSynonym) {
@@ -93,30 +93,7 @@ public class EditSubmissionView implements IsWidget {
 		bindEvents();
 	}
 
-	private void bindEvents() {
-		eventBus.addHandler(LoadOntologyClassSubmissionsEvent.TYPE, new LoadOntologyClassSubmissionsEvent.Handler() {
-			@Override
-			public void onSelect(LoadOntologyClassSubmissionsEvent event) {
-				classSubmissions.clear();
-				for(OntologyClassSubmission submission : event.getOntologyClassSubmissions())
-					classSubmissions.put(submission.getId(), submission);
-			}
-		});
-		eventBus.addHandler(CreateOntologyClassSubmissionEvent.TYPE, new CreateOntologyClassSubmissionEvent.Handler() {
-			@Override
-			public void onSubmission(CreateOntologyClassSubmissionEvent event) {
-				for(OntologyClassSubmission submission : event.getClassSubmissions())
-					classSubmissions.put(submission.getId(), submission);
-			}
-		});
-		eventBus.addHandler(RemoveOntologyClassSubmissionsEvent.TYPE, new RemoveOntologyClassSubmissionsEvent.Handler() {
-			@Override
-			public void onRemove(RemoveOntologyClassSubmissionsEvent event) {
-				for(OntologyClassSubmission submission : event.getOntologyClassSubmissions())
-					classSubmissions.remove(submission.getId());
-			}
-		});
-		
+	private void bindEvents() {		
 		selectTermView.addSelectTypeHandler(new ValueChangeHandler<Boolean>() {
 			@Override
 			public void onValueChange(ValueChangeEvent<Boolean> event) {
@@ -137,27 +114,6 @@ public class EditSubmissionView implements IsWidget {
 				cardLayout.setActiveWidget(selectTermView);
 			}
 		});
-		eventBus.addHandler(LoadCollectionEvent.TYPE,
-				new LoadCollectionEvent.Handler() {
-					@Override
-					public void onLoad(LoadCollectionEvent event) {
-						EditSubmissionView.this.collection = event.getCollection();
-
-						toOntologyService.getLocalOntologies(collection,
-								new AsyncCallback<List<Ontology>>() {
-									@Override
-									public void onFailure(Throwable caught) {
-										Alerter.getOntologiesFailed(caught);
-									}
-
-									@Override
-									public void onSuccess(List<Ontology> result) {
-										EditSubmissionView.this.ontology = result.get(0);
-									}
-						});
-					}
-				});
-
 		termCardButton.addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
@@ -214,7 +170,7 @@ public class EditSubmissionView implements IsWidget {
 		if (selectTermView.isClass()) {
 			final OntologyClassSubmission submission = getClassSubmission();
 			submission.setId(selectedClassSubmission.getId());
-			toOntologyService.updateClassSubmission(collection, submission,
+			toOntologyService.updateClassSubmission(ModelController.getCollection(), submission,
 					new AsyncCallback<List<OntologyClassSubmission>>() {
 						@Override
 						public void onFailure(Throwable caught) {
@@ -226,12 +182,18 @@ public class EditSubmissionView implements IsWidget {
 							Alerter.stopLoading(box);
 							eventBus.fireEvent(new CreateOntologyClassSubmissionEvent(result));
 							eventBus.fireEvent(new UpdateOntologyClassSubmissionsEvent(submission));
+							String resultText = "";
+							for(OntologyClassSubmission submission : result) {
+								resultText += submission.getSubmissionTerm() + "<br>";
+							}
+							Info.display(SafeHtmlUtils.fromSafeConstant("Class created"), SafeHtmlUtils.fromSafeConstant(resultText));
+							Info.display(SafeHtmlUtils.fromSafeConstant("Class updated"), SafeHtmlUtils.fromSafeConstant(submission.getSubmissionTerm()));
 						}
 					});
 		} else if (selectTermView.isSynonym()) {
 			final OntologySynonymSubmission submission = getSynonymSubmission();
 			submission.setId(selectedSynonymSubmission.getId());
-			toOntologyService.updateSynonymSubmission(collection, submission,
+			toOntologyService.updateSynonymSubmission(ModelController.getCollection(), submission,
 					new AsyncCallback<OntologySynonymSubmission>() {
 						@Override
 						public void onFailure(Throwable caught) {
@@ -242,6 +204,7 @@ public class EditSubmissionView implements IsWidget {
 						public void onSuccess(OntologySynonymSubmission result) {
 							Alerter.stopLoading(box);
 							eventBus.fireEvent(new UpdateOntologySynonymsSubmissionsEvent(result));
+							Info.display(SafeHtmlUtils.fromSafeConstant("Synonym updated"), SafeHtmlUtils.fromSafeConstant(submission.getSubmissionTerm()));
 						}
 					});
 		}
@@ -249,9 +212,9 @@ public class EditSubmissionView implements IsWidget {
 
 	private OntologySynonymSubmission getSynonymSubmission() {
 		List<Synonym> synonyms = selectRelationsView.getSynonyms();
-		return new OntologySynonymSubmission(collection.getId(),
+		return new OntologySynonymSubmission(ModelController.getCollection().getId(),
 				selectTermView.getTerm(), selectTermView.getSubmissionTerm(),
-				ontology, selectTermView.getClassIRI(), "", synonyms,
+				ModelController.getOntologies().get(0), selectTermView.getClassIRI(), "", synonyms,
 				selectMetadataView.getSource(), selectMetadataView.getSample(),
 				Ontologize.user);
 	}
@@ -260,9 +223,9 @@ public class EditSubmissionView implements IsWidget {
 		List<PartOf> partOfs = selectRelationsView.getPartOfs();
 		List<Superclass> superclasses = selectRelationsView.getSuperclasses();
 		List<Synonym> synonyms = selectRelationsView.getSynonyms();
-		return new OntologyClassSubmission(collection.getId(),
+		return new OntologyClassSubmission(ModelController.getCollection().getId(),
 				selectTermView.getTerm(), selectTermView.getSubmissionTerm(),
-				ontology, selectTermView.getClassIRI(), superclasses,
+				ModelController.getOntologies().get(0), selectTermView.getClassIRI(), superclasses,
 				selectMetadataView.getDefinition(), synonyms,
 				selectMetadataView.getSource(), selectMetadataView.getSample(),
 				partOfs, Ontologize.user);
@@ -291,7 +254,7 @@ public class EditSubmissionView implements IsWidget {
 			if(newVisited.contains(partOf.getLabelAlternativelyIri()))
 				return false;
 			newVisited.add(partOf.getLabelAlternativelyIri());
-			OntologyClassSubmission submission = OntologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(partOf, classSubmissions.values());
+			OntologyClassSubmission submission = OntologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(partOf, ModelController.getClassSubmissions().values());
 			if(submission != null) 
 				result &= isCircularFreePartOfRelationships(newVisited, submission.getPartOfs());
 		}
@@ -311,7 +274,7 @@ public class EditSubmissionView implements IsWidget {
 			if(newVisited.contains(superclass.getLabelAlternativelyIri()))
 				return false;
 			newVisited.add(superclass.getLabelAlternativelyIri());
-			OntologyClassSubmission submission = OntologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(superclass, classSubmissions.values());
+			OntologyClassSubmission submission = OntologyClassSubmissionRetriever.getSubmissionOfLabelOrIri(superclass, ModelController.getClassSubmissions().values());
 			if(submission != null) 
 				result &= isCircularFreeSuperclassRelationships(newVisited, submission.getSuperclasses());
 		}

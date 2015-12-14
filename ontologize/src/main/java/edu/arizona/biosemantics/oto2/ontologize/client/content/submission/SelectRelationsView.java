@@ -40,7 +40,7 @@ public class SelectRelationsView implements IsWidget {
 		//selectTypeView = new SelectTypeView(eventBus);
 		selectSuperclassView = new SelectSuperclassView(eventBus, showDefaultSuperclasses);
 		selectPartOfView = new SelectSinglePartOfView(eventBus);
-		selectSynonymsView = new SelectSynonymsView(eventBus);
+		selectSynonymsView = new SelectSynonymsView();
 	    
 		if(!showDefaultSuperclasses)
 			addTypeDependentFormElements(null);

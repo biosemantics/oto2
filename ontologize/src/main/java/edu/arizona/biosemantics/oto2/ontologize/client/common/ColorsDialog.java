@@ -38,6 +38,7 @@ import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
 import edu.arizona.biosemantics.oto2.ontologize.client.event.SetColorEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.layout.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Color;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.ColorProperties;
@@ -138,18 +139,16 @@ public class ColorsDialog extends CommonDialog {
 		ValueProvider<ColorEntry, ColorEntryType> type();
 
 	}
-
-	private EventBus eventBus;
-	private Collection collection;
+	
 	private ListStore<ColorEntry> colorEntriesStore;
 	private Grid<ColorEntry> grid;
 	private ColorEntryProperties colorEntryProperties = GWT.create(ColorEntryProperties.class);
 	private ColorProperties colorProperties = GWT.create(ColorProperties.class);
 	private ColorPaletteBaseAppearance appearance = GWT.create(ColorPaletteAppearance.class);
+	private EventBus eventBus;
 
-	public ColorsDialog(final EventBus eventBus, final Collection collection) {
+	public ColorsDialog(final EventBus eventBus) {
 		this.eventBus = eventBus;
-		this.collection = collection;
 		
 		IdentityValueProvider<ColorEntry> identity = new IdentityValueProvider<ColorEntry>();
 	    final CheckBoxSelectionModel<ColorEntry> checkBoxSelectionModel = new CheckBoxSelectionModel<ColorEntry>(identity);
@@ -181,9 +180,9 @@ public class ColorsDialog extends CommonDialog {
 			}
 		});*/
 		
-		int numColors = collection.getColors().size();
+		int numColors = ModelController.getCollection().getColors().size();
 		appearance.setColumnCount(8);
-		List<Color> colors = collection.getColors();
+		List<Color> colors = ModelController.getCollection().getColors();
 		final Map<String, Color> hexColorsMap = new HashMap<String, Color>();
 		String[] hexs = new String[colors.size()];
 		String[] labels = new String[colors.size()];
@@ -367,7 +366,7 @@ public class ColorsDialog extends CommonDialog {
 	private List<ColorEntry> createColorEntries() {	
 		List<ColorEntry> colorEntries = new LinkedList<ColorEntry>();
 				
-		Map<Colorable, Color> colorizationMap = collection.getColorizations();
+		Map<Colorable, Color> colorizationMap = ModelController.getCollection().getColorizations();
 		for(Colorable colorable : colorizationMap.keySet()) {
 			if(colorable instanceof Term) {
 				Term term = (Term)colorable;

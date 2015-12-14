@@ -9,6 +9,7 @@ import com.sencha.gxt.core.client.dom.XDOM;
 import com.sencha.gxt.data.shared.ListStore;
 
 import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadCollectionEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.layout.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Color;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Colorable;
@@ -46,19 +47,15 @@ public class ColorableCheckBoxCell extends CheckBoxCell {
 
 	private ListStore commentableColorableStore;
 	private CommentableColorableProvider commentableColorableProvider;
-	private Collection collection;
-	private EventBus eventBus;
 	private ColorableCheckBoxAppearance appearance;
 	
 	
-	public ColorableCheckBoxCell(EventBus eventBus, Collection collection) {
-		this(GWT.<ColorableCheckBoxAppearance> create(ColorableCheckBoxAppearance.class), eventBus, collection);
+	public ColorableCheckBoxCell() {
+		this(GWT.<ColorableCheckBoxAppearance> create(ColorableCheckBoxAppearance.class));
 	}
 	
-	public ColorableCheckBoxCell(ColorableCheckBoxAppearance appearance, EventBus eventBus, Collection collection) {	
+	public ColorableCheckBoxCell(ColorableCheckBoxAppearance appearance) {	
 		super(appearance);
-		this.eventBus = eventBus;
-		this.collection = collection;
 		
 		/*
 		System.out.println(styles.headOver());
@@ -76,17 +73,6 @@ public class ColorableCheckBoxCell extends CheckBoxCell {
 		System.out.println(styles.sortIcon());
 		System.out.println(styles.headerInner());
 		*/
-		bindEvents();
-	}
-	
-	
-	private void bindEvents() {
-		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
-			@Override
-			public void onLoad(LoadCollectionEvent event) {
-				collection = event.getCollection();
-			}
-		});
 	}
 
 	@Override
@@ -100,7 +86,7 @@ public class ColorableCheckBoxCell extends CheckBoxCell {
 		
 		Color color = null;
 		if(colorable != null) {
-			color = collection.getColorization(colorable);
+			color = ModelController.getCollection().getColorization(colorable);
 		}
 
 		String colorHex = "";

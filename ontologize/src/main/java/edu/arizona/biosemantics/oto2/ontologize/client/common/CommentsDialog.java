@@ -36,6 +36,7 @@ import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
 import edu.arizona.biosemantics.oto2.ontologize.client.Ontologize;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.SetCommentEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.layout.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Comment;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Commentable;
@@ -145,13 +146,11 @@ public class CommentsDialog extends CommonDialog {
 	}
 
 	private EventBus eventBus;
-	private Collection collection;
 	private ListStore<CommentEntry> commentStore;
 	private Grid<CommentEntry> grid;
 
-	public CommentsDialog(final EventBus eventBus, final Collection collection) {
+	public CommentsDialog(final EventBus eventBus) {
 		this.eventBus = eventBus;
-		this.collection = collection;
 		CommentProperties commentProperties = GWT
 				.create(CommentProperties.class);
 
@@ -269,7 +268,7 @@ public class CommentsDialog extends CommonDialog {
 	private List<CommentEntry> createComments() {
 		List<CommentEntry> commentEntries = new LinkedList<CommentEntry>();
 		
-		Map<Commentable, List<Comment>> commentsMap =  collection.getComments();
+		Map<Commentable, List<Comment>> commentsMap =  ModelController.getCollection().getComments();
 		for(Commentable commentable : commentsMap.keySet()) {
 			if(commentable instanceof Term) {
 				Term term = (Term)commentable;

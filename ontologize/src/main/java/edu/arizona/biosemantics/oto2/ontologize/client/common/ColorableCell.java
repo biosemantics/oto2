@@ -16,6 +16,7 @@ import com.sencha.gxt.widget.core.client.grid.GridView.GridAppearance;
 import com.sencha.gxt.widget.core.client.grid.GridView.GridStyles;
 
 import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadCollectionEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.layout.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Color;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Colorable;
@@ -52,20 +53,16 @@ public class ColorableCell<T> extends AbstractCell<T> {
 	protected GridStyles gridStyles;
 	
 	protected static Templates templates = GWT.create(Templates.class);
-	private EventBus eventBus;
-	private Collection collection;
 	private ListStore commentableColorableStore;
 	private CommentableColorableProvider commentableColorableProvider;
 	
-	public ColorableCell(EventBus eventBus, Collection collection) {
-		this(GWT.<ColumnHeaderAppearance> create(ColumnHeaderAppearance.class), GWT.<GridAppearance> create(GridAppearance.class), eventBus, collection);
+	public ColorableCell() {
+		this(GWT.<ColumnHeaderAppearance> create(ColumnHeaderAppearance.class), GWT.<GridAppearance> create(GridAppearance.class));
 	}
 	
-	public ColorableCell(ColumnHeaderAppearance columnHeaderAppearance, GridAppearance gridAppearance, EventBus eventBus, Collection collection) {
+	public ColorableCell(ColumnHeaderAppearance columnHeaderAppearance, GridAppearance gridAppearance) {
 		super(BrowserEvents.MOUSEOVER, BrowserEvents.MOUSEOUT, BrowserEvents.CLICK);
 		
-		this.eventBus = eventBus;
-		this.collection = collection;
 		this.columnHeaderAppearance = columnHeaderAppearance;
 		this.gridAppearance = gridAppearance;
 		columnHeaderStyles = columnHeaderAppearance.styles();
@@ -87,16 +84,6 @@ public class ColorableCell<T> extends AbstractCell<T> {
 		System.out.println(styles.sortIcon());
 		System.out.println(styles.headerInner());
 		*/
-		bindEvents();
-	}
-	
-	private void bindEvents() {
-		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
-			@Override
-			public void onLoad(LoadCollectionEvent event) {
-				collection = event.getCollection();
-			}
-		});
 	}
 
 	@Override
@@ -111,8 +98,8 @@ public class ColorableCell<T> extends AbstractCell<T> {
 		String quickTipText = "";
 		
 		if(commentableObject != null) {
-			if(collection.hasComments(commentableObject)) {
-				List<Comment> comments = collection.getComment(commentableObject);
+			if(ModelController.getCollection().hasComments(commentableObject)) {
+				List<Comment> comments = ModelController.getCollection().getComment(commentableObject);
 				String c = "";
 				for(Comment comment : comments) 
 					c += comment.getUser() + ": " + comment.getComment() + "\n";
@@ -121,7 +108,7 @@ public class ColorableCell<T> extends AbstractCell<T> {
 		}
 		Color color = null;
 		if(colorableObject != null) {
-			color = collection.getColorization(colorableObject);
+			color = ModelController.getCollection().getColorization(colorableObject);
 		}
 
 		String colorHex = "";

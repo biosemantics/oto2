@@ -7,6 +7,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Widget;
@@ -62,6 +63,7 @@ import edu.arizona.biosemantics.oto2.ontologize.client.event.RemoveOntologySynon
 import edu.arizona.biosemantics.oto2.ontologize.client.event.SetColorEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.UpdateOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.UpdateOntologySynonymsSubmissionsEvent;
+import edu.arizona.biosemantics.oto2.ontologize.client.layout.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Color;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Colorable;
@@ -95,7 +97,6 @@ public class SynonymSubmissionsGrid implements IsWidget {
 	private CheckBoxSelectionModel<OntologySynonymSubmission> checkBoxSelectionModel;
 	
 	private EventBus eventBus;
-	protected Collection collection;
 	private Grid<OntologySynonymSubmission> grid;
 	protected ColumnConfig<OntologySynonymSubmission, String> termCol;
 	protected ColumnConfig<OntologySynonymSubmission, String> submissionTermCol;
@@ -121,7 +122,7 @@ public class SynonymSubmissionsGrid implements IsWidget {
 		RpcProxy<FilterPagingLoadConfig, PagingLoadResult<OntologySynonymSubmission>> rpcProxy = new RpcProxy<FilterPagingLoadConfig, PagingLoadResult<OntologySynonymSubmission>>() {
 			@Override
 			public void load(FilterPagingLoadConfig loadConfig, AsyncCallback<PagingLoadResult<OntologySynonymSubmission>> callback) {
-				toOntologyService.getSynonymSubmissions(collection, loadConfig, submissionType, callback);
+				toOntologyService.getSynonymSubmissions(ModelController.getCollection(), loadConfig, submissionType, callback);
 			}
 		};
 		remoteLoader = new PagingLoader<FilterPagingLoadConfig, PagingLoadResult<OntologySynonymSubmission>>(rpcProxy);
@@ -178,7 +179,7 @@ public class SynonymSubmissionsGrid implements IsWidget {
 					menu.add(createRemoveItem(selected));
 					menu.add(new HeaderMenuItem("Annotation"));
 					menu.add(createCommentItem(selected));
-					if(!collection.getColors().isEmpty()) {
+					if(!ModelController.getCollection().getColors().isEmpty()) {
 						menu.add(createColorizeItem(selected));
 					} 
 				}
@@ -194,8 +195,8 @@ public class SynonymSubmissionsGrid implements IsWidget {
 				offItem.addSelectionHandler(new SelectionHandler<Item>() {
 					@Override
 					public void onSelection(SelectionEvent<Item> event) {
-						collection.setColorizations((java.util.Collection)selected, null);
-						collectionService.update(collection, new AsyncCallback<Void>() {
+						ModelController.getCollection().setColorizations((java.util.Collection)selected, null);
+						collectionService.update(ModelController.getCollection(), new AsyncCallback<Void>() {
 							@Override
 							public void onFailure(Throwable caught) {
 								Alerter.failedToSetColor();
@@ -208,14 +209,14 @@ public class SynonymSubmissionsGrid implements IsWidget {
 					}
 				});
 				colorMenu.add(offItem);
-				for(final Color color : collection.getColors()) {
+				for(final Color color : ModelController.getCollection().getColors()) {
 					MenuItem colorItem = new MenuItem(color.getUse());
 					colorItem.getElement().getStyle().setProperty("backgroundColor", "#" + color.getHex());
 					colorItem.addSelectionHandler(new SelectionHandler<Item>() {
 						@Override
 						public void onSelection(SelectionEvent<Item> event) {
-							collection.setColorizations((java.util.Collection)selected, color);
-							collectionService.update(collection, new AsyncCallback<Void>() {
+							ModelController.getCollection().setColorizations((java.util.Collection)selected, color);
+							collectionService.update(ModelController.getCollection(), new AsyncCallback<Void>() {
 								@Override
 								public void onFailure(Throwable caught) {
 									caught.printStackTrace();
@@ -248,8 +249,8 @@ public class SynonymSubmissionsGrid implements IsWidget {
 							@Override
 							public void onHide(HideEvent event) {
 								final Comment newComment = new Comment(Ontologize.user, box.getValue());
-								collection.addComments((java.util.Collection)selected, newComment);
-								collectionService.update(collection, new AsyncCallback<Void>() {
+								ModelController.getCollection().addComments((java.util.Collection)selected, newComment);
+								collectionService.update(ModelController.getCollection(), new AsyncCallback<Void>() {
 									@Override
 									public void onFailure(Throwable caught) {
 										Alerter.addCommentFailed(caught);
@@ -283,8 +284,10 @@ public class SynonymSubmissionsGrid implements IsWidget {
 				deleteItem.addSelectionHandler(new SelectionHandler<Item>() {
 					@Override
 					public void onSelection(SelectionEvent<Item> event) {
+						String resultText = "";
 						for(OntologySynonymSubmission submission : grid.getSelectionModel().getSelectedItems()) {
-							toOntologyService.removeSynonymSubmission(collection, 
+							resultText += submission.getSubmissionTerm() + "<br>";
+							toOntologyService.removeSynonymSubmission(ModelController.getCollection(), 
 									submission, new AsyncCallback<Void>() {
 								@Override
 								public void onFailure(Throwable caught) {
@@ -296,6 +299,7 @@ public class SynonymSubmissionsGrid implements IsWidget {
 								}
 							});
 						}
+						Info.display(SafeHtmlUtils.fromSafeConstant("Synonym removed"), SafeHtmlUtils.fromSafeConstant(resultText));
 					}
 				});
 				return deleteItem;
@@ -305,27 +309,21 @@ public class SynonymSubmissionsGrid implements IsWidget {
 	}
 
 	private void bindEvents() {
-		eventBus.addHandler(LoadOntologyClassSubmissionsEvent.TYPE, new LoadOntologyClassSubmissionsEvent.Handler() {
+		eventBus.addHandler(CreateOntologySynonymSubmissionEvent.TYPE, new CreateOntologySynonymSubmissionEvent.Handler() {
 			@Override
-			public void onSelect(LoadOntologyClassSubmissionsEvent event) {
-				
-			}
-		});
-		eventBus.addHandler(CreateOntologyClassSubmissionEvent.TYPE, new CreateOntologyClassSubmissionEvent.Handler() {
-			@Override
-			public void onSubmission(CreateOntologyClassSubmissionEvent event) {
+			public void onSubmission(CreateOntologySynonymSubmissionEvent event) {
 				remoteLoader.load();
 			}
 		});
-		eventBus.addHandler(RemoveOntologyClassSubmissionsEvent.TYPE, new RemoveOntologyClassSubmissionsEvent.Handler() {
+		eventBus.addHandler(RemoveOntologySynonymSubmissionsEvent.TYPE, new RemoveOntologySynonymSubmissionsEvent.Handler() {
 			@Override
-			public void onRemove(RemoveOntologyClassSubmissionsEvent event) {
+			public void onRemove(RemoveOntologySynonymSubmissionsEvent event) {
 				remoteLoader.load();
 			}
 		});
-		eventBus.addHandler(UpdateOntologyClassSubmissionsEvent.TYPE, new UpdateOntologyClassSubmissionsEvent.Handler() {
+		eventBus.addHandler(UpdateOntologySynonymsSubmissionsEvent.TYPE, new UpdateOntologySynonymsSubmissionsEvent.Handler() {
 			@Override
-			public void onUpdate(UpdateOntologyClassSubmissionsEvent event) {
+			public void onUpdate(UpdateOntologySynonymsSubmissionsEvent event) {
 				remoteLoader.load();
 			}
 		});
@@ -333,7 +331,6 @@ public class SynonymSubmissionsGrid implements IsWidget {
 		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
 			@Override
 			public void onLoad(LoadCollectionEvent event) {
-				SynonymSubmissionsGrid.this.collection = event.getCollection();
 				remoteLoader.load();
 			}
 		});
@@ -365,7 +362,7 @@ public class SynonymSubmissionsGrid implements IsWidget {
 				identity);
 		checkBoxSelectionModel.setSelectionMode(SelectionMode.MULTI);
 
-		ColorableCell colorableCell = new ColorableCell(eventBus, collection);
+		ColorableCell colorableCell = new ColorableCell();
 		colorableCell.setCommentColorizableObjectsStore(synonymSubmissionStore, new ColorableCell.CommentableColorableProvider() {
 			@Override
 			public Colorable provideColorable(Object source) {

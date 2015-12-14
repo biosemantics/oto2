@@ -16,7 +16,6 @@ public class SubmissionsView implements IsWidget {
 
 	private EventBus eventBus;
 	private TabPanel tabPanel;
-	private Collection collection;
 	private ClassSubmissionsGrid classSubmissionsGrid;
 	private SynonymSubmissionsGrid synonymSubmissionGrid;
 
