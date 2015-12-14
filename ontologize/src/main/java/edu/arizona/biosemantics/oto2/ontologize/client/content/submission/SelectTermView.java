@@ -265,7 +265,7 @@ public class SelectTermView implements IsWidget {
 		submissionTermField.setValue(termComboBox.getValue().getTerm());
 		if(term.hasIri()) {
 			classIRIField.setValue(term.getIri());
-			classIRIField.setEnabled(false);
+			classIRIField.setEnabled(true);
 		} else {
 			classIRIField.setValue("");
 			classIRIField.setEnabled(true);
