@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.sencha.gxt.data.shared.SortDir;
 import com.sencha.gxt.data.shared.SortInfo;
 import com.sencha.gxt.data.shared.loader.FilterConfig;
 import com.sencha.gxt.data.shared.loader.FilterPagingLoadConfig;
@@ -290,14 +291,16 @@ public class OntologySynonymSubmissionDAO {
 				if(filter.getComparison().equals("contains") && filter.getType().equals("string")) {
 					String dbField = getDBField(filter.getField());
 					if(dbField != null)
-						filterSQL += " AND " + dbField + " LIKE '%" + filter.getValue() + "%'";
+						filterSQL += " AND s." + dbField + " LIKE '%" + filter.getValue() + "%'";
 				}
 			}
 			String sortSQL = "";
 			for(SortInfo sortInfo : loadConfig.getSortInfo()) {
 				String dbField = getDBField(sortInfo.getSortField());
+				if(sortInfo.getSortDir() == null)
+					sortInfo.setSortDir(SortDir.ASC);
 				if(dbField != null)
-					sortSQL += " ORDER BY " + dbField + " " + sortInfo.getSortDir().toString();
+					sortSQL += " ORDER BY s." + dbField + " " + sortInfo.getSortDir().toString();
 			}
 			
 			try(Query query = new Query("SELECT * FROM ontologize_ontologysynonymsubmission s, ontologize_ontology o WHERE s.collection = ? "
@@ -353,6 +356,10 @@ public class OntologySynonymSubmissionDAO {
     		return "sample_sentence";
     	case "user":
     		return "user";
+    	case "created":
+    		return "created";
+    	case "lastUpdated":
+    		return "lastupdated";
 	    default:
 	    	return null;
 	    }
