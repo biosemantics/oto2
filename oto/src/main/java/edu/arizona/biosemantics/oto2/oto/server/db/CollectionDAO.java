@@ -91,7 +91,13 @@ public class CollectionDAO {
 				
 				List<Term> newMainLabelTerms = new LinkedList<Term>();
 				for(Term mainLabelTerm : label.getMainTerms()) {
-					Term mainTermToSend = termsToSend.get(termsToSend.indexOf(mainLabelTerm));
+					Term mainTermToSend = null;
+					int index = termsToSend.indexOf(mainLabelTerm);
+					if(index != -1) {
+						mainTermToSend = termsToSend.get(index);
+					} else {
+						mainTermToSend = mainLabelTerm;
+					}
 					newMainLabelTerms.add(mainTermToSend);
 					
 					List<Term> newSynonymTerms = new LinkedList<Term>();
