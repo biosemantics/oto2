@@ -57,11 +57,6 @@ public class PermanentOntologyFileDAO {
 		else
 			return new SimpleIRIMapper(createOntologyIRI(ontology), getLocalOntologyIRI(ontology));
 	}
-
-	protected static IRI createClassIRI(OntologyClassSubmission submission) {
-		return IRI.create(Configuration.etcOntologyBaseIRI + submission.getOntology().getCreatedInCollectionId() + "/" +  
-				submission.getOntology().getAcronym() + "#" + submission.getSubmissionTerm());
-	}
 	
 	protected static IRI createOntologyIRI(OntologySubmission submission) {
 		return IRI.create(submission.getOntology().getIri());

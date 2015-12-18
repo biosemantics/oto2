@@ -143,7 +143,7 @@ public class AxiomManager  {
 				OWLClassExpression partOfExpression = owlOntologyManager.getOWLDataFactory().getOWLObjectSomeValuesFrom(partOfProperty, wholeOwlClass);
 				OWLAxiom partOfAxiom = owlOntologyManager.getOWLDataFactory().getOWLSubClassOfAxiom(owlClass, partOfExpression);
 				owlOntologyManager.addAxiom(owlOntology, partOfAxiom);
-				for(OWLClass introducedClass : introducedClasses){
+				for(OWLClass introducedClass : introducedClasses) {
 					addEntitySubclass(owlOntology, introducedClass);
 				}
 			} else {

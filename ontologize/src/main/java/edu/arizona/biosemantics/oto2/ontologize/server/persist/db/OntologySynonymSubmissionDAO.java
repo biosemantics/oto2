@@ -101,8 +101,8 @@ public class OntologySynonymSubmissionDAO {
 			this.remove(ontologySynonymSubmission);
 		try(Query insert = new Query("INSERT INTO `ontologize_ontologysynonymsubmission` "
 				+ "(`collection`, `term`, `submission_term`, `ontology`, `class_iri`, `source`, `sample_sentence`, "
-				+ "`user`)"
-				+ " VALUES(?, ?, ?, ?, ?, ?, ?, ?)")) {
+				+ "`user`, `lastupdated`)"
+				+ " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
 			insert.setParameter(1, ontologySynonymSubmission.getCollectionId());
 			if(ontologySynonymSubmission.getTerm() == null)
 				insert.setParameterNull(2, java.sql.Types.BIGINT);

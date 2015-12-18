@@ -159,7 +159,7 @@ public class OntologyFileDAO extends PermanentOntologyFileDAO {
 		if(extractSuperclassModule) {
 			owlClass = createModuleForSubmissionsClass(collection, submission);
 		} else {
-			owlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(createClassIRI(submission));
+			owlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(submission.getClassIRI()));
 		}
 		
 		if(containsOwlClass(owlOntology, owlClass)) {
@@ -215,7 +215,7 @@ public class OntologyFileDAO extends PermanentOntologyFileDAO {
 
 	public void updateClassSubmission(OntologyClassSubmission submission) throws Exception {
 		OWLOntology targetOwlOntology = owlOntologyManager.getOntology(createOntologyIRI(submission));
-		OWLClass owlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(createClassIRI(submission));
+		OWLClass owlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(submission.getClassIRI()));
 		//other fiels of submission, other than the ones treated below, are not allowed to change
 		updateSuperclasses(targetOwlOntology, submission, owlClass);
 		updatePartOfs(targetOwlOntology, submission, owlClass);
@@ -280,7 +280,7 @@ public class OntologyFileDAO extends PermanentOntologyFileDAO {
 
 	public void depcrecateClassSubmission(OntologyClassSubmission submission) throws OWLOntologyStorageException {
 		OWLOntology owlOntology = owlOntologyManager.getOntology(createOntologyIRI(submission));
-		this.setDepreceated(createClassIRI(submission), owlOntology);
+		this.setDepreceated(IRI.create(submission.getClassIRI()), owlOntology);
 		owlOntologyManager.saveOntology(owlOntology, getLocalOntologyIRI(submission.getOntology()));
 	}
 	

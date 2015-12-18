@@ -70,7 +70,9 @@ public class SuperclassesView implements IsWidget {
 		listStore.addFilter(new StoreFilter<OntologyClassSubmission>() {
 			@Override
 			public boolean select(Store<OntologyClassSubmission> store,	OntologyClassSubmission parent,	OntologyClassSubmission item) {
-				return item.getId() != selected.getId();
+				if(selected != null) 
+					return item.getId() != selected.getId();
+				return true;
 			}
 		});
 		this.setSubmissionType(type);

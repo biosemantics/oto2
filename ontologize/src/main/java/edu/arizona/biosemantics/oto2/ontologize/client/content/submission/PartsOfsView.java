@@ -139,14 +139,17 @@ public class PartsOfsView implements IsWidget {
 		store.addFilter(new StoreFilter<Node>() {
 			@Override
 			public boolean select(Store<Node> store, Node parent, Node item) {
-				Node node = new Node(selected.getLabel());
-				Node child = item;
-				while((parent = tree.getStore().getParent(child)) != null) {
-					if(parent.value.equals(node.value))
-						return false;
-					child = parent;
+				if(selected != null) {
+					Node node = new Node(selected.getLabel());
+					Node child = item;
+					while((parent = tree.getStore().getParent(child)) != null) {
+						if(parent.value.equals(node.value))
+							return false;
+						child = parent;
+					}
+					return !item.value.equals(node.value);
 				}
-				return !item.value.equals(node.value);
+				return true;
 			}
 		});
 		
