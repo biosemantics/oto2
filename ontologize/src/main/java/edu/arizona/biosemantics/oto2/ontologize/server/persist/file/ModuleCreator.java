@@ -56,8 +56,9 @@ public class ModuleCreator  {
 		Set<OWLEntity> seeds = new HashSet<OWLEntity>();
 		seeds.add(owlClass);
 		
+		String label = annotationsManager.get(collection, owlClass, labelProperty);
 		File moduleFile = new File(OntologyFileDAO.getCollectionOntologyDirectory(targetOntology), 
-				"module." + annotationsManager.get(collection, owlClass, labelProperty) + "." + owlClass.getIRI().getShortForm() + ".owl");
+				"module." + (label == null ? "" : label + ".") + owlClass.getIRI().getShortForm() + ".owl");
 		IRI moduleIRI = IRI.create(moduleFile);
 		
 		// remove the existing module -- in effect replace the old module with the new one.
