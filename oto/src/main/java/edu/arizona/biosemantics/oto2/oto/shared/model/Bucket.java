@@ -131,6 +131,20 @@ public class Bucket implements Serializable, Comparable<Bucket> {
 	@Override
 	public int compareTo(Bucket o) {
 		return this.getName().compareTo(o.getName());
-	}	
+	}
+	
+	public void sortTerms(){
+		List<Term> newTerms = new LinkedList<Term>();
+		for(Term term : terms){
+			int index = 0;
+			for(Term newTerm : newTerms){
+				if(term.getTerm().compareToIgnoreCase(newTerm.getTerm()) < 0){
+					newTerms.add(index, term);
+				}
+				index++;
+			}
+		}
+		terms = newTerms;
+	}
 	
 }

@@ -158,4 +158,23 @@ public class Collection implements Serializable {
 		this.type = type;
 	}
 	
+	public void sortLabels(){
+		List<Label> newLabels = new LinkedList<Label>();
+		for(Label label : labels){
+			int index = 0;
+			boolean inserted = false;
+			for(Label newLabel : newLabels){
+				if(label.compareTo(newLabel) < 0){
+					newLabels.add(index, newLabel);
+					inserted = true;
+					break;
+				}
+				index++;
+			}
+			if(!inserted){
+				newLabels.add(label);
+			}
+		}
+		labels = newLabels;
+	}
 }

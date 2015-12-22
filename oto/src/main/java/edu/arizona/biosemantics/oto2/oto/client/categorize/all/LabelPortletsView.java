@@ -15,8 +15,6 @@ import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
-import com.sencha.gxt.widget.core.client.Dialog;
-import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.CssFloatLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.FlowLayoutContainer;
@@ -27,25 +25,20 @@ import com.sencha.gxt.widget.core.client.event.BeforeShowEvent.BeforeShowHandler
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.form.CheckBox;
-import com.sencha.gxt.widget.core.client.form.TextArea;
-import com.sencha.gxt.widget.core.client.form.TextField;
 import com.sencha.gxt.widget.core.client.menu.HeaderMenuItem;
 import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
-import edu.arizona.biosemantics.oto2.oto.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.oto.client.common.LabelAddDialog;
-import edu.arizona.biosemantics.oto2.oto.client.common.LabelInfoContainer;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelCreateEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelRemoveEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelsMergeEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.LabelsSortEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.TermsSortEvent;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
-import edu.arizona.biosemantics.oto2.oto.shared.model.HighlightLabel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
-import edu.arizona.biosemantics.oto2.oto.shared.model.Label.AddResult;
-import edu.arizona.biosemantics.oto2.oto.shared.model.TrashLabel;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionService;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionServiceAsync;
 
@@ -74,7 +67,15 @@ public class LabelPortletsView extends PortalLayoutContainer {
 			
 			this.add(add);
 			
-			this.add(new HeaderMenuItem("View"));			
+			this.add(new HeaderMenuItem("View"));
+			MenuItem sort = new MenuItem("Sort");
+			sort.addSelectionHandler(new SelectionHandler<Item>(){
+				public void onSelection(SelectionEvent<Item> event) {
+					eventBus.fireEvent(new LabelsSortEvent(collection));
+				}
+			});
+			this.add(sort);
+			
 			MenuItem expand = new MenuItem("Expand All");
 			expand.addSelectionHandler(new SelectionHandler<Item>() {
 				@Override
@@ -224,6 +225,30 @@ public class LabelPortletsView extends PortalLayoutContainer {
 				}
 			}
 		});
+		
+		eventBus.addHandler(LabelsSortEvent.TYPE, new LabelsSortEvent.SortLabelsHandler() {
+			
+			@Override
+			public void onSort(LabelsSortEvent event) {
+				Collection newCollection = event.getCollection();
+				newCollection.sortLabels();
+				setCollection(newCollection);
+			}
+		});
+		
+		eventBus.addHandler(TermsSortEvent.TYPE, new TermsSortEvent.SortTermsHandler() {
+			
+			@Override
+			public void onSort(TermsSortEvent event) {
+				Label label = event.getLabel();
+				label.sortTerms();
+				resetLabel(label);
+				
+			}
+
+		});
+		
+		
 		eventBus.addHandler(LabelCreateEvent.TYPE, new LabelCreateEvent.CreateLabelHandler() {
 			@Override
 			public void onCreate(LabelCreateEvent event) {
@@ -242,6 +267,12 @@ public class LabelPortletsView extends PortalLayoutContainer {
 				portlet.removeFromParent();
 			}
 		});
+	}
+	
+	private void resetLabel(Label label) {
+		// TODO Auto-generated method stub
+		LabelPortlet labelPortlet = createLabelPortlet(label);
+		labelPortletsMap.put(label, labelPortlet);
 	}
 
 	protected LabelPortlet createLabelPortlet(Label label) {

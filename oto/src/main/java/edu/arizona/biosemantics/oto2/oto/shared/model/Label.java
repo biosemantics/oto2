@@ -288,4 +288,23 @@ public class Label implements Serializable, Comparable<Label> {
 	public int compareTo(Label o) {
 		return this.getName().compareTo(o.getName());
 	}
+	
+	public void sortTerms(){
+		List<Term> newTerms = new LinkedList<Term>();
+		for(Term term : mainTerms){
+			int index = 0;
+			boolean inserted = false;
+			for(Term newTerm : newTerms){
+				if(term.getTerm().compareToIgnoreCase(newTerm.getTerm()) < 0){
+					newTerms.add(index, term);
+					inserted = true;
+				}
+				index++;
+			}
+			if(!inserted){
+				newTerms.add(term);
+			}
+		}
+		mainTerms = newTerms;
+	}
 }

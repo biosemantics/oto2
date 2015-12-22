@@ -26,6 +26,7 @@ import edu.arizona.biosemantics.oto2.oto.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.oto.client.common.LabelModifyDialog;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelRemoveEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelsMergeEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.TermsSortEvent;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 
@@ -48,6 +49,16 @@ public class LabelMenu extends Menu implements BeforeShowHandler {
 		this.clear();
 		
 		this.add(new HeaderMenuItem("Category"));
+		MenuItem sortTerms = new MenuItem("Sort Terms");
+		sortTerms.addSelectionHandler(new SelectionHandler<Item>() {
+			@Override
+			public void onSelection(SelectionEvent<Item> event) {
+				eventBus.fireEvent(new TermsSortEvent(labelPortlet.getLabel()));
+			}
+		});
+		this.add(sortTerms);
+		
+		
 		MenuItem modify = new MenuItem("Modify");
 		modify.addSelectionHandler(new SelectionHandler<Item>() {
 			@Override

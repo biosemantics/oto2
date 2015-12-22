@@ -19,16 +19,12 @@ import com.sencha.gxt.cell.core.client.form.ComboBoxCell.TriggerAction;
 import com.sencha.gxt.core.client.dom.AutoScrollSupport;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
 import com.sencha.gxt.data.shared.ListStore;
+import com.sencha.gxt.dnd.core.client.DND.Operation;
 import com.sencha.gxt.dnd.core.client.DndDragEnterEvent;
 import com.sencha.gxt.dnd.core.client.DndDropEvent;
-import com.sencha.gxt.dnd.core.client.DropTarget;
-import com.sencha.gxt.dnd.core.client.DND.Operation;
 import com.sencha.gxt.dnd.core.client.DndDropEvent.DndDropHandler;
-import com.sencha.gxt.fx.client.DragCancelEvent;
+import com.sencha.gxt.dnd.core.client.DropTarget;
 import com.sencha.gxt.fx.client.DragEndEvent;
-import com.sencha.gxt.fx.client.DragHandler;
-import com.sencha.gxt.fx.client.DragMoveEvent;
-import com.sencha.gxt.fx.client.DragStartEvent;
 import com.sencha.gxt.widget.core.client.box.AutoProgressMessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.CssFloatLayoutContainer;
@@ -37,8 +33,8 @@ import com.sencha.gxt.widget.core.client.container.SimpleContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
 import com.sencha.gxt.widget.core.client.event.BeforeShowEvent;
-import com.sencha.gxt.widget.core.client.event.PortalDropEvent;
 import com.sencha.gxt.widget.core.client.event.BeforeShowEvent.BeforeShowHandler;
+import com.sencha.gxt.widget.core.client.event.PortalDropEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.event.ShowEvent;
@@ -51,8 +47,6 @@ import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 import com.sencha.gxt.widget.core.client.toolbar.ToolBar;
 
-import edu.arizona.biosemantics.oto2.oto.client.categorize.all.LabelPortlet;
-import edu.arizona.biosemantics.oto2.oto.client.common.UncategorizeDialog;
 import edu.arizona.biosemantics.oto2.oto.client.common.dnd.TermDnd;
 import edu.arizona.biosemantics.oto2.oto.client.common.dnd.TermLabelDnd;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeCopyRemoveTermEvent;
@@ -67,6 +61,7 @@ import edu.arizona.biosemantics.oto2.oto.client.event.SynonymCreationEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.SynonymRemovalEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermCategorizeEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermUncategorizeEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.TermsSortEvent;
 import edu.arizona.biosemantics.oto2.oto.client.uncategorize.TermsView;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
@@ -89,6 +84,15 @@ public class SingleLabelView extends SimpleContainer {
 			this.clear();
 						
 			this.add(new HeaderMenuItem("View"));
+			
+			MenuItem sort = new MenuItem("Sort");
+			sort.addSelectionHandler(new SelectionHandler<Item>(){
+				public void onSelection(SelectionEvent<Item> event) {
+					eventBus.fireEvent(new TermsSortEvent(currentLabel));
+				}
+			});
+			this.add(sort);
+			
 			
 			MenuItem expand = new MenuItem("Expand All");
 			expand.addSelectionHandler(new SelectionHandler<Item>() {
@@ -247,6 +251,15 @@ public class SingleLabelView extends SimpleContainer {
 			public void onRemove(CategorizeCopyRemoveTermEvent event) {
 				removeMainTerms(event.getTerms());
 			}
+		});
+		eventBus.addHandler(TermsSortEvent.TYPE, new TermsSortEvent.SortTermsHandler() {
+			@Override
+			public void onSort(TermsSortEvent event) {
+				Label label = event.getLabel();
+				label.sortTerms();
+				refresh();
+			}
+
 		});
 		eventBus.addHandler(TermCategorizeEvent.TYPE, new TermCategorizeEvent.TermCategorizeHandler() {
 			@Override
