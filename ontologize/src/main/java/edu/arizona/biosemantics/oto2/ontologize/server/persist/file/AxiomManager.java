@@ -28,8 +28,8 @@ import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 import com.google.common.base.Optional;
 
+import edu.arizona.biosemantics.common.ontology.AnnotationProperty;
 import edu.arizona.biosemantics.oto2.ontologize.client.Ontologize;
-import edu.arizona.biosemantics.oto2.ontologize.shared.model.AnnotationProperty;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;

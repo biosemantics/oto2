@@ -43,6 +43,11 @@
 	<!-- Created from archetype -->
 	<dependencies>
 		<dependency>
+			<groupId>edu.arizona.biosemantics.common</groupId>
+		 	<artifactId>ontology</artifactId>
+		  	<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
 		  <groupId>edu.arizona.biosemantics.common.ontology</groupId>
 		  <artifactId>search</artifactId>
 		  <version>0.0.26-SNAPSHOT</version>
