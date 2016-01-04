@@ -67,54 +67,35 @@ public class OntologyFileDAO extends PermanentOntologyFileDAO {
 		this.collection = collection;
 	}
 
-	public void insertOntology(Ontology ontology, boolean createFile) throws Exception {	
-		if(createFile) {					
-			File collectionOntologyDirectory = getCollectionOntologyDirectory(ontology);
-			if(collectionOntologyDirectory.exists()) {
-				for(File child : collectionOntologyDirectory.listFiles())
-					child.delete();
-				collectionOntologyDirectory.delete();
-			}
-			collectionOntologyDirectory.mkdir();
-			
-			OWLOntology owlOntology = null;
-			try {
-				owlOntology = owlOntologyManager.createOntology(IRI.create(ontology.getIri()));
-			} catch (OWLOntologyCreationException e) {
-				log(LogLevel.ERROR, "Couldn't create ontology", e);
-				throw e;
-			}
-			addDefaultImportOntologies(collection, owlOntology);
-			axiomManager.initializeOntology(owlOntology);
-			
-			try {
-				owlOntologyManager.saveOntology(owlOntology, getLocalOntologyIRI(ontology));
-			} catch (OWLOntologyStorageException e) {
-				log(LogLevel.ERROR, "Couldn't save ontology", e);
-				throw e;
-			}
-			
-		//file already exists, update IRI and load to ontologymanager
-		} else {
-			File file = getCollectionOntologyFile(ontology);
-			try {
-				updateOwlOntologyIRI(file, ontology, collection);
-			} catch (JDOMException | IOException e) {
-				log(LogLevel.ERROR, "Couldn't update owl ontology IRI", e);
-				throw e;
-			}
-			
-			log(LogLevel.INFO, "Loading " + file.getAbsolutePath() + " ...");
-			try {
-				owlOntologyManager.getIRIMappers().add(createMapper(ontology));
-				OWLOntology owlOntology = owlOntologyManager.loadOntologyFromOntologyDocument(file);
-			} catch (OWLOntologyCreationException | OWLOntologyInputSourceException | UnloadableImportException e) {
-				Logger.getLogger(OntologyFileDAO.class).error("Could not load ontology", e);
-				throw e;
-			}
+	public void insertOntology(Ontology ontology) throws Exception {	
+		createAndCleanOntologyDirectory(ontology);
+		OWLOntology owlOntology = null;
+		try {
+			owlOntology = owlOntologyManager.createOntology(IRI.create(ontology.getIri()));
+		} catch (OWLOntologyCreationException e) {
+			log(LogLevel.ERROR, "Couldn't create ontology", e);
+			throw e;
+		}
+		addDefaultImportOntologies(collection, owlOntology);
+		axiomManager.initializeOntology(owlOntology);
+		try {
+			owlOntologyManager.saveOntology(owlOntology, getLocalOntologyIRI(ontology));
+		} catch (OWLOntologyStorageException e) {
+			log(LogLevel.ERROR, "Couldn't save ontology", e);
+			throw e;
 		}
 	}
 	
+	private void createAndCleanOntologyDirectory(Ontology ontology) {
+		File collectionOntologyDirectory = getCollectionOntologyDirectory(ontology);
+		if(collectionOntologyDirectory.exists()) {
+			for(File child : collectionOntologyDirectory.listFiles())
+				child.delete();
+			collectionOntologyDirectory.delete();
+		}
+		collectionOntologyDirectory.mkdir();
+	}
+
 	private void addImportDeclaration(OWLOntology owlOntology, Ontology ontology) {
 		IRI relevantIRI = IRI.create(ontology.getIri());
 		OWLImportsDeclaration importDeclaraton = owlOntologyManager.getOWLDataFactory().getOWLImportsDeclaration(relevantIRI);
@@ -139,25 +120,13 @@ public class OntologyFileDAO extends PermanentOntologyFileDAO {
 		}
 	}
 
-	public void removeOntology(Ontology ontology) throws OWLOntologyStorageException {
-		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(ontology.getIri()));
-		if(owlOntology != null) 
-			owlOntologyManager.removeOntology(owlOntology);
-		try {
-			owlOntologyManager.saveOntology(owlOntology, getLocalOntologyIRI(ontology));
-		} catch (OWLOntologyStorageException e) {
-			log(LogLevel.ERROR, "Couldn't save ontology", e);
-			throw e;
-		}
-	}
-
 	public String insertClassSubmission(OntologyClassSubmission submission) throws Exception {	
 		OWLOntology owlOntology = owlOntologyManager.getOntology(createOntologyIRI(submission));
 		OWLClass owlClass = null;
-		boolean extractSuperclassModule = submission.hasClassIRI() ? !isEtcOntologyIRI(submission.getClassIRI()) : false;
+		boolean existingClass = submission.hasClassIRI() ? !isEtcOntologyIRI(submission.getClassIRI()) : false;
 		
-		if(extractSuperclassModule) {
-			owlClass = createModuleForSubmissionsClass(collection, submission);
+		if(existingClass) {
+			owlClass = createModuleForExistingClass(collection, submission);
 		} else {
 			owlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(submission.getClassIRI()));
 		}
@@ -167,7 +136,7 @@ public class OntologyFileDAO extends PermanentOntologyFileDAO {
 			throw new Exception("class '"+ submission.getSubmissionTerm() + "' exists and defined as:" + definition);
 		}
 		
-		if(!extractSuperclassModule) {
+		if(!existingClass) {
 			axiomManager.addDeclaration(owlOntology, owlClass);
 			axiomManager.addDefinition(owlOntology, owlClass, submission.getDefinition());
 			axiomManager.addLabel(owlOntology, owlClass, owlOntologyManager.getOWLDataFactory().getOWLLiteral(
@@ -186,10 +155,10 @@ public class OntologyFileDAO extends PermanentOntologyFileDAO {
 	}
 
 	private void addSuperclasses(OntologyClassSubmission submission, OWLClass owlClass) throws Exception {
-		boolean extractedSuperclassModule = submission.hasClassIRI() ? isEtcOntologyIRI(submission.getClassIRI()) : false;
+		boolean existingClass = submission.hasClassIRI() ? !isEtcOntologyIRI(submission.getClassIRI()) : false;
 		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(submission.getOntology().getIri()));
 		
-		if(submission.hasSuperclasses() && !extractedSuperclassModule){
+		if(submission.hasSuperclasses() && !existingClass){
 			checkConsistentSuperclassHierarchyWithQualityEntity(submission, owlOntology);
 			
 			List<Superclass> superclasses = new LinkedList<Superclass>(submission.getSuperclasses());			
@@ -213,78 +182,7 @@ public class OntologyFileDAO extends PermanentOntologyFileDAO {
 		}
 	}
 
-	public void updateClassSubmission(OntologyClassSubmission submission) throws Exception {
-		OWLOntology targetOwlOntology = owlOntologyManager.getOntology(createOntologyIRI(submission));
-		OWLClass owlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(submission.getClassIRI()));
-		//other fiels of submission, other than the ones treated below, are not allowed to change
-		updateSuperclasses(targetOwlOntology, submission, owlClass);
-		updatePartOfs(targetOwlOntology, submission, owlClass);
-		updateDefinition(targetOwlOntology, submission, owlClass);
-		updateSampleSentence(targetOwlOntology, submission, owlClass);
-		updateSource(targetOwlOntology, submission, owlClass);
-		updateSynonyms(targetOwlOntology, submission, owlClass);
-		owlOntologyManager.saveOntology(targetOwlOntology, getLocalOntologyIRI(submission.getOntology()));
-	}
-	
-	private void updateSynonyms(OWLOntology targetOwlOntology, OntologyClassSubmission submission, OWLClass owlClass) {
-		axiomManager.removeSynonyms(targetOwlOntology, owlClass);
-		axiomManager.addSynonyms(targetOwlOntology, owlClass, submission.getSynonyms());
-	}
-
-	private void updateSampleSentence(OWLOntology targetOwlOntology, OntologyClassSubmission submission, OWLClass owlClass) {
-		axiomManager.removeSourceSampleComment(targetOwlOntology, owlClass);
-		axiomManager.addSourceSampleComment(targetOwlOntology, submission, owlClass);
-	}
-
-	private void updateDefinition(OWLOntology targetOwlOntology, OntologyClassSubmission submission, OWLClass owlClass) {
-		axiomManager.removeDefinition(targetOwlOntology, owlClass);
-		axiomManager.addDefinition(targetOwlOntology, owlClass, submission.getDefinition());
-	}
-
-	private void updatePartOfs(OWLOntology targetOwlOntology, OntologyClassSubmission submission, OWLClass owlClass) throws Exception {
-		axiomManager.removePartOfs(targetOwlOntology, owlClass);
-		if(submission.getType().equals(Type.ENTITY)) 
-			axiomManager.addPartOfs(collection, targetOwlOntology, submission.getOntology(), owlClass, submission.getPartOfs());
-	}
-
-	private void updateSuperclasses(OWLOntology targetOwlOntology, OntologyClassSubmission submission, OWLClass owlClass) throws Exception {
-		axiomManager.removeSuperclasses(targetOwlOntology, owlClass);
-		List<Superclass> superclassIRIs = new LinkedList<Superclass>(submission.getSuperclasses());
-		axiomManager.addSuperclasses(collection, targetOwlOntology, submission.getOntology(), owlClass, superclassIRIs, submission.getType());
-	}
-
-	private void updateSource(OWLOntology targetOwlOntology, OntologyClassSubmission submission, OWLClass owlClass) {
-		axiomManager.removeSourceSampleComment(targetOwlOntology, owlClass);
-		axiomManager.addSourceSampleComment(targetOwlOntology, submission, owlClass);
-	}
-
-	/*private void removeClassSubmission(OntologyClassSubmission submission) throws OntologyFileException {
-		OWLClass owlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(submission.getClassIRI()));
-		OWLOntology owlOntology = owlOntologyManager.getOntology(createOntologyIRI(submission));
-		
-		Set<OWLAxiom> axiomsToRemove = new HashSet<OWLAxiom>();
-        for (OWLAxiom axiom : owlOntology.getAxioms())
-            if (axiom.getSignature().contains(owlClass)) 
-                axiomsToRemove.add(axiom);
-        
-		owlOntologyManager.removeAxioms(owlOntology, axiomsToRemove);
-		createClassIRI(submission);
-		
-		try {
-			owlOntologyManager.saveOntology(owlOntology, getLocalOntologyIRI(submission.getOntology()));
-		} catch (OWLOntologyStorageException e) {
-			log(LogLevel.ERROR, "Couldn't save ontology", e);
-			throw new OntologyFileException(e);
-		}
-	}*/
-
-	public void depcrecateClassSubmission(OntologyClassSubmission submission) throws OWLOntologyStorageException {
-		OWLOntology owlOntology = owlOntologyManager.getOntology(createOntologyIRI(submission));
-		this.setDepreceated(IRI.create(submission.getClassIRI()), owlOntology);
-		owlOntologyManager.saveOntology(owlOntology, getLocalOntologyIRI(submission.getOntology()));
-	}
-	
-	private OWLClass createModuleForSubmissionsClass(Collection collection, OntologySubmission submission) throws Exception {
+	private OWLClass createModuleForExistingClass(Collection collection, OntologySubmission submission) throws Exception {
 		OWLClass newOwlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(submission.getClassIRI()));
 		OWLOntology targetOwlOntology = owlOntologyManager.getOntology(createOntologyIRI(submission));
 		OWLOntology moduleOwlOntology = moduleCreator.createModuleFromOwlClass(collection, newOwlClass, submission.getOntology());
@@ -293,72 +191,38 @@ public class OntologyFileDAO extends PermanentOntologyFileDAO {
 				for (OWLClass owlClass : moduleOwlOntology.getClassesInSignature()) {
 					axiomManager.addEntitySubclass(targetOwlOntology, owlClass);
 				}	
-			} else {
+			}/* else {
 				throw new Exception("class can not be of type entity and at the same time not be subclass of entity");
-			}
+			}*/
 		}
 		if (submission.getType().equals(Type.QUALITY)) {
 			if (!ontologyReasoner.isSubclass(targetOwlOntology, newOwlClass, qualityClass)) {
 				for (OWLClass owlClass : moduleOwlOntology.getClassesInSignature()) {
 					axiomManager.addQualitySubclass(targetOwlOntology, owlClass);
 				}
-			} else {
+			} /*else {
 				throw new Exception("class can not be of type quality and at the same time not be subclass of quality");
-			}
+			}*/
 		}
 		return newOwlClass;
-	}	
-	
-	private void removeModuleOfClass(Collection collection, OntologySynonymSubmission submission, OntologySynonymSubmission isEntityQuality) {
-
 	}
 
 	public String insertSynonymSubmission(OntologySynonymSubmission submission) throws Exception { 
-		List<OWLClass> affectedClasses = new ArrayList<OWLClass>();
-		OWLOntology targetOwlOntology;
-		targetOwlOntology = owlOntologyManager.getOntology(IRI.create(submission.getOntology().getIri()));
+		OWLOntology targetOwlOntology = owlOntologyManager.getOntology(IRI.create(submission.getOntology().getIri()));
 		OWLClass owlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(submission.getClassIRI()));
 		determineAndSetSubmissionType(submission);
 		boolean isContained = containsOwlClass(targetOwlOntology, owlClass);
 		String label = annotationsManager.get(collection, owlClass, labelProperty);
 		if(isContained && label != null && !label.equals(submission.getSubmissionTerm())) {
-			//class exists in current/imported ontology => add syn
-			affectedClasses.add(owlClass);
-				
 			axiomManager.addSynonym(targetOwlOntology, owlClass, new Synonym(submission.getSubmissionTerm()));
-		} else if(!isContained){
-			//an external class does not exist => add class, then add syn
-			owlClass = createModuleForSubmissionsClass(collection, submission);  
+		} else if(!isContained) {
+			owlClass = createModuleForExistingClass(collection, submission);  
 			axiomManager.addSynonym(targetOwlOntology, owlClass, new Synonym(submission.getSubmissionTerm()));
 		}
 		
-		//add other additional synonyms
 		for(Synonym synonym : submission.getSynonyms()){
-			for(OWLClass affectedClass : affectedClasses){
-				axiomManager.addSynonym(targetOwlOntology, affectedClass, synonym);
-			}
+			axiomManager.addSynonym(targetOwlOntology, owlClass, synonym);
 		}
-		
-		//fill in more info to submission so the UI can present complete matching info.
-		StringBuilder termString = new StringBuilder();
-		StringBuilder defString = new StringBuilder();
-		StringBuilder idString = new StringBuilder();
-		StringBuilder superString = new StringBuilder();
-		for(OWLClass affectedClass : affectedClasses) {
-			//OWLOntology affectedOwlOntology = this.getOWLOntology(affectedClass);
-			
-			termString.append(annotationsManager.get(collection, affectedClass, labelProperty) + ";");
-			defString.append(annotationsManager.get(collection, affectedClass, definitionProperty) + ";");
-			idString.append(affectedClass.getIRI().toString() + ";");
-			superString.append(getSuperClassesString(collection, affectedClass) + ";");
-		}
-		
-		
-		//submission.setClassID(termString.replaceFirst(";$", ""));
-		//submission.setDefinition(defString.replaceFirst(";$", ""));
-		//submission.setPermanentID(idString.replaceFirst(";$", ""));
-		//submission.setSuperClass(superString.replaceFirst(";$", ""));	
-		//submission.setTmpID(""); 
 		
 		owlOntologyManager.saveOntology(targetOwlOntology, getLocalOntologyIRI(submission.getOntology()));
 		return submission.getClassIRI().toString();
@@ -375,77 +239,9 @@ public class OntologyFileDAO extends PermanentOntologyFileDAO {
 			throw new Exception("Class IRI has to be a subclass of either quality or entity.");
 		}
 	}
-
-	public void updateSynonymSubmission(OntologySynonymSubmission submission) throws Exception {
-		this.removeSynonymSubmission(submission);
-		this.insertSynonymSubmission(submission);
-	}	
-
-	public void removeSynonymSubmission(OntologySynonymSubmission submission) throws Exception {
-		OWLOntology targetOwlOntology = owlOntologyManager.getOntology(IRI.create(submission.getOntology().getIri()));
-		List<OWLClass> affectedClasses = new ArrayList<OWLClass>();
-		if(submission.hasClassIRI()) {
-			String classIRI = submission.getClassIRI();
-			if(!classIRI.isEmpty()) {
-				OWLClass owlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(classIRI));
-				boolean isContained = containsOwlClass(targetOwlOntology, owlClass);
-				String label = annotationsManager.get(collection, owlClass, labelProperty);
-				if(isContained && label != null && !label.equals(submission.getSubmissionTerm())) {
-					//class exists in current/imported ontology => add syn
-					affectedClasses.add(owlClass);
-					
-					axiomManager.removeSynonym(targetOwlOntology, owlClass, new Synonym(submission.getSubmissionTerm()));
-				} else if(!isContained){
-					//an external class does not exist => add class, then add syn	
-					removeModuleOfClass(collection, submission, submission);  
-					axiomManager.removeSynonym(targetOwlOntology, owlClass, new Synonym(submission.getSubmissionTerm()));
-				}
-
-			}
-		}
-
-		//add other additional synonyms
-		for(Synonym synonym : submission.getSynonyms()) {
-			if(!synonym.getSynonym().isEmpty()) {
-				for(OWLClass affectedClass : affectedClasses){
-					axiomManager.removeSynonym(targetOwlOntology, affectedClass, synonym);
-				}
-			}
-		}
-		
-		owlOntologyManager.saveOntology(targetOwlOntology, getLocalOntologyIRI(submission.getOntology()));
-	}
-	
-	private String getSuperClassesString(Collection collection, OWLClass owlClass) throws Exception {
-		java.util.Collection<OWLClassExpression> supers = 
-				EntitySearcher.getSuperClasses(owlClass, owlOntologyRetriever.getOWLOntology(collection, owlClass));
-		Iterator<OWLClassExpression> it = supers.iterator();
-		String superClassesString ="";
-		while(it.hasNext()){
-			OWLClassExpression owlClassExpression = it.next();
-			if(owlClassExpression instanceof OWLClass){ 
-				superClassesString += annotationsManager.get(collection, (OWLClass)owlClassExpression, labelProperty) + ",";
-			}
-		}
-		return superClassesString;
-	}
-	
-	private void setDepreceated(IRI iri, OWLOntology owlOntology) {
-		axiomManager.deprecate(iri, owlOntology);
-	}
 	
 	public Collection getCollection() {
 		return collection;
-	}
-	
-	public static void main(String[] args) throws JDOMException, IOException {
-		/*File file = new File("input/asdf.owl");
-		Ontology ontology = new Ontology();
-		ontology.setAcronym("muh");
-		Collection collection = new Collection();
-		collection.setId(333);
-		updateOwlOntologyIRI(file, ontology, collection);
-		*/
 	}
 	
 	private void updateOwlOntologyIRI(File file, Ontology ontology, Collection collection) throws JDOMException, IOException {

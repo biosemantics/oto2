@@ -16,7 +16,6 @@ import com.sencha.gxt.data.shared.loader.PagingLoadConfig;
 import com.sencha.gxt.data.shared.loader.PagingLoadResult;
 import com.sencha.gxt.data.shared.loader.PagingLoadResultBean;
 
-import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.ontologize.server.Configuration;
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.DAOManager;
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.db.Query.QueryException;
@@ -247,7 +246,7 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	public void storeLocalOntologiesToFile(Collection collection) throws Exception {
 		OntologyFileDAO ontologyFileDAO = daoManager.getOntologyFileDAO(collection);
 		for(Ontology ontology : daoManager.getOntologyDBDAO().getLocalOntologiesForCollection(collection)) {	
-			ontologyFileDAO.insertOntology(ontology, true);
+			ontologyFileDAO.insertOntology(ontology);
 		}
 		List<OntologyClassSubmission> classSubmissions = daoManager.getOntologyClassSubmissionDAO().get(collection);
 		for(OntologyClassSubmission classSubmission : classSubmissions) {

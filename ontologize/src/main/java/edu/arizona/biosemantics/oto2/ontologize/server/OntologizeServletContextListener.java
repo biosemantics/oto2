@@ -8,7 +8,6 @@ import org.slf4j.bridge.SLF4JBridgeHandler;
 import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.db.ConnectionPool;
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.db.Query;
-import edu.arizona.biosemantics.oto2.ontologize.server.persist.file.OntologyFileDAO;
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.file.PermanentOntologyFileDAO;
 
 public class OntologizeServletContextListener implements ServletContextListener {
