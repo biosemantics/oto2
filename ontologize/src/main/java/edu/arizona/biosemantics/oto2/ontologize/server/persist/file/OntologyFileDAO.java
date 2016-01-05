@@ -96,12 +96,6 @@ public class OntologyFileDAO extends PermanentOntologyFileDAO {
 		collectionOntologyDirectory.mkdir();
 	}
 
-	private void addImportDeclaration(OWLOntology owlOntology, Ontology ontology) {
-		IRI relevantIRI = IRI.create(ontology.getIri());
-		OWLImportsDeclaration importDeclaraton = owlOntologyManager.getOWLDataFactory().getOWLImportsDeclaration(relevantIRI);
-		owlOntologyManager.applyChange(new AddImport(owlOntology, importDeclaraton));
-	}
-
 	private void addDefaultImportOntologies(Collection collection, OWLOntology owlOntology) {
 		List<Ontology> relevantOntologies = new LinkedList<Ontology>();
 		try {
@@ -120,6 +114,12 @@ public class OntologyFileDAO extends PermanentOntologyFileDAO {
 		}
 	}
 
+	private void addImportDeclaration(OWLOntology owlOntology, Ontology ontology) {
+		IRI relevantIRI = IRI.create(ontology.getIri());
+		OWLImportsDeclaration importDeclaraton = owlOntologyManager.getOWLDataFactory().getOWLImportsDeclaration(relevantIRI);
+		owlOntologyManager.applyChange(new AddImport(owlOntology, importDeclaraton));
+	}
+	
 	public String insertClassSubmission(OntologyClassSubmission submission) throws Exception {	
 		OWLOntology owlOntology = owlOntologyManager.getOntology(createOntologyIRI(submission));
 		OWLClass owlClass = null;
@@ -129,11 +129,6 @@ public class OntologyFileDAO extends PermanentOntologyFileDAO {
 			owlClass = createModuleForExistingClass(collection, submission);
 		} else {
 			owlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(submission.getClassIRI()));
-		}
-		
-		if(containsOwlClass(owlOntology, owlClass)) {
-			String definition = annotationsManager.get(collection, owlClass, definitionProperty);
-			throw new Exception("class '"+ submission.getSubmissionTerm() + "' exists and defined as:" + definition);
 		}
 		
 		if(!existingClass) {
@@ -156,14 +151,14 @@ public class OntologyFileDAO extends PermanentOntologyFileDAO {
 
 	private void addSuperclasses(OntologyClassSubmission submission, OWLClass owlClass) throws Exception {
 		boolean existingClass = submission.hasClassIRI() ? !isEtcOntologyIRI(submission.getClassIRI()) : false;
-		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(submission.getOntology().getIri()));
+		OWLOntology owlOntology = owlOntologyManager.getOntology(createOntologyIRI(submission));
 		
 		if(submission.hasSuperclasses() && !existingClass){
 			checkConsistentSuperclassHierarchyWithQualityEntity(submission, owlOntology);
 			
 			List<Superclass> superclasses = new LinkedList<Superclass>(submission.getSuperclasses());			
-			axiomManager.addSuperclasses(collection, owlOntology, submission.getOntology(), owlClass, superclasses,
-					submission.getType());
+			axiomManager.addSuperclasses(collection, owlOntology, submission.getOntology(), owlClass, 
+					superclasses, submission.getType());
 		}
 	}
 
@@ -191,24 +186,20 @@ public class OntologyFileDAO extends PermanentOntologyFileDAO {
 				for (OWLClass owlClass : moduleOwlOntology.getClassesInSignature()) {
 					axiomManager.addEntitySubclass(targetOwlOntology, owlClass);
 				}	
-			}/* else {
-				throw new Exception("class can not be of type entity and at the same time not be subclass of entity");
-			}*/
+			}
 		}
 		if (submission.getType().equals(Type.QUALITY)) {
 			if (!ontologyReasoner.isSubclass(targetOwlOntology, newOwlClass, qualityClass)) {
 				for (OWLClass owlClass : moduleOwlOntology.getClassesInSignature()) {
 					axiomManager.addQualitySubclass(targetOwlOntology, owlClass);
 				}
-			} /*else {
-				throw new Exception("class can not be of type quality and at the same time not be subclass of quality");
-			}*/
+			}
 		}
 		return newOwlClass;
 	}
 
 	public String insertSynonymSubmission(OntologySynonymSubmission submission) throws Exception { 
-		OWLOntology targetOwlOntology = owlOntologyManager.getOntology(IRI.create(submission.getOntology().getIri()));
+		OWLOntology targetOwlOntology = owlOntologyManager.getOntology(createOntologyIRI(submission));
 		OWLClass owlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(submission.getClassIRI()));
 		determineAndSetSubmissionType(submission);
 		boolean isContained = containsOwlClass(targetOwlOntology, owlClass);

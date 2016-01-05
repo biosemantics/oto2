@@ -41,6 +41,8 @@ public class OntologyFileDAOTest {
 	private static OntologyClassSubmission cs1;
 	private static OntologyClassSubmission cs2;
 	private static OntologySynonymSubmission ss1;
+	private static OntologyClassSubmission cs0;
+	private static OntologySynonymSubmission ss2;
 
 	public static void main(String[] args) throws Exception {
 		ConnectionPool connectionPool = new ConnectionPool();
@@ -74,16 +76,36 @@ public class OntologyFileDAOTest {
 		
 		createClassSubmission1();
 		createClassSubmission2();
-
+		createClassSubmission0();
+		
 		createSynonymSubmission();
+		createSynonymSubmission2();
 	}
 
+	private static void createSynonymSubmission2() throws Exception {
+		List<Synonym> synonyms = new LinkedList<Synonym>();
+		synonyms.add(new Synonym("add syn5"));
+		
+		ss2 = new OntologySynonymSubmission(999, 999, football, 
+				"football", ontology, 
+				"http://purl.obolibrary.org/obo/CARO_0000003", 
+				"", 
+				synonyms, 
+				"", "", "", new LinkedList<OntologySynonymSubmissionStatus>(), new Date(0), new Date());
+		ontologyFileDAO.insertSynonymSubmission(ss2);
+	}
+	
 	private static void createSynonymSubmission() throws Exception {
+		List<Synonym> synonyms = new LinkedList<Synonym>();
+		synonyms.add(new Synonym("add syn1"));
+		synonyms.add(new Synonym("add syn2"));
+		synonyms.add(new Synonym("add syn3"));
+		
 		ss1 = new OntologySynonymSubmission(999, 999, football, 
 				"football", ontology, 
 				cs1.getClassIRI(), 
 				"", 
-				new LinkedList<Synonym>(), 
+				synonyms, 
 				"", "", "", new LinkedList<OntologySynonymSubmissionStatus>(), new Date(0), new Date());
 		ontologyFileDAO.insertSynonymSubmission(ss1);
 	}
@@ -108,6 +130,27 @@ public class OntologyFileDAOTest {
 		
 		ontologyFileDAO.insertClassSubmission(cs2);
 	}
+	
+	private static void createClassSubmission0() throws Exception {
+		List<Superclass> superclasses = new LinkedList<Superclass>();
+		Superclass s = new Superclass(999, Type.ENTITY.getIRI());
+		Superclass s2 = new Superclass(999, "http://purl.obolibrary.org/obo/PATO_0000012");
+		superclasses.add(s);
+		superclasses.add(s2);
+		List<Synonym> synonyms = new LinkedList<Synonym>();
+		List<PartOf> partOfs = new LinkedList<PartOf>();
+		partOfs.add(new PartOf(cs1));
+		List<OntologyClassSubmissionStatus> status = new LinkedList<OntologyClassSubmissionStatus>();
+		Date lastUpdated = new Date();
+		Date created = new Date();
+
+		cs0 = new OntologyClassSubmission(999, 999, futbol, "futbol", ontology, 
+				"http://purl.obolibrary.org/obo/PATO_0001085",
+				superclasses, "def", synonyms, "src", "sample", partOfs, "user", status, lastUpdated, created);
+		cs0.addSynonym(new Synonym("hello"));
+		
+		ontologyFileDAO.insertClassSubmission(cs0);
+	}
 
 	private static void createClassSubmission1() throws Exception {
 		List<Superclass> superclasses = new LinkedList<Superclass>();
@@ -124,6 +167,7 @@ public class OntologyFileDAOTest {
 				"http://www.etc-project.org/owl/ontologies/" + collection.getId() + "/on#900",
 				superclasses, "def", synonyms, "src", "sample", partOfs, "user", status, lastUpdated, created);
 		cs1.addSynonym(new Synonym("hello"));
+		
 		ontologyFileDAO.insertClassSubmission(cs1);
 	}
 	
