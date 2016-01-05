@@ -30,6 +30,7 @@ import com.google.common.base.Optional;
 
 import edu.arizona.biosemantics.common.ontology.AnnotationProperty;
 import edu.arizona.biosemantics.oto2.ontologize.client.Ontologize;
+import edu.arizona.biosemantics.oto2.ontologize.server.Configuration;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;
@@ -128,17 +129,15 @@ public class AxiomManager  {
 	
 	public void addPartOfs(Collection collection, OWLOntology owlOntology, Ontology ontology, OWLClass owlClass, List<PartOf> partOfs) throws Exception {
 		for(PartOf partOf : partOfs) {			
-			IRI partOfIRI = IRI.create(partOf.getIri());
 			Set<OWLClass> introducedClasses = new HashSet<OWLClass> ();
-			
-			OWLClass wholeOwlClass = null;
-			if(partOfIRI.getScheme().equals("http")){
-				//external 
-				wholeOwlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(partOfIRI); //extract module
-				OWLOntology moduleOntology;
-				moduleOntology =  moduleCreator.createModuleFromOwlClass(collection, wholeOwlClass, ontology);
+
+			IRI partOfIRI = IRI.create(partOf.getIri());
+			OWLClass wholeOwlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(partOfIRI);
+			if(!partOf.getIri().startsWith(Configuration.etcOntologyBaseIRI)) {
+				wholeOwlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(partOfIRI);
+				OWLOntology moduleOntology = moduleCreator.createModuleFromOwlClass(collection, wholeOwlClass, ontology);
 				introducedClasses.addAll(moduleOntology.getClassesInSignature());
-			} 
+			}
 			if(!ontologyReasoner.isSubclass(owlOntology, wholeOwlClass, qualityClass)) {
 				OWLClassExpression partOfExpression = owlOntologyManager.getOWLDataFactory().getOWLObjectSomeValuesFrom(partOfProperty, wholeOwlClass);
 				OWLAxiom partOfAxiom = owlOntologyManager.getOWLDataFactory().getOWLSubClassOfAxiom(owlClass, partOfExpression);
