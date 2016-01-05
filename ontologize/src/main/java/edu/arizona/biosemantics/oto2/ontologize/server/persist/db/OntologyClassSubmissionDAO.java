@@ -382,12 +382,34 @@ public class OntologyClassSubmissionDAO {
 		}
 	}
 
-	public OntologyClassSubmission getByTerm(Collection collection, String submissionTerm) throws Exception {
+	public OntologyClassSubmission getBySubmissionTerm(Collection collection, String submissionTerm) throws Exception {
 		try(Query query = new Query("SELECT * FROM ontologize_ontologyclasssubmission s"
 				+ " WHERE "
 				+ "s.collection = ? AND s.submission_term = ?")) {
 			query.setParameter(1, collection.getId());
 			query.setParameter(2, submissionTerm);
+			ResultSet resultSet = query.execute();
+			if(resultSet.next()) {
+				return createClassSubmission(resultSet);
+			}
+			return null;
+		} catch(QueryException | SQLException e) {
+			log(LogLevel.ERROR, "Query Exception", e);
+			throw new QueryException(e);
+		}
+	}
+	
+	public OntologyClassSubmission getBySubmissionTermOrSynonym(Collection collection, String term) throws Exception {
+		OntologyClassSubmission submission = this.getBySubmissionTerm(collection, term);
+		if(submission != null)
+			return submission;
+		try(Query query = new Query("SELECT s.* FROM ontologize_ontologyclasssubmission s, "
+				+ "ontologize_ontologyclasssubmission_synonym ss"
+				+ " WHERE "
+				+ "s.collection = ? AND s.collection = ss.ontologyclasssubmission "
+				+ "AND ss.synonym = ?")) {
+			query.setParameter(1, collection.getId());
+			query.setParameter(2, term);
 			ResultSet resultSet = query.execute();
 			if(resultSet.next()) {
 				return createClassSubmission(resultSet);

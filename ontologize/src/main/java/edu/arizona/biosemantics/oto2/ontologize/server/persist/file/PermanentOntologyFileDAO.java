@@ -168,14 +168,33 @@ public class PermanentOntologyFileDAO {
 	public OWLClass getOWLClass(String classIRI) {
 		return owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(classIRI));
 	}
+	
+	public OWLOntology getOWLOntology(Collection collection, String classIRI) throws Exception {
+		OWLClass owlClass = this.getOWLClass(classIRI);
+		if(owlClass != null)
+			return owlOntologyRetriever.getOWLOntology(collection, owlClass);
+		return null;
+	}
 
-	public boolean contains(Collection collection, String iri) {
+	public boolean containsInPermanentOntologies(String iri) {
 		try {
 			OWLClass owlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(iri));
-			owlOntologyRetriever.getPermanentOWLOntology(owlClass);
+			if(owlClass == null)
+				return false;
+			OWLOntology owlOntology = owlOntologyRetriever.getPermanentOWLOntology(owlClass);
+			if(owlOntology == null)
+				return false;
 			return true;
 		} catch(Exception e) {
 			return false;
 		}
+	}
+	
+	public OWLClass getQualityClass() {
+		return qualityClass;
+	}
+	
+	public OWLClass getEntityClass() {
+		return entityClass;
 	}
 }

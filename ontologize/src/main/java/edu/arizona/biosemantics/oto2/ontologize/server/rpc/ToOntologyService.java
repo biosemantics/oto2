@@ -5,7 +5,10 @@ import java.util.List;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
+import org.apache.commons.lang3.StringUtils;
+import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLOntology;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
@@ -20,6 +23,7 @@ import edu.arizona.biosemantics.oto2.ontologize.server.Configuration;
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.DAOManager;
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.db.Query.QueryException;
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.file.OntologyFileDAO;
+import edu.arizona.biosemantics.oto2.ontologize.server.persist.file.OntologyReasoner;
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.file.PermanentOntologyFileDAO;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;
@@ -37,16 +41,10 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Supercla
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Synonym;
 import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.IToOntologyService;
 
-/**
- * Note: Not trivial to guarantee consistency between all three data stores (DB, OWL File, Bioportal), e.g. could end up in a situation where 
- * where DB throws exception, want to revert bioportal changes, bioportal fails aswell.
- * Thus, only a best effort.
- * @author rodenhausen
- *
- */
 public class ToOntologyService extends RemoteServiceServlet implements IToOntologyService {
 
 	private DAOManager daoManager;
+	private OntologyReasoner reasoner = new OntologyReasoner();
 
 	@Inject
 	public ToOntologyService(DAOManager daoManager) {
@@ -98,15 +96,8 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 
 	@Override
 	public List<OntologyClassSubmission> createClassSubmission(Collection collection, OntologyClassSubmission submission) throws Exception {
-		//make sure term is only used once
-		if(daoManager.getOntologyClassSubmissionDAO().getByTerm(collection, submission.getSubmissionTerm()) != null) 
-			throw new Exception("Term can only be submitted once as class.");
+		validateClassSubmission(collection, submission);
 		
-		if(!submission.getClassIRI().isEmpty()) {
-			if(!this.isSupportedIRI(collection, submission.getClassIRI())) {
-				throw new Exception("IRI not supported.");
-			}
-		}
 		List<OntologyClassSubmission> submissions = new LinkedList<OntologyClassSubmission>();
 		addIRIsToPlainTerms(collection, submission, submissions);
 		submission = daoManager.getOntologyClassSubmissionDAO().insert(submission);
@@ -114,6 +105,37 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 		this.setNew(submission);
 		submissions.add(submission);
 		return submissions;
+	}
+	
+	/**
+	 * verify term is only used once as either class or synonym;
+	 * otherwise term could be used in a non-unique fashion, e.g. as submission term
+	 * and synonym for another submission term
+	 */
+	private void validateClassSubmission(Collection collection, OntologyClassSubmission submission) throws Exception {
+		List<String> validateTerms = new LinkedList<String>();
+		validateTerms.add(submission.getSubmissionTerm());
+		for(Synonym synonym : submission.getSynonyms())
+			validateTerms.add(synonym.getSynonym());
+		
+		List<String> failedTerms = new LinkedList<String>();
+		for(String validateTerm : validateTerms) {
+			if(daoManager.getOntologyClassSubmissionDAO().getBySubmissionTermOrSynonym(
+					collection, validateTerm) != null)
+			failedTerms.add(validateTerm);
+		}
+		
+		if(!failedTerms.isEmpty())
+			throw new Exception("Term can only be submitted once as either class or synonym. "
+					+ "Failed Terms: " + StringUtils.join(failedTerms, ", ") + ". "
+							+ "If your dataset contains terms with multiple append the meaning in "
+							+ "parenthesis, e.g. \"term (meaning)\" to enforce uniqueness");
+		
+		if(!submission.getClassIRI().isEmpty()) {
+			if(!this.isSupportedIRI(collection, submission.getClassIRI())) {
+				throw new Exception("IRI not supported.");
+			}
+		}
 	}
 
 	private void addIRIsToPlainTerms(Collection collection, OntologyClassSubmission submission, List<OntologyClassSubmission> submissions) throws Exception {
@@ -153,11 +175,39 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 
 	@Override
 	public OntologySynonymSubmission createSynonymSubmission(Collection collection, OntologySynonymSubmission submission) throws Exception {
+		validateSynonymSubmission(collection, submission);
 		submission = daoManager.getOntologySynonymSubmissionDAO().insert(submission);
 		this.setNew(submission);
 		return submission;
 	}
 	
+	private void validateSynonymSubmission(Collection collection, 
+			OntologySynonymSubmission submission) throws Exception {
+		List<String> validateTerms = new LinkedList<String>();
+		validateTerms.add(submission.getSubmissionTerm());
+		for(Synonym synonym : submission.getSynonyms())
+			validateTerms.add(synonym.getSynonym());
+		
+		List<String> failedTerms = new LinkedList<String>();
+		for(String validateTerm : validateTerms) {
+			if(daoManager.getOntologyClassSubmissionDAO().getBySubmissionTermOrSynonym(
+					collection, validateTerm) != null)
+			failedTerms.add(validateTerm);
+		}
+		
+		if(!failedTerms.isEmpty())
+			throw new Exception("Term can only be submitted once as either class or synonym. "
+					+ "Failed Terms: " + StringUtils.join(failedTerms, ", ") + ". "
+					+ "If your dataset contains terms with multiple append the meaning in "
+					+ "parenthesis, e.g. \"term (meaning)\" to enforce uniqueness");
+		
+		if(!submission.getClassIRI().isEmpty()) {
+			if(!this.isSupportedIRI(collection, submission.getClassIRI())) {
+				throw new Exception("IRI not supported.");
+			}
+		}
+	}
+
 	/**
 	 * There's still open questions about this: What to do with a bioportal submission that has been accepted.
 	 * Should it still be possible to edit that submission? Would that be a resubmissoin then since the original
@@ -282,10 +332,30 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	public boolean isSupportedIRI(Collection collection, String iri) throws Exception {
 		if(daoManager.getOntologyClassSubmissionDAO().getByClassIRI(collection, iri) != null)
 			return true;
-		else
-			return daoManager.getPermanentOntologyFileDAO().contains(collection, iri);
+		else {
+			//check for entity quality subclass
+			boolean result = daoManager.getPermanentOntologyFileDAO().containsInPermanentOntologies(iri);
+			if(!result)
+				return false;
+			return isSubclassOfEntityOrQuality(collection, iri);
+		}
 	}
 	
+	private boolean isSubclassOfEntityOrQuality(Collection collection, String iri) throws Exception {
+		OWLClass owlClass = daoManager.getPermanentOntologyFileDAO().getOWLClass(iri);
+		OWLOntology classOwlOntology = daoManager.getPermanentOntologyFileDAO()
+				.getOWLOntology(collection, iri);
+		if(reasoner.isSubclass(classOwlOntology, owlClass, 
+				daoManager.getPermanentOntologyFileDAO().getQualityClass())) {
+			return true;
+		} else if(reasoner.isSubclass(classOwlOntology, owlClass, 
+				daoManager.getPermanentOntologyFileDAO().getEntityClass())) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
 	@Override
 	public PagingLoadResult<OntologyClassSubmission> getClassSubmissions(Collection collection, FilterPagingLoadConfig loadConfig, SubmissionType submissionType) throws Exception {
 		return daoManager.getOntologyClassSubmissionDAO().get(collection, loadConfig, submissionType);
