@@ -50,7 +50,7 @@ public class ModuleCreator  {
 		labelProperty = owlOntologyManager.getOWLDataFactory().getOWLAnnotationProperty(OWLRDFVocabulary.RDFS_LABEL.getIRI());
 	}
 	
-	public OWLOntology createModuleFromOwlClass(Collection collection, OWLClass owlClass, Ontology targetOntology) throws Exception {
+	public OWLOntology create(Collection collection, OWLClass owlClass, Ontology targetOntology) throws Exception {
 		OWLOntology owlClassOntology = owlOntologyRetriever.getOWLOntology(collection, owlClass);
 		OWLOntology targetOwlOntology = owlOntologyManager.getOntology(OntologyFileDAO.createOntologyIRI(targetOntology));
 		Set<OWLEntity> seeds = new HashSet<OWLEntity>();

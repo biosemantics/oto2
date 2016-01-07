@@ -88,8 +88,7 @@ public class AxiomManager  {
 
 			if(type != null) {
 				Set<OWLClass> introducedClasses = new HashSet<OWLClass> ();
-				OWLOntology moduleOntology;
-				moduleOntology = moduleCreator.createModuleFromOwlClass(collection, superOwlClass, ontology);
+				OWLOntology moduleOntology = moduleCreator.create(collection, superOwlClass, ontology);
 				introducedClasses.addAll(moduleOntology.getClassesInSignature());
 
 				OWLClass owlSuperclass = null;
@@ -135,7 +134,7 @@ public class AxiomManager  {
 			OWLClass wholeOwlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(partOfIRI);
 			if(!partOf.getIri().startsWith(Configuration.etcOntologyBaseIRI)) {
 				wholeOwlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(partOfIRI);
-				OWLOntology moduleOntology = moduleCreator.createModuleFromOwlClass(collection, wholeOwlClass, ontology);
+				OWLOntology moduleOntology = moduleCreator.create(collection, wholeOwlClass, ontology);
 				introducedClasses.addAll(moduleOntology.getClassesInSignature());
 			}
 			if(!ontologyReasoner.isSubclass(owlOntology, wholeOwlClass, qualityClass)) {
@@ -281,7 +280,7 @@ public class AxiomManager  {
 		owlOntologyManager.addAxiom(owlOntology, subclassAxiom);
 	}
 
-	public void initializeOntology(OWLOntology owlOntology) {
+	public void addDefaultAxioms(OWLOntology owlOntology) {
 		//add annotation properties
 		//OWLAnnotationProperty label = factory
 		//		.getOWLAnnotationProperty(OWLRDFVocabulary.RDFS_LABEL.getIRI());

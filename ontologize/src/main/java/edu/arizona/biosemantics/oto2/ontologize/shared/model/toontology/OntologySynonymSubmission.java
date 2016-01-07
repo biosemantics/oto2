@@ -11,7 +11,7 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Term;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
 
-public class OntologySynonymSubmission implements HasLabelAndIri, Serializable, Colorable, Commentable, 
+public class OntologySynonymSubmission implements HasSynonym, HasLabelAndIri, Serializable, Colorable, Commentable, 
 		OntologySubmission, Comparable<OntologySynonymSubmission> {
 	
 	private int id = -1;
@@ -68,11 +68,7 @@ public class OntologySynonymSubmission implements HasLabelAndIri, Serializable, 
 	public void setClassLabel(String classLabel) {
 		this.classLabel = classLabel;
 	}
-
-	public void setSynonyms(List<Synonym> synonyms) {
-		this.synonyms = synonyms;
-	}
-
+	
 	public int getCollectionId() {
 		return collectionId;
 	}
@@ -164,18 +160,6 @@ public class OntologySynonymSubmission implements HasLabelAndIri, Serializable, 
 
 	public boolean hasClassIRI() {
 		return this.classIRI != null && !this.getClassIRI().trim().isEmpty();
-	}
-		
-	public List<Synonym> getSynonyms() {
-		return synonyms;
-	}
-
-	public void addSynonym(Synonym synonym) {
-		this.synonyms.add(synonym);
-	}
-		
-	public void clearSynonyms() {
-		this.synonyms.clear();
 	}
 	
 	@Override
@@ -278,6 +262,29 @@ public class OntologySynonymSubmission implements HasLabelAndIri, Serializable, 
 	public Date getCreated() {
 		return created;
 	}
+
+	@Override
+	public List<Synonym> getSynonyms() {
+		return synonyms;
+	}
 	
+	@Override
+	public void removeSynonym(Synonym synonym) {
+		this.synonyms.remove(synonym);
+	}
 	
+	@Override
+	public void addSynonym(Synonym synonym) {
+		this.synonyms.add(synonym);
+	}
+		
+	@Override
+	public void clearSynonyms() {
+		this.synonyms.clear();
+	}
+
+	@Override
+	public void setSynonyms(List<Synonym> synonyms) {
+		this.synonyms = synonyms;
+	}
 }

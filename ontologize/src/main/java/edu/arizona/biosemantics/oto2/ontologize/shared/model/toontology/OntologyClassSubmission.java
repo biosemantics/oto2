@@ -11,7 +11,7 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Term;
 
-public class OntologyClassSubmission implements HasLabelAndIri, Serializable, Colorable, Commentable, 
+public class OntologyClassSubmission implements HasSynonym, HasLabelAndIri, Serializable, Colorable, Commentable, 
 		OntologySubmission, Comparable<OntologyClassSubmission> {
 	
 	private int id = -1;
@@ -179,11 +179,7 @@ public class OntologyClassSubmission implements HasLabelAndIri, Serializable, Co
 	public List<Superclass> getSuperclasses() {
 		return superclasses;
 	}
-
-	public List<Synonym> getSynonyms() {
-		return synonyms;
-	}
-
+	
 	public List<PartOf> getPartOfs() {
 		return partOfs;
 	}
@@ -192,16 +188,8 @@ public class OntologyClassSubmission implements HasLabelAndIri, Serializable, Co
 		this.superclasses = superclasses;
 	}
 
-	public void setSynonyms(List<Synonym> synonyms) {
-		this.synonyms = synonyms;
-	}
-
 	public void setPartOfs(List<PartOf> partOfs) {
 		this.partOfs = partOfs;
-	}
-
-	public void addSynonym(Synonym synonym) {
-		this.synonyms.add(synonym);
 	}
 	
 	public void addPartOf(PartOf partOf){
@@ -210,10 +198,6 @@ public class OntologyClassSubmission implements HasLabelAndIri, Serializable, Co
 	
 	public void addSuperclass(Superclass superclass) {
 		this.superclasses.add(superclass);
-	}
-	
-	public void clearSynonyms() {
-		this.synonyms.clear();
 	}
 	
 	public void clearPartOfs() {
@@ -314,6 +298,31 @@ public class OntologyClassSubmission implements HasLabelAndIri, Serializable, Co
 
 	public Date getCreated() {
 		return created;
-	}	
+	}
+
+	@Override
+	public List<Synonym> getSynonyms() {
+		return synonyms;
+	}
+	
+	@Override
+	public void removeSynonym(Synonym synonym) {
+		this.synonyms.remove(synonym);
+	}
+	
+	@Override
+	public void addSynonym(Synonym synonym) {
+		this.synonyms.add(synonym);
+	}
+		
+	@Override
+	public void clearSynonyms() {
+		this.synonyms.clear();
+	}
+
+	@Override
+	public void setSynonyms(List<Synonym> synonyms) {
+		this.synonyms = synonyms;
+	}
 
 }
