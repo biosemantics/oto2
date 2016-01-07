@@ -128,7 +128,7 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 		if(!failedTerms.isEmpty())
 			throw new Exception("Term can only be submitted once as either class or synonym. "
 					+ "Failed Terms: " + StringUtils.join(failedTerms, ", ") + ". "
-							+ "If your dataset contains terms with multiple append the meaning in "
+							+ "If your dataset contains terms with multiple meanings append the meaning in "
 							+ "parenthesis, e.g. \"term (meaning)\" to enforce uniqueness");
 		
 		if(!submission.getClassIRI().isEmpty()) {
