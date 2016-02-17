@@ -5,6 +5,8 @@ import java.util.List;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.web.bindery.event.shared.EventBus;
+import com.sencha.gxt.dnd.core.client.DndDragCancelEvent;
+import com.sencha.gxt.dnd.core.client.DndDragCancelEvent.DndDragCancelHandler;
 import com.sencha.gxt.dnd.core.client.DndDragEnterEvent;
 import com.sencha.gxt.dnd.core.client.DndDragEnterEvent.DndDragEnterHandler;
 import com.sencha.gxt.dnd.core.client.DndDragLeaveEvent;
@@ -15,6 +17,7 @@ import com.sencha.gxt.dnd.core.client.DndDropEvent;
 import com.sencha.gxt.dnd.core.client.DndDropEvent.DndDropHandler;
 import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.Menu;
+import com.sencha.gxt.widget.core.client.tree.Tree;
 
 import edu.arizona.biosemantics.oto2.oto.client.common.CopyMoveMenu;
 import edu.arizona.biosemantics.oto2.oto.client.common.dnd.MainTermSynonymsLabelDnd;
@@ -29,7 +32,7 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 import edu.arizona.biosemantics.oto2.oto.shared.model.TermTreeNode;
 
-public class LabelPortletDndHandler implements DndDragEnterHandler, DndDragLeaveHandler, DndDropHandler {
+public class LabelPortletDndHandler implements DndDragEnterHandler, DndDragLeaveHandler, DndDropHandler, DndDragCancelHandler {
 
 	private EventBus eventBus;
 	private LabelPortlet labelPortlet;
@@ -41,8 +44,27 @@ public class LabelPortletDndHandler implements DndDragEnterHandler, DndDragLeave
 		this.labelPortlet = labelPortlet;
 	}
 	
+	private void restoreToolTip() {
+		labelPortlet.refreshToolTip();
+		labelPortlet.setTitle(null);
+		labelPortlet.getTree().setTitle(null);
+	}
+	
+	private void setTreeDragDropToolTip() {
+		labelPortlet.getHeader().removeToolTip();
+		labelPortlet.setTitle(null);
+		labelPortlet.getTree().setTitle("You are creating a synonym.");
+	}
+	
+	private void setPortletDragDropToolTip() {
+		labelPortlet.getHeader().removeToolTip();
+		labelPortlet.setTitle("You are categorizing this term.");
+		labelPortlet.getTree().setTitle(null);
+	}
+	
 	@Override
 	public void onDrop(DndDropEvent event) {
+		restoreToolTip();
 		if(event.getDropTarget() instanceof TreeDropTarget) {
 			doTreeDrop(event);
 		} else {
@@ -51,7 +73,7 @@ public class LabelPortletDndHandler implements DndDragEnterHandler, DndDragLeave
 		restoreExpansionState();
 	}
 
-	private void doPortletDrop(DndDropEvent event) {
+	private void doPortletDrop(DndDropEvent event) {		
 		Object data = event.getData();
 		if(data instanceof TermDnd) {
 			TermDnd termDnd = (TermDnd)data;
@@ -92,7 +114,7 @@ public class LabelPortletDndHandler implements DndDragEnterHandler, DndDragLeave
 		}
 	}
 
-	private void doTreeDrop(DndDropEvent event) {
+	private void doTreeDrop(DndDropEvent event) {		
 		Object data = event.getData();
 		if (data instanceof TermDnd) {
 			TermDnd termDnd = (TermDnd) data;
@@ -165,7 +187,7 @@ public class LabelPortletDndHandler implements DndDragEnterHandler, DndDragLeave
 	}
 
 	@Override
-	public void onDragLeave(DndDragLeaveEvent event) {
+	public void onDragLeave(DndDragLeaveEvent event) {		
 		//would fire drag leave events from portlet, even though the user hasn't really left the portlet, but instead moved slowly
 		//to the tree area
 		
@@ -179,16 +201,36 @@ public class LabelPortletDndHandler implements DndDragEnterHandler, DndDragLeave
 		
 		if(labelPortlet.getElement().getBounds().contains(event.getDragEnterEvent().getX(), event.getDragEnterEvent().getY())) {
 			//System.out.println("didn't really leave");
+			
+			System.out.println(event.getTarget().getClass());
+			if(event.getTarget() instanceof LabelPortlet) {
+				//setPortletDragDropToolTip();
+			}
+			if(event.getTarget() instanceof Tree) {
+				setPortletDragDropToolTip();
+			}
+			
 		} else {
 			restoreExpansionState();
 			dragInsidePortletOngoing = false;
+			restoreToolTip();
 		}
 	}
 
 	@Override
 	public void onDragEnter(DndDragEnterEvent event) {
-		if(!dragInsidePortletOngoing)
+		if(event.getTarget() instanceof LabelPortlet) {
+			setPortletDragDropToolTip();
+		}
+		if(event.getTarget() instanceof Tree) {
+			setTreeDragDropToolTip();
+		}
+		
+		
+		if(!dragInsidePortletOngoing) {
 			portletExpandedOnEnter = labelPortlet.isExpanded();
+			//setDragDropToolTip();
+		}
 		if(!portletExpandedOnEnter) {
 			labelPortlet.expand();	
 			//labelPortlet.expandSynonyms();
@@ -196,6 +238,11 @@ public class LabelPortletDndHandler implements DndDragEnterHandler, DndDragLeave
 			
 		dragInsidePortletOngoing = true; 
 		//System.out.println("drag enter: " + dragInsidePortletOngoing + " " +  portletExpandedOnEnter);
+	}
+
+	@Override
+	public void onDragCancel(DndDragCancelEvent event) {
+		this.restoreToolTip();
 	}
 
 }

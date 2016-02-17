@@ -23,6 +23,8 @@ import com.sencha.gxt.data.shared.Store.StoreSortInfo;
 import com.sencha.gxt.data.shared.TreeStore;
 import com.sencha.gxt.dnd.core.client.DND.Operation;
 import com.sencha.gxt.dnd.core.client.DndDragEnterEvent;
+import com.sencha.gxt.dnd.core.client.DndDragMoveEvent;
+import com.sencha.gxt.dnd.core.client.DndDragMoveEvent.DndDragMoveHandler;
 import com.sencha.gxt.dnd.core.client.DndDragStartEvent;
 import com.sencha.gxt.dnd.core.client.DropTarget;
 import com.sencha.gxt.dnd.core.client.TreeDragSource;
@@ -103,7 +105,6 @@ public class LabelPortlet extends Portlet {
 		this.setAnimationDuration(500);
 		this.setCollapsible(true);
 		this.setAnimCollapse(true);
-		refreshToolTip();
 		
 		toolButton = new ToolButton(ToolButton.GEAR);
 		if(!(this.label instanceof TrashLabel)) {
@@ -145,6 +146,7 @@ public class LabelPortlet extends Portlet {
 		add(flowLayoutContainer);
 		
 		setupDnD();
+		refreshToolTip();
 		
 		for(Term mainTerm : label.getMainTerms()) {
 			addMainTerm(mainTerm);
@@ -155,12 +157,12 @@ public class LabelPortlet extends Portlet {
 		bindEvents();
 	}
 	
-	private void refreshToolTip() {
+	protected void refreshToolTip() {		
 		if(!label.getDescription().trim().isEmpty()) {
-			this.setToolTip(label.getName() + ":</br>" + label.getDescription());
+			this.getHeader().setToolTip(label.getName() + ":</br>" + label.getDescription());
 			//this.setTitle(label.getName() + ":</br>" + label.getDescription());
 		} else {
-			this.setToolTip(null);
+			this.getHeader().setToolTip(null);
 			//this.setTitle(null);
 		}
 	}
@@ -480,6 +482,7 @@ public class LabelPortlet extends Portlet {
 		dropTarget.addDragEnterHandler(dndHandler);
 		dropTarget.addDragLeaveHandler(dndHandler);
 		dropTarget.addDropHandler(dndHandler);
+		dropTarget.addDragCancelHandler(dndHandler);
 		
 		// let our events take care of tree/list store updates, hence own
 		// implementation to take care of move/copy		
@@ -489,8 +492,12 @@ public class LabelPortlet extends Portlet {
 		treeDropTarget.setAllowSelfAsSource(true);
 		treeDropTarget.setOperation(Operation.COPY);
 		treeDropTarget.addDropHandler(dndHandler);
+		treeDropTarget.addDragEnterHandler(dndHandler);
+		treeDropTarget.addDragLeaveHandler(dndHandler);
+		treeDropTarget.addDragCancelHandler(dndHandler);
 		//treeDropTarget.addDragEnterHandler(dndHandler);
 		//treeDropTarget.addDragLeaveHandler(dndHandler);
+		
 	}
 	
 	protected List<Term> getSelectedTerms() {
