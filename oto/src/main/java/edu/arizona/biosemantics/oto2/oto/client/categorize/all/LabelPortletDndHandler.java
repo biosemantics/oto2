@@ -198,16 +198,16 @@ public class LabelPortletDndHandler implements DndDragEnterHandler, DndDragLeave
 		//System.out.println(event.getDragEnterEvent().getY());
 		//System.out.println(labelPortlet.getElement().getBounds());
 		//System.out.println(labelPortlet.getBody().getBounds());
-		
+		//System.out.println("1");
 		if(labelPortlet.getElement().getBounds().contains(event.getDragEnterEvent().getX(), event.getDragEnterEvent().getY())) {
 			//System.out.println("didn't really leave");
 			
-			System.out.println(event.getTarget().getClass());
+			//System.out.println(event.getTarget().getClass());
 			if(event.getTarget() instanceof LabelPortlet) {
-				//setPortletDragDropToolTip();
+				restoreToolTip();
 			}
 			if(event.getTarget() instanceof Tree) {
-				setPortletDragDropToolTip();
+				setTreeDragDropToolTip();
 			}
 			
 		} else {
