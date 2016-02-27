@@ -351,7 +351,7 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 			boolean result = daoManager.getPermanentOntologyFileDAO().containsInPermanentOntologies(iri);
 			if(!result)
 				return false;
-			return isSubclassOfEntityOrQuality(collection, iri);
+			return true; //isSubclassOfEntityOrQuality(collection, iri);
 		}
 	}
 	
