@@ -19,8 +19,11 @@ import com.sencha.gxt.data.shared.loader.PagingLoadConfig;
 import com.sencha.gxt.data.shared.loader.PagingLoadResult;
 import com.sencha.gxt.data.shared.loader.PagingLoadResultBean;
 
+import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.ontologize.server.Configuration;
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.DAOManager;
+import edu.arizona.biosemantics.oto2.ontologize.server.persist.db.ConnectionPool;
+import edu.arizona.biosemantics.oto2.ontologize.server.persist.db.Query;
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.db.Query.QueryException;
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.file.OntologyFileDAO;
 import edu.arizona.biosemantics.oto2.ontologize.server.persist.file.OntologyReasoner;
@@ -44,7 +47,6 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.rpc.toontology.IToOntolog
 public class ToOntologyService extends RemoteServiceServlet implements IToOntologyService {
 
 	private DAOManager daoManager;
-	private OntologyReasoner reasoner = new OntologyReasoner();
 
 	@Inject
 	public ToOntologyService(DAOManager daoManager) {
@@ -312,6 +314,18 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 		}
 	}
 	
+	public static void main(String[] args) throws Exception {
+		ConnectionPool connectionPool = new ConnectionPool();
+		Query.connectionPool = connectionPool;
+		PermanentOntologyFileDAO.loadPermanentOntologies();
+		
+		DAOManager daoManager = new DAOManager();
+		ToOntologyService service = new ToOntologyService(daoManager);
+		CollectionService colService = new CollectionService(daoManager);
+		Collection collection = colService.get(16, "");
+		service.storeLocalOntologiesToFile(collection);
+	}
+	
 	@Override
 	public void sendBioportalSubmissions(Collection collection) throws Exception {
 		List<OntologyClassSubmission> classSubmissions = daoManager.getOntologyClassSubmissionDAO().get(collection);
@@ -345,6 +359,7 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 		OWLClass owlClass = daoManager.getPermanentOntologyFileDAO().getOWLClass(iri);
 		OWLOntology classOwlOntology = daoManager.getPermanentOntologyFileDAO()
 				.getOWLOntology(collection, iri);
+		OntologyReasoner reasoner = daoManager.getPermanentOntologyFileDAO().getReasoner();
 		if(reasoner.isSubclass(classOwlOntology, owlClass, 
 				daoManager.getPermanentOntologyFileDAO().getQualityClass())) {
 			return true;

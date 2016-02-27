@@ -3,6 +3,7 @@ package edu.arizona.biosemantics.oto2.ontologize.server.persist.db;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -257,7 +258,21 @@ public class ContextDAO {
 			}
 		
 		List<TypedContext> typedContexts = createHighlightedAndShortenedTypedContexts(contexts, searches);
-		return typedContexts;
+		
+		return deduplicate(typedContexts);
+	}
+
+	private List<TypedContext> deduplicate(List<TypedContext> typedContexts) {
+		List<TypedContext> result = new ArrayList<TypedContext>();
+		Set<String> sentences = new HashSet<String>();
+		for(TypedContext context : typedContexts) {
+			String id = context.getSource() + " : " + context.getHighlightedText();
+			if(!sentences.contains(id)) {
+				sentences.add(id);
+				result.add(context);
+			}
+		}
+		return result;
 	}
 
 	private List<TypedContext> createHighlightedAndShortenedTypedContexts(List<Context> contexts, java.util.Collection<Search> searches) {

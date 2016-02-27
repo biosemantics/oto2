@@ -207,7 +207,7 @@ public class OntologyView implements IsWidget {
 		
 		ToolBar toolBar = new ToolBar();
 		//toolBar.add(new FillToolItem());
-		toolBar.add(new com.google.gwt.user.client.ui.Label("Ontology:"));
+		toolBar.add(new com.google.gwt.user.client.ui.Label("Show:"));
 		//toolBar.add(ontologyComboBox);
 		toolBar.add(entityCheckBox);
 		toolBar.add(qualityCheckBox);

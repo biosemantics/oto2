@@ -5,6 +5,7 @@ import java.util.Map;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.ui.IsWidget;
+import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.web.bindery.event.shared.EventBus;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
@@ -62,11 +63,15 @@ public class SuperclassesView implements IsWidget {
 		this.verticalLayoutContainer = new VerticalLayoutContainer();
 		verticalLayoutContainer.getScrollSupport().setScrollMode(ScrollMode.AUTO);
 		
-		verticalLayoutContainer.add(new FieldLabel(ontologyView, "Ontology View"), new VerticalLayoutData(1, 400));
-		verticalLayoutContainer.add(new FieldLabel(listView, "Candidate Superclasses"), new VerticalLayoutData(1, 100));
-		verticalLayoutContainer.add(new FieldLabel(superclassTextField, "New Superclass"), new VerticalLayoutData(1, 1));
+		if(ModelController.getClassSubmissions().values().isEmpty())
+			verticalLayoutContainer.add(new FieldLabel(new Label("Your Ontology is empty."), "Ontology View"), new VerticalLayoutData(1, 20));
+		else
+			verticalLayoutContainer.add(new FieldLabel(ontologyView, "Ontology View"), new VerticalLayoutData(1, 400));
+		verticalLayoutContainer.add(new FieldLabel(listView, "Candidate Superclasses Available"), new VerticalLayoutData(1, 100));
+		verticalLayoutContainer.add(new FieldLabel(superclassTextField, "Create New Superclass"), new VerticalLayoutData(1, 1));
 		
 		listStore.addAll(ModelController.getClassSubmissions().values());
+		listView.setEnabled(listStore.size() > 0);
 		listStore.addFilter(new StoreFilter<OntologyClassSubmission>() {
 			@Override
 			public boolean select(Store<OntologyClassSubmission> store,	OntologyClassSubmission parent,	OntologyClassSubmission item) {

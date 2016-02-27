@@ -1,9 +1,15 @@
 package edu.arizona.biosemantics.oto2.ontologize.server.persist.file;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.reasoner.ConsoleProgressMonitor;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
@@ -16,15 +22,25 @@ public class OntologyReasoner {
 	private StructuralReasonerFactory owlReasonerFactory;
 	private ConsoleProgressMonitor progressMonitor;
 	private SimpleConfiguration owlReasonerConfig;
+	private OWLOntologyManager owlOntologyManager;
+	private Map<OWLOntology, OWLReasoner> ontologyReasoners = new HashMap<OWLOntology, OWLReasoner>();
 	
-	public OntologyReasoner() {
+	public OntologyReasoner(OWLOntologyManager owlOntologyManager) {
+		this.owlOntologyManager = owlOntologyManager;
 		owlReasonerFactory = new StructuralReasonerFactory();
 		progressMonitor = new ConsoleProgressMonitor();
 		owlReasonerConfig = new SimpleConfiguration(progressMonitor);
+		
+		for(OWLOntology owlOntology : owlOntologyManager.getOntologies()) {
+			ontologyReasoners.put(owlOntology, owlReasonerFactory.createReasoner(owlOntology, owlReasonerConfig));
+		}
 	}
-	
+
 	public boolean isSubclass(OWLOntology owlOntology, OWLClass subclass, OWLClass superclass) {
-		return EntitySearcher.getSubClasses(superclass, owlOntology).contains(subclass);
+		if(!ontologyReasoners.containsKey(owlOntology))
+			ontologyReasoners.put(owlOntology, owlReasonerFactory.createReasoner(owlOntology, owlReasonerConfig));
+		OWLReasoner reasoner = ontologyReasoners.get(owlOntology);
+		return reasoner.getSubClasses(superclass, false).getFlattened().contains(subclass);
 	}
 	
 	public void checkConsistency(OWLOntology owlOntology) throws Exception {

@@ -123,7 +123,7 @@ public class SelectTermView implements IsWidget {
 		});
 	    classIRIComboBox.setAllowBlank(false);
 	    classIRIComboBox.setAutoValidate(true);
-		classIRIFieldLabel = new FieldLabel(classIRIField, "Class IRI");
+		classIRIFieldLabel = new FieldLabel(classIRIField, "Class IRI (If known)");
 		classIRIField.setAutoValidate(true);
 		classIRIField.setValidateOnBlur(true);
 		//classIRIField.setValidationDelay(1000);
