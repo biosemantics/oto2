@@ -50,8 +50,6 @@ public class Configuration {
 	
 	public static String wordNetSource;
 	
-	/** Default Categories **/
-	private static List<Label> defaultCategories = new LinkedList<Label>();
 	private static Properties properties;
 
 	
@@ -77,31 +75,9 @@ public class Configuration {
 			
 			otoClientUrl = properties.getProperty("otoClientUrl");
 			wordNetSource = properties.getProperty("wordNetSource");
-			
-			try(CSVReader reader = new CSVReader(new InputStreamReader(loader.getResourceAsStream("" +
-					"edu/arizona/biosemantics/oto2/oto/defaultCategories.csv")))) {
-				List<String[]> lines = reader.readAll();
-				for(String[] line : lines) {
-					if(line[2].equals("y"))
-						defaultCategories.add(new HighlightLabel(line[0], line[1]));
-					else
-						defaultCategories.add(new Label(line[0], line[1]));
-				}
-			}
 		} catch(Exception e) {
 			logger.error("Couldn't read configuration", e);
 		}
-	}
-	
-	public static List<Label> getDefaultCategories() {
-		List<Label> result = new LinkedList<Label>();
-		for(Label label : defaultCategories) {
-			if(label instanceof HighlightLabel)
-				result.add(new HighlightLabel(label.getName(), label.getDescription()));
-			else
-				result.add(new Label(label.getName(), label.getDescription()));
-		}
-		return result;
 	}
 	
 	public static void main(String[] args) throws FileNotFoundException, IOException {

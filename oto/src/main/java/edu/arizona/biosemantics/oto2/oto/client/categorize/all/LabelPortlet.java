@@ -6,6 +6,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
+import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
@@ -15,6 +18,7 @@ import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.Widget;
+import com.sencha.gxt.core.client.IdentityValueProvider;
 import com.sencha.gxt.core.client.dom.AutoScrollSupport;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
 import com.sencha.gxt.core.client.util.Format;
@@ -35,6 +39,7 @@ import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.tree.Tree;
 
+import edu.arizona.biosemantics.oto2.oto.shared.model.TermType;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.TermMenu;
 import edu.arizona.biosemantics.oto2.oto.client.common.AllowSurpressSelectEventsTreeSelectionModel;
 import edu.arizona.biosemantics.oto2.oto.client.common.SelectedTermsExtractor;
@@ -81,7 +86,7 @@ public class LabelPortlet extends Portlet {
 	private int id = ID++;
 	private TreeStore<TermTreeNode> portletStore;
 	private Label label;
-	private Tree<TermTreeNode, String> tree;
+	private Tree<TermTreeNode, TermTreeNode> tree;
 	private AllowSurpressSelectEventsTreeSelectionModel<TermTreeNode> treeSelectionModel;
 	private EventBus eventBus;
 	private Map<Term, TermTreeNode> termTermTreeNodeMap = new HashMap<Term, TermTreeNode>();
@@ -120,7 +125,22 @@ public class LabelPortlet extends Portlet {
 				return o1.getText().compareTo(o2.getText());
 			}
 		}, SortDir.ASC));
-		tree = new Tree<TermTreeNode, String>(portletStore, textTreeNodeProperties.text());
+		tree = new Tree<TermTreeNode, TermTreeNode>(portletStore, new IdentityValueProvider<TermTreeNode>());// textTreeNodeProperties.text());
+		tree.setCell(new AbstractCell<TermTreeNode>() {
+			@Override
+			public void render(com.google.gwt.cell.client.Cell.Context context,	TermTreeNode termTreeNode, SafeHtmlBuilder sb) {
+					switch(termTreeNode.getTerm().getTermType()) {							
+					case KNOWN_IN_GLOSSARY:
+						sb.append(SafeHtmlUtils.fromTrustedString("<div style='color:#A0522D'>" + 
+								termTreeNode.getText() + "</div>"));
+						break;
+					case UNKNOWN:
+					default:
+						sb.append(SafeHtmlUtils.fromTrustedString("<div>" + termTreeNode.getText() + "</div>"));
+						break;
+					}
+			}
+		});
 		tree.getElement().setAttribute("source", "labelportlet-" + id);
 		treeSelectionModel = new AllowSurpressSelectEventsTreeSelectionModel<TermTreeNode>();
 		tree.setSelectionModel(treeSelectionModel);
@@ -523,7 +543,7 @@ public class LabelPortlet extends Portlet {
 		return false;
 	}
 
-	public Tree<TermTreeNode, String> getTree() {
+	public Tree<TermTreeNode, TermTreeNode> getTree() {
 		return tree;
 	}
 

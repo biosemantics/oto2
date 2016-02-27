@@ -67,8 +67,6 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	
 	@Override
 	public Collection insert(Collection collection)  {
-		if(collection.getLabels() == null || collection.getLabels().isEmpty())
-			collection.setLabels(Configuration.getDefaultCategories());
 		if(collection.getSecret() == null || collection.getSecret().isEmpty())
 			createDefaultSecret(collection);
 		//collection.getLabels().add(new TrashLabel("Useless", "This category can be uesd to label terms as uselss"));

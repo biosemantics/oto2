@@ -7,7 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class Term implements Serializable, Comparable<Term> {
-
+	
 	public static class TermComparator implements Comparator<Term> {
 		@Override
 		public int compare(Term o1, Term o2) {
@@ -20,7 +20,8 @@ public class Term implements Serializable, Comparable<Term> {
 	private String originalTerm = "";
 	private boolean useless;
 	private List<Comment> comments = new LinkedList<Comment>();
-
+	private TermType termType = TermType.UNKNOWN;
+	
 	public Term() { }
 	
 	public Term(String term) {
@@ -28,12 +29,13 @@ public class Term implements Serializable, Comparable<Term> {
 		this.originalTerm = term;
 	}
 	
-	public Term(int id, String term, String originalTerm, boolean useless) {
+	public Term(int id, String term, String originalTerm, boolean useless, TermType termType) {
 		super();
 		this.id = id;
 		this.term = term;
 		this.originalTerm = originalTerm;
 		this.useless = useless;
+		this.termType = termType;
 	}
 	
 	public Term(int id, String term, String originalTerm, boolean useless, List<Comment> comments) {
@@ -89,6 +91,14 @@ public class Term implements Serializable, Comparable<Term> {
 		this.comments = comments;
 	}
 	
+	public TermType getTermType() {
+		return termType;
+	}
+
+	public void setTermType(TermType termType) {
+		this.termType = termType;
+	}
+
 	public void setComment(Comment comment) {
 		Iterator<Comment> iterator = comments.iterator();
 		while(iterator.hasNext()) {
@@ -130,6 +140,6 @@ public class Term implements Serializable, Comparable<Term> {
 	@Override
 	public int compareTo(Term o) {
 		return this.getTerm().compareTo(o.getTerm());
-	}	
+	}
 	
 }

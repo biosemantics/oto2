@@ -12,7 +12,7 @@ import edu.arizona.biosemantics.oto2.oto.client.event.SaveEvent.SaveHandler;
 public class StandAlone implements EntryPoint {
 
 	public void onModuleLoad() {
-		int collectionId = 156;
+		int collectionId = 107;
 		String secret = "30";
 		try {			
 			Oto oto = new Oto();

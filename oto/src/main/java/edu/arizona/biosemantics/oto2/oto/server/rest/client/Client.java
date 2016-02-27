@@ -52,6 +52,14 @@ public class Client implements AutoCloseable {
 		client.close();
 	}
 	
+	public Future<Void> post(Collection collection) {
+		return this.getPostInvoker().post(Entity.entity(collection, MediaType.APPLICATION_JSON), Void.class);
+	}
+	
+	public void post(Collection collection, InvocationCallback<Void> callback) {
+		this.getPostInvoker().post(Entity.entity(collection, MediaType.APPLICATION_JSON), callback);
+	}
+	
 	public Future<Collection> put(Collection collection) {
 		return this.getPutInvoker().put(Entity.entity(collection, MediaType.APPLICATION_JSON), Collection.class);
 	}
@@ -87,7 +95,11 @@ public class Client implements AutoCloseable {
 	private AsyncInvoker getGetCommunityCollectionInvoker(String type) {
 		return target.path("rest").path("oto").path("community").path(type).request(MediaType.APPLICATION_JSON).async();
 	}
-
+	
+	private AsyncInvoker getPostInvoker() {
+		return target.path("rest").path("oto").path("collection").request(MediaType.APPLICATION_JSON).async();
+	}
+	
 	private AsyncInvoker getPutInvoker() {
 		return target.path("rest").path("oto").path("collection").request(MediaType.APPLICATION_JSON).async();
 	}

@@ -17,10 +17,10 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.TermTreeNode;
 
 public class SynonymTermMenu extends TermMenu {
 
-	private Tree<TermTreeNode, String> tree;
+	private Tree<TermTreeNode, TermTreeNode> tree;
 	private SelectedTermsExtractor selectedTermsExtractor = new SelectedTermsExtractor();
 
-	public SynonymTermMenu(EventBus eventBus, Collection collection, Label label, Tree<TermTreeNode, String> tree) {
+	public SynonymTermMenu(EventBus eventBus, Collection collection, Label label, Tree<TermTreeNode, TermTreeNode> tree) {
 		super(eventBus, collection, label);
 		this.tree = tree;
 	}

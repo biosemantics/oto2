@@ -14,6 +14,7 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.Bucket;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Comment;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
+import edu.arizona.biosemantics.oto2.oto.shared.model.TermType;
 
 public class TermDAO {
 	
@@ -56,8 +57,9 @@ public class TermDAO {
 		String text = result.getString(3);
 		String originalTerm = result.getString(4);
 		boolean useless = result.getBoolean(5);
+		TermType type = TermType.valueOfId(result.getInt(6));
 		
-		Term term = new Term(id, text, originalTerm, useless);
+		Term term = new Term(id, text, originalTerm, useless, type);
 		List<Comment> comments = commentDAO.getComments(term);
 		term.setComments(comments);
 		return term;
@@ -66,11 +68,12 @@ public class TermDAO {
 	public Term insert(Term term, int bucketId)  {
 		if(!term.hasId()) {
 			try(Query insert = new Query("INSERT INTO `oto_term` " +
-					"(`bucket`, `term`, `original_term`, `useless`) VALUES (?, ?, ?, ?)")) {
+					"(`bucket`, `term`, `original_term`, `useless`, `term_type`) VALUES (?, ?, ?, ?, ?)")) {
 				insert.setParameter(1, bucketId);
 				insert.setParameter(2, term.getTerm().trim());
 				insert.setParameter(3, term.getTerm().trim());
 				insert.setParameter(4, term.getUseless());
+				insert.setParameter(5, term.getTermType().getId());
 				insert.execute();
 				ResultSet generatedKeys = insert.getGeneratedKeys();
 				generatedKeys.next();
@@ -84,12 +87,13 @@ public class TermDAO {
 	}
 
 	public void update(Term term, int bucketId) {
-		try(Query query = new Query("UPDATE oto_term SET bucket = ?, term = ?, useless = ? WHERE id = ?")) {
+		try(Query query = new Query("UPDATE oto_term SET bucket = ?, term = ?, useless = ?, term_type = ? WHERE id = ?")) {
 			query.setParameter(1, bucketId);
 			query.setParameter(2, term.getTerm());
 			query.setParameter(3, term.getUseless());
 			//never update original_term because it contains the *original* spelling of the term
-			query.setParameter(4, term.getId());	
+			query.setParameter(4, term.getTermType().getId());
+			query.setParameter(5, term.getId());	
 			query.execute();
 			
 			commentDAO.ensure(term.getComments(), term.getId());

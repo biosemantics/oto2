@@ -6,13 +6,17 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
+import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.web.bindery.event.shared.EventBus;
+import com.sencha.gxt.core.client.IdentityValueProvider;
 import com.sencha.gxt.core.client.dom.AutoScrollSupport;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
 import com.sencha.gxt.core.client.util.Format;
@@ -60,7 +64,7 @@ public class MainTermPortlet extends Portlet {
 	private EventBus eventBus;
 	private Term mainTerm;
 	private TreeStore<TermTreeNode> portletStore;
-	private Tree<TermTreeNode, String> tree;
+	private Tree<TermTreeNode, TermTreeNode> tree;
 	private AllowSurpressSelectEventsTreeSelectionModel<TermTreeNode> treeSelectionModel;
 	private Label label;
 	private Collection collection;
@@ -75,7 +79,16 @@ public class MainTermPortlet extends Portlet {
 		this.label = label;
 		this.collection = collection;
 		this.portalLayoutContainer = portalLayoutContainer;
-		this.setHeadingText(mainTerm.getTerm());
+		switch(mainTerm.getTermType()) {
+		case KNOWN_IN_GLOSSARY:
+			this.setHeadingHtml("<div style='color:#A0522D'>" + mainTerm.getTerm() + "</div>");
+			break;
+		case UNKNOWN:
+			this.setHeadingHtml("<div>" + mainTerm.getTerm() + "</div>");
+		default:
+			break;
+		
+		}
 		this.setExpanded(false);
 		this.setAnimationDuration(500);
 		this.setCollapsible(true);
@@ -93,9 +106,24 @@ public class MainTermPortlet extends Portlet {
 				return o1.getText().compareTo(o2.getText());
 			}
 		}, SortDir.ASC));
-		tree = new Tree<TermTreeNode, String>(portletStore, textTreeNodeProperties.text());
+		tree = new Tree<TermTreeNode, TermTreeNode>(portletStore, new IdentityValueProvider<TermTreeNode>());
 		treeSelectionModel = new AllowSurpressSelectEventsTreeSelectionModel<TermTreeNode>();
 		tree.setSelectionModel(treeSelectionModel);
+		tree.setCell(new AbstractCell<TermTreeNode>() {
+			@Override
+			public void render(com.google.gwt.cell.client.Cell.Context context,	TermTreeNode termTreeNode, SafeHtmlBuilder sb) {
+				switch(termTreeNode.getTerm().getTermType()) {							
+				case KNOWN_IN_GLOSSARY:
+					sb.append(SafeHtmlUtils.fromTrustedString("<div style='color:#ff0000'>" + 
+							termTreeNode.getText() + "</div>"));
+					break;
+				case UNKNOWN:
+				default:
+					sb.append(SafeHtmlUtils.fromTrustedString("<div>" + termTreeNode.getText() + "</div>"));
+					break;
+				}
+			}
+		});
 		tree.setContextMenu(new SynonymTermMenu(eventBus, collection, label, tree));
 		
 		FlowLayoutContainer flowLayoutContainer = new FlowLayoutContainer();

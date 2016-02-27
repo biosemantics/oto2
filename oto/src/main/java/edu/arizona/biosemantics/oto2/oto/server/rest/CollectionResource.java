@@ -4,6 +4,7 @@ import java.util.Iterator;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -56,6 +57,17 @@ public class CollectionResource {
 		} catch (Exception e) {
 			log(LogLevel.ERROR, "Exception", e);
 			return null;
+		}
+	}
+	
+	@POST
+	@Produces({ MediaType.APPLICATION_JSON })
+	@Consumes({ MediaType.APPLICATION_JSON })
+	public void post(Collection collection) throws Exception {
+		try {
+			collectionService.update(collection);
+		} catch (Exception e) {
+			log(LogLevel.ERROR, "Exception", e);
 		}
 	}
 
