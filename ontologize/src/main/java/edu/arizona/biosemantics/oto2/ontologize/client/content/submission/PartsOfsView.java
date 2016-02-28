@@ -9,6 +9,7 @@ import java.util.Map;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.editor.client.Editor.Path;
 import com.google.gwt.user.client.ui.IsWidget;
+import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.web.bindery.event.shared.EventBus;
 import com.sencha.gxt.core.client.Style.SelectionMode;
@@ -130,9 +131,12 @@ public class PartsOfsView implements IsWidget {
 		this.verticalLayoutContainer = new VerticalLayoutContainer();
 		verticalLayoutContainer.getScrollSupport().setScrollMode(ScrollMode.AUTO);
 		
-		verticalLayoutContainer.add(new FieldLabel(ontologyView, "Ontology View"), new VerticalLayoutData(1, 400));
-		verticalLayoutContainer.add(new FieldLabel(tree, "Candidate Bearers"), new VerticalLayoutData(1, 100));
-		verticalLayoutContainer.add(new FieldLabel(partOfTextField, "New Bearer"), new VerticalLayoutData(1, 1));
+		if(ModelController.getClassSubmissions().values().isEmpty())
+			verticalLayoutContainer.add(new FieldLabel(new Label("Your Ontology is empty."), "Ontology View"), new VerticalLayoutData(1, 20));
+		else
+			verticalLayoutContainer.add(new FieldLabel(ontologyView, "Ontology View"), new VerticalLayoutData(1, 400));
+		verticalLayoutContainer.add(new FieldLabel(tree, "Candidate Bearers Available"), new VerticalLayoutData(1, 100));
+		verticalLayoutContainer.add(new FieldLabel(partOfTextField, "Create New Bearer"), new VerticalLayoutData(1, 1));
 
 		this.setSubmissionType(type);
 		loadSubmissions(ModelController.getClassSubmissions().values());
@@ -152,6 +156,7 @@ public class PartsOfsView implements IsWidget {
 				return true;
 			}
 		});
+		tree.setEnabled(store.getAllItemsCount() > 0);
 		
 		bindEvents();
 	}

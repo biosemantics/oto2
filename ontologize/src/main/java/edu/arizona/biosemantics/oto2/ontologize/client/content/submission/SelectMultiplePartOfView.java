@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto2.ontologize.client.content.submission;
+/*package edu.arizona.biosemantics.oto2.ontologize.client.content.submission;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -181,4 +181,4 @@ public class SelectMultiplePartOfView implements IsWidget {
 		clear();
 		store.addAll(partOfs);
 	}
-}
+}*/

@@ -13,11 +13,13 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
+import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.FramedPanel;
 import com.sencha.gxt.widget.core.client.box.MessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.CardLayoutContainer;
+import com.sencha.gxt.widget.core.client.container.FlowLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
@@ -99,8 +101,11 @@ public class CreateSubmissionView implements IsWidget {
 		cardLayout.setActiveWidget(selectTermView);
 
 		container = new FramedPanel();
+		FlowLayoutContainer flowLayout = new FlowLayoutContainer();
+		flowLayout.setScrollMode(ScrollMode.AUTOY);
+		flowLayout.add(cardLayout);
 		container.setHeadingText("Create Submission");
-		container.add(cardLayout);
+		container.add(flowLayout);
 		//container.addButton(new LabelToolItem("Switch Cards"));
 		container.addButton(termCardButton);
 		container.addButton(relationCardButton);

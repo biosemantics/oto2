@@ -132,7 +132,7 @@ public class PermanentOntologyFileDAO {
 		entityClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create("http://purl.obolibrary.org/obo/CARO_0000006")); //material anatomical entity
 		qualityClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create("http://purl.obolibrary.org/obo/PATO_0000001")); //quality
 		definitionProperty = owlOntologyManager.getOWLDataFactory().getOWLAnnotationProperty(IRI.create("http://purl.obolibrary.org/obo/IAO_0000115"));
-		ontologyReasoner = new OntologyReasoner();
+		ontologyReasoner = new OntologyReasoner(owlOntologyManager);
 		owlOntologyRetriever = new OWLOntologyRetriever(owlOntologyManager, ontologyDBDAO);
 		annotationsManager = new AnnotationsManager(owlOntologyRetriever);
 		moduleCreator = new ModuleCreator(owlOntologyManager, owlOntologyRetriever, annotationsManager);
@@ -196,5 +196,9 @@ public class PermanentOntologyFileDAO {
 	
 	public OWLClass getEntityClass() {
 		return entityClass;
+	}
+
+	public OntologyReasoner getReasoner() {
+		return ontologyReasoner;
 	}
 }
