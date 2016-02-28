@@ -71,9 +71,15 @@ public class ContextDAO {
 	}
 	
 	private SingularPluralProvider singularPluralProvider = new SingularPluralProvider();
+	private SomeInflector inflector;
 	
 	public ContextDAO() {
-		
+		try {
+			WordNetPOSKnowledgeBase wordNetPOSKnowledgeBase = new WordNetPOSKnowledgeBase(Configuration.wordNetSource, false);
+			inflector = new SomeInflector(wordNetPOSKnowledgeBase, singularPluralProvider.getSingulars(), singularPluralProvider.getPlurals());
+		} catch (Exception e) {
+			log(LogLevel.ERROR, "Could not load WordNetPOSKnowledgeBase.", e);
+		}
 	} 
 	
 	public Context get(int id)  {
@@ -177,22 +183,17 @@ public class ContextDAO {
 		String singularOriginalSearchTerm = originalSearchTerm;
 		String pluralOriginalSearchTerm = originalSearchTerm;
 				
-		try(WordNetPOSKnowledgeBase wordNetPOSKnowledgeBase = new WordNetPOSKnowledgeBase(Configuration.wordNetSource, false)) {
-			SomeInflector inflector = new SomeInflector(wordNetPOSKnowledgeBase, singularPluralProvider.getSingulars(), singularPluralProvider.getPlurals());
-			if(inflector.isPlural(searchTerm)) {
-				singularSearchTerm = inflector.getSingular(searchTerm);
-			} else { 
-				pluralSearchTerm = inflector.getPlural(searchTerm);
-			}
-			
-			if(inflector.isPlural(originalSearchTerm)) {
-				singularOriginalSearchTerm = inflector.getSingular(originalSearchTerm);
-			} else { 
-				pluralOriginalSearchTerm = inflector.getPlural(originalSearchTerm);
-			}	
-		} catch (Exception e) {
-			log(LogLevel.ERROR, "Could not load WordNetPOSKnowledgeBase.", e);
+		if(inflector.isPlural(searchTerm)) {
+			singularSearchTerm = inflector.getSingular(searchTerm);
+		} else { 
+			pluralSearchTerm = inflector.getPlural(searchTerm);
 		}
+		
+		if(inflector.isPlural(originalSearchTerm)) {
+			singularOriginalSearchTerm = inflector.getSingular(originalSearchTerm);
+		} else { 
+			pluralOriginalSearchTerm = inflector.getPlural(originalSearchTerm);
+		}	
 		
 		if(term.hasChangedSpelling()) {
 			searches.add(new Search(singularSearchTerm, Type.updated));
@@ -243,18 +244,29 @@ public class ContextDAO {
 				log(LogLevel.ERROR, "Query Exception", e);
 			}
 		*/
-		for(Search search : searches) 
-			try(Query query = new Query("SELECT * FROM oto_context WHERE collection = ? AND text RLIKE ?")) {
-				query.setParameter(1, collection.getId());
-				query.setParameter(2, "^(.*[^a-zA-Z])?" + search.getSearch() + "([^a-zA-Z].*)?$");	
-				ResultSet result = query.execute();
-				while(result.next()) {
-					Context context = createContext(result);
+		Set<Integer> foundIds = new HashSet<Integer>();
+		String whereClause = "";
+		for(Search search : searches) {
+			whereClause += "text RLIKE ? OR ";
+		}
+		whereClause = whereClause.substring(0, whereClause.length() - 4);
+		
+		try(Query query = new Query("SELECT * FROM oto_context WHERE collection = ? AND ( " + whereClause + ")")) {
+			query.setParameter(1, collection.getId());
+			int i=2;
+			for(Search search : searches)
+				query.setParameter(i++, "^(.*[^a-zA-Z])?" + search.getSearch() + "([^a-zA-Z].*)?$");
+			ResultSet result = query.execute();
+			while(result.next()) {
+				Context context = createContext(result);
+				if(!foundIds.contains(context.getId())) {
 					contexts.add(context);
+					foundIds.add(context.getId());
 				}
-			} catch(Exception e) {
-				log(LogLevel.ERROR, "Query Exception", e);
 			}
+		} catch(Exception e) {
+			log(LogLevel.ERROR, "Query Exception", e);
+		}
 		
 		List<TypedContext> typedContexts = createHighlightedAndShortenedTypedContexts(contexts, searches);
 		return typedContexts;

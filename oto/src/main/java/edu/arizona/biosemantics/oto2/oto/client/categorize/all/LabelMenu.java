@@ -9,6 +9,8 @@ import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
+import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
+import com.sencha.gxt.widget.core.client.box.MessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.FlowLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
@@ -72,7 +74,18 @@ public class LabelMenu extends Menu implements BeforeShowHandler {
 		remove.addSelectionHandler(new SelectionHandler<Item>() {
 			@Override
 			public void onSelection(SelectionEvent<Item> event) {
-				eventBus.fireEvent(new LabelRemoveEvent(labelPortlet.getLabel()));
+				MessageBox confirmBox = new MessageBox("Remove Category", 
+						"Category " + labelPortlet.getLabel().getName() + " contains " + 
+								labelPortlet.getLabel().getTerms().size() + " terms, do you "
+						+ "want to remove it and return the terms to 'Terms to be Categorized' panel?");
+				confirmBox.setPredefinedButtons(PredefinedButton.OK, PredefinedButton.CANCEL);
+				confirmBox.show();
+				confirmBox.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
+					@Override
+					public void onSelect(SelectEvent event) {
+						eventBus.fireEvent(new LabelRemoveEvent(labelPortlet.getLabel()));
+					}
+				});
 			}
 		});
 		this.add(remove);
