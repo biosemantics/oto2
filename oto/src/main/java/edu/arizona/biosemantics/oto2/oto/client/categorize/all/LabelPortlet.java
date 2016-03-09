@@ -10,6 +10,11 @@ import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.Style.BorderStyle;
+import com.google.gwt.dom.client.Style.FontWeight;
+import com.google.gwt.dom.client.Style.TextAlign;
+import com.google.gwt.dom.client.Style.Unit;
+import com.google.gwt.dom.client.Style.VerticalAlign;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.DoubleClickEvent;
@@ -33,8 +38,14 @@ import com.sencha.gxt.dnd.core.client.DndDragStartEvent;
 import com.sencha.gxt.dnd.core.client.DropTarget;
 import com.sencha.gxt.dnd.core.client.TreeDragSource;
 import com.sencha.gxt.widget.core.client.Portlet;
+import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.button.ToolButton;
 import com.sencha.gxt.widget.core.client.container.FlowLayoutContainer;
+import com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer;
+import com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.HorizontalLayoutData;
+import com.sencha.gxt.widget.core.client.container.SimpleContainer;
+import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
+import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.tree.Tree;
@@ -158,12 +169,35 @@ public class LabelPortlet extends Portlet {
 				return result;
 			}
 		});
+		
+		int dropZoneHeight = 30;
+		SimpleContainer dropzoneContainer = new SimpleContainer();
+		com.google.gwt.user.client.ui.Label dropLabel = new com.google.gwt.user.client.ui.Label("Drop here to categorize");
+		dropLabel.getElement().getStyle().setVerticalAlign(VerticalAlign.MIDDLE);
+		dropLabel.getElement().getStyle().setTextAlign(TextAlign.CENTER);
+		dropLabel.getElement().getStyle().setProperty("fontFamily", "Tahoma,Arial,Verdana,sans-serif");
+		dropLabel.getElement().getStyle().setFontSize(11, Unit.PX);
+		dropLabel.getElement().getStyle().setFontWeight(FontWeight.NORMAL);
+		dropLabel.getElement().getStyle().setLineHeight(dropZoneHeight-3, Unit.PX);
+		dropzoneContainer.setWidget(dropLabel);
+		dropzoneContainer.setHeight(dropZoneHeight);
+		dropzoneContainer.getElement().getStyle().setBorderWidth(1, Unit.PX);
+		dropzoneContainer.getElement().getStyle().setBorderStyle(BorderStyle.DASHED);
+		dropzoneContainer.getElement().getStyle().setBorderColor("gray");
+		dropzoneContainer.getElement().getStyle().setProperty("mozMorderMadius", "7px");
+		dropzoneContainer.getElement().getStyle().setProperty("webkitBorderRadius", "7px");
+		dropzoneContainer.getElement().getStyle().setProperty("borderRadius", "7px");
+		dropzoneContainer.getElement().getStyle().setBackgroundColor("#ffffcc");
+		VerticalLayoutContainer vlc = new VerticalLayoutContainer();
+		vlc.add(dropzoneContainer/*new TextButton("Drop here")*/, new VerticalLayoutData(1, -1));
+		
 		FlowLayoutContainer flowLayoutContainer = new FlowLayoutContainer();
 		flowLayoutContainer.add(tree);
 		flowLayoutContainer.setScrollMode(ScrollMode.AUTO);
 		flowLayoutContainer.getElement().getStyle().setProperty("maxHeight", "150px");
+		vlc.add(flowLayoutContainer, new VerticalLayoutData(1, 1));
 		
-		add(flowLayoutContainer);
+		add(vlc);
 		
 		setupDnD();
 		refreshToolTip();
