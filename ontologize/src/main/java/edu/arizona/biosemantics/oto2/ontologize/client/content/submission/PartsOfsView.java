@@ -136,7 +136,7 @@ public class PartsOfsView implements IsWidget {
 		else
 			verticalLayoutContainer.add(new FieldLabel(ontologyView, "Ontology View"), new VerticalLayoutData(1, 400));
 		verticalLayoutContainer.add(new FieldLabel(tree, "Candidate Bearers Available"), new VerticalLayoutData(1, 100));
-		verticalLayoutContainer.add(new FieldLabel(partOfTextField, "Create New Bearer"), new VerticalLayoutData(1, 1));
+		verticalLayoutContainer.add(new FieldLabel(partOfTextField, "Create an Entity Class"), new VerticalLayoutData(1, 1));
 
 		this.setSubmissionType(type);
 		loadSubmissions(ModelController.getClassSubmissions().values());
