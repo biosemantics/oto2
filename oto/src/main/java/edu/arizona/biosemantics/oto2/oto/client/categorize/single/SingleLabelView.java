@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.core.client.Scheduler.ScheduledCommand;
 import com.google.gwt.core.shared.GWT;
@@ -15,7 +16,11 @@ import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
+import com.sencha.gxt.cell.core.client.form.ComboBoxCell;
 import com.sencha.gxt.cell.core.client.form.ComboBoxCell.TriggerAction;
+import com.sencha.gxt.core.client.IdentityValueProvider;
 import com.sencha.gxt.core.client.dom.AutoScrollSupport;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
 import com.sencha.gxt.data.shared.ListStore;
@@ -25,6 +30,7 @@ import com.sencha.gxt.dnd.core.client.DndDropEvent;
 import com.sencha.gxt.dnd.core.client.DndDropEvent.DndDropHandler;
 import com.sencha.gxt.dnd.core.client.DropTarget;
 import com.sencha.gxt.fx.client.DragEndEvent;
+import com.sencha.gxt.widget.core.client.ListView;
 import com.sencha.gxt.widget.core.client.box.AutoProgressMessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.CssFloatLayoutContainer;
@@ -45,6 +51,7 @@ import com.sencha.gxt.widget.core.client.menu.HeaderMenuItem;
 import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
+import com.sencha.gxt.widget.core.client.tips.ToolTip;
 import com.sencha.gxt.widget.core.client.toolbar.ToolBar;
 
 import edu.arizona.biosemantics.oto2.oto.client.common.dnd.TermDnd;
@@ -394,14 +401,16 @@ public class SingleLabelView extends SimpleContainer {
 		currentLabel = label;
 		refreshToolTip();
 		labelComboBox.setValue(label, true);
+		
+		labelComboBox.setToolTip(label.getDescription());
 	}
 
 	private void refreshToolTip() {
 		if(!currentLabel.getDescription().trim().isEmpty()) {
-			this.setToolTip(currentLabel.getName() + ":</br>" + currentLabel.getDescription());
+			//this.setToolTip(currentLabel.getName() + ":</br>" + currentLabel.getDescription());
 			//this.setTitle(currentLabel.getName() + ":</br>" + currentLabel.getDescription());
 		} else {
-			this.setToolTip(null);
+			//this.setToolTip(null);
 			//this.setTitle(null);
 		}
 	}
@@ -498,7 +507,14 @@ public class SingleLabelView extends SimpleContainer {
 
 	private ToolBar createToolBar() {
 		labelStore = new ListStore<Label>(labelProperites.key());
-		labelComboBox = new ComboBox<Label>(labelStore, labelProperites.nameLabel());
+		ListView<Label, Label> listView = new ListView<Label, Label>(labelStore, new IdentityValueProvider<Label>(), new AbstractCell<Label>() {
+			@Override
+			public void render(Context context, Label value, SafeHtmlBuilder sb) {
+				sb.append(SafeHtmlUtils.fromTrustedString("<div qtip='" + value.getDescription() + "'>" + value.getName() + "</div>"));
+			}
+		});
+		ComboBoxCell<Label> cell = new ComboBoxCell<Label>(labelStore, labelProperites.nameLabel(), listView);
+		labelComboBox = new ComboBox<Label>(cell);
 		labelComboBox.setForceSelection(true);
 		labelComboBox.setTriggerAction(TriggerAction.ALL);
 		
