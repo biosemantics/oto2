@@ -7,12 +7,17 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.cell.client.TextCell;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.editor.client.Editor;
 import com.google.gwt.editor.client.EditorError;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.sencha.gxt.core.client.IdentityValueProvider;
+import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.SortDir;
 import com.sencha.gxt.data.shared.Store.StoreSortInfo;
@@ -62,9 +67,15 @@ public class SelectOntologiesDialog extends Dialog {
 			}
 		}
 		
-		final DualListField<Ontology, String> dialListField = new DualListField<Ontology, String>(
+		final DualListField<Ontology, Ontology> dialListField = new DualListField<Ontology, Ontology>(
 				unselectedListStore, selectedListStore,
-				ontologyProperties.acronym(), new TextCell());
+				new IdentityValueProvider<Ontology>(), new AbstractCell<Ontology>() {
+					@Override
+					public void render(Context context, Ontology value, SafeHtmlBuilder sb) {
+						sb.append(SafeHtmlUtils.fromTrustedString("<div qtip='" + value.getName() + "'>" + 
+								value.getAcronym() + " (" + value.getName() + ")" + "</div>"));
+					}
+				});
 		dialListField.setMode(Mode.INSERT);
 		dialListField.addValidator(new Validator<List<Ontology>>() {
 			@Override
