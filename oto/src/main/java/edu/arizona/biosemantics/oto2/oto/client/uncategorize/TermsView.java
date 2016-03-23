@@ -10,6 +10,7 @@ import java.util.Map;
 
 import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.Element;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
@@ -21,6 +22,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.sencha.gxt.core.client.IdentityValueProvider;
 import com.sencha.gxt.core.client.dom.AutoScrollSupport;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
+import com.sencha.gxt.core.client.dom.XElement;
 import com.sencha.gxt.core.client.util.Format;
 import com.sencha.gxt.core.client.util.Params;
 import com.sencha.gxt.data.shared.ListStore;
@@ -54,6 +56,7 @@ import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 import com.sencha.gxt.widget.core.client.tree.Tree;
+import com.sencha.gxt.widget.core.client.tree.Tree.TreeNode;
 
 import edu.arizona.biosemantics.oto2.oto.client.Oto;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.all.LabelPortlet;
@@ -165,26 +168,45 @@ public class TermsView extends TabPanel {
 					this.add(categorize);
 					
 					this.add(new HeaderMenuItem("Term"));
-					MenuItem markUseless = new MenuItem("Mark");
-					Menu subMenu = new Menu();
-					markUseless.setSubMenu(subMenu);
-					MenuItem useless = new MenuItem("Not Usefull");
-					MenuItem useful = new MenuItem("Useful");
-					subMenu.add(useless);
-					subMenu.add(useful);
-					useless.addSelectionHandler(new SelectionHandler<Item>() {
-						@Override
-						public void onSelection(SelectionEvent<Item> event) {
-							eventBus.fireEvent(new TermMarkUselessEvent(terms, true));
+					List<TextTreeNode> nodes = termTreeSelectionModel.getSelectedItems();	
+					
+					int trashAdd = 0;
+					int trashRemove = 0;
+					for(TextTreeNode node : nodes) {
+						if(node instanceof TermTreeNode) {
+							if(treeStore.getParent(node).equals(trashTreeNode)) {
+								trashRemove++;
+							} else {
+								trashAdd++;
+							}
+						} else if(node instanceof BucketTreeNode) {
+							if(node.equals(trashTreeNode)) {
+								trashRemove += treeStore.getChildren(trashTreeNode).size();
+							} else {
+								trashAdd += treeStore.getChildren(node).size();
+							}
 						}
-					});
-					useful.addSelectionHandler(new SelectionHandler<Item>() {
-						@Override
-						public void onSelection(SelectionEvent<Item> event) {
-							eventBus.fireEvent(new TermMarkUselessEvent(terms, false));
-						}
-					});
-					this.add(markUseless);
+					}
+					if(trashAdd > 0 && trashRemove > 0) {
+					} else if(trashAdd > 0) {
+						MenuItem moveToTrash = new MenuItem("Move to trash");
+						moveToTrash.addSelectionHandler(new SelectionHandler<Item>() {
+							@Override
+							public void onSelection(SelectionEvent<Item> event) {
+								eventBus.fireEvent(new TermMarkUselessEvent(terms, true));
+							}
+						});
+						this.add(moveToTrash);
+					} else if(trashRemove > 0) {
+						MenuItem removeFromTrash = new MenuItem("Remove from trash");
+						removeFromTrash.addSelectionHandler(new SelectionHandler<Item>() {
+							@Override
+							public void onSelection(SelectionEvent<Item> event) {
+								eventBus.fireEvent(new TermMarkUselessEvent(terms, false));
+							}
+						});
+						this.add(removeFromTrash);
+					}
 				}
 				
 				if(selected.size() == 1) {
@@ -316,6 +338,8 @@ public class TermsView extends TabPanel {
 			new AllowSurpressSelectEventsTreeSelectionModel<TextTreeNode>();
 	private AllowSurpressSelectEventsListViewSelectionModel<Term> listViewSelectionModel = 
 			new AllowSurpressSelectEventsListViewSelectionModel<Term>();
+	private Bucket trashBucket;
+	private BucketTreeNode trashTreeNode;
 	
 	public TermsView(EventBus eventBus) {
 		super(GWT.<TabPanelAppearance> create(TabPanelBottomAppearance.class));
@@ -343,14 +367,14 @@ public class TermsView extends TabPanel {
 					if(textTreeNode instanceof TermTreeNode) {
 						TermTreeNode termTreeNode = (TermTreeNode)textTreeNode;
 						Term term = termTreeNode.getTerm();
-						if(term.getUseless()) {
+						/*if(term.getUseless()) {
 							sb.append(SafeHtmlUtils.fromTrustedString("<div style='padding-left:5px; padding-right:5px; background-color:gray; " +
 									"color:white'>" + 
 									textTreeNode.getText() + "</div>"));
-						} else {
+						} else {*/
 							sb.append(SafeHtmlUtils.fromTrustedString("<div style='padding-left:5px; padding-right:5px'>" + textTreeNode.getText() +
 									"</div>"));
-						}
+						//}
 					} else {
 						sb.append(SafeHtmlUtils.fromTrustedString("<div style=''>" + textTreeNode.getText() +
 								"</div>"));
@@ -438,8 +462,16 @@ public class TermsView extends TabPanel {
 				for(Term term : event.getTerms()) {
 					if(listStoreContent.contains(term))
 						listStore.update(term);
-					if(termTermTreeNodeMap.get(term) != null && treeStoreContent.contains(termTermTreeNodeMap.get(term))) 
-						treeStore.update(termTermTreeNodeMap.get(term));
+					if(termTermTreeNodeMap.get(term) != null && treeStoreContent.contains(termTermTreeNodeMap.get(term))) {
+						treeStore.remove(termTermTreeNodeMap.get(term));
+						if(event.isNewUseless()) {
+							trashBucket.addTerm(term);
+							treeStore.add(trashTreeNode, termTermTreeNodeMap.get(term));
+						} else {
+							trashBucket.removeTerm(term);
+							treeStore.add(bucketBucketTreeNodeMap.get(termBucketMap.get(term)), termTermTreeNodeMap.get(term));
+						}
+					}
 				}
 			}
 		});
@@ -477,7 +509,11 @@ public class TermsView extends TabPanel {
 		BucketTreeNode bucketTreeNode = bucketBucketTreeNodeMap.get(termBucketMap.get(term));
 		if(treeStore.findModel(bucketTreeNode) == null) 
 			treeStore.add(bucketTreeNode);
-		treeStore.add(bucketTreeNode, node);
+		if(term.getUseless()) {
+			treeStore.add(trashTreeNode, node);
+		} else {
+			treeStore.add(bucketTreeNode, node);
+		}
 		listStore.add(term);
 	}
 
@@ -557,6 +593,20 @@ public class TermsView extends TabPanel {
 					TermLabelDnd termLabelDnd = (TermLabelDnd)event.getData();
 					uncategorize(termLabelDnd.getTerms(), termLabelDnd.getLabels());
 				}
+				else if(event.getData() instanceof TermDnd) {
+					TermDnd termDnd = (TermDnd)event.getData();
+					TreeNode<TextTreeNode> node = termTree.findNode(trashTreeNode);
+					if(node != null) {
+						final TreeNode<TextTreeNode> item = termTree.findNode(event.getDragEndEvent().getNativeEvent().getEventTarget().<Element> cast());
+						if(item != null) {
+							if(item.equals(node)) {
+								eventBus.fireEvent(new TermMarkUselessEvent(termDnd.getTerms(), true));
+							} else {
+								eventBus.fireEvent(new TermMarkUselessEvent(termDnd.getTerms(), false));
+							}
+						}
+					}
+				}
 			}
 
 			private void uncategorize(List<Term> terms, List<Label> labels) {
@@ -581,9 +631,15 @@ public class TermsView extends TabPanel {
 		termTermTreeNodeMap = new HashMap<Term, TermTreeNode>();
 		treeStore.clear();
 		listStore.clear();
+		
+		trashBucket = new Bucket("Trash");
+		trashTreeNode = new BucketTreeNode(trashBucket);
+		bucketBucketTreeNodeMap.put(trashBucket, trashTreeNode);
+		treeStore.add(trashTreeNode);
 					
 		for(Bucket bucket : collection.getBuckets()) {
 			BucketTreeNode bucketTreeNode = new BucketTreeNode(bucket);
+			//treeStore.add(bucketTreeNode);
 			bucketBucketTreeNodeMap.put(bucket, bucketTreeNode);
 			for(Term term : bucket.getTerms()) {
 				TermTreeNode termTreeNode = new TermTreeNode(term);

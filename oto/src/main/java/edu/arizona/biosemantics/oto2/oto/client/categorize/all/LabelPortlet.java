@@ -170,6 +170,7 @@ public class LabelPortlet extends Portlet {
 			}
 		});
 		
+		//VerticalLayoutContainer vlc = new VerticalLayoutContainer();
 		int dropZoneHeight = 30;
 		SimpleContainer dropzoneContainer = new SimpleContainer();
 		com.google.gwt.user.client.ui.Label dropLabel = new com.google.gwt.user.client.ui.Label("Drop here to categorize");
@@ -188,16 +189,15 @@ public class LabelPortlet extends Portlet {
 		dropzoneContainer.getElement().getStyle().setProperty("webkitBorderRadius", "7px");
 		dropzoneContainer.getElement().getStyle().setProperty("borderRadius", "7px");
 		dropzoneContainer.getElement().getStyle().setBackgroundColor("#ffffcc");
-		VerticalLayoutContainer vlc = new VerticalLayoutContainer();
-		vlc.add(dropzoneContainer/*new TextButton("Drop here")*/, new VerticalLayoutData(1, -1));
 		
 		FlowLayoutContainer flowLayoutContainer = new FlowLayoutContainer();
+		flowLayoutContainer.add(dropzoneContainer);
 		flowLayoutContainer.add(tree);
 		flowLayoutContainer.setScrollMode(ScrollMode.AUTO);
 		flowLayoutContainer.getElement().getStyle().setProperty("maxHeight", "150px");
-		vlc.add(flowLayoutContainer, new VerticalLayoutData(1, 1));
 		
-		add(vlc);
+		//requires flowLayoutContainer as child of portlet content otherwise resizing of portlet fails
+		add(flowLayoutContainer);
 		
 		setupDnD();
 		refreshToolTip();
@@ -226,6 +226,11 @@ public class LabelPortlet extends Portlet {
 			MainTermTreeNode mainTermTreeNode = new MainTermTreeNode(term);
 			portletStore.add(mainTermTreeNode);
 			this.termTermTreeNodeMap.put(term, mainTermTreeNode);
+			
+			//this.onResize();
+			//this.onResize();
+			this.forceLayout();
+			
 			return mainTermTreeNode;
 		}
 		return null;
