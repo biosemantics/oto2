@@ -90,7 +90,7 @@ public class SelectTermView implements IsWidget {
 		
 	    formContainer = new VerticalLayoutContainer();
 	    termComboBox = new ComboBox<Term>(termStore, termProperties.nameLabel());
-	    formContainer.add(new FieldLabel(termComboBox, "Candiate Term"), new VerticalLayoutData(1, -1));
+	    formContainer.add(new FieldLabel(termComboBox, "Candidate Term"), new VerticalLayoutData(1, -1));
 	    formContainer.add(new FieldLabel(submissionTermField, "Term *"), new VerticalLayoutData(1, -1));
 	    submissionTermField.setAllowBlank(false);
 	    submissionTermField.setAutoValidate(true);
