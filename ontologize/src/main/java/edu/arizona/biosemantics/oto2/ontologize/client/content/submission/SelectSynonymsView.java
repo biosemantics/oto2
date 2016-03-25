@@ -72,7 +72,7 @@ public class SelectSynonymsView implements IsWidget {
 	    synonymVertical.add(remove, new VerticalLayoutData(1, -1));
 	    remove.setEnabled(false);
 	    synonymVertical.add(clear, new VerticalLayoutData(1, -1));
-	    formContainer.add(new FieldLabel(synonymHorizontal, "Synonyms"), new VerticalLayoutData(1, 75));
+	    formContainer.add(new FieldLabel(synonymHorizontal, "Synonyms"), new VerticalLayoutData(1, 85));
 	    formContainer.setScrollMode(ScrollMode.AUTOY);
 	    formContainer.setAdjustForScroll(true);
 	    

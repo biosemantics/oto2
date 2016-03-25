@@ -102,7 +102,7 @@ public class SelectSuperclassView implements IsWidget {
 	    superclassVertical.add(remove, new VerticalLayoutData(1, -1));
 	    remove.setEnabled(false);
 	    superclassVertical.add(clear, new VerticalLayoutData(1, -1));
-	    formContainer.add(new FieldLabel(horizontalLayoutContainer, "Superclass (IRI or term)"), new VerticalLayoutData(1, 75));
+	    formContainer.add(new FieldLabel(horizontalLayoutContainer, "Superclass (IRI or term)"), new VerticalLayoutData(1, 85));
 	    
 	    bindEvents();
 	}

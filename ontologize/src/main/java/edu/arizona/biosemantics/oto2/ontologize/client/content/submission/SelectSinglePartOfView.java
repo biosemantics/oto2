@@ -91,7 +91,7 @@ public class SelectSinglePartOfView implements IsWidget {
 	    //horizontalLayoutContainer.add(partOfVertical, new HorizontalLayoutData(0.3, -1));
 	    horizontalLayoutContainer.add(setButton, new HorizontalLayoutData(0.15, -1));
 	    horizontalLayoutContainer.add(removeButton, new HorizontalLayoutData(0.15, -1));
-	    formContainer.add(new FieldLabel(horizontalLayoutContainer, "Part Of (IRI or term)"), new VerticalLayoutData(1, 25));
+	    formContainer.add(new FieldLabel(horizontalLayoutContainer, "Part Of (IRI or term)"), new VerticalLayoutData(1, 35));
 	    
 	    bindEvents();
 	}

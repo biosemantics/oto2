@@ -7,7 +7,9 @@ import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.web.bindery.event.shared.EventBus;
+import com.sencha.gxt.core.client.util.Margins;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
+import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
 
 import edu.arizona.biosemantics.oto2.ontologize.client.event.TermSelectEvent;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
@@ -86,19 +88,19 @@ public class SelectRelationsView implements IsWidget {
 	}
 
 	private void addTypeDependentFormElements(Type type) {
-		formContainer.add(selectSuperclassView);
+		formContainer.add(selectSuperclassView, new VerticalLayoutData(-1, -1, new Margins(2)));
 		if(type != null) {
 			if(type.equals(Type.ENTITY)) {
 				if(showPartOfRelations)
-					formContainer.add(selectPartOfView);
+					formContainer.add(selectPartOfView, new VerticalLayoutData(-1, -1, new Margins(2)));
 			} else {
 				formContainer.remove(selectPartOfView);
 			}
 		} else {
 			if(showPartOfRelations)
-				formContainer.add(selectPartOfView);
+				formContainer.add(selectPartOfView, new VerticalLayoutData(-1, -1, new Margins(2)));
 		}
-		formContainer.add(selectSynonymsView);
+		formContainer.add(selectSynonymsView, new VerticalLayoutData(-1, -1, new Margins(2)));
 	}
 
 	@Override

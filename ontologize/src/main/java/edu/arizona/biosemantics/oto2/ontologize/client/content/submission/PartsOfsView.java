@@ -135,7 +135,7 @@ public class PartsOfsView implements IsWidget {
 			verticalLayoutContainer.add(new FieldLabel(new Label("Your Ontology is empty."), "Ontology View"), new VerticalLayoutData(1, 20));
 		else
 			verticalLayoutContainer.add(new FieldLabel(ontologyView, "Ontology View"), new VerticalLayoutData(1, 400));
-		verticalLayoutContainer.add(new FieldLabel(tree, "Candidate Bearers Available"), new VerticalLayoutData(1, 100));
+		verticalLayoutContainer.add(new FieldLabel(tree, "Candidate Entitys Available"), new VerticalLayoutData(1, 100));
 		verticalLayoutContainer.add(new FieldLabel(partOfTextField, "Create an Entity Class"), new VerticalLayoutData(1, 1));
 
 		this.setSubmissionType(type);

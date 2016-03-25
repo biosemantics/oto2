@@ -299,11 +299,14 @@ public class SelectTermView implements IsWidget {
 
 	public boolean validate() {
 		boolean result = true;
+		result &= fieldValidator.validate(formContainer.iterator());
+		if(selectTypeView.asWidget().isAttached())
+			result &= selectTypeView.validate();
 		if(selectSubmissionTypeView.asWidget().isAttached())
 			result &= selectSubmissionTypeView.validate();
 		if(classIRIField.isAttached()) {
 			if(classIRIField.getValue().isEmpty()) 
-				return true;
+				return result;
 			else {
 				if(!classIRIField.getText().startsWith("http"))
 					return false;
@@ -313,7 +316,6 @@ public class SelectTermView implements IsWidget {
 			}
 			result &= (classIRIFieldLabel.getText().isEmpty() ? true : classIRIField.getText().startsWith("http"));
 		}
-		result &= fieldValidator.validate(formContainer.iterator());
 		return result;
 	}
 	
