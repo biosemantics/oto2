@@ -340,6 +340,7 @@ public class TermsView extends TabPanel {
 			new AllowSurpressSelectEventsListViewSelectionModel<Term>();
 	private Bucket trashBucket;
 	private BucketTreeNode trashTreeNode;
+	private MultipleCategoryTerms multipleCategoryTerms;
 	
 	public TermsView(EventBus eventBus) {
 		super(GWT.<TabPanelAppearance> create(TabPanelBottomAppearance.class));
@@ -352,6 +353,7 @@ public class TermsView extends TabPanel {
 				return o1.getText().compareTo(o2.getText());
 			}
 		}, SortDir.ASC));
+		
 		listStore = new ListStore<Term>(termProperties.key());
 		listStore.setAutoCommit(true);
 		listStore.addSortInfo(new StoreSortInfo<Term>(new Term.TermComparator(), SortDir.ASC));
@@ -385,7 +387,10 @@ public class TermsView extends TabPanel {
 		termTree.setSelectionModel(termTreeSelectionModel);
 		termTree.getElement().setAttribute("source", "termsview");
 		termTree.setContextMenu(new TermMenu());
+		
 		add(termTree, "Term Groups");
+		multipleCategoryTerms = new MultipleCategoryTerms(eventBus);
+		add(multipleCategoryTerms, "Multiple Categories Terms");
 		//add(listView, "list");
 		
 		bindEvents();
@@ -625,6 +630,7 @@ public class TermsView extends TabPanel {
 	
 	public void setCollection(Collection collection) {
 		this.collection = collection;
+		this.multipleCategoryTerms.setCollection(collection);
 		
 		termBucketMap = new HashMap<Term, Bucket>();
 		bucketBucketTreeNodeMap = new HashMap<Bucket, BucketTreeNode>();
