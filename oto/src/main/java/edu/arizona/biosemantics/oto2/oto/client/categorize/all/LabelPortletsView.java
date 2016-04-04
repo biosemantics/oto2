@@ -288,11 +288,27 @@ public class LabelPortletsView extends PortalLayoutContainer {
 
 		clear();
 		labelPortletsMap.clear();
+		int column = 0;
+		int addedLabelsPerColumn = 0;
+		int labelCount = collection.getLabels().size();
 		for(Label label : collection.getLabels()) {
 			LabelPortlet labelPortlet = createLabelPortlet(label);
 			labelPortlet.collapse();
-			add(labelPortlet, labelPortletsMap.size() % portalColumnCount); //alphabetical order
+			
+			// this adds portlet in alphabetical order vertically
+			add(labelPortlet, column);
+			addedLabelsPerColumn++;
+			if(addedLabelsPerColumn > labelCount / portalColumnCount) {
+				addedLabelsPerColumn = 0;
+				column++;
+			}
+			
+			// this used to add portlets in alphabetical order horizontally
+			//add(labelPortlet, labelPortletsMap.size() % portalColumnCount); //alphabetical order
+			
+			// this used to add portlets in "lorena's" pre-defined order
 			//add(labelPortlet, getColumn(labelPortlet)); //lorena's order
+			
 			labelPortletsMap.put(label, labelPortlet);
 		}
 		
