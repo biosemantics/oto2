@@ -60,7 +60,13 @@ public class OtoPresenter {
 
 	private void bindEvents() {
 		//save triggers
-		eventBus.addHandler(CommentEvent.TYPE, new CommentEvent.CommentHandler() {
+		eventBus.addHandler(SaveEvent.TYPE, new SaveEvent.SaveHandler() {
+			@Override
+			public void onSave(SaveEvent event) {
+				saveCollection();
+			}
+		});
+		/*eventBus.addHandler(CommentEvent.TYPE, new CommentEvent.CommentHandler() {
 			@Override
 			public void onComment(CommentEvent event) {
 				saveCollection();
@@ -150,7 +156,7 @@ public class OtoPresenter {
 			public void onRename(TermRenameEvent event) {
 				saveCollection();
 			}
-		});
+		});*/
 		
 		eventBus.addHandler(LoadEvent.TYPE, new LoadEvent.LoadHandler() {
 			@Override

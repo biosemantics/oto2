@@ -6,6 +6,7 @@ import com.google.gwt.user.client.ui.RootPanel;
 import com.sencha.gxt.widget.core.client.container.Viewport;
 
 import edu.arizona.biosemantics.oto2.oto.client.common.Alerter;
+import edu.arizona.biosemantics.oto2.oto.client.event.DownloadEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.SaveEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.SaveEvent.SaveHandler;
 
@@ -20,9 +21,9 @@ public class StandAlone implements EntryPoint {
 			v.add(oto.getView().asWidget());
 			RootPanel.get().add(v);
 			oto.setUser("Standalone user");
-			oto.getEventBus().addHandler(SaveEvent.TYPE, new SaveEvent.SaveHandler() {
+			oto.getEventBus().addHandler(DownloadEvent.TYPE, new DownloadEvent.DownloadHandler() {
 				@Override
-				public void onSave(SaveEvent event) {
+				public void onDownload(DownloadEvent event) {
 					System.out.println("save called");
 				}
 			});

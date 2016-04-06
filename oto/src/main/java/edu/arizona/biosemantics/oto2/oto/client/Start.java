@@ -4,8 +4,8 @@ import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.sencha.gxt.widget.core.client.container.Viewport;
 
+import edu.arizona.biosemantics.oto2.oto.client.event.DownloadEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.SaveEvent;
-import edu.arizona.biosemantics.oto2.oto.client.event.SaveEvent.SaveHandler;
 
 public class Start implements EntryPoint {
 
@@ -18,10 +18,10 @@ public class Start implements EntryPoint {
 		v.add(oto.getView().asWidget());
 		RootPanel.get().add(v);
 		oto.setUser("UserB");
-		oto.getEventBus().addHandler(SaveEvent.TYPE, new SaveEvent.SaveHandler() {
+		oto.getEventBus().addHandler(DownloadEvent.TYPE, new DownloadEvent.DownloadHandler() {
 			@Override
-			public void onSave(SaveEvent event) {
-				System.out.println("save called");
+			public void onDownload(DownloadEvent event) {
+				System.out.println("download called");
 			}
 		});
 		oto.loadCollection(collectionId, secret, false);

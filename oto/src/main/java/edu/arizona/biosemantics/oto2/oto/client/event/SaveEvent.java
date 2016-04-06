@@ -31,6 +31,5 @@ public class SaveEvent extends GwtEvent<SaveHandler> {
 
 	public Collection getCollection() {
 		return collection;
-	}
-	
+	}	
 }
