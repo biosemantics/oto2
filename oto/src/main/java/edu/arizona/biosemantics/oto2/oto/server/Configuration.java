@@ -40,6 +40,8 @@ public class Configuration {
 	
 	/** Temporary Storage **/
 	public static String files;
+	public static String context;
+	public static int contextMaxHits;
 	
 	/** Bioportal **/
 	public static String bioportalUrl;
@@ -69,6 +71,8 @@ public class Configuration {
 			database_partitionCount = Integer.valueOf(properties.getProperty("database_partitionCount"));
 			
 			files = properties.getProperty("files");
+			context = properties.getProperty("context");
+			contextMaxHits = Integer.valueOf(properties.getProperty("contextMaxHits"));
 			
 			bioportalUrl = properties.getProperty("bioportalUrl");
 			bioportalApiKey = properties.getProperty("bioportalApiKey");

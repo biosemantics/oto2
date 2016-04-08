@@ -13,10 +13,8 @@ public class SaveEvent extends GwtEvent<SaveHandler> {
 	}
 	
     public static Type<SaveHandler> TYPE = new Type<SaveHandler>();
-	private Collection collection;
 
-    public SaveEvent(Collection collection) {
-    	this.collection = collection;
+    public SaveEvent() {
     }
     
 	@Override
@@ -28,8 +26,4 @@ public class SaveEvent extends GwtEvent<SaveHandler> {
 	protected void dispatch(SaveHandler handler) {
 		handler.onSave(this);
 	}
-
-	public Collection getCollection() {
-		return collection;
-	}	
 }

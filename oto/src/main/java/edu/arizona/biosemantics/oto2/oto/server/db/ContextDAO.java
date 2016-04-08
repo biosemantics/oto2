@@ -1,8 +1,7 @@
 package edu.arizona.biosemantics.oto2.oto.server.db;
 
+import java.io.File;
 import java.io.IOException;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -10,22 +9,25 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import edu.arizona.biosemantics.oto2.oto.server.Configuration;
-import edu.arizona.biosemantics.oto2.oto.server.db.Query.QueryException;
+import org.apache.lucene.queryparser.classic.ParseException;
+
+import edu.arizona.biosemantics.common.context.server.FileIndex;
+import edu.arizona.biosemantics.common.context.shared.Context;
 import edu.arizona.biosemantics.common.ling.know.SingularPluralProvider;
 import edu.arizona.biosemantics.common.ling.know.lib.WordNetPOSKnowledgeBase;
 import edu.arizona.biosemantics.common.ling.transform.lib.SomeInflector;
 import edu.arizona.biosemantics.common.log.LogLevel;
+import edu.arizona.biosemantics.oto2.oto.server.Configuration;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
-import edu.arizona.biosemantics.oto2.oto.shared.model.Context;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 import edu.arizona.biosemantics.oto2.oto.shared.model.TypedContext;
+import edu.arizona.biosemantics.oto2.oto.shared.model.TypedContext;
 import edu.arizona.biosemantics.oto2.oto.shared.model.TypedContext.Type;
+import edu.stanford.nlp.util.StringUtils;
 
 public class ContextDAO {
 
 	private static class Search {
-	
 		private String search;
 		private Type type;
 
@@ -67,7 +69,6 @@ public class ContextDAO {
 				return false;
 			return true;
 		}
-
 	}
 	
 	private SingularPluralProvider singularPluralProvider = new SingularPluralProvider();
@@ -82,99 +83,23 @@ public class ContextDAO {
 		}
 	} 
 	
-	public Context get(int id)  {
-		Context context = null;
-		try(Query query = new Query("SELECT * FROM oto_context WHERE id = ?")) {
-			query.setParameter(1, id);
-			ResultSet result = query.execute();
-			while(result.next()) {
-				context = createContext(result);
-			}
-		} catch(Exception e) {
-			log(LogLevel.ERROR, "Query Exception", e);
-		}
-		return context;
+	public void insert(int collectionId, List<Context> contexts) throws IOException {
+		FileIndex index = new FileIndex(Configuration.context + File.separator + collectionId);
+		index.open();
+		for(Context context : contexts)
+			index.add(context);
+		index.close();
 	}
 	
-	public List<Context> get(Collection collection)  {
-		List<Context> contexts = new LinkedList<Context>();
-		try(Query query = new Query("SELECT * FROM oto_context WHERE collectionId = ?")) {
-			query.setParameter(1, collection.getId());
-			ResultSet result = query.execute();
-			while(result.next()) {
-				Context context = createContext(result);
-				contexts.add(context);
-			}
-		} catch(Exception e) {
-			log(LogLevel.ERROR, "Query Exception", e);
-		}
-		return contexts;
-	}
-	
-	private Context createContext(ResultSet result) throws SQLException  {
-		int id = result.getInt(1);
-		int collectionId = result.getInt(2);
-		String source = result.getString(3);
-		String sentence = result.getString(4);
-		return new Context(id, collectionId, source, sentence);
+	public void insert(int collectionId, Context context) throws IOException {
+		FileIndex index = new FileIndex(Configuration.context + File.separator + collectionId);
+		index.open();
+		index.add(context);
+		index.close();
 	}
 
-	public Context insert(Context context)  {
-		if(!context.hasId()) {
-			try(Query insert = new Query("INSERT INTO `oto_context` " +
-					"(`collection`, `source`, `text`) VALUES (?, ?, ?)")) {
-				insert.setParameter(1, context.getCollectionId());
-				insert.setParameter(2, context.getSource().trim());
-				insert.setParameter(3, context.getText().trim());
-				insert.execute();
-				ResultSet generatedKeys = insert.getGeneratedKeys();
-				generatedKeys.next();
-				int id = generatedKeys.getInt(1);
-				context.setId(id);
-			} catch(Exception e) {
-				log(LogLevel.ERROR, "Query Exception", e);
-			}
-		}
-		return context;
-	}
-	
-	public void update(Context context)  {
-		try(Query query = new Query("UPDATE oto_context "
-				+ "SET collectionId = ?, source = ?, text = ? WHERE id = ?")) {
-			query.setParameter(1, context.getCollectionId());
-			query.setParameter(2, context.getSource());
-			query.setParameter(3, context.getText());
-			query.setParameter(4, context.getId());
-			query.execute();
-		} catch(QueryException e) {
-			log(LogLevel.ERROR, "Query Exception", e);
-		}
-	}
-	
-	public void remove(Context context)  {
-		try(Query query = new Query("DELETE FROM oto_context WHERE id = ?")) {
-			query.setParameter(1, context.getId());
-			query.execute();
-		} catch(QueryException e) {
-			log(LogLevel.ERROR, "Query Exception", e);
-		}
-	}	
-	
-	public void remove(int collectionId)  {
-		try(Query query = new Query("DELETE FROM oto_context WHERE collectionId = ?")) {
-			query.setParameter(1, collectionId);
-			query.execute();
-		} catch(QueryException e) {
-			log(LogLevel.ERROR, "Query Exception", e);
-		}
-	}
-	
-	//http://stackoverflow.com/questions/2839441/mysql-query-problem
-	//don't want to use LIKE %term% because it will be slow... so just approximate
-	public List<TypedContext> get(Collection collection, Term term)  {
-		List<Context> contexts = new LinkedList<Context>();
+	public List<TypedContext> get(Collection collection, Term term) throws ParseException, IOException {
 		Set<Search> searches = new HashSet<Search>();
-
 		String searchTerm = term.getTerm().trim();
 		String singularSearchTerm = searchTerm;
 		String pluralSearchTerm = searchTerm;
@@ -182,7 +107,7 @@ public class ContextDAO {
 		String originalSearchTerm = term.getOriginalTerm().trim();
 		String singularOriginalSearchTerm = originalSearchTerm;
 		String pluralOriginalSearchTerm = originalSearchTerm;
-				
+		
 		if(inflector.isPlural(searchTerm)) {
 			singularSearchTerm = inflector.getSingular(searchTerm);
 		} else { 
@@ -223,56 +148,22 @@ public class ContextDAO {
 			searches.add(new Search(pluralSearchTerm.replaceAll(" ", "_"), Type.original));
 			searches.add(new Search(pluralSearchTerm.replaceAll("_", "-"), Type.original));
 		}
-		/* Method utilizing sql natural language search
-		 * Advantage: Faster than regular expression search for all context entries
-		 * Disadvantages:
-		 * Per default, the minimum word size that is indexed is 4. Because of this I noticed that for example "m" or "cm" are not found.
-		 * Also there is a default stopword list which stops indexing the words listed here
-		 * http://dev.mysql.com/doc/refman/5.5/en/fulltext-stopwords.html
-		 * Both can be customized, however it has to be customized for the mysql installation, and wouldn't be part of the application source
-		 */
-		 /* for(Search search : searches) 
-			try(Query query = new Query("SELECT * FROM oto_context WHERE collection = ? AND MATCH (text) AGAINST (? IN NATURAL LANGUAGE MODE)")) {
-				query.setParameter(1, collection.getId());
-				query.setParameter(2, search.getSearch());	
-				ResultSet result = query.execute();
-				while(result.next()) {
-					Context context = createContext(result);
-					contexts.add(context);
-				}
-			} catch(Exception e) {
-				log(LogLevel.ERROR, "Query Exception", e);
-			}
-		*/
-		Set<Integer> foundIds = new HashSet<Integer>();
-		String whereClause = "";
+		
+		String query = "";
 		for(Search search : searches) {
-			whereClause += "text RLIKE ? OR ";
+			query += search.getSearch() + " OR ";
 		}
-		whereClause = whereClause.substring(0, whereClause.length() - 4);
-		
-		try(Query query = new Query("SELECT * FROM oto_context WHERE collection = ? AND ( " + whereClause + ")")) {
-			query.setParameter(1, collection.getId());
-			int i=2;
-			for(Search search : searches)
-				query.setParameter(i++, "^(.*[^a-zA-Z])?" + search.getSearch() + "([^a-zA-Z].*)?$");
-			ResultSet result = query.execute();
-			while(result.next()) {
-				Context context = createContext(result);
-				if(!foundIds.contains(context.getId())) {
-					contexts.add(context);
-					foundIds.add(context.getId());
-				}
-			}
-		} catch(Exception e) {
-			log(LogLevel.ERROR, "Query Exception", e);
-		}
-		
-		List<TypedContext> typedContexts = createHighlightedAndShortenedTypedContexts(contexts, searches);
-		return typedContexts;
-	}
+		query= query.substring(0, query.length() - 4);
+		FileIndex index = new FileIndex(Configuration.context + File.separator + collection.getId());
+		index.open();
+		List<Context> contexts = index.search(query, Configuration.contextMaxHits);
+		index.close();
 
-	private List<TypedContext> createHighlightedAndShortenedTypedContexts(List<Context> contexts, java.util.Collection<Search> searches) {
+		List<TypedContext> typedContexts = createHighlightedAndShortenedTypedContexts(collection, contexts, searches);
+		return typedContexts;
+	}	
+
+	private List<TypedContext> createHighlightedAndShortenedTypedContexts(Collection collection, List<Context> contexts, java.util.Collection<Search> searches) {
 		//shorten the context to be a number of characters before and after ... some text with WORD that appears in text ...
 		//could appear multiple times in text, have to split into multiple contexts
 		List<TypedContext> result = new LinkedList<TypedContext>();
@@ -284,7 +175,7 @@ public class ContextDAO {
 			List<TypedContext> contextResult = new LinkedList<TypedContext>();
 			for(Search search : searches) {
 				Pattern pattern = Pattern.compile("\\b(?i)" + search.getSearch() + "\\b");
-				result.addAll(extract(pattern, search.getSearch(), context, search.getType()));
+				result.addAll(extract(collection, pattern, search.getSearch(), context, search.getType()));
 			}
 			
 			/*if(contextResult.isEmpty()) {
@@ -298,11 +189,10 @@ public class ContextDAO {
 			result.addAll(contextResult);
 		}
 		
-		
 		return result;
 	}
 
-	private List<TypedContext> extract(Pattern pattern, String replaceTerm, Context context, Type type) {	
+	private List<TypedContext> extract(Collection collection, Pattern pattern, String replaceTerm, Context context, Type type) {	
 		List<TypedContext> result = new LinkedList<TypedContext>();
 		Matcher matcher = pattern.matcher(context.getText());
 		
@@ -322,11 +212,11 @@ public class ContextDAO {
 		    	String fullText = context.getText().replaceAll("(?i)" + replaceTerm, "<b>" + replaceTerm + "</b>").replaceAll("\n", "</br>");
 		    	
 		    	String idString = String.valueOf(context.getId()) + "-" + type.toString() + "-" + id++;
-		    	TypedContext typedContext = new TypedContext(idString, context.getCollectionId(), context.getSource(), extractedText, fullText, type);
+		    	TypedContext typedContext = new TypedContext(idString, collection.getId(), context.getSource(), extractedText, fullText, type);
 		    	result.add(typedContext);
 		    }
 		}
 	    return result;
-	}	
-	
+	}
+
 }

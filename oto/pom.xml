@@ -7,7 +7,7 @@
 	<groupId>edu.arizona.biosemantics.oto2</groupId>
 	<artifactId>oto</artifactId>
 	<packaging>war</packaging>
-	<version>0.0.109-SNAPSHOT</version>
+	<version>0.0.114-SNAPSHOT</version>
 
 	<properties>
 		<gwtVersion>2.6.1</gwtVersion>
@@ -42,6 +42,11 @@
 
 	<!-- Created from archetype -->
 	<dependencies>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.0</version>
+		</dependency>
 		<dependency>
 			<groupId>com.google.gwt</groupId>
 			<artifactId>gwt-servlet</artifactId>
@@ -241,6 +246,17 @@
 			<artifactId>guice-servlet</artifactId>
 			<version>4.0-beta</version>
 		</dependency>	
+		<dependency>
+			<groupId>edu.arizona.biosemantics.common</groupId>
+			<artifactId>context</artifactId>
+			<version>0.0.4-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+		  <groupId>edu.arizona.biosemantics.common</groupId>
+		  <artifactId>context</artifactId>
+		  <version>0.0.4-SNAPSHOT</version>
+		  <classifier>sources</classifier>
+		</dependency>
 	</dependencies>
 
 	<build>

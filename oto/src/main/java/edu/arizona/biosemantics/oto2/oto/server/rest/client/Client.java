@@ -22,7 +22,7 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Bucket;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
-import edu.arizona.biosemantics.oto2.oto.shared.model.Context;
+import edu.arizona.biosemantics.common.context.shared.Context;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 import edu.arizona.biosemantics.oto2.oto.shared.model.community.CommunityCollection;
@@ -119,21 +119,22 @@ public class Client implements AutoCloseable {
 	 * @throws InterruptedException 
 	 */
 	public static void main(String[] args) throws InterruptedException, ExecutionException {
-		Client client = new Client("http://127.0.0.1:59505/");	
+		Client client = new Client("http://127.0.0.1:59512/");	
 		client.open();
 		
-		Collection collection = new Collection("name", "type", "my secret");
+		/*Collection collection = new Collection("name", "type", "my secret");
 		Future<Collection> col = client.put(collection);
 		col.get();
 		
 		Future<Collection> colFu = client.get(1, "my secret");
 		colFu.get();
+		*/
 		
 		List<Context> contexts = new LinkedList<Context>();
 		contexts.add(new Context(1, "src", "aaaa"));
-		contexts.add(new Context(1, "src2", "aaaa2"));
+		contexts.add(new Context(2, "src2", "aaaa2"));
 		
-		Future<List<Context>> result = client.put(1, "my secret", contexts);
+		Future<List<Context>> result = client.put(17, "30", contexts);
 		result.get();
 		
 		

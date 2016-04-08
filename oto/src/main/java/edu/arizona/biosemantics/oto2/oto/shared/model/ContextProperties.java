@@ -6,6 +6,8 @@ import com.sencha.gxt.data.shared.LabelProvider;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.PropertyAccess;
 
+import edu.arizona.biosemantics.common.context.shared.Context;
+
 public interface ContextProperties extends PropertyAccess<Context> {
 
 	@Path("id")

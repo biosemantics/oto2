@@ -5,10 +5,10 @@ import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
 
+import edu.arizona.biosemantics.common.context.shared.Context;
 import edu.arizona.biosemantics.oto2.oto.server.db.Query.QueryException;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Bucket;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
-import edu.arizona.biosemantics.oto2.oto.shared.model.Context;
 import edu.arizona.biosemantics.oto2.oto.shared.model.HighlightLabel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
@@ -129,13 +129,12 @@ public class FilllSample {
 		DAOManager daoManager = new DAOManager();
 		collection = daoManager.getCollectionDAO().insert(collection);
 			
-		Context context = new Context(collection.getId(), "rubus", "text with label 1 and label 2 and apex and leaf");
-		Context context2 = new Context(collection.getId(), "rubus", "text2");
-		Context context3 = new Context(collection.getId(), "rubus argetest", "asdf");
+		List<Context> contexts = new LinkedList<Context>();
+		contexts.add(new Context(collection.getId(), "rubus", "text with label 1 and label 2 and apex and leaf"));
+		contexts.add(new Context(collection.getId(), "rubus", "text2"));
+		contexts.add(new Context(collection.getId(), "rubus argetest", "asdf"));
 		
-		daoManager.getContextDAO().insert(context);
-		daoManager.getContextDAO().insert(context2);
-		daoManager.getContextDAO().insert(context3);
+		daoManager.getContextDAO().insert(collection.getId(), contexts);
 		
 	}
 

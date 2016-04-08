@@ -15,10 +15,10 @@ import javax.ws.rs.core.UriInfo;
 
 import com.google.inject.Inject;
 
+import edu.arizona.biosemantics.common.context.shared.Context;
 import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.server.db.DAOManager;
 import edu.arizona.biosemantics.oto2.oto.server.rpc.ContextService;
-import edu.arizona.biosemantics.oto2.oto.shared.model.Context;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.IContextService;
 
 /**
