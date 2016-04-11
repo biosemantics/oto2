@@ -31,10 +31,6 @@ public class Oto {
 		return view;
 	}
 	
-	public void loadCollection(int collectionId, String secret, boolean initializeFromHistory) {
-		presenter.loadCollection(collectionId, secret, initializeFromHistory);
-	}
-	
 	public EventBus getEventBus() {
 		return eventBus;
 	}

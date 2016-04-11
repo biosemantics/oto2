@@ -38,6 +38,7 @@ import com.sencha.gxt.widget.core.client.grid.filters.StringFilter;
 import com.sencha.gxt.widget.core.client.tips.QuickTip;
 
 import edu.arizona.biosemantics.oto2.oto.client.common.Alerter;
+import edu.arizona.biosemantics.oto2.oto.client.event.LoadEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermRenameEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermSelectEvent;
 import edu.arizona.biosemantics.common.log.LogLevel;
@@ -152,6 +153,12 @@ public class ContextView extends Composite {
 	}
 
 	private void bindEvents() {
+		eventBus.addHandler(LoadEvent.TYPE, new LoadEvent.LoadHandler() {
+			@Override
+			public void onLoad(LoadEvent event) {
+				setCollection(event.getCollection());
+			}
+		});
 		eventBus.addHandler(TermRenameEvent.TYPE, new TermRenameEvent.RenameTermHandler() {
 			@Override
 			public void onRename(TermRenameEvent event) {
@@ -205,7 +212,7 @@ public class ContextView extends Composite {
 		});
 	}
 
-	public void setCollection(Collection collection) {
+	private void setCollection(Collection collection) {
 		this.collection = collection;
 		
 		//bug: http://www.sencha.com/forum/showthread.php?285982-Grid-ColumnHeader-Menu-missing

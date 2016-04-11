@@ -210,7 +210,7 @@ public class OtoView extends SimpleLayoutPanel {
 
 		}
 
-		public void setCollection(Collection collection) {
+		private void setCollection(Collection collection) {
 			termStore.clear();
 			termStore.addAll(collection.getTerms());
 			termStore.addSortInfo(new StoreSortInfo<Term>(
@@ -265,21 +265,15 @@ public class OtoView extends SimpleLayoutPanel {
 			 * setNorthWidget(getMenu(), d);
 			 */
 		}
-
-		public void setCollection(Collection collection) {
-			termsView.setCollection(collection);
-			labelsView.setCollection(collection);
-			termInfoView.setCollection(collection);
-		}
-
 	}
 	
 	private EventBus eventBus;
 
 	private MenuView menuView;
 	private CategorizeView categorizeView;
-	private Collection collection;
 	private VerticalLayoutContainer verticalLayoutContainer = new VerticalLayoutContainer();
+
+	protected Collection collection;
 	private static final TermProperties termProperties = GWT
 			.create(TermProperties.class);
 
@@ -291,12 +285,18 @@ public class OtoView extends SimpleLayoutPanel {
 		verticalLayoutContainer.add(menuView,new VerticalLayoutData(1,-1));
 		verticalLayoutContainer.add(categorizeView,new VerticalLayoutData(1,1));
 		this.setWidget(verticalLayoutContainer);
+		
+		bindEvents();
 	}
 
-	public void setCollection(Collection collection) {
-		this.collection = collection;
-		categorizeView.setCollection(collection);
-		menuView.setCollection(collection);
+	private void bindEvents() {
+		eventBus.addHandler(LoadEvent.TYPE, new LoadEvent.LoadHandler() {
+			@Override
+			public void onLoad(LoadEvent event) {
+				OtoView.this.collection = event.getCollection();
+				menuView.setCollection(collection);
+			}
+		});
 	}
 
 }

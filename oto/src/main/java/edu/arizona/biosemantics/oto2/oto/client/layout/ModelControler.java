@@ -45,6 +45,12 @@ public class ModelControler {
 	}
 
 	private void bindEvents() {
+		eventBus.addHandler(LoadEvent.TYPE, new LoadEvent.LoadHandler() {
+			@Override
+			public void onLoad(LoadEvent event) {
+				ModelControler.this.collection = event.getCollection();
+			}
+		});
 		eventBus.addHandler(CommentEvent.TYPE, new CommentEvent.CommentHandler() {
 			@Override
 			public void onComment(CommentEvent event) {
@@ -239,10 +245,6 @@ public class ModelControler {
 			for(Term term : terms) 
 				label.uncategorizeTerm(term);
 		
-	}
-
-	public void setCollection(Collection collection) {
-		this.collection = collection;
 	}
 
 }

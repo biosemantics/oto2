@@ -41,6 +41,7 @@ public class TermInfoView extends TabPanel {
 				}
 			}
 		});
+		
 		/*this.addSelectionHandler(new SelectionHandler<Widget>() {
 			@Override
 			public void onSelection(SelectionEvent<Widget> event) {
@@ -52,9 +53,5 @@ public class TermInfoView extends TabPanel {
 			}
 		});
 		this.*/
-	}
-
-	public void setCollection(Collection collection) {
-		contextView.setCollection(collection);
 	}
 }

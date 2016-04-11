@@ -35,6 +35,7 @@ import edu.arizona.biosemantics.oto2.oto.client.event.LabelCreateEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelRemoveEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelsMergeEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelsSortEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.LoadEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermsSortEvent;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
@@ -197,6 +198,12 @@ public class LabelPortletsView extends PortalLayoutContainer {
 	}
 
 	private void bindEvents() {
+		eventBus.addHandler(LoadEvent.TYPE, new LoadEvent.LoadHandler() {
+			@Override
+			public void onLoad(LoadEvent event) {
+				setCollection(event.getCollection());
+			}
+		});
 		eventBus.addHandler(LabelsMergeEvent.TYPE, new LabelsMergeEvent.MergeLabelsHandler() {
 			@Override
 			public void onMerge(LabelsMergeEvent event) {
@@ -283,7 +290,7 @@ public class LabelPortletsView extends PortalLayoutContainer {
 		return labelPortlet;
 	}
 
-	public void setCollection(final Collection collection) {
+	private void setCollection(final Collection collection) {
 		this.collection = collection;
 
 		clear();

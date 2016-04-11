@@ -11,6 +11,7 @@ import com.sencha.gxt.widget.core.client.TabPanel.TabPanelBottomAppearance;
 
 import edu.arizona.biosemantics.oto2.oto.client.categorize.all.LabelPortletsView;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.single.SingleLabelView;
+import edu.arizona.biosemantics.oto2.oto.client.event.LoadEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.ShowSingleLabelEvent;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
@@ -41,10 +42,5 @@ public class LabelsView extends TabPanel {
 				LabelsView.this.setActiveWidget(singleLabelView);
 			}
 		});
-	}
-
-	public void setCollection(Collection collection) {
-		labelPortletsView.setCollection(collection);
-		singleLabelView.setCollection(collection);
 	}
 }

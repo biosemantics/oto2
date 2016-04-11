@@ -28,6 +28,7 @@ import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeCopyRemoveTermEv
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeCopyTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelRemoveEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelsMergeEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.LoadEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.SynonymCreationEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.SynonymRemovalEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermCategorizeEvent;
@@ -132,6 +133,12 @@ public class MultipleCategoryTerms extends SimpleContainer {
 	}
 
 	private void bindEvents() {
+		eventBus.addHandler(LoadEvent.TYPE, new LoadEvent.LoadHandler() {
+			@Override
+			public void onLoad(LoadEvent event) {
+				setCollection(event.getCollection());
+			}
+		});
 		eventBus.addHandler(LabelRemoveEvent.TYPE, new LabelRemoveEvent.RemoveLabelHandler() {
 			@Override
 			public void onRemove(LabelRemoveEvent event) {
@@ -211,7 +218,7 @@ public class MultipleCategoryTerms extends SimpleContainer {
 		}
 	}
 
-	public void setCollection(Collection collection) {
+	private void setCollection(Collection collection) {
 		this.collection = collection;
 		for(Term term : collection.getTerms())
 			termLabelMap.put(term, new HashSet<Label>());

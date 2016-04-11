@@ -6,6 +6,7 @@ import java.util.Map;
 import com.google.web.bindery.event.shared.EventBus;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
+import com.sencha.gxt.widget.core.client.box.AutoProgressMessageBox;
 import com.sencha.gxt.widget.core.client.box.ConfirmMessageBox;
 import com.sencha.gxt.widget.core.client.box.MessageBox;
 import com.sencha.gxt.widget.core.client.box.PromptMessageBox;
@@ -28,6 +29,19 @@ public class Alerter {
 			super(title, message);
 			setIcon(ICONS.info());
 		}
+	}
+	
+	public static MessageBox startLoading() {
+		AutoProgressMessageBox box = new AutoProgressMessageBox("Loading", "Loading your data, please wait...");
+        box.setProgressText("Loading...");
+        box.auto();
+        box.show();
+        return box;
+	}
+	
+	public static void stopLoading(MessageBox box) {
+		box.hide();
+		box = null;
 	}
 	
 	public static void alertNotAddedTerms(List<Term> possibleMainTerms, Map<Term, AddResult> addResults) {

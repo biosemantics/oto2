@@ -61,6 +61,7 @@ import com.sencha.gxt.widget.core.client.tree.Tree.TreeNode;
 import edu.arizona.biosemantics.oto2.oto.client.Oto;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.all.LabelPortlet;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.single.MainTermPortlet;
+import edu.arizona.biosemantics.oto2.oto.client.categorize.single.SingleLabelView;
 import edu.arizona.biosemantics.oto2.oto.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.oto.client.common.AllowSurpressSelectEventsListViewSelectionModel;
 import edu.arizona.biosemantics.oto2.oto.client.common.AllowSurpressSelectEventsTreeSelectionModel;
@@ -70,6 +71,7 @@ import edu.arizona.biosemantics.oto2.oto.client.common.dnd.TermDnd;
 import edu.arizona.biosemantics.oto2.oto.client.common.dnd.TermLabelDnd;
 import edu.arizona.biosemantics.oto2.oto.client.event.CommentEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelRemoveEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.LoadEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermCategorizeEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermMarkUselessEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermRenameEvent;
@@ -398,6 +400,12 @@ public class TermsView extends TabPanel {
 	}
 	
 	private void bindEvents() {
+		eventBus.addHandler(LoadEvent.TYPE, new LoadEvent.LoadHandler() {
+			@Override
+			public void onLoad(LoadEvent event) {
+				setCollection(event.getCollection());
+			}
+		});
 		eventBus.addHandler(TermSelectEvent.TYPE, new TermSelectEvent.TermSelectHandler() {
 			@Override
 			public void onSelect(TermSelectEvent event) {
@@ -628,9 +636,8 @@ public class TermsView extends TabPanel {
 		});
 	}
 	
-	public void setCollection(Collection collection) {
+	private void setCollection(Collection collection) {
 		this.collection = collection;
-		this.multipleCategoryTerms.setCollection(collection);
 		
 		termBucketMap = new HashMap<Term, Bucket>();
 		bucketBucketTreeNodeMap = new HashMap<Bucket, BucketTreeNode>();

@@ -8,6 +8,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.web.bindery.event.shared.EventBus;
 import com.sencha.gxt.widget.core.client.box.AutoProgressMessageBox;
+import com.sencha.gxt.widget.core.client.box.MessageBox;
 
 import edu.arizona.biosemantics.oto2.oto.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.oto.client.common.SelectOntologiesDialog;
@@ -161,12 +162,26 @@ public class OtoPresenter {
 		eventBus.addHandler(LoadEvent.TYPE, new LoadEvent.LoadHandler() {
 			@Override
 			public void onLoad(LoadEvent event) {
-				loadCollection(event.getCollection().getId(), 
-						event.getCollection().getSecret(), event.isInitializeFromHistory());
+				final MessageBox box = Alerter.startLoading();
+				OtoPresenter.this.collection = event.getCollection();
+				
+				//already store ontologies, otherwise delay when requested on button press
+				ontologyService.getOntologies(new AsyncCallback<Set<Ontology>>() {
+					@Override
+					public void onSuccess(Set<Ontology> result) {
+						SelectOntologiesDialog.setOntologies(result);
+						Alerter.stopLoading(box);
+					}
+					@Override
+					public void onFailure(Throwable caught) {
+						caught.printStackTrace();
+						Alerter.stopLoading(box);
+					}
+				});
 			}
 		});
 	}
-
+	
 	private void saveCollection() {
 		collectionService.update(collection, new AsyncCallback<Void>() {
 			@Override
@@ -176,53 +191,5 @@ public class OtoPresenter {
 				Alerter.saveCollectionFailed(caught);
 			}
 		});
-	}
-
-	public void loadCollection(int collectionId, String secret, boolean initializeFromHistory) {		
-		Collection collection = new Collection();
-		collection.setId(collectionId);
-		collection.setSecret(secret);
-		final AutoProgressMessageBox box = new AutoProgressMessageBox("Progress", "Loading your data, please wait...");
-        box.setProgressText("Loading...");
-        box.auto();
-        box.show();
-        CollectionLoader loader = new CollectionLoader(box);
-        if(initializeFromHistory) 
-        	collectionService.initializeFromHistory(collection, loader);
-        else
-	        collectionService.get(collection, loader);
-	}
-	
-	private class CollectionLoader implements AsyncCallback<Collection> {
-		private AutoProgressMessageBox box;
-		public CollectionLoader(AutoProgressMessageBox box) {
-			this.box = box;
-		}
-		@Override
-		public void onSuccess(Collection result) {
-			modelControler.setCollection(result);
-			OtoPresenter.this.collection = result;
-			view.setCollection(result);
-			
-			//already store ontologies, otherwise delay when requested on button press
-			ontologyService.getOntologies(new AsyncCallback<Set<Ontology>>() {
-				@Override
-				public void onSuccess(Set<Ontology> result) {
-					SelectOntologiesDialog.setOntologies(result);
-					box.hide();
-				}
-				@Override
-				public void onFailure(Throwable caught) {
-					caught.printStackTrace();
-					box.hide();
-				}
-			});
-		}
-		@Override
-		public void onFailure(Throwable caught) {
-			caught.printStackTrace();
-			box.hide();
-			Alerter.alertFailedToLoadCollection();
-		}
 	}
 }

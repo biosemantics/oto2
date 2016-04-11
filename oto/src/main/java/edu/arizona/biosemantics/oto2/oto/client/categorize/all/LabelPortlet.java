@@ -173,7 +173,7 @@ public class LabelPortlet extends Portlet {
 		//VerticalLayoutContainer vlc = new VerticalLayoutContainer();
 		int dropZoneHeight = 30;
 		SimpleContainer dropzoneContainer = new SimpleContainer();
-		com.google.gwt.user.client.ui.Label dropLabel = new com.google.gwt.user.client.ui.Label("Drop here to categorize");
+		com.google.gwt.user.client.ui.Label dropLabel = new com.google.gwt.user.client.ui.Label("");//("Drop here to categorize");
 		dropLabel.getElement().getStyle().setVerticalAlign(VerticalAlign.MIDDLE);
 		dropLabel.getElement().getStyle().setTextAlign(TextAlign.CENTER);
 		dropLabel.getElement().getStyle().setProperty("fontFamily", "Tahoma,Arial,Verdana,sans-serif");
@@ -572,10 +572,6 @@ public class LabelPortlet extends Portlet {
 		return label;
 	}
 	
-	public void setCollection(Collection collection) {
-		this.collection = collection;
-	}
-
 	public boolean containsMainTerm(Term term) {
 		if(termTermTreeNodeMap.containsKey(term)) 
 			return termTermTreeNodeMap.get(term) instanceof MainTermTreeNode;

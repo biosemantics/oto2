@@ -64,6 +64,7 @@ import edu.arizona.biosemantics.oto2.oto.client.event.LabelModifyEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelRemoveEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelSelectEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelsMergeEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.LoadEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.SynonymCreationEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.SynonymRemovalEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermCategorizeEvent;
@@ -247,6 +248,12 @@ public class SingleLabelView extends SimpleContainer {
 	}
 
 	private void bindEvents() {
+		eventBus.addHandler(LoadEvent.TYPE, new LoadEvent.LoadHandler() {
+			@Override
+			public void onLoad(LoadEvent event) {
+				setCollection(event.getCollection());
+			}
+		});
 		eventBus.addHandler(TermUncategorizeEvent.TYPE, new TermUncategorizeEvent.TermUncategorizeHandler() {
 			@Override
 			public void onUncategorize(TermUncategorizeEvent event) {
@@ -585,7 +592,7 @@ public class SingleLabelView extends SimpleContainer {
 		return portalLayoutContainer;
 	}
 
-	public void setCollection(Collection collection) {
+	private void setCollection(Collection collection) {
 		this.collection = collection;
 		labelStore.clear();
 		
