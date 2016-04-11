@@ -142,12 +142,12 @@ public class LabelPortlet extends Portlet {
 			public void render(com.google.gwt.cell.client.Cell.Context context,	TermTreeNode termTreeNode, SafeHtmlBuilder sb) {
 					switch(termTreeNode.getTerm().getTermType()) {							
 					case KNOWN_IN_GLOSSARY:
-						sb.append(SafeHtmlUtils.fromTrustedString("<div style='color:#A0522D'>" + 
+						sb.append(SafeHtmlUtils.fromTrustedString("<div title='" + termTreeNode.getText() + "' style='color:#A0522D'>" + 
 								termTreeNode.getText() + "</div>"));
 						break;
 					case UNKNOWN:
 					default:
-						sb.append(SafeHtmlUtils.fromTrustedString("<div>" + termTreeNode.getText() + "</div>"));
+						sb.append(SafeHtmlUtils.fromTrustedString("<div title='" + termTreeNode.getText() + "'>" + termTreeNode.getText() + "</div>"));
 						break;
 					}
 			}
@@ -173,6 +173,7 @@ public class LabelPortlet extends Portlet {
 		//VerticalLayoutContainer vlc = new VerticalLayoutContainer();
 		int dropZoneHeight = 30;
 		SimpleContainer dropzoneContainer = new SimpleContainer();
+		dropzoneContainer.setTitle("Drop here to categorize");
 		com.google.gwt.user.client.ui.Label dropLabel = new com.google.gwt.user.client.ui.Label("");//("Drop here to categorize");
 		dropLabel.getElement().getStyle().setVerticalAlign(VerticalAlign.MIDDLE);
 		dropLabel.getElement().getStyle().setTextAlign(TextAlign.CENTER);
