@@ -201,14 +201,15 @@ public class MultipleCategoryTerms extends SimpleContainer {
 				TermTreeNode termTreeNode = new TermTreeNode(term);
 				if(termTermTreeNodeMap.containsKey(term))
 					termTreeNode = termTermTreeNodeMap.get(term);
-				else
+				else {
 					termTermTreeNodeMap.put(term, termTreeNode);
+					multipleCategoriesStore.add(termTreeNode);
+				}
 				
-				multipleCategoriesStore.add(termTreeNode);
 				for(Label label : labels)
 					if(!termLabelMap.get(term).contains(label)) {
 						multipleCategoriesStore.add(termTreeNode, new LabelTreeNode(term, label));
-						
+						termLabelMap.get(term).add(label);
 					}
 			} else {
 				if(termTermTreeNodeMap.containsKey(term))
