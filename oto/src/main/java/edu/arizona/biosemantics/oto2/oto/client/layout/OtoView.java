@@ -81,7 +81,7 @@ public class OtoView extends SimpleLayoutPanel {
 					box.addDialogHideHandler(new DialogHideHandler() {
 						@Override
 						public void onDialogHide(DialogHideEvent event) {
-							collectionService.reset(collection, new AsyncCallback<Collection>() {
+							collectionService.reset(collection, true, new AsyncCallback<Collection>() {
 								@Override
 								public void onSuccess(Collection result) {
 									eventBus.fireEvent(new LoadEvent(collection, false));
@@ -94,8 +94,6 @@ public class OtoView extends SimpleLayoutPanel {
 						}
 			        });
 			        box.show();
-			        
-					
 				}
 			});
 			historyResetItem.addSelectionHandler(new SelectionHandler<Item>() {
@@ -106,12 +104,11 @@ public class OtoView extends SimpleLayoutPanel {
 					box.addDialogHideHandler(new DialogHideHandler() {
 						@Override
 						public void onDialogHide(DialogHideEvent event) {
-							collectionService.reset(collection, new AsyncCallback<Collection>() {
+							collectionService.reset(collection, false, new AsyncCallback<Collection>() {
 								@Override
 								public void onSuccess(Collection result) {
 									eventBus.fireEvent(new LoadEvent(result, true));
 								}
-
 								@Override
 								public void onFailure(Throwable caught) {
 									Alerter.resetFailed(caught);

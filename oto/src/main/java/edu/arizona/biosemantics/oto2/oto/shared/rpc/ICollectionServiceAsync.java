@@ -35,7 +35,7 @@ public interface ICollectionServiceAsync {
 	
 	public void getLocations(Term term, AsyncCallback<List<Location>> callback);
 
-	public void reset(Collection collection, AsyncCallback<Collection> callback);
+	public void reset(Collection collection, boolean resetAll, AsyncCallback<Collection> callback);
 	
 	public void initializeFromHistory(Collection collection, AsyncCallback<Collection> callback);
 		

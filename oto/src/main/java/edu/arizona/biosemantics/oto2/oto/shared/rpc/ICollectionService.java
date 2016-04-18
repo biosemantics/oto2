@@ -39,7 +39,7 @@ public interface ICollectionService extends RemoteService {
 	
 	public List<Location> getLocations(Term term);
 	
-	public Collection reset(Collection collection);
+	public Collection reset(Collection collection, boolean resetAll);
 	
 	public Collection initializeFromHistory(Collection collection);
 

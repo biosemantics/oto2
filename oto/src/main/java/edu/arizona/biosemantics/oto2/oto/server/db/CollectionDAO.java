@@ -1,6 +1,11 @@
 package edu.arizona.biosemantics.oto2.oto.server.db;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -16,12 +21,14 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectWriter;
 
+import edu.arizona.biosemantics.oto2.oto.server.Configuration;
 import edu.arizona.biosemantics.oto2.oto.server.db.Query.QueryException;
 import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Bucket;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
+import edu.arizona.biosemantics.oto2.oto.shared.model.community.Categorization;
 
 public class CollectionDAO {
 	
@@ -188,6 +195,18 @@ public class CollectionDAO {
 		
 		bucketDAO.ensure(collection);
 		labelDAO.ensure(collection);
+		
+		//charaparser makes the first update call setting the initial categorizations from glossary. Save those
+		//decisions for resetting only user decisions later.
+		File collectionFile = new File(Configuration.files + File.separator + collection.getId() + ".ser");
+		if(!collectionFile.exists()) {
+			try(ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(
+					collectionFile))) {
+				out.writeObject(collection);
+			} catch(Exception e) {
+				log(LogLevel.ERROR, "Couldn't store glossaryDownload locally", e);
+			}
+		}
 	}
 	
 	public void remove(Collection collection)  {
@@ -205,10 +224,23 @@ public class CollectionDAO {
 			labelDAO.remove(label);
 	}
 
-	public Collection reset(Collection collection)  {
+	public Collection reset(Collection collection, boolean resetAll)  {
 		labelingDAO.remove(collection);
 		synonymDAO.remove(collection);
 		termDAO.resetTerms(collection);
+	
+		if(!resetAll) {
+			File collectionFile = new File(Configuration.files + File.separator + collection.getId() + ".ser");
+			if(collectionFile.exists()) {
+				try(ObjectInputStream objectIn = new ObjectInputStream(new FileInputStream(Configuration.files + 
+						File.separator + collection.getId() + ".ser"))) {
+					Collection deserializedCollection = (Collection) objectIn.readObject();
+					this.update(deserializedCollection);
+				} catch(Exception e) {
+					log(LogLevel.ERROR, "Couldn't store glossaryDownload locally", e);
+				}
+			}
+		}
 		return this.get(collection.getId());
 	}
 

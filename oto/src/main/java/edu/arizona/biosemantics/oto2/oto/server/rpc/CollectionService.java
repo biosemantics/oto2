@@ -94,9 +94,9 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	}
 
 	@Override
-	public Collection reset(Collection collection) {
+	public Collection reset(Collection collection, boolean resetAll) {
 		log(LogLevel.INFO, "Reset collection " + collection.getId());
-		return daoManager.getCollectionDAO().reset(collection);
+		return daoManager.getCollectionDAO().reset(collection, resetAll);
 	}
 	
 	@Override
