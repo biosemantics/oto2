@@ -221,6 +221,9 @@ public class MultipleCategoryTerms extends SimpleContainer {
 
 	private void setCollection(Collection collection) {
 		this.collection = collection;
+		multipleCategoriesStore.clear();
+		termTermTreeNodeMap.clear();
+		termLabelMap.clear();
 		for(Term term : collection.getTerms())
 			termLabelMap.put(term, new HashSet<Label>());
 		updateTerms(collection.getTerms());
