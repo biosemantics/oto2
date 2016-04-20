@@ -10,6 +10,7 @@ import com.google.inject.Inject;
 import edu.arizona.biosemantics.oto2.oto.server.Configuration;
 import edu.arizona.biosemantics.oto2.oto.server.db.DAOManager;
 import edu.arizona.biosemantics.oto2.oto.server.db.HistoricInitializer;
+import edu.arizona.biosemantics.oto2.oto.server.db.HistoricInitializerGlossaryOnly;
 import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Comment;
@@ -20,11 +21,11 @@ import edu.arizona.biosemantics.oto2.oto.shared.rpc.ICollectionService;
 
 public class CollectionService extends RemoteServiceServlet implements ICollectionService {
 	
-	private HistoricInitializer historicInitializer;
+	private HistoricInitializerGlossaryOnly historicInitializer;
 	private DAOManager daoManager;
 	
 	@Inject
-	public CollectionService(DAOManager daoManager, HistoricInitializer historicInitializer) {
+	public CollectionService(DAOManager daoManager, HistoricInitializerGlossaryOnly historicInitializer) {
 		this.daoManager = daoManager;
 		this.historicInitializer = historicInitializer;
 	}
@@ -41,10 +42,10 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	}
 
 	@Override
-	public void update(Collection collection) {
+	public void update(Collection collection, boolean storeAsFallback) {
 		log(LogLevel.INFO, "Update collection " + collection.getId());
 		try {
-			daoManager.getCollectionDAO().update(collection);
+			daoManager.getCollectionDAO().update(collection, storeAsFallback);
 		} catch(Exception e) {
 			log(LogLevel.ERROR, "Exception", e);
 		}

@@ -183,7 +183,7 @@ public class OtoPresenter {
 	}
 	
 	private void saveCollection() {
-		collectionService.update(collection, new AsyncCallback<Void>() {
+		collectionService.update(collection, false, new AsyncCallback<Void>() {
 			@Override
 			public void onSuccess(Void result) {	}
 			@Override

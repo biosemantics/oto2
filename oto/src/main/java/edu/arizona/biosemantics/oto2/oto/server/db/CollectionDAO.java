@@ -173,7 +173,7 @@ public class CollectionDAO {
 		return collection;
 	}
 	
-	public void update(Collection collection)  {
+	public void update(Collection collection, boolean storeAsFallback)  {
 		/*System.out.println("update collection");
 		ObjectMapper mapper = new ObjectMapper();
 		ObjectWriter writer = mapper.writerWithDefaultPrettyPrinter();
@@ -199,7 +199,7 @@ public class CollectionDAO {
 		//charaparser makes the first update call setting the initial categorizations from glossary. Save those
 		//decisions for resetting only user decisions later.
 		File collectionFile = new File(Configuration.files + File.separator + collection.getId() + ".ser");
-		if(!collectionFile.exists()) {
+		if(storeAsFallback) {
 			try(ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(
 					collectionFile))) {
 				out.writeObject(collection);
@@ -235,7 +235,7 @@ public class CollectionDAO {
 				try(ObjectInputStream objectIn = new ObjectInputStream(new FileInputStream(Configuration.files + 
 						File.separator + collection.getId() + ".ser"))) {
 					Collection deserializedCollection = (Collection) objectIn.readObject();
-					this.update(deserializedCollection);
+					this.update(deserializedCollection, false);
 				} catch(Exception e) {
 					log(LogLevel.ERROR, "Couldn't store glossaryDownload locally", e);
 				}

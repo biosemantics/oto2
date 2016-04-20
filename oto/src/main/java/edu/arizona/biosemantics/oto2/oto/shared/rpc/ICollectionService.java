@@ -27,7 +27,7 @@ public interface ICollectionService extends RemoteService {
 	
 	public Collection get(int id, String secret);
 	
-	public void update(Collection collection); 
+	public void update(Collection collection, boolean storeAsFallback); 
 	
 	public Collection insert(Collection collection);
 	

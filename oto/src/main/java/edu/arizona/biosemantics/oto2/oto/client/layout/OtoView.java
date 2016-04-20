@@ -16,6 +16,7 @@ import com.sencha.gxt.data.shared.Store.StoreSortInfo;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.Dialog;
 import com.sencha.gxt.widget.core.client.box.ConfirmMessageBox;
+import com.sencha.gxt.widget.core.client.box.MessageBox;
 import com.sencha.gxt.widget.core.client.container.BorderLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
@@ -81,14 +82,17 @@ public class OtoView extends SimpleLayoutPanel {
 					box.addDialogHideHandler(new DialogHideHandler() {
 						@Override
 						public void onDialogHide(DialogHideEvent event) {
+							final MessageBox box = Alerter.startLoading();
 							collectionService.reset(collection, true, new AsyncCallback<Collection>() {
 								@Override
 								public void onSuccess(Collection result) {
-									eventBus.fireEvent(new LoadEvent(collection, false));
+									eventBus.fireEvent(new LoadEvent(result, false));
+									Alerter.stopLoading(box);
 								}
 								@Override
 								public void onFailure(Throwable caught) {
 									Alerter.resetFailed(caught);
+									Alerter.stopLoading(box);
 								}
 							});
 						}
@@ -104,14 +108,17 @@ public class OtoView extends SimpleLayoutPanel {
 					box.addDialogHideHandler(new DialogHideHandler() {
 						@Override
 						public void onDialogHide(DialogHideEvent event) {
+							final MessageBox box = Alerter.startLoading();
 							collectionService.reset(collection, false, new AsyncCallback<Collection>() {
 								@Override
 								public void onSuccess(Collection result) {
 									eventBus.fireEvent(new LoadEvent(result, true));
+									Alerter.stopLoading(box);
 								}
 								@Override
 								public void onFailure(Throwable caught) {
 									Alerter.resetFailed(caught);
+									Alerter.stopLoading(box);
 								}
 							});
 						}

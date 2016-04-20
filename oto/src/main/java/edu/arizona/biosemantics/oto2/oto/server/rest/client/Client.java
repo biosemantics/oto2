@@ -52,12 +52,12 @@ public class Client implements AutoCloseable {
 		client.close();
 	}
 	
-	public Future<Void> post(Collection collection) {
-		return this.getPostInvoker().post(Entity.entity(collection, MediaType.APPLICATION_JSON), Void.class);
+	public Future<Void> post(Collection collection, boolean storeAsFallback) {
+		return this.getPostInvoker(storeAsFallback).post(Entity.entity(collection, MediaType.APPLICATION_JSON), Void.class);
 	}
 	
-	public void post(Collection collection, InvocationCallback<Void> callback) {
-		this.getPostInvoker().post(Entity.entity(collection, MediaType.APPLICATION_JSON), callback);
+	public void post(Collection collection, boolean storeAsFallback, InvocationCallback<Void> callback) {
+		this.getPostInvoker(storeAsFallback).post(Entity.entity(collection, MediaType.APPLICATION_JSON), callback);
 	}
 	
 	public Future<Collection> put(Collection collection) {
@@ -96,8 +96,9 @@ public class Client implements AutoCloseable {
 		return target.path("rest").path("oto").path("community").path(type).request(MediaType.APPLICATION_JSON).async();
 	}
 	
-	private AsyncInvoker getPostInvoker() {
-		return target.path("rest").path("oto").path("collection").request(MediaType.APPLICATION_JSON).async();
+	private AsyncInvoker getPostInvoker(boolean storeAsFallback) {
+		return target.path("rest").path("oto").path("collection").queryParam("storeAsFallback", storeAsFallback)
+				.request(MediaType.APPLICATION_JSON).async();
 	}
 	
 	private AsyncInvoker getPutInvoker() {

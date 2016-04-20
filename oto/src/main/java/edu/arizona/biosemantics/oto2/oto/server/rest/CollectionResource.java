@@ -18,7 +18,7 @@ import javax.ws.rs.core.UriInfo;
 import com.google.inject.Inject;
 
 import edu.arizona.biosemantics.oto2.oto.server.db.DAOManager;
-import edu.arizona.biosemantics.oto2.oto.server.db.HistoricInitializer;
+import edu.arizona.biosemantics.oto2.oto.server.db.HistoricInitializerGlossaryOnly;
 import edu.arizona.biosemantics.oto2.oto.server.rpc.CollectionService;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
@@ -43,7 +43,7 @@ public class CollectionResource {
 	@Inject
 	public CollectionResource() {
 		DAOManager daoManager = new DAOManager();
-		HistoricInitializer historicInitializer = new HistoricInitializer(daoManager);
+		HistoricInitializerGlossaryOnly historicInitializer = new HistoricInitializerGlossaryOnly(daoManager);
 		collectionService = new CollectionService(daoManager, historicInitializer);	
 		log(LogLevel.DEBUG, "CollectionResource initialized");
 	}
@@ -63,9 +63,9 @@ public class CollectionResource {
 	@POST
 	@Produces({ MediaType.APPLICATION_JSON })
 	@Consumes({ MediaType.APPLICATION_JSON })
-	public void post(Collection collection) throws Exception {
+	public void post(Collection collection, @QueryParam("storeAsFallback") boolean storeAsFallback) throws Exception {
 		try {
-			collectionService.update(collection);
+			collectionService.update(collection, storeAsFallback);
 		} catch (Exception e) {
 			log(LogLevel.ERROR, "Exception", e);
 		}
