@@ -20,9 +20,11 @@ import com.sencha.gxt.widget.core.client.container.BorderLayoutContainer.BorderL
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 
-import edu.arizona.biosemantics.oto2.ontologize2.client.TermsGrid.Row;
 import edu.arizona.biosemantics.oto2.ontologize2.client.candidate.CandidateView;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.RelationsView;
+import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid.Row;
+import edu.arizona.biosemantics.oto2.ontologize2.client.tree.TreeView;
+import edu.arizona.biosemantics.oto2.ontologize2.client.tree.VisualizationView;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Term;
 
 public class Ontologize extends SimpleContainer {
@@ -44,10 +46,10 @@ public class Ontologize extends SimpleContainer {
 		d.setCollapseMini(true);
 		blc.setWestWidget(cp, d);
 		
-		Label toCome = new Label("Trees");
+		VisualizationView visualizationView = new VisualizationView(eventBus);
 		cp = new ContentPanel();
 		cp.setHeadingText("Trees");
-		cp.add(toCome);
+		cp.add(visualizationView);
 		d = new BorderLayoutData(.30);
 		d.setMargins(new Margins(0, 0, 0, 0));
 		d.setCollapsible(true);

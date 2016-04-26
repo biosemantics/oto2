@@ -6,26 +6,24 @@ package edu.arizona.biosemantics.oto2.ontologize2.shared.model;
  */
 public class TermTreeNode extends TextTreeNode {
 
-	private int id;
 	private Term term;
 
-	public TermTreeNode(Term term, int id) {
-		this.id = id;
+	public TermTreeNode(Term term) {
 		this.term = term;
 	}
 	
 	@Override
 	public String getText() {
-		return term.getValue();
+		return term.getDisambiguatedValue();
 	}
 
 	public Term getTerm() {
 		return term;
 	}
-
+	
 	@Override
 	public String getId() {
-		return "term-" + term.getValue() + "_" + id;
+		return "term-" + term.getDisambiguatedValue();
 	}
 	
 }

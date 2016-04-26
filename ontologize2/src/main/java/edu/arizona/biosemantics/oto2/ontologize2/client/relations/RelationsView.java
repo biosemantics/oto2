@@ -1,56 +1,112 @@
 package edu.arizona.biosemantics.oto2.ontologize2.client.relations;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-
 import com.google.gwt.event.shared.EventBus;
-import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.SimpleContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
-import com.sencha.gxt.widget.core.client.event.SelectEvent;
-import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
-
-import edu.arizona.biosemantics.oto2.ontologize2.client.TermsGrid;
-import edu.arizona.biosemantics.oto2.ontologize2.client.TermsGrid.Row;
-import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Term;
+import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
 
 public class RelationsView extends SimpleContainer {
 
 	private EventBus eventBus;
 
-	public RelationsView(EventBus eventBus) {
+	public RelationsView(final EventBus eventBus) {
 		this.eventBus = eventBus;
 		
-		final TermsGrid termsGrid = new TermsGrid();
-		
-		final List<Row> rows = new LinkedList<Row>();
-		List<Term> terms1 = new ArrayList<Term>();
-		terms1.add(new Term("test", "", "/src/test"));
-		Row row1 = new Row(1, terms1);
-		rows.add(row1);
-		termsGrid.setRows(rows);
-		
-
-		List<Term> terms2 = new ArrayList<Term>();
-		terms2.add(new Term("test1", "", "/src/test"));
-		terms2.add(new Term("test2", "", "/src/test"));
-		terms2.add(new Term("test3", "", "/src/test"));
-		Row row2 = new Row(2, terms2);
-		rows.add(row2);
-		
+		final SuperclassesGrid superclassGrid = new SuperclassesGrid(eventBus);
+		final PartsGrid partsGrid = new PartsGrid(eventBus);
+		final SynonymsGrid synonymGrid = new SynonymsGrid(eventBus);
 		
 		VerticalLayoutContainer vlc = new VerticalLayoutContainer();
-		vlc.add(termsGrid);
-		TextButton button = new TextButton("test");
-		button.addSelectHandler(new SelectHandler() {
+		vlc.add(superclassGrid.asWidget(), new VerticalLayoutData(1, 0.33));
+		vlc.add(partsGrid.asWidget(), new VerticalLayoutData(1, 0.33));
+		vlc.add(synonymGrid.asWidget(), new VerticalLayoutData(1, 0.33));
+		/*VerticalLayoutContainer superContainer = new VerticalLayoutContainer();
+		HorizontalLayoutContainer superHead = new HorizontalLayoutContainer();
+		superHead.add(new Label("Is-A relations"));
+		TextButton importSuperButton = new TextButton("Import");
+		importSuperButton.addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
-				termsGrid.setRows(rows);
+				final MultiLinePromptMessageBox box = new MultiLinePromptMessageBox("Import Is-A", "");
+				box.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
+					@Override
+					public void onSelect(SelectEvent event) {
+						String input = box.getValue();
+						String[] lines = input.split("\\n");
+						for(String line : lines) {
+							String[] terms = line.split(",");
+							Row row = new Row(new Term(terms[0]));
+							for(int i=1; i<terms.length; i++)
+								row.terms.add(new Term(terms[i]));
+							superclassGrid.addRow(row);
+						}
+					}
+				});
+				box.show();
 			}
 		});
-		vlc.add(button);
-		
+		superHead.add(importSuperButton);
+		superContainer.add(superHead, new VerticalLayoutData(1, 30));
+		superContainer.add(superclassGrid);
+		vlc.add(superContainer, new VerticalLayoutData(1, 0.33));
+		VerticalLayoutContainer partContainer = new VerticalLayoutContainer();
+		HorizontalLayoutContainer partHead = new HorizontalLayoutContainer();
+		partHead.add(new Label("Part relations"));
+		TextButton importPartButton = new TextButton("Import");
+		importPartButton.addSelectHandler(new SelectHandler() {
+			@Override
+			public void onSelect(SelectEvent event) {
+				final MultiLinePromptMessageBox box = new MultiLinePromptMessageBox("Import Parts", "");
+				box.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
+					@Override
+					public void onSelect(SelectEvent event) {
+						String input = box.getValue();
+						String[] lines = input.split("\\n");
+						for(String line : lines) {
+							String[] terms = line.split(",");
+							Row row = new Row(new Term(terms[0]));
+							for(int i=1; i<terms.length; i++)
+								row.terms.add(new Term(terms[i]));
+							partsGrid.addRow(row);
+						}
+					}
+				});
+				box.show();
+			}
+		});
+		partHead.add(importPartButton);
+		partContainer.add(partHead, new VerticalLayoutData(1, 30));
+		partContainer.add(partsGrid);
+		vlc.add(partContainer, new VerticalLayoutData(1, 0.33));
+		VerticalLayoutContainer synonymContainer = new VerticalLayoutContainer();
+		HorizontalLayoutContainer synonymHead = new HorizontalLayoutContainer();
+		synonymHead.add(new Label("Synonym relations"));
+		TextButton importSynonymButton = new TextButton("Import");
+		importSynonymButton.addSelectHandler(new SelectHandler() {
+			@Override
+			public void onSelect(SelectEvent event) {
+				final MultiLinePromptMessageBox box = new MultiLinePromptMessageBox("Import Synonyms", "");
+				box.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
+					@Override
+					public void onSelect(SelectEvent event) {
+						String input = box.getValue();
+						String[] lines = input.split("\\n");
+						for(String line : lines) {
+							String[] terms = line.split(",");
+							Row row = new Row(new Term(terms[0]));
+							for(int i=1; i<terms.length; i++)
+								row.terms.add(new Term(terms[i]));
+							synonymGrid.addRow(row);
+						}
+					}
+				});
+				box.show();
+			}
+		});
+		synonymHead.add(importSynonymButton);
+		synonymContainer.add(synonymHead, new VerticalLayoutData(1, 30));
+		synonymContainer.add(synonymGrid);
+		vlc.add(synonymContainer, new VerticalLayoutData(1, 0.33));*/
 		this.add(vlc);
 	}
 

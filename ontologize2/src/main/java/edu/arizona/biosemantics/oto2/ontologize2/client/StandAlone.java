@@ -24,7 +24,16 @@ public class StandAlone implements EntryPoint {
 		
 		EventBus eventBus = ontologize.getEventBus();
 		List<Term> terms = new LinkedList<Term>();
-		terms.add(new Term("value", "iri", "/bucket"));
+		terms.add(new Term("stem", "iri", "/bucket"));
+		terms.add(new Term("leaf", "iri", "/bucket"));
+		terms.add(new Term("fruit", "iri", "/bucket"));
+		terms.add(new Term("leaflet", "iri", "/bucket"));
+		terms.add(new Term("trunk", "iri", "/bucket"));
+		terms.add(new Term("apex", "iri", "/bucket"));
+		terms.add(new Term("node", "iri", "/bucket"));
+		terms.add(new Term("bark", "iri", "/bucket"));
+		terms.add(new Term("petal", "iri", "/bucket"));
+		terms.add(new Term("stamen", "iri", "/bucket"));
 		Collection collection = new Collection("name", TaxonGroup.PLANT, "secret", terms);
 		eventBus.fireEvent(new LoadCollectionEvent(collection));
 		

@@ -65,37 +65,12 @@ public class CandidateView extends SimpleContainer {
 		}, SortDir.ASC));
 		termTree = new Tree<TextTreeNode, TextTreeNode>(treeStore, new IdentityValueProvider<TextTreeNode>());
 		termTree.setIconProvider(new TermTreeNodeIconProvider());
-		/*termTree.setCell(new AbstractCell<TextTreeNode>() {
+		termTree.setCell(new AbstractCell<TextTreeNode>() {
 			@Override
-			public void render(com.google.gwt.cell.client.Cell.Context context,	TextTreeNode textTreeNode, SafeHtmlBuilder sb) {
-					if(textTreeNode instanceof TermTreeNode) {
-						TermTreeNode termTreeNode = (TermTreeNode)textTreeNode;
-						Term term = termTreeNode.getTerm();
-						String text = term.getTerm();
-						
-						String iris = "";
-						for(String iri : ModelController.getCollection().getExistingIRIs(term)) {
-							iris += iri + ", ";
-						}
-						if(!iris.isEmpty())
-							iris = iris.substring(0, iris.length() - 2);
-						if(!iris.isEmpty())
-							text += " (" + iris + ")";
-						if(ModelController.getCollection().hasColorization(term)) {
-							String colorHex = ModelController.getCollection().getColorization(term).getHex();
-							sb.append(SafeHtmlUtils.fromTrustedString("<div style='padding-left:5px; padding-right:5px; background-color:#" + colorHex + 
-									"'>" + 
-									text + "</div>"));
-						} else {
-							sb.append(SafeHtmlUtils.fromTrustedString("<div style='padding-left:5px; padding-right:5px'>" + text +
-									"</div>"));
-						}
-					} else {
-						sb.append(SafeHtmlUtils.fromTrustedString("<div style='padding-left:5px; padding-right:5px'>" + textTreeNode.getText() +
-								"</div>"));
-					}
+			public void render(com.google.gwt.cell.client.Cell.Context context,	TextTreeNode value, SafeHtmlBuilder sb) {
+				sb.append(SafeHtmlUtils.fromTrustedString("<div>" + value.getText() +  "</div>"));
 			}
-		});*/
+		});
 		termTree.getElement().setAttribute("source", "termsview");
 		termTree.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
 		
@@ -103,43 +78,27 @@ public class CandidateView extends SimpleContainer {
 			@Override
 			protected void onDragStart(DndDragStartEvent event) {
 				super.onDragStart(event);
-				List<TermTreeNode> data = new LinkedList<TermTreeNode>();
+				List<Term> data = new LinkedList<Term>();
 				for(TextTreeNode node : termTree.getSelectionModel().getSelectedItems()) {
-					if(node instanceof BucketTreeNode) {
-						for(TextTreeNode child : termTree.getStore().getChildren(node)) {
-							data.add((TermTreeNode)child);
-						}
-					} else if(node instanceof TermTreeNode) {
-						data.add((TermTreeNode)node);
-					}
+					addTermTreeNodes(node, data);
 				}
-				event.setData(termTree.getSelectionModel().getSelectedItems());
-				/*
-				MainTermSynonymsLabelDnd mainTermSynonymsLabelDnd = 
-						new MainTermSynonymsLabelDnd(LabelPortlet.this, selectedTermsExtractor.getSelectedTerms(tree), label);
-				List<Term> selection = mainTermSynonymsLabelDnd.getTerms();
-				if (selection.isEmpty())
-					event.setCancelled(true);
-				else {
-					setStatusText(selection.size() + " term(s) selected");
-					event.getStatusProxy()
-							.update(Format.substitute(getStatusText(),
-									selection.size()));
-				}
-							
-				event.setData(mainTermSynonymsLabelDnd);
-				*/
+				event.setData(data);
 			}
 		};
 		this.add(termTree);
 	}
-
-	/*
-	public TermsView(Collection collection) {
-		this();
-		setCollection();
-	}*/
 	
+	protected void addTermTreeNodes(TextTreeNode node, List<Term> data) {
+		if(node instanceof BucketTreeNode) {
+			for(TextTreeNode child : termTree.getStore().getChildren(node)) {
+				this.addTermTreeNodes(child, data);
+			}
+		} else if(node instanceof TermTreeNode) {
+			Term term = ((TermTreeNode)node).getTerm().clone(true);
+			data.add(term);
+		}
+	}
+
 	public CandidateView(EventBus eventBus) {
 		this();
 		this.eventBus = eventBus;
@@ -168,7 +127,7 @@ public class CandidateView extends SimpleContainer {
 		for(Term term : ModelController.getCollection().getTerms()) {
 			String bucketsPath = term.getBuckets();
 			createBucketNodes(bucketTreeNodes, bucketsPath);
-			addTermTreeNode(bucketTreeNodes.get(bucketsPath), new TermTreeNode(term, 0));
+			addTermTreeNode(bucketTreeNodes.get(bucketsPath), new TermTreeNode(term));
 		}
 		
 		initializeCollapsing(bucketTreeNodes);
