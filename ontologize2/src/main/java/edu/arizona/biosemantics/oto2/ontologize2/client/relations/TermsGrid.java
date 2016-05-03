@@ -1,6 +1,7 @@
 package edu.arizona.biosemantics.oto2.ontologize2.client.relations;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -15,6 +16,8 @@ import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.Style.BorderStyle;
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.editor.client.Editor.Path;
+import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.event.shared.GwtEvent;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.core.client.ValueProvider;
@@ -32,6 +35,12 @@ import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.Grid;
 
 import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateTermEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.HasRowId;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.LoadCollectionEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveTermEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.ICollectionService;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.ICollectionServiceAsync;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Term;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.TermTreeNode;
 
@@ -43,7 +52,9 @@ public class TermsGrid implements IsWidget {
 		
 		private int id = currentId++;
 		private Term leadTerm;
-		private Set<Term> attachedTermSet = new HashSet<Term>();
+		private Map<String, Term> attachedTermDisambiguatedMap = new HashMap<String, Term>();
+		//will only contain the term once even though ambiguous over multiple rows!
+		private Map<String, Term> attachedTermMap = new HashMap<String, Term>();
 		private List<Term> attachedTermsList = new ArrayList<Term>();
 		
 		public Row(Term leadTerm) {
@@ -51,9 +62,12 @@ public class TermsGrid implements IsWidget {
 		}
 		
 		public Row(Term leadTerm, List<Term> terms) {
-			this.leadTerm = leadTerm;
+			this(leadTerm);
 			this.attachedTermsList.addAll(terms);
-			this.attachedTermSet.addAll(terms);
+			for(Term term : terms) {
+				this.attachedTermMap.put(term.getValue(), term);
+				this.attachedTermDisambiguatedMap.put(term.getDisambiguatedValue(), term);
+			}
 		}
 		
 		public Term getLeadTerm() {
@@ -67,12 +81,18 @@ public class TermsGrid implements IsWidget {
 		public int getId() {
 			return id;
 		}
+		
+		public void addAttachedTerm(int index, Term term) throws Exception {
+			if(attachedTermDisambiguatedMap.containsKey(term.getDisambiguatedValue()))
+				throw new Exception("Term already exists.");
+			this.attachedTermsList.add(index, term);
+			this.attachedTermDisambiguatedMap.put(term.getDisambiguatedValue(), term);
+			this.attachedTermMap.put(term.getValue(), term);
+		}
 
 		public void addAttachedTerm(Term term) throws Exception {
-			if(attachedTermSet.contains(term))
-				throw new Exception("Term already exists.");
-			attachedTermsList.add(term);
-			attachedTermSet.add(term);
+			int index = attachedTermsList.size();
+			this.addAttachedTerm(index, term);
 		}
 
 		public void setLeadTerm(Term leadTerm) {
@@ -80,14 +100,14 @@ public class TermsGrid implements IsWidget {
 		}
 
 		public int getAttachedCount() {
-			return this.attachedTermSet.size();
+			return this.attachedTermDisambiguatedMap.size();
 		}
 
 		public boolean hasAttachedTerms() {
-			return !this.attachedTermSet.isEmpty();
+			return !this.attachedTermDisambiguatedMap.isEmpty();
 		}
 
-		public void adAttachedTerms(Collection<Term> terms) throws Exception {
+		public void addAttachedTerms(Collection<Term> terms) throws Exception {
 			for(Term term : terms) 
 				this.addAttachedTerm(term);
 		}
@@ -98,17 +118,58 @@ public class TermsGrid implements IsWidget {
 
 		public boolean containsAttachedTerms(Term term, boolean disambiguated) {
 			if(disambiguated)
-				return this.attachedTermSetDisambiguated.contains(term);
+				return this.attachedTermDisambiguatedMap.containsKey(term.getDisambiguatedValue());
 			else
-				return this.attachedTermSet.contains(term);
+				return this.attachedTermMap.containsKey(term.getValue());
+		}
+		
+		public void removeAttachedTerm(int i) {
+			Term term = attachedTermsList.remove(i);
+			attachedTermDisambiguatedMap.remove(term.getDisambiguatedValue());
+			//will only contain the term once even though ambiguous over multiple rows!
+			attachedTermMap.remove(term.getValue());
+		}
+		
+		public void removeAttachedTerm(Term term) {
+			this.removeAttachedTerm(attachedTermsList.indexOf(term));
 		}
 
-		public void replaceAttachedTerm(Term oldTerm, Term newTerm) {
-			attachedTermSet.remove(oldTerm);
-			attachedTermSet.add(newTerm);
+		public void replaceAttachedTerm(Term oldTerm, Term newTerm, boolean valueMatchSufficient) throws Exception {
 			int index = attachedTermsList.indexOf(oldTerm);
-			attachedTermsList.remove(index);
-			attachedTermsList.add(index, newTerm);
+			if(index == -1) {
+				if(valueMatchSufficient) {
+					for(int i=0; i<attachedTermsList.size(); i++) {
+						Term term = attachedTermsList.get(i);
+						if(term.getValue().equals(oldTerm.getValue())) {
+							oldTerm = term;
+							index = i;
+						}
+					}
+				} else {
+					return;
+				}
+			}
+			this.removeAttachedTerm(index);
+			this.addAttachedTerm(index, newTerm);
+		}
+
+		public Term getAttachedTerm(String value, boolean disambiguated) {
+			if(disambiguated)
+				return attachedTermDisambiguatedMap.get(value);
+			else
+				return attachedTermMap.get(value);
+		}
+
+		public List<Term> getTerms() {
+			List<Term> result = new ArrayList<Term>(attachedTermsList.size() + 1);
+			result.add(this.leadTerm);
+			result.addAll(this.attachedTermsList);
+			return result;
+		}
+
+		public void removeAttachedTerms(List<Term> terms) {
+			for(Term term : terms)
+				this.removeAttachedTerm(term);
 		}
 	}
 	
@@ -124,6 +185,8 @@ public class TermsGrid implements IsWidget {
 		ValueProvider<Row, List<Term>> terms();
 	}
 
+	private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
+	protected EventBus eventBus;
 	private RowProperties rowProperties = GWT.create(RowProperties.class);
 	protected ListStore<Row> store;
 	protected Grid<Row> grid;
@@ -132,9 +195,10 @@ public class TermsGrid implements IsWidget {
 	private String firstColName;
 	private String nColName;
 	protected ValueProvider<Term, String> valueProvider;
-	private Map<Term, Row> leadTermMap = new HashMap<Term, Row>();
+	private edu.arizona.biosemantics.oto2.ontologize2.shared.model.Collection collection;
 	
-	public TermsGrid(String firstColName, String nColName, ValueProvider<Term, String> valueProvider) {
+	public TermsGrid(EventBus eventBus, String firstColName, String nColName, ValueProvider<Term, String> valueProvider) {
+		this.eventBus = eventBus;
 		this.firstColName = firstColName;
 		this.nColName = nColName;
 		this.valueProvider = valueProvider;
@@ -183,49 +247,126 @@ public class TermsGrid implements IsWidget {
 				}
 				
 				if(term != null) {
-					Row row = new Row(term);
-					addRow(row);
+					addRow(new Row(term));
 				} else {
 					//display an error
 				}
 			}
 		});
 		dropTargetNewRow.setOperation(Operation.COPY);
+		
+		bindEvents();
 	}
 	
-	protected void addAttachedTermsToRow(Row row, List<Term> add) throws Exception {
-		row.adAttachedTerms(add);
-		updateRow(row);
+	protected void bindEvents() {
+		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
+			@Override
+			public void onLoad(LoadCollectionEvent event) {
+				collection = event.getCollection();
+			}
+		});
+		eventBus.addHandler(RemoveTermEvent.TYPE, new RemoveTermEvent.Handler() {
+			@Override
+			public void onCreate(RemoveTermEvent event) {
+				removeTerms(event.getTerms());
+			}
+		});
 	}
 	
 	protected void addRow(Row row) {
-		store.add(row);
-		leadTermMap.put(row.getLeadTerm(), row);
-		if(row.getTermCount() > grid.getColumnModel().getColumnCount()) {
+		/*if(row.getTermCount() > grid.getColumnModel().getColumnCount()) {
 			List<ColumnConfig<Row, ?>> columns = new ArrayList<ColumnConfig<Row, ?>>(grid.getColumnModel().getColumns());
 			for(int i = columns.size(); i <= row.getAttachedCount(); i++) {
 				columns.add(createColumnI(i));
 			}
 			grid.reconfigure(store, new ColumnModel<Row>(columns));
-		} 
+		} */
+		store.add(row);
+	}
+	
+	protected void removeRows(Collection<Row> rows) {
+		for(Row row : rows) {
+			store.remove(row);
+		}
+	}
+	
+	protected void setRows(List<Row> rows) {
+		store.clear();
+		grid.reconfigure(store, createColumnModel(rows));
+		store.addAll(rows);
+	}
+	
+	private void removeRows(Row row) {
+		List<Row> rows = new LinkedList<Row>();
+		rows.add(row);
+		this.removeRows(rows);
+	}
+	
+	protected void addAttachedTermsToRow(Row row, List<Term> add) throws Exception {		
+		if(!add.isEmpty()) {
+			row.addAttachedTerms(add);
+			updateRow(row);
+		}
+	}
+	
+	protected void removeAttachedTermsFromRow(Row row, List<Term> terms) {
+		row.removeAttachedTerms(terms);
+		updateRow(row);
+	}
+	
+	protected void removeAttachedTermsFromRows(List<Row> rows, List<Term> terms) {
+		for(Row row : rows)
+			this.removeAttachedTermsFromRow(row, terms);
 	}
 
-	private void createCreateRowContainer() {
-		createRowContainer = new SimpleContainer();
-		createRowContainer.setTitle("Drop here to create new entry");
-		com.google.gwt.user.client.ui.Label dropLabel = new com.google.gwt.user.client.ui.Label("Drop here to create new entry");
-		dropLabel.getElement().getStyle().setLineHeight(30, Unit.PX);
-		createRowContainer.setWidget(dropLabel);
-		createRowContainer.setHeight(30);
-		createRowContainer.getElement().getStyle().setBorderWidth(1, Unit.PX);
-		createRowContainer.getElement().getStyle().setBorderStyle(BorderStyle.DASHED);
-		createRowContainer.getElement().getStyle().setBorderColor("gray");
-		createRowContainer.getElement().getStyle().setProperty("mozMorderMadius", "7px");
-		createRowContainer.getElement().getStyle().setProperty("webkitBorderRadius", "7px");
-		createRowContainer.getElement().getStyle().setProperty("borderRadius", "7px");
-		createRowContainer.getElement().getStyle().setBackgroundColor("#ffffcc");
+	protected void removeTerms(Term[] terms) {
+		for(Term term : terms) {
+			List<Row> leadTermRows = this.getLeadTermsRows(term, true);
+			for(Row row : leadTermRows)
+				this.removeRows(row);
+			List<Row> attachedTermRows = this.getAttachedTermsRows(term, true);
+			this.removeAttachedTermsFromRows(attachedTermRows, Arrays.asList(terms));
+		}
 	}
 
+	protected void consolidate() {
+		List<Row> targetRows = new LinkedList<Row>();
+		Map<String, List<Row>> entries = new HashMap<String, List<Row>>();
+		for(Row row : this.store.getAll()) {
+			Term firstTerm = row.getLeadTerm();
+			if(!entries.containsKey(firstTerm.getDisambiguatedValue())) 
+				entries.put(firstTerm.getDisambiguatedValue(), new LinkedList<Row>());
+			entries.get(firstTerm.getDisambiguatedValue()).add(row);
+		}
+		
+		for(String term : entries.keySet()) {
+			if(entries.get(term).size() > 1) {
+				List<Row> rows = entries.get(term);
+				Row targetRow = rows.get(0);
+				Set<String> terms = new HashSet<String>();
+				for(Term attachedTerm : targetRow.getAttachedTerms())
+					terms.add(attachedTerm.getDisambiguatedValue());
+				List<Term> add = new LinkedList<Term>();
+				for(int i=1; i<rows.size(); i++) {
+					Row row = rows.get(i);
+					for(Term attachedTerm : row.getAttachedTerms()) {
+						if(!terms.contains(attachedTerm)) {
+							add.add(attachedTerm);
+							terms.add(attachedTerm.getDisambiguatedValue());
+						}
+					}
+					store.remove(row);
+				}
+				targetRow.getAttachedTerms().addAll(add);
+				targetRows.add(targetRow);
+			} else if(entries.get(term).size() == 1) {
+				targetRows.add(entries.get(term).get(0));
+			}
+		}
+		if(!targetRows.isEmpty())
+			this.reconfigureForAttachedTerms(getMaxAttachedTermsCount(targetRows));
+	}
+	
 	protected void updateRow(Row row) {
 		if(row.getTermCount() <= grid.getColumnModel().getColumnCount()) 
 			store.update(row);
@@ -234,18 +375,53 @@ public class TermsGrid implements IsWidget {
 			store.update(row);
 		}
 	}
+	
+	protected List<Row> getAttachedTermsRows(Term attachedTerm, boolean disambiguated) {
+		List<Row> result = new LinkedList<Row>();
+		for(Row row : this.store.getAll()) {
+			if(row.containsAttachedTerms(attachedTerm, disambiguated))
+				result.add(row);
+		}
+		return result;
+	}
+	
+	protected List<Row> getLeadTermsRows(Term leadTerm, boolean disambiguated) {
+		List<Row> result = new LinkedList<Row>();
+		for(Row row : this.store.getAll()) {
+			if(disambiguated) {
+				if(row.getLeadTerm().getDisambiguatedValue().equals(leadTerm.getDisambiguatedValue()))
+					result.add(row);
+			} else {
+				if(row.getLeadTerm().getValue().equals(leadTerm.getValue()))
+					result.add(row);
+			}
+		}
+		return result;
+	}
+	
+	protected Row getRowWithId(List<Row> rows, int rowId) {
+		for(Row row : rows)
+			if(row.getId() == rowId)
+				return row;
+		return null;
+	}
+	
+	protected List<Row> getSelection() {
+		return new ArrayList<Row>(grid.getSelectionModel().getSelectedItems());
+	}
+
+	protected List<Row> getAll() {
+		return new ArrayList<Row>(grid.getStore().getAll());
+	}
+
+
+	
 
 	private void reconfigureForAttachedTerms(int attachedTermsCount) {
 		grid.reconfigure(store, createColumnModel(attachedTermsCount));
 	}
-
-	protected void setRows(List<Row> rows) {
-		store.clear();
-		store.addAll(rows);
-		grid.reconfigure(store, createColumnModel(rows));
-	}
 	
-	protected ColumnModel<Row> createColumnModel(int attachedTermsCount) {
+	private ColumnModel<Row> createColumnModel(int attachedTermsCount) {
 		List<ColumnConfig<Row, ?>> columns = new ArrayList<ColumnConfig<Row, ?>>();
 		ColumnConfig<Row, String> column1 = new ColumnConfig<Row, String>(new ValueProvider<Row, String>() {
 			@Override
@@ -265,7 +441,7 @@ public class TermsGrid implements IsWidget {
 		return new ColumnModel<Row>(columns);
 	}
 	
-	protected ColumnModel<Row> createColumnModel(Collection<Row> rows) {	
+	private ColumnModel<Row> createColumnModel(Collection<Row> rows) {	
 		return createColumnModel(getMaxAttachedTermsCount(rows));
 	}
 	
@@ -286,42 +462,7 @@ public class TermsGrid implements IsWidget {
 		}, colWidth, nColName + "-" + i);
 	}
 
-	public void consolidate() {
-		List<Row> targetRows = new LinkedList<Row>();
-		Map<Term, List<Row>> entries = new HashMap<Term, List<Row>>();
-		for(Row row : this.store.getAll()) {
-			Term firstTerm = row.getLeadTerm();
-			if(!entries.containsKey(firstTerm)) 
-				entries.put(firstTerm, new LinkedList<Row>());
-			entries.get(firstTerm).add(row);
-		}
-		
-		for(Term term : entries.keySet()) {
-			if(entries.get(term).size() > 1) {
-				List<Row> rows = entries.get(term);
-				Row targetRow = rows.get(0);
-				Set<Term> terms = new HashSet<Term>();
-				terms.addAll(targetRow.getAttachedTerms());
-				List<Term> add = new LinkedList<Term>();
-				for(int i=1; i<rows.size(); i++) {
-					Row row = rows.get(i);
-					for(Term attachedTerm : row.getAttachedTerms()) {
-						if(!terms.contains(attachedTerm)) {
-							add.add(attachedTerm);
-							terms.add(attachedTerm);
-						}
-					}
-					store.remove(row);
-				}
-				targetRow.getAttachedTerms().addAll(add);
-				targetRows.add(targetRow);
-			} else if(entries.get(term).size() == 1) {
-				targetRows.add(entries.get(term).get(0));
-			}
-		}
-		if(!targetRows.isEmpty())
-			this.reconfigureForAttachedTerms(getMaxAttachedTermsCount(targetRows));
-	}
+
 		
 	private int getMaxAttachedTermsCount(Collection<Row> rows) {
 		if(rows.isEmpty())
@@ -335,18 +476,20 @@ public class TermsGrid implements IsWidget {
 		return maxRow.getAttachedCount();
 	}
 
-	public void remove(Collection<Row> rows) {
-		for(Row row : rows) {
-			store.remove(row);
-		}
-	}
-
-	public List<Row> getSelection() {
-		return new ArrayList<Row>(grid.getSelectionModel().getSelectedItems());
-	}
-
-	public List<Row> getAll() {
-		return new ArrayList<Row>(grid.getStore().getAll());
+	private void createCreateRowContainer() {
+		createRowContainer = new SimpleContainer();
+		createRowContainer.setTitle("Drop here to create new entry");
+		com.google.gwt.user.client.ui.Label dropLabel = new com.google.gwt.user.client.ui.Label("Drop here to create new entry");
+		dropLabel.getElement().getStyle().setLineHeight(30, Unit.PX);
+		createRowContainer.setWidget(dropLabel);
+		createRowContainer.setHeight(30);
+		createRowContainer.getElement().getStyle().setBorderWidth(1, Unit.PX);
+		createRowContainer.getElement().getStyle().setBorderStyle(BorderStyle.DASHED);
+		createRowContainer.getElement().getStyle().setBorderColor("gray");
+		createRowContainer.getElement().getStyle().setProperty("mozMorderMadius", "7px");
+		createRowContainer.getElement().getStyle().setProperty("webkitBorderRadius", "7px");
+		createRowContainer.getElement().getStyle().setProperty("borderRadius", "7px");
+		createRowContainer.getElement().getStyle().setBackgroundColor("#ffffcc");
 	}
 
 	@Override
@@ -357,29 +500,14 @@ public class TermsGrid implements IsWidget {
 		SimpleContainer simpleContainer = new SimpleContainer();
 		simpleContainer.add(vlc);
 		return simpleContainer;
-	}
+	}	
 	
-	protected List<Row> getAttachedTermsRows(Term attachedTerm, boolean disambiguated) {
-		List<Row> result = new LinkedList<Row>();
-		for(Row row : this.store.getAll()) {
-			if(row.containsAttachedTerms(attachedTerm, disambiguated))
-				result.add(row);
+	protected void fireEvents(List<GwtEvent<?>> result, Row row) {	
+		for(GwtEvent<?> event : result) {
+				if(event instanceof HasRowId && row != null) 
+					((HasRowId)event).setRowId(row.getId());
+			eventBus.fireEvent(event);
 		}
-		return result;
-	}
-	
-	protected List<Row> getLeadTermsRows(Term leadTerm, boolean disambiguated) {
-		List<Row> result = new LinkedList<Row>();
-		for(Row row : this.store.getAll()) {
-			if(disambiguated) {
-				if(row.getLeadTerm().getValue().equals(leadTerm.getValue()))
-					result.add(row);
-			} else {
-				if(row.getLeadTerm().getDisambiguatedValue().equals(leadTerm.getDisambiguatedValue()))
-					result.add(row);
-			}
-		}
-		return result;
 	}
 	
 }

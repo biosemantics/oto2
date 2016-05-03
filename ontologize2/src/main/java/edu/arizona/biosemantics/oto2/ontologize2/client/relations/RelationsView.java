@@ -12,12 +12,12 @@ public class RelationsView extends SimpleContainer {
 	public RelationsView(final EventBus eventBus) {
 		this.eventBus = eventBus;
 		
-		final SuperclassesGrid superclassGrid = new SuperclassesGrid(eventBus);
+		final SubclassesGrid subclassGrid = new SubclassesGrid(eventBus);
 		final PartsGrid partsGrid = new PartsGrid(eventBus);
 		final SynonymsGrid synonymGrid = new SynonymsGrid(eventBus);
 		
 		VerticalLayoutContainer vlc = new VerticalLayoutContainer();
-		vlc.add(superclassGrid.asWidget(), new VerticalLayoutData(1, 0.33));
+		vlc.add(subclassGrid.asWidget(), new VerticalLayoutData(1, 0.33));
 		vlc.add(partsGrid.asWidget(), new VerticalLayoutData(1, 0.33));
 		vlc.add(synonymGrid.asWidget(), new VerticalLayoutData(1, 0.33));
 		/*VerticalLayoutContainer superContainer = new VerticalLayoutContainer();

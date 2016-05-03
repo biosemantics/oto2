@@ -1,6 +1,5 @@
 package edu.arizona.biosemantics.oto2.ontologize2.client.relations;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -15,38 +14,30 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.event.shared.GwtEvent;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.sencha.gxt.core.client.ValueProvider;
-import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
-import com.sencha.gxt.widget.core.client.box.MessageBox;
-import com.sencha.gxt.widget.core.client.event.SelectEvent;
-import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 
 import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreatePartEvent;
-import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateTermEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateSubclassEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.HasRowId;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.LoadCollectionEvent;
-import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveSubclassEvent;
-import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceTermInRelationsEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemovePartEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveSubclassEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid.Row;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.ICollectionService;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.ICollectionServiceAsync;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Term;
-import edu.arizona.biosemantics.oto2.ontologize2.shared.model.TermDisambiguator;
 
-public class PartsGrid extends MenuTermsGrid {
+public class SubclassesGrid extends MenuTermsGrid {
 	
-	//allowed: part of multiple parents: e.g. non-specific structure terms: apex can be part of leaf as well as trunk
-	//allowed: duplicates of preferred terms: can be consolidated
+	//allowed: subclass of multiple superclasses
+	//allowed: duplicates of subclasses: can be consolidated
 	//not allowed: circular relationships
-	//not allowed: part cannot have multiple parents when it is already disambiguated. E.g. leaf, (leaf) leaflet; we cannot define: stem, (leaf) leaflet
-	// because (leaf) leaflet is already coupled with a leaf parent from which its disambiguator stems. Hence we can't ommit the leaf. leaf, (leaf) leaflet, stem, leaf; would be legal
-	//not allowed: duplicate parts in the same parent
+	//not allowed: duplicate superclasses in the same subclass
 	private edu.arizona.biosemantics.oto2.ontologize2.shared.model.Collection collection;
 	private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
-	
-	public PartsGrid(EventBus eventBus) {
-		super(eventBus, "part", "parent", "part", new ValueProvider<Term, String>() {
+
+	public SubclassesGrid(EventBus eventBus) {
+		super(eventBus, "is-a", "superclass", "subclass", new ValueProvider<Term, String>() {
 			@Override 
 			public String getValue(Term object) {
 				return object.getDisambiguatedValue();
@@ -55,7 +46,7 @@ public class PartsGrid extends MenuTermsGrid {
 			public void setValue(Term object, String value) { }
 			@Override
 			public String getPath() {
-				return "part-term";
+				return "class-term";
 			}
 		});
 	}
@@ -69,36 +60,35 @@ public class PartsGrid extends MenuTermsGrid {
 			public void onLoad(LoadCollectionEvent event) {
 				collection = event.getCollection();
 				store.clear();
-				for(String parent : collection.getParts().keySet()) {
-					Term parentTerm = collection.getTerm(parent);
-					eventBus.fireEvent(new CreatePartEvent(parentTerm, collection.getParts(parentTerm)));
+				for(String superclass : collection.getSubclasses().keySet()) {
+					Term superclassTerm = collection.getTerm(superclass);
+					eventBus.fireEvent(new CreateSubclassEvent(superclassTerm, collection.getSubclasses(superclassTerm)));
 				}
 			}
 		}); 
-		eventBus.addHandler(CreatePartEvent.TYPE, new CreatePartEvent.Handler() {
+		eventBus.addHandler(CreateSubclassEvent.TYPE, new CreateSubclassEvent.Handler() {
 			@Override
-			public void onCreate(CreatePartEvent event) {
-				List<Row> rows = PartsGrid.this.getLeadTermsRows(event.getParent(), true);
+			public void onCreate(CreateSubclassEvent event) {
+				List<Row> rows = SubclassesGrid.this.getLeadTermsRows(event.getSuperclass(), true);
 				Row row = null;
 				if(event.hasRowId()) 
 					row = getRowWithId(rows, event.getRowId()); 
 				else {
-					row = new Row(event.getParent());
-					PartsGrid.super.addRow(row);
-				}	
+					row = new Row(event.getSuperclass());
+					SubclassesGrid.super.addRow(row);
+				}
 				if(row != null)
 					try {
-						PartsGrid.super.addAttachedTermsToRow(row, Arrays.asList(event.getParts()));
+						SubclassesGrid.super.addAttachedTermsToRow(row, Arrays.asList(event.getSubclasses()));
 					} catch (Exception e) {
-						e.printStackTrace();
-						Alerter.showAlert("Create Part", "Create part failed");
+						Alerter.showAlert("Create Part", "Create subclass failed");
 					}
 			}
 		});
-		eventBus.addHandler(RemovePartEvent.TYPE, new RemovePartEvent.Handler() {
+		eventBus.addHandler(RemoveSubclassEvent.TYPE, new RemoveSubclassEvent.Handler() {
 			@Override
-			public void onRemove(RemovePartEvent event) {
-				List<Row> rows = PartsGrid.this.getLeadTermsRows(event.getParent(), true);
+			public void onRemove(RemoveSubclassEvent event) {
+				List<Row> rows = SubclassesGrid.this.getLeadTermsRows(event.getSuperclass(), true);
 				if(event.hasRowId()) {
 					rows = new LinkedList<Row>();
 					Row idRow = getRowWithId(rows, event.getRowId());
@@ -107,13 +97,13 @@ public class PartsGrid extends MenuTermsGrid {
 					}
 				}
 				if(!rows.isEmpty()) {
-					if(!event.hasParts()) {
-						PartsGrid.super.removeRows(rows);
+					if(!event.hasSubclasses()) {
+						SubclassesGrid.super.removeRows(rows);
 					} else {
 						try {
-							PartsGrid.super.removeAttachedTermsFromRows(rows, Arrays.asList(event.getParts()));
+							SubclassesGrid.super.removeAttachedTermsFromRows(rows, Arrays.asList(event.getSubclasses()));
 						} catch (Exception e) {
-							Alerter.showAlert("Remove Part", "Remove part failed");
+							Alerter.showAlert("Remove Subclass", "Remove subclass failed");
 						}
 					}
 				}
@@ -121,7 +111,7 @@ public class PartsGrid extends MenuTermsGrid {
 			}
 		});
 	}
-	
+
 	@Override
 	protected void addRow(Row row) {
 		boolean valid = true;
@@ -131,8 +121,8 @@ public class PartsGrid extends MenuTermsGrid {
 			valid = false;
 			Alerter.showAlert("Add failed.", e.getMessage());
 		}
-		if(valid) {	
-			collectionService.createPart(collection.getId(), collection.getSecret(), 
+		if(valid) {
+			collectionService.createSubclass(collection.getId(), collection.getSecret(), 
 					row.getLeadTerm(), new LinkedList<Term>(), new AsyncCallback<List<GwtEvent<?>>>() {
 				@Override
 				public void onFailure(Throwable caught) {
@@ -157,7 +147,7 @@ public class PartsGrid extends MenuTermsGrid {
 		}
 		if(valid) {
 			for(final Row row : rows)
-				collectionService.createPart(collection.getId(), collection.getSecret(), 
+				collectionService.createSubclass(collection.getId(), collection.getSecret(), 
 						row.getLeadTerm(), row.getAttachedTerms(), new AsyncCallback<List<GwtEvent<?>>>() {
 					@Override
 					public void onFailure(Throwable caught) {
@@ -182,7 +172,7 @@ public class PartsGrid extends MenuTermsGrid {
 		}
 		if(valid) {
 			for(final Row row : rows)
-				collectionService.removePart(collection.getId(), collection.getSecret(), 
+				collectionService.removeSubclass(collection.getId(), collection.getSecret(), 
 						row.getLeadTerm(), row.getAttachedTerms(), new AsyncCallback<List<GwtEvent<?>>>() {
 					@Override
 					public void onFailure(Throwable caught) {
@@ -195,7 +185,7 @@ public class PartsGrid extends MenuTermsGrid {
 				});
 		}
 	}
-
+	
 	@Override
 	protected void addAttachedTermsToRow(final Row row, List<Term> add) throws Exception {
 		boolean valid = true;
@@ -205,58 +195,24 @@ public class PartsGrid extends MenuTermsGrid {
 			valid = false;
 			Alerter.showAlert("Add failed.", e.getMessage());
 		}
-		
 		if(valid) {
-			for(final Term term : add) {
-				collectionService.hasParents(collection.getId(), collection.getSecret(), term, new AsyncCallback<Boolean>() {
-					@Override
-					public void onFailure(Throwable caught) {
-						caught.printStackTrace();
-					}
-					@Override
-					public void onSuccess(Boolean result) {
-						if(result) {
-							MessageBox box = Alerter.showYesNoCancelConfirm("Add part", "A part with the name: " + term.getDisambiguatedValue() + " already exists. "
-									+ "Does this term refer to the same concept?");
-							box.getButton(PredefinedButton.YES).addSelectHandler(new SelectHandler() {
-								@Override
-								public void onSelect(SelectEvent event) {
-									createPart(row.getLeadTerm(), term, row, false);
-								}
-							});
-							box.getButton(PredefinedButton.NO).addSelectHandler(new SelectHandler() {
-								@Override
-								public void onSelect(SelectEvent event) {
-									createPart(row.getLeadTerm(), term, row, true);
-								}
-							});
-						} else {
-							createPart(row.getLeadTerm(), term, row, false);
-						}
-					}
-				});
-			}
-			
+			collectionService.createSubclass(collection.getId(), collection.getSecret(), 
+					row.getLeadTerm(), add, new AsyncCallback<List<GwtEvent<?>>>() {
+				@Override
+				public void onFailure(Throwable caught) {
+					// TODO Auto-generated method stub
+				}
+				@Override
+				public void onSuccess(List<GwtEvent<?>> result) {
+					fireEvents(result, row);
+				}
+			});
 		}
 	}
-		
-	private void createPart(Term partent, Term part, final Row row, boolean disambiguate) {
-		collectionService.createPart(collection.getId(), collection.getSecret(), 
-				partent, part, disambiguate, new AsyncCallback<List<GwtEvent<?>>>() {
-			@Override
-			public void onFailure(Throwable caught) {
-				//TODO
-			}
-			@Override
-			public void onSuccess(List<GwtEvent<?>> result) {
-				fireEvents(result, row);
-			}
-		});
-	}
-
+	
 	@Override
 	protected void removeAttachedTermsFromRow(final Row row, List<Term> terms) {
-		collectionService.removePart(collection.getId(), collection.getSecret(), 
+		collectionService.removeSubclass(collection.getId(), collection.getSecret(), 
 				row.getLeadTerm(), terms, new AsyncCallback<List<GwtEvent<?>>>() {
 			@Override
 			public void onFailure(Throwable caught) {
@@ -268,6 +224,16 @@ public class PartsGrid extends MenuTermsGrid {
 			}
 		});
 	}
+	
+	private void validAddRow(Row row, List<Row> existingRows) throws Exception {
+		//circular relationship
+		/*if(row.hasAttachedTerms()) {
+			Map<String, Set<Row>> leadTermRowMap = this.createLeadTermRowMap();
+			for(Term addTerm : row.getAttachedTerms()) 
+				if(createsCircularRelationship(row.getLeadTerm(), addTerm, leadTermRowMap))
+					throw new Exception("Adding superclass to subclass creates a circular relationship. Not allowed.");
+		}*/
+	}
 
 	private void validateRemove(Collection<Row> rows) throws Exception {
 		for(Row row : rows) {
@@ -276,16 +242,6 @@ public class PartsGrid extends MenuTermsGrid {
 			}
 		}
 	}
-	
-	private void validAddRow(Row row, List<Row> existingRows) throws Exception {
-		//circular relationship
-		/*if(row.hasAttachedTerms()) {
-			Map<String, Set<Row>> leadTermRowMap = createLeadTermRowMap();
-			for(Term addTerm : row.getAttachedTerms()) 
-				if(createsCircularRelationship(row.getLeadTerm(), addTerm, leadTermRowMap))
-					throw new Exception("Adding part to parent creates a circular relationship. Not allowed.");
-		}*/
-	}
 
 	private void validSetRows(List<Row> rows) throws Exception {
 		List<Row> hypotheticRows = new LinkedList<Row>();
@@ -293,59 +249,51 @@ public class PartsGrid extends MenuTermsGrid {
 			validAddRow(row, hypotheticRows);
 			hypotheticRows.add(row);
 		}
-	}	
-
+	}
+		
 	private void validAddTermsToRow(Row row, List<Term> add) throws Exception { 
-		//duplicate parts in same parent
+		//duplicate superclasses in same subclass
 		Term parentTerm = row.getLeadTerm();
-		Set<String> existingParts = new HashSet<String>();
+		Set<String> existingSuperclasses = new HashSet<String>();
 		for(Row storeRow : store.getAll()) {
 			if(storeRow.getLeadTerm().equals(parentTerm)) {
-				for(Term attachedTerm : storeRow.getAttachedTerms())
-					existingParts.add(attachedTerm.getDisambiguatedValue());
+				for(Term term : storeRow.getAttachedTerms())
+					existingSuperclasses.add(term.getDisambiguatedValue());
 			}
 		}
 		for(Term addTerm : add) {
-			if(existingParts.contains(addTerm.getDisambiguatedValue())) {
-				throw new Exception("Part is already defined as part of this parent");
+			if(existingSuperclasses.contains(addTerm)) {
+				throw new Exception("Superclass is already defined as superclass of this subclass");
 			}
-			existingParts.add(addTerm.getDisambiguatedValue());
-		}
-		
-		//already disambiguated part cannot have multiple parents
-		for(Term addTerm : add) {
-			if(addTerm.hasPartDisambiguator() && !this.getAttachedTermsRows(addTerm, true).isEmpty()) {
-				throw new Exception("Disambiguated part is already defined as part of another parent");
-			}
+			existingSuperclasses.add(addTerm.getDisambiguatedValue());
 		}
 		
 		//circular relationship
 		Map<String, Set<Row>> leadTermRowMap = createLeadTermRowMap();
+		
 		for(Term addTerm : add) 
 			if(createsCircularRelationship(row.getLeadTerm(), addTerm, leadTermRowMap))
-				throw new Exception("Adding part to parent creates a circular relationship. Not allowed.");
+				throw new Exception("Adding superclass to subclass creates a circular relationship. Not allowed.");
 	}
-	
+
 	private Map<String, Set<Row>> createLeadTermRowMap() {
 		Map<String, Set<Row>> leadTermRowMap = new HashMap<String, Set<Row>>();
-		Map<String, Set<String>> subclassToSuperclassMap = new HashMap<String, Set<String>>();
+		Map<String, Set<String>> superclassToSubclassMap = new HashMap<String, Set<String>>();
 		for(Row storeRow : this.getAll()) {
 			if(!leadTermRowMap.containsKey(storeRow.getLeadTerm().getDisambiguatedValue()))
 				leadTermRowMap.put(storeRow.getLeadTerm().getDisambiguatedValue(), new HashSet<Row>());
 			leadTermRowMap.get(storeRow.getLeadTerm().getDisambiguatedValue()).add(storeRow);
 			
-			for(Term subclass : storeRow.getAttachedTerms()) {
-				if(!subclassToSuperclassMap.containsKey(subclass.getDisambiguatedValue()))
-					subclassToSuperclassMap.put(subclass.getDisambiguatedValue(), new HashSet<String>());
-				subclassToSuperclassMap.get(subclass.getDisambiguatedValue()).add(storeRow.getLeadTerm().getDisambiguatedValue());
+			for(Term superclass : storeRow.getAttachedTerms()) {
+				if(!superclassToSubclassMap.containsKey(superclass.getDisambiguatedValue()))
+					superclassToSubclassMap.put(superclass.getDisambiguatedValue(), new HashSet<String>());
+				superclassToSubclassMap.get(superclass.getDisambiguatedValue()).add(storeRow.getLeadTerm().getDisambiguatedValue());
 			}
 		}
 		return leadTermRowMap;
 	}
 
 	private boolean createsCircularRelationship(Term to, Term from, Map<String, Set<Row>> leadTermRowMap) {
-		if(to.getDisambiguatedValue().equals(from.getDisambiguatedValue()))
-			return true;
 		if(leadTermRowMap.containsKey(from.getDisambiguatedValue())) {
 			for(Row row : leadTermRowMap.get(from.getDisambiguatedValue())) {
 				for(Term attachedTerm : row.getAttachedTerms()) {

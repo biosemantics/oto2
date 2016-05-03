@@ -1,15 +1,30 @@
 package edu.arizona.biosemantics.oto2.ontologize2.client.relations;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import com.google.gwt.core.shared.GWT;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.event.shared.GwtEvent;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.sencha.gxt.core.client.ValueProvider;
 
 import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
-import edu.arizona.biosemantics.oto2.ontologize2.client.event.AddSynonymEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreatePartEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateSynonymEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.HasRowId;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.LoadCollectionEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemovePartEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveSynonymEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid.Row;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.ICollectionService;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.ICollectionServiceAsync;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Term;
 
 public class SynonymsGrid extends MenuTermsGrid {
@@ -17,17 +32,17 @@ public class SynonymsGrid extends MenuTermsGrid {
 	//allowed: duplicates of preferred terms: can be consolidated
 	//not allowed: same synonym term for different preferred terms
 	//not allowed: a term that's preferred term and synonym anywhere at the same time
-	private Set<Term> synonymTerms = new HashSet<Term>();
-	private Set<Term> preferredTerms = new HashSet<Term>();
-	private EventBus eventBus;
+	private edu.arizona.biosemantics.oto2.ontologize2.shared.model.Collection collection;
+	private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
+	
+	private Map<String, Integer> synonymTerms = new HashMap<String, Integer>();
+	private Map<String, Integer> preferredTerms = new HashMap<String, Integer>();
 	
 	public SynonymsGrid(EventBus eventBus) {
-		super("synonym", "preferred term", "synonym", new ValueProvider<Term, String>() {
+		super(eventBus, "synonym", "preferred term", "synonym", new ValueProvider<Term, String>() {
 			@Override 
 			public String getValue(Term object) {
-				if(object.hasDisambiguator())
-					return object.getDisambiguator() + " " + object.getValue();
-				return object.getValue();
+				return object.getDisambiguatedValue();
 			}
 			@Override
 			public void setValue(Term object, String value) { }
@@ -36,82 +51,167 @@ public class SynonymsGrid extends MenuTermsGrid {
 				return "synonym-term";
 			}
 		});
-		this.eventBus = eventBus;
+	}
+	
+	private void addPreferredTerm(Term term, Map<String, Integer> preferredTerms) {
+		if(!preferredTerms.containsKey(term.getDisambiguatedValue()))
+			preferredTerms.put(term.getDisambiguatedValue(), 0);
+		preferredTerms.put(term.getDisambiguatedValue(), preferredTerms.get(term.getDisambiguatedValue()) + 1);
+	}
+	
+	private void addSynonyms(List<Term> terms, Map<String, Integer> synonymTerms) {
+		for(Term term : terms)
+			addSynonym(term, synonymTerms);
+	}
+	
+	private void addSynonym(Term term, Map<String, Integer> synonymTerms) {
+		if(!synonymTerms.containsKey(term.getDisambiguatedValue()))
+			synonymTerms.put(term.getDisambiguatedValue(), 0);
+		synonymTerms.put(term.getDisambiguatedValue(), synonymTerms.get(term.getDisambiguatedValue()) + 1);
+	}
+	
+	private void removePreferredTerm(Term term, Map<String, Integer> preferredTerms) {
+		if(!preferredTerms.containsKey(term.getDisambiguatedValue()))
+			return;
+		int count = preferredTerms.get(term.getDisambiguatedValue()) - 1;
+		if(count <= 0)
+			preferredTerms.remove(term.getDisambiguatedValue());
+		else
+			preferredTerms.put(term.getDisambiguatedValue(), count);
+	}
+	
+	private void removeSynonyms(Term[] terms, Map<String, Integer> synonymTerms) {
+		for(Term term : terms)
+			removeSynonym(term, synonymTerms);
+	}
+	
+	private void removeSynonym(Term term, Map<String, Integer> synonymTerms) {
+		if(!synonymTerms.containsKey(term.getDisambiguatedValue()))
+			return;
+		int count = synonymTerms.get(term.getDisambiguatedValue()) - 1;
+		if(count <= 0)
+			synonymTerms.remove(term.getDisambiguatedValue());
+		else
+			synonymTerms.put(term.getDisambiguatedValue(), count);
 	}
 	
 	@Override
-	protected void addAttachedTermsToRow(Row row, List<Term> add) throws Exception {
-		boolean valid = true;
-		try { 
-			validAddTermsToRow(row, add);
-		} catch(Exception e) {
-			valid = false;
-			Alerter.showAlert("Add failed.", e.getMessage());
-		}
-		if(valid) {
-			super.addAttachedTermsToRow(row, add);	
-			synonymTerms.addAll(add);
-			eventBus.fireEvent(new AddSynonymEvent(row.getLeadTerm(), add));
-		}
+	public void bindEvents() {
+		super.bindEvents();
+		
+		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
+			@Override
+			public void onLoad(LoadCollectionEvent event) {
+				collection = event.getCollection();
+				store.clear();
+				for(String preferred : collection.getSynonyms().keySet()) {
+					Term preferredTerm = collection.getTerm(preferred);
+					eventBus.fireEvent(new CreateSynonymEvent(preferredTerm, collection.getSynonyms(preferredTerm)));
+				}
+			}
+		}); 
+		eventBus.addHandler(CreateSynonymEvent.TYPE, new CreateSynonymEvent.Handler() {
+			@Override
+			public void onCreate(CreateSynonymEvent event) {
+				List<Row> rows = SynonymsGrid.this.getLeadTermsRows(event.getPreferredTerm(), true);
+				Row row = null;
+				if(event.hasRowId()) 
+					row = getRowWithId(rows, event.getRowId()); 
+				else {
+					row = new Row(event.getPreferredTerm());
+					SynonymsGrid.super.addRow(row);
+				}
+				if(row != null)
+					try {
+						addPreferredTerm(event.getPreferredTerm(), preferredTerms);
+						addSynonyms(Arrays.asList(event.getSynonyms()), synonymTerms);
+						SynonymsGrid.super.addAttachedTermsToRow(row, Arrays.asList(event.getSynonyms()));
+					} catch (Exception e) {
+						Alerter.showAlert("Create Synonym", "Create synonym failed");
+					}
+			}
+		});
+		eventBus.addHandler(RemoveSynonymEvent.TYPE, new RemoveSynonymEvent.Handler() {
+			@Override
+			public void onRemove(RemoveSynonymEvent event) {
+				List<Row> rows = SynonymsGrid.this.getLeadTermsRows(event.getPreferredTerm(), true);
+				if(event.hasRowId()) {
+					rows = new LinkedList<Row>();
+					Row idRow = getRowWithId(rows, event.getRowId());
+					if(idRow != null) {
+						rows.add(idRow);
+					}
+				}
+				if(!rows.isEmpty()) {
+					if(!event.hasSynonyms()) {
+						removePreferredTerm(event.getPreferredTerm(), preferredTerms);
+						SynonymsGrid.super.removeRows(rows);
+					} else {
+						try {
+							removeSynonyms(event.getSynonyms(), synonymTerms);
+							SynonymsGrid.super.removeAttachedTermsFromRows(rows, Arrays.asList(event.getSynonyms()));
+						} catch (Exception e) {
+							Alerter.showAlert("Remove Synonym", "Remove synonym failed");
+						}
+					}
+				}
+					
+			}
+		});
 	}
 	
-	private void validAddTermsToRow(Row row, List<Term> add) throws Exception { 
-		for(Term term : add) {
-			if(synonymTerms.contains(term))
-				throw new Exception("Synonym term is already defined as a synonym of another term.");
-			if(preferredTerms.contains(term))
-				throw new Exception("Synonym term is already defined as a preferred term");
-		}
-	}
-
 	@Override
 	protected void addRow(Row row) {
 		boolean valid = true;
 		try { 
-			validAddRow(row, this.preferredTerms, this.synonymTerms);
+			validAddRow(row.getLeadTerm(), this.preferredTerms, this.synonymTerms);
 		} catch(Exception e) {
 			valid = false;
 			Alerter.showAlert("Add failed.", e.getMessage());
 		}
 		if(valid) {
-			super.addRow(row);	
-			this.preferredTerms.add(row.getLeadTerm());
-			this.synonymTerms.addAll(row.getAttachedTerms());
-		}
-	}
-	
-	protected void validAddRow(Row row, Set<Term> preferredTerms, Set<Term> synonymTerms) throws Exception {
-		if(synonymTerms.contains(row.getLeadTerm()))
-			throw new Exception("Preferred term is already defined as a synonym of another term.");
-		for(Term term : row.getAttachedTerms()) {
-			if(synonymTerms.contains(term))
-				throw new Exception("Synonym term is already defined as a synonym of another term.");
-			if(preferredTerms.contains(term))
-				throw new Exception("Synonym term is already defined as a preferred term");
+			collectionService.createSynonym(collection.getId(), collection.getSecret(), 
+					row.getLeadTerm(), new LinkedList<Term>(), new AsyncCallback<List<GwtEvent<?>>>() {
+				@Override
+				public void onFailure(Throwable caught) {
+					
+				}
+				@Override
+				public void onSuccess(List<GwtEvent<?>> result) {
+					fireEvents(result, null);
+				}
+			});
 		}
 	}
 	
 	@Override
 	protected void setRows(List<Row> rows) {
 		boolean valid = true;
-		Set<Term> preferredTerms = new HashSet<Term>();
-		Set<Term> synonymTerms = new HashSet<Term>();
 		try { 
-			validSetRows(rows, preferredTerms, synonymTerms);
+			validSetRows(rows);
 		} catch(Exception e) {
 			valid = false;
 			Alerter.showAlert("Add failed.", e.getMessage());
 		}
 		
 		if(valid) {
-			super.setRows(rows);	
-			this.preferredTerms = preferredTerms;
-			this.synonymTerms = synonymTerms;
+			for(final Row row : rows)
+				collectionService.createSubclass(collection.getId(), collection.getSecret(), 
+						row.getLeadTerm(), row.getAttachedTerms(), new AsyncCallback<List<GwtEvent<?>>>() {
+					@Override
+					public void onFailure(Throwable caught) {
+						
+					}
+					@Override
+					public void onSuccess(List<GwtEvent<?>> result) {
+						fireEvents(result, row);
+					}
+				});
 		}
 	}
 	
 	@Override
-	public void remove(Collection<Row> rows) {
+	protected void removeRows(Collection<Row> rows) {
 		boolean valid = true;
 		try { 
 			validateRemove(rows);
@@ -120,45 +220,98 @@ public class SynonymsGrid extends MenuTermsGrid {
 			Alerter.showAlert("Add failed.", e.getMessage());
 		}
 		if(valid) {
-			super.remove(rows);
-			initializePreferredAndSynonymTerms();
+			for(final Row row : rows)
+				collectionService.removeSubclass(collection.getId(), collection.getSecret(), 
+						row.getLeadTerm(), row.getAttachedTerms(), new AsyncCallback<List<GwtEvent<?>>>() {
+					@Override
+					public void onFailure(Throwable caught) {
+						
+					}
+					@Override
+					public void onSuccess(List<GwtEvent<?>> result) {
+						fireEvents(result, row);
+					}
+				});
 		}
 	}
-
-	private void initializePreferredAndSynonymTerms() {
-		this.preferredTerms = new HashSet<Term>();
-		this.synonymTerms = new HashSet<Term>();
-		for(Row row : store.getAll()) {
-			preferredTerms.add(row.getLeadTerm());
-			synonymTerms.addAll(row.getAttachedTerms());
+	
+	@Override
+	protected void addAttachedTermsToRow(final Row row, List<Term> add) throws Exception {
+		boolean valid = true;
+		try { 
+			validAddTermsToRow(row, add, preferredTerms, synonymTerms);
+		} catch(Exception e) {
+			valid = false;
+			Alerter.showAlert("Add failed.", e.getMessage());
+		}
+		if(valid) {
+			collectionService.createSynonym(collection.getId(), collection.getSecret(), 
+					row.getLeadTerm(), add, new AsyncCallback<List<GwtEvent<?>>>() {
+				@Override
+				public void onFailure(Throwable caught) {
+					// TODO Auto-generated method stub
+				}
+				@Override
+				public void onSuccess(List<GwtEvent<?>> result) {
+					fireEvents(result, row);
+				}
+			});
+			
 		}
 	}
-
+	
+	@Override
+	protected void removeAttachedTermsFromRow(final Row row, List<Term> terms) {
+		collectionService.removeSynonym(collection.getId(), collection.getSecret(), 
+				row.getLeadTerm(), terms, new AsyncCallback<List<GwtEvent<?>>>() {
+			@Override
+			public void onFailure(Throwable caught) {
+				
+			}
+			@Override
+			public void onSuccess(List<GwtEvent<?>> result) {
+				fireEvents(result, row);
+			}
+		});
+	}
+	
+	private void validAddTermsToRow(Row row, List<Term> add, Map<String, Integer> preferredTerms, Map<String, Integer> synonymTerms) throws Exception { 
+		for(Term term : add) {
+			if(synonymTerms.containsKey(term.getDisambiguatedValue()))
+				throw new Exception("Synonym term is already defined as a synonym of another term.");
+			if(preferredTerms.containsKey(term.getDisambiguatedValue()))
+				throw new Exception("Synonym term is already defined as a preferred term");
+		}
+	}
+	
+	private void validAddRow(Term preferredTerm, Map<String, Integer> preferredTerms, Map<String, Integer> synonymTerms) throws Exception {
+		if(synonymTerms.containsKey(preferredTerm.getDisambiguatedValue()))
+			throw new Exception("Preferred term is already defined as a synonym of another term.");
+		/*for(Term term : row.getAttachedTerms()) {
+			if(synonymTerms.contains(term))
+				throw new Exception("Synonym term is already defined as a synonym of another term.");
+			if(preferredTerms.contains(term))
+				throw new Exception("Synonym term is already defined as a preferred term");
+		}*/
+	}
+	
+	private void validSetRows(List<Row> rows) throws Exception {
+		Map<String, Integer> preferredTerms = new HashMap<String, Integer>();
+		Map<String, Integer> synonymTerms = new HashMap<String, Integer>();
+		for(Row row : rows) {
+			validAddRow(row.getLeadTerm(), preferredTerms, synonymTerms);
+			Row hypotheticRow = new Row(row.getLeadTerm());
+			this.addPreferredTerm(row.getLeadTerm(), preferredTerms);
+			validAddTermsToRow(hypotheticRow, row.getAttachedTerms(), preferredTerms, synonymTerms);
+			this.addSynonyms(row.getAttachedTerms(), synonymTerms);
+		}
+	}
+	
 	private void validateRemove(Collection<Row> rows) throws Exception {
 		for(Row row : rows) {
 			if(store.findModel(row) == null) {
 				throw new Exception("Row does not exist");
 			}
 		}
-	}
-
-	private void validSetRows(List<Row> rows, Set<Term> preferredTerms2, Set<Term> synonymTerms2) throws Exception {
-		for(Row row : rows) {
-			validAddRow(row, preferredTerms, synonymTerms);
-			preferredTerms.add(row.getLeadTerm());
-			synonymTerms.addAll(row.getAttachedTerms());
-		}
-	}
-		
-	@Override
-	public void consolidate() {
-		super.consolidate();
-		//does store manipulation, but preferred terms set and synonymterms set should stay the same
-	}
-	
-	@Override
-	protected void updateRow(Row row) {
-		super.updateRow(row);
-		//does store manipulation, but preferred terms set and synonymterms set should stay the same
 	}
 }

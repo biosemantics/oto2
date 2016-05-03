@@ -1,74 +1,50 @@
 package edu.arizona.biosemantics.oto2.ontologize2.shared.model;
 
-public class Term {
+import java.io.Serializable;
+import java.util.UUID;
 
-	protected String value;
-	protected String disambiguator = "";
-	protected String iri;
-	protected String buckets;
+public class Term implements Serializable {
+
+	private String value;
+	private String partDisambiguator;
+	private String classDisambiguator;
+	
+	private Term() { }
 	
 	public Term(String value) {
 		this.value = value;
+		this.partDisambiguator = "";
+		this.classDisambiguator = "";
 	}
 	
-	public Term(String value, String disambiguator) {
+	public Term(String value, String partDisambiguator, String classDisambiguator) {
 		this.value = value;
-		this.disambiguator = disambiguator;
+		this.partDisambiguator = partDisambiguator;
+		this.classDisambiguator = classDisambiguator;
 	}
 	
-	public Term(String value, String iri, String buckets) {
-		this(value);
-		this.iri = iri;
-		this.buckets = buckets;
+	public String getPartDisambiguator() {
+		return partDisambiguator;
 	}
 
-	public Term(String value, String disambiguator, String iri, String buckets) {
-		this(value, disambiguator);
-		this.iri = iri;
-		this.buckets = buckets;
-	}
-		
-	public String getDisambiguator() {
-		return disambiguator;
-	}
-
-	public void setDisambiguator(String disambiguator) {
-		if(disambiguator == null)
-			disambiguator = "";
-		this.disambiguator = disambiguator.trim();
+	public String getClassDisambiguator() {
+		return classDisambiguator;
 	}
 
 	public String getDisambiguatedValue() {
-		return (disambiguator + " " + value).trim();
+		String result = value;
+		if(this.hasPartDisambiguator())
+			result = this.partDisambiguator + " " + result;
+		if(this.hasClassDisambiguator())
+			result = result + " (" + this.classDisambiguator + ")";
+		return result;
 	}
 
 	public String getValue() {
 		return value;
 	}
 
-	public void setValue(String value) {
-		this.value = value.trim();
-	}
-
-	public String getIri() {
-		return iri;
-	}
-
-	public void setIri(String iri) {
-		this.iri = iri;
-	}
-
-	public String getBuckets() {
-		return buckets;
-	}
-
-	public void setBuckets(String buckets) {
-		this.buckets = buckets;
-	}
-	
-	
-
-	@Override
+	/*@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
@@ -91,29 +67,19 @@ public class Term {
 		} else if (!this.getDisambiguatedValue().equals(other.getDisambiguatedValue()))
 			return false;
 		return true;
-	}
+	}*/
 
 	@Override
 	public String toString() {
 		return this.getDisambiguatedValue();
 	}
 
-	public boolean hasDisambiguator() {
-		return this.disambiguator != null && !this.disambiguator.isEmpty();
+	public boolean hasPartDisambiguator() {
+		return partDisambiguator != null && !partDisambiguator.isEmpty();
 	}
 	
-	public Term clone(boolean cloneIri) {
-		Term clone = new Term(this.value);
-		clone.disambiguator = this.disambiguator;
-		if(cloneIri)
-			clone.iri = this.iri;
-		clone.buckets = this.buckets;
-		return clone;
+	public boolean hasClassDisambiguator() {
+		return classDisambiguator != null && !classDisambiguator.isEmpty();
 	}
-
-	public void addDisambiguator(String prepend) {
-		this.disambiguator = (prepend + " " + this.disambiguator).trim();
-	}
-		
 }
 

@@ -7,32 +7,32 @@ import java.util.List;
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
 
-import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveSynonymEvent.Handler;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveSubclassEvent.Handler;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Term;
 
-public class RemoveSynonymEvent extends GwtEvent<Handler> implements HasRowId, Serializable {
+public class RemoveSubclassEvent extends GwtEvent<Handler> implements HasRowId, Serializable {
 
 	public interface Handler extends EventHandler {
-		void onRemove(RemoveSynonymEvent event);
+		void onRemove(RemoveSubclassEvent event);
 	}
 	
     public static Type<Handler> TYPE = new Type<Handler>();
-	private Term preferredTerm;
-	private Term[] synonyms = new Term[] { };
+	private Term superclass;
+	private Term[] subclasses = new Term[] { };
 	private int rowId = -1;
 
-	private RemoveSynonymEvent() { }
+	private RemoveSubclassEvent() { }
 
-    public RemoveSynonymEvent(Term preferredTerm, Term... synonyms) {
-    	this.preferredTerm = preferredTerm;
-    	this.synonyms = synonyms;
+    public RemoveSubclassEvent(Term superclass, Term... subclasses) {
+    	this.superclass = superclass;
+    	this.subclasses = subclasses;
     }
     
-	public RemoveSynonymEvent(Term preferredTerm, List<Term> synonyms) {
-		this.preferredTerm = preferredTerm;
-		this.synonyms = synonyms.toArray(this.synonyms);
+	public RemoveSubclassEvent(Term superclass, List<Term> subclasses) {
+		this.superclass = superclass;
+		this.subclasses = subclasses.toArray(this.subclasses);
 	}
-    
+
 	@Override
 	public Type<Handler> getAssociatedType() {
 		return TYPE;
@@ -43,12 +43,12 @@ public class RemoveSynonymEvent extends GwtEvent<Handler> implements HasRowId, S
 		handler.onRemove(this);
 	}
 
-	public Term getPreferredTerm() {
-		return preferredTerm;
+	public Term getSuperclass() {
+		return superclass;
 	}
 
-	public Term[] getSynonyms() {
-		return synonyms;
+	public Term[] getSubclasses() {
+		return subclasses;
 	}
 	
 	@Override
@@ -64,9 +64,10 @@ public class RemoveSynonymEvent extends GwtEvent<Handler> implements HasRowId, S
 	@Override
 	public boolean hasRowId() {
 		return rowId != -1;
+	}
+
+	public boolean hasSubclasses() {
+		return subclasses.length > 0;
 	}	
 	
-	public boolean hasSynonyms() {
-		return synonyms.length > 0;
-	}
 }
