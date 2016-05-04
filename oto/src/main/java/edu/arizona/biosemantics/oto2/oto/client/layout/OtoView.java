@@ -235,7 +235,7 @@ public class OtoView extends SimpleLayoutPanel {
 			termInfoView = new TermInfoView(eventBus);
 
 			ContentPanel cp = new ContentPanel();
-			cp.setHeadingText("Terms to be Categorized");
+			cp.setHeadingText("Terms");
 			cp.add(termsView);
 			BorderLayoutData d = new BorderLayoutData(.20);
 			// d.setMargins(new Margins(0, 1, 1, 1));

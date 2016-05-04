@@ -77,7 +77,7 @@ public class LabelMenu extends Menu implements BeforeShowHandler {
 				MessageBox confirmBox = new MessageBox("Remove Category", 
 						"Category " + labelPortlet.getLabel().getName() + " contains " + 
 								labelPortlet.getLabel().getTerms().size() + " terms, do you "
-						+ "want to remove it and return the terms to 'Terms to be Categorized' panel?");
+						+ "want to remove it and leave the contained terms to be categorized?");
 				confirmBox.setPredefinedButtons(PredefinedButton.OK, PredefinedButton.CANCEL);
 				confirmBox.show();
 				confirmBox.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {

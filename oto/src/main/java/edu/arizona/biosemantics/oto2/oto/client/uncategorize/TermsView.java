@@ -390,9 +390,9 @@ public class TermsView extends TabPanel {
 		termTree.getElement().setAttribute("source", "termsview");
 		termTree.setContextMenu(new TermMenu());
 		
-		add(termTree, "Term Groups");
+		add(termTree, "Terms to be Categorized");
 		multipleCategoryTerms = new MultipleCategoryTerms(eventBus);
-		add(multipleCategoryTerms, "Multiple Categories Terms");
+		add(multipleCategoryTerms, "Terms with Multiple Categories");
 		//add(listView, "list");
 		
 		bindEvents();
@@ -645,7 +645,7 @@ public class TermsView extends TabPanel {
 		treeStore.clear();
 		listStore.clear();
 		
-		trashBucket = new Bucket("Trash");
+		trashBucket = new Bucket("Not useful terms");
 		trashTreeNode = new BucketTreeNode(trashBucket);
 		bucketBucketTreeNodeMap.put(trashBucket, trashTreeNode);
 		treeStore.add(trashTreeNode);

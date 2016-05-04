@@ -173,7 +173,7 @@ public class LabelPortlet extends Portlet {
 		//VerticalLayoutContainer vlc = new VerticalLayoutContainer();
 		int dropZoneHeight = 30;
 		SimpleContainer dropzoneContainer = new SimpleContainer();
-		dropzoneContainer.setTitle("Drop here to categorize");
+		dropzoneContainer.setTitle("Drop terms here to categorize");
 		com.google.gwt.user.client.ui.Label dropLabel = new com.google.gwt.user.client.ui.Label("");//("Drop here to categorize");
 		dropLabel.getElement().getStyle().setVerticalAlign(VerticalAlign.MIDDLE);
 		dropLabel.getElement().getStyle().setTextAlign(TextAlign.CENTER);
