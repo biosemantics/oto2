@@ -15,6 +15,7 @@ import com.sencha.gxt.data.shared.SortDir;
 import com.sencha.gxt.data.shared.Store.StoreSortInfo;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.Dialog;
+import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
 import com.sencha.gxt.widget.core.client.box.ConfirmMessageBox;
 import com.sencha.gxt.widget.core.client.box.MessageBox;
 import com.sencha.gxt.widget.core.client.container.BorderLayoutContainer;
@@ -22,6 +23,8 @@ import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
 import com.sencha.gxt.widget.core.client.event.DialogHideEvent;
 import com.sencha.gxt.widget.core.client.event.DialogHideEvent.DialogHideHandler;
+import com.sencha.gxt.widget.core.client.event.SelectEvent;
+import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.form.ComboBox;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuBar;
@@ -79,9 +82,9 @@ public class OtoView extends SimpleLayoutPanel {
 				public void onSelection(SelectionEvent<Item> event) {
 					ConfirmMessageBox box = new ConfirmMessageBox("Remove categorizations", "" +
 							"This will uncategorize all terms irreversibly. Are you sure you want to continue?");
-					box.addDialogHideHandler(new DialogHideHandler() {
+					box.getButton(PredefinedButton.YES).addSelectHandler(new SelectHandler() {
 						@Override
-						public void onDialogHide(DialogHideEvent event) {
+						public void onSelect(SelectEvent event) {
 							final MessageBox box = Alerter.startLoading();
 							collectionService.reset(collection, true, new AsyncCallback<Collection>() {
 								@Override
@@ -96,7 +99,7 @@ public class OtoView extends SimpleLayoutPanel {
 								}
 							});
 						}
-			        });
+					});
 			        box.show();
 				}
 			});
@@ -105,9 +108,9 @@ public class OtoView extends SimpleLayoutPanel {
 				public void onSelection(SelectionEvent<Item> event) {
 					ConfirmMessageBox box = new ConfirmMessageBox("Remove users' categorizations", "" +
 							"This will remove all user provided categorizations on all terms in this set. Are you sure you want to continue?");
-					box.addDialogHideHandler(new DialogHideHandler() {
+					box.getButton(PredefinedButton.YES).addSelectHandler(new SelectHandler() {
 						@Override
-						public void onDialogHide(DialogHideEvent event) {
+						public void onSelect(SelectEvent event) {
 							final MessageBox box = Alerter.startLoading();
 							collectionService.reset(collection, false, new AsyncCallback<Collection>() {
 								@Override
@@ -122,7 +125,7 @@ public class OtoView extends SimpleLayoutPanel {
 								}
 							});
 						}
-			        });
+					});
 					box.show();
 				}
 			});
