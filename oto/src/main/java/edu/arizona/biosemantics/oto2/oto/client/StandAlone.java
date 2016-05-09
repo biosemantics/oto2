@@ -21,8 +21,9 @@ public class StandAlone implements EntryPoint {
 	ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
 	
 	public void onModuleLoad() {
-		int collectionId = 26;
+		int collectionId = 1;
 		String secret = "30";
+				
 		final Oto oto = new Oto();
 		oto.setUser("Standalone user");
 		oto.getEventBus().addHandler(DownloadEvent.TYPE, new DownloadEvent.DownloadHandler() {
@@ -36,6 +37,9 @@ public class StandAlone implements EntryPoint {
 		RootPanel.get().add(v);
 		
 		try {			
+			collectionId = Integer.parseInt(Location.getParameter("id"));
+			secret = Location.getParameter("secret");
+			
 			collectionService.get(collectionId, secret, new AsyncCallback<Collection>() {
 				@Override
 				public void onFailure(Throwable caught) {
@@ -45,7 +49,6 @@ public class StandAlone implements EntryPoint {
 				public void onSuccess(Collection result) {
 					oto.getEventBus().fireEvent(new LoadEvent(result, false));
 				}
-				
 			});
 		} catch(Throwable t) {
 			Alerter.alertCouldNotBeLoaded(t, collectionId, secret);
