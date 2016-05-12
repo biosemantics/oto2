@@ -2,6 +2,7 @@ package edu.arizona.biosemantics.oto2.oto.server.rpc;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -12,6 +13,7 @@ import com.google.inject.Inject;
 import edu.arizona.biosemantics.oto2.oto.server.db.DAOManager;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Collection;
 import edu.arizona.biosemantics.common.context.shared.Context;
+import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.oto.shared.model.Term;
 import edu.arizona.biosemantics.oto2.oto.shared.model.TypedContext;
 import edu.arizona.biosemantics.oto2.oto.shared.rpc.IContextService;
@@ -26,8 +28,13 @@ public class ContextService extends RemoteServiceServlet implements IContextServ
 	}
 	
 	@Override
-	public List<TypedContext> getContexts(Collection collection, Term term) throws ParseException, IOException {
-		return daoManager.getContextDAO().get(collection, term);
+	public List<TypedContext> getContexts(Collection collection, Term term) {
+		try {
+			return daoManager.getContextDAO().get(collection, term);
+		} catch(Exception e) {
+			log(LogLevel.ERROR, "Can't get context", e);
+			return new LinkedList<TypedContext>();
+		}
 	}
 	
 	@Override
