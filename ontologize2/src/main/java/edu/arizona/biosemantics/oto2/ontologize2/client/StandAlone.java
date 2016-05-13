@@ -80,7 +80,7 @@ public class StandAlone implements EntryPoint {
 		Timer timer = new Timer() {
 			@Override
 			public void run() {
-				collectionService.get(1, "secret", new AsyncCallback<Collection>() {
+				collectionService.get(0, "secret", new AsyncCallback<Collection>() {
 					@Override
 					public void onFailure(Throwable caught) {
 						caught.printStackTrace();

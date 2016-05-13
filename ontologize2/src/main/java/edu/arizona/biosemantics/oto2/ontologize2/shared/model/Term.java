@@ -12,13 +12,14 @@ public class Term implements Serializable {
 	private Term() { }
 	
 	public Term(String value) {
+		this();
 		this.value = value;
 		this.partDisambiguator = "";
 		this.classDisambiguator = "";
 	}
 	
 	public Term(String value, String partDisambiguator, String classDisambiguator) {
-		this.value = value;
+		this(value);
 		this.partDisambiguator = partDisambiguator;
 		this.classDisambiguator = classDisambiguator;
 	}
@@ -44,31 +45,6 @@ public class Term implements Serializable {
 		return value;
 	}
 
-	/*@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((this.getDisambiguatedValue() == null) ? 0 : this.getDisambiguatedValue().hashCode());
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		Term other = (Term) obj;
-		if (this.getDisambiguatedValue() == null) {
-			if (other.getDisambiguatedValue() != null)
-				return false;
-		} else if (!this.getDisambiguatedValue().equals(other.getDisambiguatedValue()))
-			return false;
-		return true;
-	}*/
-
 	@Override
 	public String toString() {
 		return this.getDisambiguatedValue();
@@ -81,5 +57,31 @@ public class Term implements Serializable {
 	public boolean hasClassDisambiguator() {
 		return classDisambiguator != null && !classDisambiguator.isEmpty();
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((getDisambiguatedValue() == null) ? 0 : getDisambiguatedValue().hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Term other = (Term) obj;
+		if (getDisambiguatedValue() == null) {
+			if (other.getDisambiguatedValue() != null)
+				return false;
+		} else if (!getDisambiguatedValue().equals(other.getDisambiguatedValue()))
+			return false;
+		return true;
+	}
+	
 }
 

@@ -39,9 +39,24 @@ public class PartsGrid extends MenuTermsGrid {
 	//allowed: part of multiple parents: e.g. non-specific structure terms: apex can be part of leaf as well as trunk
 	//allowed: duplicates of preferred terms: can be consolidated
 	//not allowed: circular relationships
-	//not allowed: part cannot have multiple parents when it is already disambiguated. E.g. leaf, (leaf) leaflet; we cannot define: stem, (leaf) leaflet
-	// because (leaf) leaflet is already coupled with a leaf parent from which its disambiguator stems. Hence we can't ommit the leaf. leaf, (leaf) leaflet, stem, leaf; would be legal
 	//not allowed: duplicate parts in the same parent
+		
+	//not allowed: parts with different quantifiers for different parents. It just does not make sense for parts to have something like
+	// e.g. 
+	// stem, (stem) leaf
+	// fruit, (fruit) leaf
+	//allowed: parts with same quantifiers for different parents (duplicates). 
+	// e.g. 
+	// stem, apex
+	// leaf, apex
+	//allowed: duplicate parts 
+	
+	/**
+	 * obsolete:
+	 * //not allowed: part cannot have multiple parents when it is already disambiguated. E.g. leaf, (leaf) leaflet; we cannot define: stem, (leaf) leaflet
+	 * // because (leaf) leaflet is already coupled with a leaf parent from which its disambiguator stems. Hence we can't ommit the leaf. leaf, (leaf) leaflet, stem, leaf; would be legal
+	 */
+	
 	private edu.arizona.biosemantics.oto2.ontologize2.shared.model.Collection collection;
 	private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
 	
@@ -98,32 +113,49 @@ public class PartsGrid extends MenuTermsGrid {
 		eventBus.addHandler(RemovePartEvent.TYPE, new RemovePartEvent.Handler() {
 			@Override
 			public void onRemove(RemovePartEvent event) {
-				List<Row> rows = PartsGrid.this.getLeadTermsRows(event.getParent(), true);
-				if(event.hasRowId()) {
-					rows = new LinkedList<Row>();
-					Row idRow = getRowWithId(rows, event.getRowId());
-					if(idRow != null) {
-						rows.add(idRow);
+				//remove row
+				if(event.getParent() == null) {
+					for(Term part : event.getParts()) {
+						List<Row> rows = PartsGrid.this.getLeadTermsRows(part, true);
+						if(event.hasRowId()) {
+							Row idRow = getRowWithId(rows, event.getRowId());
+							if(idRow != null) {
+								rows = new LinkedList<Row>();
+								rows.add(idRow);
+							}
+						}
+						if(!rows.isEmpty()) {
+							try {
+								PartsGrid.super.removeRows(rows);
+							} catch (Exception e) {
+								Alerter.showAlert("Remove Part", "Remove part failed");
+							}
+						}
 					}
-				}
-				if(!rows.isEmpty()) {
-					if(!event.hasParts()) {
-						PartsGrid.super.removeRows(rows);
-					} else {
+				//remove attached terms
+				} else {
+					List<Row> rows = PartsGrid.this.getLeadTermsRows(event.getParent(), true);
+					if(event.hasRowId()) {
+						Row idRow = getRowWithId(rows, event.getRowId());
+						if(idRow != null) {
+							rows = new LinkedList<Row>();
+							rows.add(idRow);
+						}
+					}
+					if(!rows.isEmpty()) {
 						try {
 							PartsGrid.super.removeAttachedTermsFromRows(rows, Arrays.asList(event.getParts()));
 						} catch (Exception e) {
 							Alerter.showAlert("Remove Part", "Remove part failed");
 						}
 					}
-				}
-					
+				}					
 			}
 		});
 	}
 	
 	@Override
-	protected void addRow(Row row) {
+	public void addRow(final Row row) {
 		boolean valid = true;
 		try { 
 			//validAddRow(row, this.getAll());
@@ -132,22 +164,39 @@ public class PartsGrid extends MenuTermsGrid {
 			Alerter.showAlert("Add failed.", e.getMessage());
 		}
 		if(valid) {	
-			collectionService.createPart(collection.getId(), collection.getSecret(), 
-					row.getLeadTerm(), new LinkedList<Term>(), new AsyncCallback<List<GwtEvent<?>>>() {
-				@Override
-				public void onFailure(Throwable caught) {
-					
-				}
-				@Override
-				public void onSuccess(List<GwtEvent<?>> result) {
-					fireEvents(result, null);
-				}
-			});
+			doAddRow(row);
 		}
 	}
 	
+	private void doAddRow(final Row row) {
+		List<Term> parts = new LinkedList<Term>();
+		parts.add(row.getLeadTerm());
+		collectionService.createPart(collection.getId(), collection.getSecret(), 
+				null, parts, new AsyncCallback<List<GwtEvent<?>>>() {
+					@Override
+					public void onFailure(Throwable caught) {
+						
+					}
+					@Override
+					public void onSuccess(List<GwtEvent<?>> result) {
+						fireEvents(result, null);
+						collectionService.createPart(collection.getId(), collection.getSecret(), 
+								row.getLeadTerm(), row.getAttachedTerms(), new AsyncCallback<List<GwtEvent<?>>>() {
+							@Override
+							public void onFailure(Throwable caught) {
+								
+							}
+							@Override
+							public void onSuccess(List<GwtEvent<?>> result) {
+								fireEvents(result, null);
+							}
+						});
+					}
+		});
+	}
+
 	@Override
-	protected void setRows(List<Row> rows) {
+	public void setRows(List<Row> rows) {
 		boolean valid = true;
 		try { 
 			validSetRows(rows);
@@ -157,22 +206,12 @@ public class PartsGrid extends MenuTermsGrid {
 		}
 		if(valid) {
 			for(final Row row : rows)
-				collectionService.createPart(collection.getId(), collection.getSecret(), 
-						row.getLeadTerm(), row.getAttachedTerms(), new AsyncCallback<List<GwtEvent<?>>>() {
-					@Override
-					public void onFailure(Throwable caught) {
-						
-					}
-					@Override
-					public void onSuccess(List<GwtEvent<?>> result) {
-						fireEvents(result, row);
-					}
-				});
+				doAddRow(row);
 		}
 	}
 	
 	@Override
-	protected void removeRows(Collection<Row> rows) {
+	public void removeRows(Collection<Row> rows) {
 		boolean valid = true;
 		try { 
 			validateRemove(rows);
@@ -191,13 +230,26 @@ public class PartsGrid extends MenuTermsGrid {
 					@Override
 					public void onSuccess(List<GwtEvent<?>> result) {
 						fireEvents(result, row);
+						List<Term> parts = new LinkedList<Term>();
+						parts.add(row.getLeadTerm());
+						collectionService.removePart(collection.getId(), collection.getSecret(),
+								null, parts, new AsyncCallback<List<GwtEvent<?>>>() {
+									@Override
+									public void onFailure(Throwable caught) {
+										
+									}
+									@Override
+									public void onSuccess(List<GwtEvent<?>> result) {
+										fireEvents(result, row);
+									}
+						});
 					}
 				});
 		}
 	}
 
 	@Override
-	protected void addAttachedTermsToRow(final Row row, List<Term> add) throws Exception {
+	public void addAttachedTermsToRow(final Row row, List<Term> add) throws Exception {
 		boolean valid = true;
 		try { 
 			validAddTermsToRow(row, add);
@@ -208,16 +260,18 @@ public class PartsGrid extends MenuTermsGrid {
 		
 		if(valid) {
 			for(final Term term : add) {
-				collectionService.hasParents(collection.getId(), collection.getSecret(), term, new AsyncCallback<Boolean>() {
+				collectionService.getParents(collection.getId(), collection.getSecret(), term, new AsyncCallback<List<Term>>() {
 					@Override
 					public void onFailure(Throwable caught) {
 						caught.printStackTrace();
 					}
 					@Override
-					public void onSuccess(Boolean result) {
-						if(result) {
-							MessageBox box = Alerter.showYesNoCancelConfirm("Add part", "A part with the name: " + term.getDisambiguatedValue() + " already exists. "
-									+ "Does this term refer to the same concept?");
+					public void onSuccess(List<Term> result) {
+						if(!result.isEmpty()) {
+							MessageBox box = Alerter.showConfirm("Add part", 
+									"A part with the name: " + term.getDisambiguatedValue() + " already exists in " + result.size() + " parents: e.g. "
+										+ collapseTermsAsString(result) + ". "
+										+ "Proceed using this term?");
 							box.getButton(PredefinedButton.YES).addSelectHandler(new SelectHandler() {
 								@Override
 								public void onSelect(SelectEvent event) {
@@ -227,7 +281,7 @@ public class PartsGrid extends MenuTermsGrid {
 							box.getButton(PredefinedButton.NO).addSelectHandler(new SelectHandler() {
 								@Override
 								public void onSelect(SelectEvent event) {
-									createPart(row.getLeadTerm(), term, row, true);
+									//createPart(row.getLeadTerm(), term, row, true);
 								}
 							});
 						} else {
@@ -236,16 +290,16 @@ public class PartsGrid extends MenuTermsGrid {
 					}
 				});
 			}
-			
 		}
 	}
-		
-	private void createPart(Term partent, Term part, final Row row, boolean disambiguate) {
-		collectionService.createPart(collection.getId(), collection.getSecret(), 
-				partent, part, disambiguate, new AsyncCallback<List<GwtEvent<?>>>() {
+	
+	@Override
+	public void removeAttachedTermsFromRow(final Row row, List<Term> terms) {
+		collectionService.removePart(collection.getId(), collection.getSecret(), 
+				row.getLeadTerm(), terms, new AsyncCallback<List<GwtEvent<?>>>() {
 			@Override
 			public void onFailure(Throwable caught) {
-				//TODO
+				
 			}
 			@Override
 			public void onSuccess(List<GwtEvent<?>> result) {
@@ -253,14 +307,24 @@ public class PartsGrid extends MenuTermsGrid {
 			}
 		});
 	}
+		
+	private String collapseTermsAsString(List<Term> terms) {
+		String result = "";
+		int i = 0;
+		for(Term term : terms) {
+			result += term.getDisambiguatedValue() + ", ";
+			if(i > 5)
+				break;
+		}
+		return result.substring(0, result.length() - 2);
+	}
 
-	@Override
-	protected void removeAttachedTermsFromRow(final Row row, List<Term> terms) {
-		collectionService.removePart(collection.getId(), collection.getSecret(), 
-				row.getLeadTerm(), terms, new AsyncCallback<List<GwtEvent<?>>>() {
+	private void createPart(Term partent, Term part, final Row row, boolean disambiguate) {
+		collectionService.createPart(collection.getId(), collection.getSecret(), 
+				partent, part, disambiguate, new AsyncCallback<List<GwtEvent<?>>>() {
 			@Override
 			public void onFailure(Throwable caught) {
-				
+				//TODO
 			}
 			@Override
 			public void onSuccess(List<GwtEvent<?>> result) {

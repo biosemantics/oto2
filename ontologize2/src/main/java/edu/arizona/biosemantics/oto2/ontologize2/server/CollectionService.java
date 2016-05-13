@@ -154,13 +154,14 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	public List<GwtEvent<?>> createPart(int collectionId, String secret, Term parent, List<Term> parts) throws Exception {
 		List<GwtEvent<?>> result = new LinkedList<GwtEvent<?>>();
 		Collection collection = this.get(collectionId, secret);
-		if(!collection.hasTerm(parent.getDisambiguatedValue()))
+		if(parent != null && !collection.hasTerm(parent.getDisambiguatedValue()))
 			throw new Exception("Parent does not exist: " + parent.getDisambiguatedValue());
 		for(Term part : parts)
 			if(!collection.hasTerm(part.getDisambiguatedValue()))
 				throw new Exception("Part does not exist: " + part.getDisambiguatedValue());
 		collection.createPart(parent, parts);
-		result.add(new CreatePartEvent(parent, parts));
+		if(parent != null)
+			result.add(new CreatePartEvent(parent, parts));
 		serializeCollection(collection);
 		return result;
 	}
@@ -216,13 +217,14 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 			List<Term> subclasses) throws Exception {
 		List<GwtEvent<?>> result = new LinkedList<GwtEvent<?>>();
 		Collection collection = this.get(collectionId, secret);
-		if(!collection.hasTerm(superclass.getDisambiguatedValue()))
+		if(superclass != null && !collection.hasTerm(superclass.getDisambiguatedValue()))
 			throw new Exception("Superclass does not exist: " + superclass.getDisambiguatedValue());
 		for(Term subclass : subclasses)
 			if(!collection.hasTerm(subclass.getDisambiguatedValue()))
 				throw new Exception("Subclass does not exist: " + subclass.getDisambiguatedValue());
 		collection.createSubclass(superclass, subclasses);
-		result.add(new CreateSubclassEvent(superclass, subclasses));
+		if(superclass != null)
+			result.add(new CreateSubclassEvent(superclass, subclasses));
 		serializeCollection(collection);
 		return result;
 	}
@@ -232,13 +234,14 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 			List<Term> synonyms) throws Exception {
 		List<GwtEvent<?>> result = new LinkedList<GwtEvent<?>>();
 		Collection collection = this.get(collectionId, secret);
-		if(!collection.hasTerm(preferredTerm.getDisambiguatedValue()))
+		if(preferredTerm != null && !collection.hasTerm(preferredTerm.getDisambiguatedValue()))
 			throw new Exception("Preferred does not exist: " + preferredTerm.getDisambiguatedValue());
 		for(Term synonym : synonyms)
 			if(!collection.hasTerm(synonym.getDisambiguatedValue()))
 				throw new Exception("Synonym does not exist: " + synonym.getDisambiguatedValue());
 		collection.createSynonym(preferredTerm, synonyms);
-		result.add(new CreateSynonymEvent(preferredTerm, synonyms));
+		if(preferredTerm != null)
+			result.add(new CreateSynonymEvent(preferredTerm, synonyms));
 		serializeCollection(collection);
 		return result;
 	}
@@ -247,7 +250,7 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	public List<GwtEvent<?>> removePart(int collectionId, String secret, Term parent, List<Term> parts) throws Exception {
 		List<GwtEvent<?>> result = new LinkedList<GwtEvent<?>>();
 		Collection collection = this.get(collectionId, secret);
-		if(!collection.hasTerm(parent.getDisambiguatedValue()))
+		if(parent != null && !collection.hasTerm(parent.getDisambiguatedValue()))
 			throw new Exception("Parent does not exist: " + parent.getDisambiguatedValue());
 		for(Term part : parts)
 			if(!collection.hasTerm(part.getDisambiguatedValue()))
@@ -263,13 +266,14 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 			List<Term> subclasses) throws Exception {
 		List<GwtEvent<?>> result = new LinkedList<GwtEvent<?>>();
 		Collection collection = this.get(collectionId, secret);
-		if(!collection.hasTerm(superclass.getDisambiguatedValue()))
+		if(superclass != null && !collection.hasTerm(superclass.getDisambiguatedValue()))
 			throw new Exception("Superclass does not exist: " + superclass.getDisambiguatedValue());
 		for(Term subclass : subclasses)
 			if(!collection.hasTerm(subclass.getDisambiguatedValue()))
 				throw new Exception("Subclass does not exist: " + subclass.getDisambiguatedValue());
 		collection.removeSubclass(superclass, subclasses);
-		result.add(new RemoveSubclassEvent(superclass, subclasses));
+		if(superclass != null)
+			result.add(new RemoveSubclassEvent(superclass, subclasses));
 		serializeCollection(collection);
 		return result;
 	}
@@ -279,13 +283,14 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 			List<Term> synonyms) throws Exception {
 		List<GwtEvent<?>> result = new LinkedList<GwtEvent<?>>();
 		Collection collection = this.get(collectionId, secret);
-		if(!collection.hasTerm(preferredTerm.getDisambiguatedValue()))
+		if(preferredTerm != null && !collection.hasTerm(preferredTerm.getDisambiguatedValue()))
 			throw new Exception("Preferred term does not exist: " + preferredTerm.getDisambiguatedValue());
 		for(Term synonym : synonyms)
 			if(!collection.hasTerm(synonym.getDisambiguatedValue()))
 				throw new Exception("Synonym does not exist: " + synonym.getDisambiguatedValue());
 		collection.removeSynonym(preferredTerm, synonyms);
-		result.add(new RemoveSynonymEvent(preferredTerm, synonyms));
+		if(preferredTerm != null)
+			result.add(new RemoveSynonymEvent(preferredTerm, synonyms));
 		serializeCollection(collection);
 		return result;
 	}

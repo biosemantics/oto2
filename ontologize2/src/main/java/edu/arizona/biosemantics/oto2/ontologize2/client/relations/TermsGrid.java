@@ -39,6 +39,10 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateTermEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.HasRowId;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveTermEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid.Row;
+import edu.arizona.biosemantics.oto2.ontologize2.client.relations.cell.AttachedTermCell;
+import edu.arizona.biosemantics.oto2.ontologize2.client.relations.cell.LeadTermCell;
+import edu.arizona.biosemantics.oto2.ontologize2.client.relations.cell.MenuExtendedCell;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.ICollectionService;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.ICollectionServiceAsync;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Term;
@@ -273,7 +277,7 @@ public class TermsGrid implements IsWidget {
 		});
 	}
 	
-	protected void addRow(Row row) {
+	public void addRow(Row row) {
 		/*if(row.getTermCount() > grid.getColumnModel().getColumnCount()) {
 			List<ColumnConfig<Row, ?>> columns = new ArrayList<ColumnConfig<Row, ?>>(grid.getColumnModel().getColumns());
 			for(int i = columns.size(); i <= row.getAttachedCount(); i++) {
@@ -284,42 +288,46 @@ public class TermsGrid implements IsWidget {
 		store.add(row);
 	}
 	
-	protected void removeRows(Collection<Row> rows) {
+	public void removeRows(Collection<Row> rows) {
 		for(Row row : rows) {
 			store.remove(row);
 		}
 	}
 	
-	protected void setRows(List<Row> rows) {
+	public void setRows(List<Row> rows) {
 		store.clear();
 		grid.reconfigure(store, createColumnModel(rows));
 		store.addAll(rows);
 	}
 	
-	private void removeRows(Row row) {
+	public void removeRows(Row row) {
 		List<Row> rows = new LinkedList<Row>();
 		rows.add(row);
 		this.removeRows(rows);
 	}
 	
-	protected void addAttachedTermsToRow(Row row, List<Term> add) throws Exception {		
+	public void addAttachedTermsToRow(Row row, List<Term> add) throws Exception {		
 		if(!add.isEmpty()) {
 			row.addAttachedTerms(add);
 			updateRow(row);
 		}
 	}
 	
-	protected void removeAttachedTermsFromRow(Row row, List<Term> terms) {
+	public void removeAttachedTermsFromRow(Row row, List<Term> terms) {
+		doRemoveAttachedTermsFromRow(row, terms);
+	}
+	
+	protected void doRemoveAttachedTermsFromRow(Row row, List<Term> terms) {
 		row.removeAttachedTerms(terms);
 		updateRow(row);
 	}
 	
-	protected void removeAttachedTermsFromRows(List<Row> rows, List<Term> terms) {
+	public void removeAttachedTermsFromRows(List<Row> rows, List<Term> terms) {
 		for(Row row : rows)
-			this.removeAttachedTermsFromRow(row, terms);
+			doRemoveAttachedTermsFromRow(row, terms);
 	}
 
-	protected void removeTerms(Term[] terms) {
+	public void removeTerms(Term[] terms) {
 		for(Term term : terms) {
 			List<Row> leadTermRows = this.getLeadTermsRows(term, true);
 			for(Row row : leadTermRows)
@@ -329,7 +337,7 @@ public class TermsGrid implements IsWidget {
 		}
 	}
 
-	protected void consolidate() {
+	public void consolidate() throws Exception {
 		List<Row> targetRows = new LinkedList<Row>();
 		Map<String, List<Row>> entries = new HashMap<String, List<Row>>();
 		for(Row row : this.store.getAll()) {
@@ -357,7 +365,7 @@ public class TermsGrid implements IsWidget {
 					}
 					store.remove(row);
 				}
-				targetRow.getAttachedTerms().addAll(add);
+				targetRow.addAttachedTerms(add);
 				targetRows.add(targetRow);
 			} else if(entries.get(term).size() == 1) {
 				targetRows.add(entries.get(term).get(0));
@@ -367,7 +375,7 @@ public class TermsGrid implements IsWidget {
 			this.reconfigureForAttachedTerms(getMaxAttachedTermsCount(targetRows));
 	}
 	
-	protected void updateRow(Row row) {
+	public void updateRow(Row row) {
 		if(row.getTermCount() <= grid.getColumnModel().getColumnCount()) 
 			store.update(row);
 		else {
@@ -376,7 +384,7 @@ public class TermsGrid implements IsWidget {
 		}
 	}
 	
-	protected List<Row> getAttachedTermsRows(Term attachedTerm, boolean disambiguated) {
+	public List<Row> getAttachedTermsRows(Term attachedTerm, boolean disambiguated) {
 		List<Row> result = new LinkedList<Row>();
 		for(Row row : this.store.getAll()) {
 			if(row.containsAttachedTerms(attachedTerm, disambiguated))
@@ -385,7 +393,7 @@ public class TermsGrid implements IsWidget {
 		return result;
 	}
 	
-	protected List<Row> getLeadTermsRows(Term leadTerm, boolean disambiguated) {
+	public List<Row> getLeadTermsRows(Term leadTerm, boolean disambiguated) {
 		List<Row> result = new LinkedList<Row>();
 		for(Row row : this.store.getAll()) {
 			if(disambiguated) {
@@ -399,23 +407,24 @@ public class TermsGrid implements IsWidget {
 		return result;
 	}
 	
-	protected Row getRowWithId(List<Row> rows, int rowId) {
+	public Row getRowWithId(List<Row> rows, int rowId) {
 		for(Row row : rows)
 			if(row.getId() == rowId)
 				return row;
 		return null;
 	}
 	
-	protected List<Row> getSelection() {
+	public Row getRow(int index) {
+		return store.get(index);
+	}
+	
+	public List<Row> getSelection() {
 		return new ArrayList<Row>(grid.getSelectionModel().getSelectedItems());
 	}
 
-	protected List<Row> getAll() {
+	public List<Row> getAll() {
 		return new ArrayList<Row>(grid.getStore().getAll());
 	}
-
-
-	
 
 	private void reconfigureForAttachedTerms(int attachedTermsCount) {
 		grid.reconfigure(store, createColumnModel(attachedTermsCount));
@@ -435,6 +444,8 @@ public class TermsGrid implements IsWidget {
 				return "term-0";
 			}
 		}, colWidth, firstColName);
+		LeadTermCell cell = new LeadTermCell();
+		column1.setCell(cell);
 		columns.add(column1);
 		for(int i = 1; i <= attachedTermsCount; i++)
 			columns.add(createColumnI(i));
@@ -446,7 +457,7 @@ public class TermsGrid implements IsWidget {
 	}
 	
 	private ColumnConfig<Row, ?> createColumnI(final int i) {
-		return new ColumnConfig<Row, String>(new ValueProvider<Row, String>() {
+		ColumnConfig<Row, String> config = new ColumnConfig<Row, String>(new ValueProvider<Row, String>() {
 			@Override
 			public String getValue(Row object) {
 				if(object.getAttachedCount() >= i)
@@ -460,6 +471,10 @@ public class TermsGrid implements IsWidget {
 				return "term-" + i;
 			}
 		}, colWidth, nColName + "-" + i);
+		AttachedTermCell cell = new AttachedTermCell(this);
+		config.setCell(cell);
+		
+		return config;
 	}
 
 

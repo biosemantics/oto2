@@ -48,12 +48,12 @@ public class ModelController {
 				collection.removeTerms(event.getTerms());
 			}
 		});
-		eventBus.addHandler(ReplaceTermInRelationsEvent.TYPE, new ReplaceTermInRelationsEvent.Handler() {
+		/*eventBus.addHandler(ReplaceTermInRelationsEvent.TYPE, new ReplaceTermInRelationsEvent.Handler() {
 			@Override
 			public void onDisambiguate(ReplaceTermInRelationsEvent event) {
 				collection.replaceTermInRelations(event.getOldTerm(), event.getNewTerm());
 			}
-		});
+		});*/
 		
 		eventBus.addHandler(CreatePartEvent.TYPE, new CreatePartEvent.Handler() {
 			@Override

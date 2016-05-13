@@ -23,6 +23,7 @@ import com.sencha.gxt.widget.core.client.toolbar.ToolBar;
 
 import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateTermEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid.Row;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Term;
 
 public class MenuTermsGrid extends TermsGrid {
@@ -74,7 +75,11 @@ public class MenuTermsGrid extends TermsGrid {
 		consolidateButton.addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
-				consolidate();
+				try {
+					consolidate();
+				} catch(Exception e) {
+					Alerter.showAlert("Consolidate rows", "Error occured");
+				}
 			}
 		});
 		TextButton removeButton = new TextButton("Remove");

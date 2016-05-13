@@ -90,9 +90,9 @@ public class SubclassesGrid extends MenuTermsGrid {
 			public void onRemove(RemoveSubclassEvent event) {
 				List<Row> rows = SubclassesGrid.this.getLeadTermsRows(event.getSuperclass(), true);
 				if(event.hasRowId()) {
-					rows = new LinkedList<Row>();
 					Row idRow = getRowWithId(rows, event.getRowId());
 					if(idRow != null) {
+						rows = new LinkedList<Row>();
 						rows.add(idRow);
 					}
 				}
@@ -113,7 +113,7 @@ public class SubclassesGrid extends MenuTermsGrid {
 	}
 
 	@Override
-	protected void addRow(Row row) {
+	public void addRow(Row row) {
 		boolean valid = true;
 		try { 
 			//validAddRow(row, this.getAll());
@@ -137,7 +137,7 @@ public class SubclassesGrid extends MenuTermsGrid {
 	}
 	
 	@Override
-	protected void setRows(List<Row> rows) {
+	public void setRows(List<Row> rows) {
 		boolean valid = true;
 		try { 
 			validSetRows(rows);
@@ -162,7 +162,7 @@ public class SubclassesGrid extends MenuTermsGrid {
 	}
 	
 	@Override
-	protected void removeRows(Collection<Row> rows) {
+	public void removeRows(Collection<Row> rows) {
 		boolean valid = true;
 		try { 
 			validateRemove(rows);
@@ -187,7 +187,7 @@ public class SubclassesGrid extends MenuTermsGrid {
 	}
 	
 	@Override
-	protected void addAttachedTermsToRow(final Row row, List<Term> add) throws Exception {
+	public void addAttachedTermsToRow(final Row row, List<Term> add) throws Exception {
 		boolean valid = true;
 		try { 
 			validAddTermsToRow(row, add);
@@ -211,7 +211,7 @@ public class SubclassesGrid extends MenuTermsGrid {
 	}
 	
 	@Override
-	protected void removeAttachedTermsFromRow(final Row row, List<Term> terms) {
+	public void removeAttachedTermsFromRow(final Row row, List<Term> terms) {
 		collectionService.removeSubclass(collection.getId(), collection.getSecret(), 
 				row.getLeadTerm(), terms, new AsyncCallback<List<GwtEvent<?>>>() {
 			@Override
