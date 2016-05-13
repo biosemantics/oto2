@@ -31,6 +31,30 @@ public class Alerter {
 		}
 	}
 	
+	public static MessageBox showAlert(String title, String message, Throwable caught) {
+		if(caught != null)
+			caught.printStackTrace();
+		return showAlert(title, message);
+	}
+	
+	public static MessageBox showAlert(String title, String message) {
+		AlertMessageBox alert = new AlertMessageBox(title, message);
+		alert.show();
+		return alert;
+	}
+
+	public static MessageBox showInfo(String title, String message) {
+		InfoMessageBox info = new InfoMessageBox(title, message);
+		info.show();
+		return info;
+	}
+	
+	public static MessageBox showConfirm(String title, String message) {
+		 ConfirmMessageBox confirm = new ConfirmMessageBox(title, message);
+		 confirm.show();
+         return confirm;
+	}
+	
 	public static MessageBox startLoading() {
 		AutoProgressMessageBox box = new AutoProgressMessageBox("Loading", "Loading your data, please wait...");
         box.setProgressText("Loading...");
