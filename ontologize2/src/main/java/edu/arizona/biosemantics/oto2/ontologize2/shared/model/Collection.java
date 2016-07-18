@@ -431,8 +431,8 @@ public class Collection implements Serializable, Comparable<Collection> {
 	
 	public Set<String> getAllClasses() {
 		Set<String> disambiguatedTermNames = new HashSet<String>();
-		Set<String> parentClassName
-		return null;
+		Set<String> parentClassName = null;
+		return disambiguatedTermNames;
 	}
 	
 }
