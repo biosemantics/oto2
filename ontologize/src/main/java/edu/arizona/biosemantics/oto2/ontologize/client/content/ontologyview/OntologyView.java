@@ -56,7 +56,7 @@ import edu.arizona.biosemantics.oto2.ontologize.client.event.RemoveOntologyClass
 import edu.arizona.biosemantics.oto2.ontologize.client.event.RemoveOntologySynonymSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.SelectOntologyEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.UpdateOntologyClassSubmissionsEvent;
-import edu.arizona.biosemantics.oto2.ontologize.client.layout.ModelController;
+import edu.arizona.biosemantics.oto2.ontologize.client.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.OntologyProperties;

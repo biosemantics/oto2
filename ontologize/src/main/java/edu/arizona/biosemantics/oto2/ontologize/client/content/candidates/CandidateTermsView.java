@@ -42,6 +42,7 @@ import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 import com.sencha.gxt.widget.core.client.tree.Tree;
 
+import edu.arizona.biosemantics.oto2.ontologize.client.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize.client.Ontologize;
 import edu.arizona.biosemantics.oto2.ontologize.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize.client.common.AllowSurpressSelectEventsTreeSelectionModel;
@@ -54,7 +55,6 @@ import edu.arizona.biosemantics.oto2.ontologize.client.event.RemoveOntologySynon
 import edu.arizona.biosemantics.oto2.ontologize.client.event.SetColorEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.TermMarkUselessEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.TermSelectEvent;
-import edu.arizona.biosemantics.oto2.ontologize.client.layout.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Color;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Comment;

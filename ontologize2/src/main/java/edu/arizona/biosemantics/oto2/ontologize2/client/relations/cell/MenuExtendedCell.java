@@ -18,6 +18,8 @@ import com.sencha.gxt.widget.core.client.grid.GridView.GridAppearance;
 import com.sencha.gxt.widget.core.client.grid.GridView.GridStyles;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 
+import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
+
 public abstract class MenuExtendedCell<C> extends AbstractCell<C> {
 
 	protected ColumnHeaderAppearance columnHeaderAppearance;
@@ -109,7 +111,7 @@ public abstract class MenuExtendedCell<C> extends AbstractCell<C> {
 						aGrandParent.addClassName(columnHeaderStyles.headMenuOpen());
 						this.showMenu(clickedElement, context.getColumn(), context.getIndex());
 					}
-				}
+			}
 			}
 		}
 	}

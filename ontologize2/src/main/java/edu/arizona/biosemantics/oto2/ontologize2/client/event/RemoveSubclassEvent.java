@@ -6,11 +6,12 @@ import java.util.List;
 
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
+import com.google.gwt.user.client.rpc.IsSerializable;
 
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveSubclassEvent.Handler;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Term;
 
-public class RemoveSubclassEvent extends GwtEvent<Handler> implements HasRowId, Serializable {
+public class RemoveSubclassEvent extends GwtEvent<Handler> implements HasRowId, Serializable, IsSerializable  {
 
 	public interface Handler extends EventHandler {
 		void onRemove(RemoveSubclassEvent event);
@@ -51,6 +52,10 @@ public class RemoveSubclassEvent extends GwtEvent<Handler> implements HasRowId, 
 		return subclasses;
 	}
 	
+	public void setSubclasses(Term[] subclasses) {
+		this.subclasses = subclasses;
+	}
+	
 	@Override
 	public int getRowId() {
 		return rowId;
@@ -68,6 +73,6 @@ public class RemoveSubclassEvent extends GwtEvent<Handler> implements HasRowId, 
 
 	public boolean hasSubclasses() {
 		return subclasses.length > 0;
-	}	
-	
+	}
+
 }

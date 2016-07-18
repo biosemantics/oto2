@@ -21,6 +21,7 @@ import com.sencha.gxt.widget.core.client.menu.MenuBar;
 import com.sencha.gxt.widget.core.client.menu.MenuBarItem;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
+import edu.arizona.biosemantics.oto2.ontologize.client.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize.client.common.ColorSettingsDialog;
 import edu.arizona.biosemantics.oto2.ontologize.client.common.ColorsDialog;

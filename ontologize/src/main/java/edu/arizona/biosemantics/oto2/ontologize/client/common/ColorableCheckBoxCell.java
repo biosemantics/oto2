@@ -8,8 +8,8 @@ import com.sencha.gxt.core.client.GXT;
 import com.sencha.gxt.core.client.dom.XDOM;
 import com.sencha.gxt.data.shared.ListStore;
 
+import edu.arizona.biosemantics.oto2.ontologize.client.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadCollectionEvent;
-import edu.arizona.biosemantics.oto2.ontologize.client.layout.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Color;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Colorable;

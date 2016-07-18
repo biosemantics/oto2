@@ -1,5 +1,9 @@
 package edu.arizona.biosemantics.oto2.ontologize2.shared.model;
 
+import java.util.List;
+
+import com.sencha.gxt.data.shared.TreeStore.TreeNode;
+
 public class BucketTreeNode extends TextTreeNode {
 	
 	private Bucket bucket;
@@ -21,5 +25,6 @@ public class BucketTreeNode extends TextTreeNode {
 	public Bucket getBucket() {
 		return bucket;
 	}
+	
 	
 }

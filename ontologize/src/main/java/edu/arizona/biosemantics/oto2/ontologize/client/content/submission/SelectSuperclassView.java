@@ -48,7 +48,7 @@ import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadOntologyClassSu
 import edu.arizona.biosemantics.oto2.ontologize.client.event.OntologyClassSubmissionSelectEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.RemoveOntologyClassSubmissionsEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.SelectSuperclassEvent;
-import edu.arizona.biosemantics.oto2.ontologize.client.layout.ModelController;
+import edu.arizona.biosemantics.oto2.ontologize.client.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.OntologyClassSubmission;

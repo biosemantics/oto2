@@ -37,8 +37,8 @@ import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
+import edu.arizona.biosemantics.oto2.ontologize.client.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.SetColorEvent;
-import edu.arizona.biosemantics.oto2.ontologize.client.layout.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Color;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.ColorProperties;

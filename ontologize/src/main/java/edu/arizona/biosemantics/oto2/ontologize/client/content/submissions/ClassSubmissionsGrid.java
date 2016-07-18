@@ -91,7 +91,7 @@ import edu.arizona.biosemantics.oto2.ontologize.client.event.SelectSuperclassEve
 import edu.arizona.biosemantics.oto2.ontologize.client.event.SelectSynonymEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.SetColorEvent;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.UpdateOntologyClassSubmissionsEvent;
-import edu.arizona.biosemantics.oto2.ontologize.client.layout.ModelController;
+import edu.arizona.biosemantics.oto2.ontologize.client.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Color;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Colorable;

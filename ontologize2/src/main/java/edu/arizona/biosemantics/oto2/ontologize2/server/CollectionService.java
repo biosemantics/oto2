@@ -103,7 +103,7 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 		throw new Exception("Could not read collection");
 	}
 	
-	private IncidenceMatrix getIncidenceMatrix(int collectionId, String secret) throws Exception {
+	public IncidenceMatrix getIncidenceMatrix(int collectionId, String secret) throws Exception {
 		this.get(collectionId, secret); //test secret
 		try(ObjectInputStream is = new ObjectInputStream(new FileInputStream(
 				Configuration.collectionsDirectory + File.separator + collectionId + File.separator + "incidence-matrix.ser"))) {
@@ -135,6 +135,18 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 		serializeCollection(collection);
 		return result;
 	}
+	
+	@Override
+	public List<GwtEvent<?>> createTerm(int collectionId, String secret, Term term) throws Exception {
+		List<GwtEvent<?>> result = new LinkedList<GwtEvent<?>>();
+		Collection collection = this.get(collectionId, secret);
+		//System.out.println("create new term ="+term.getDisambiguatedValue());
+		collection.createTerm(term);
+		serializeCollection(collection);
+		return result;
+	}
+	
+	
 
 	@Override
 	public List<GwtEvent<?>> removeTerm(int collectionId, String secret, List<Term> terms) throws Exception {
@@ -149,7 +161,7 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 		serializeCollection(collection);
 		return result;
 	}
-
+	
 	@Override
 	public List<GwtEvent<?>> createPart(int collectionId, String secret, Term parent, List<Term> parts) throws Exception {
 		List<GwtEvent<?>> result = new LinkedList<GwtEvent<?>>();
@@ -174,11 +186,12 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 			throw new Exception("Parent does not exist: " + parent.getDisambiguatedValue());
 		if(!collection.hasTerm(part.getDisambiguatedValue()))
 			throw new Exception("Part does not exist: " + part.getDisambiguatedValue());
-		
+		//System.out.println("create part in CS= "+parent.getDisambiguatedValue()+" ==>"+part.getDisambiguatedValue()+" "+disambiguate);
 		IncidenceMatrix incidenceMatrix = this.getIncidenceMatrix(collectionId, secret);
 		if(!incidenceMatrix.getParents(part.getDisambiguatedValue()).isEmpty() && disambiguate) {
 			result.addAll(disambiguatePart(collection, parent, part, incidenceMatrix));
 		} else {
+			//System.out.println("create part in CS = "+parent.getDisambiguatedValue()+" ==>"+part.getDisambiguatedValue()+" "+disambiguate);
 			collection.createPart(parent, part);
 			incidenceMatrix.createPart(parent.getDisambiguatedValue(), part.getDisambiguatedValue());
 			result.add(new CreatePartEvent(parent, part));
@@ -187,28 +200,78 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 		return result;
 	}
 	
+	@Override
+	public List<GwtEvent<?>> changeAndCreateParts(int collectionId, String secret,
+			Term parentTerm, Term term, Term leadTerm, boolean disambiguate)  throws Exception {
+		List<GwtEvent<?>> result = new LinkedList<GwtEvent<?>>();
+		Collection collection = this.get(collectionId, secret);
+		
+		//create a new term
+		Term newOrgTerm = TermDisambiguator.disambiguatePart(term, parentTerm);
+		if(collection.hasTerm(newOrgTerm.getDisambiguatedValue()))
+			throw new Exception("Term already exists: " + newOrgTerm.getDisambiguatedValue()+", please add it directly.");
+		Term newTerm = TermDisambiguator.disambiguatePart(term, leadTerm);
+		if(collection.hasTerm(newTerm.getDisambiguatedValue()))
+			throw new Exception("Term already exists: " + newTerm.getDisambiguatedValue()+", please add it directly.");
+		
+		result.addAll(this.removePart(collectionId, secret, parentTerm, Arrays.asList(new Term[]{ term })));
+		this.createTerm(collectionId, secret, newOrgTerm);
+		//this.disambiguatedTerm(collectionId, secret, newOrgTerm);
+		result.addAll(this.createPart(collectionId, secret, parentTerm, newOrgTerm, false));
+		
+		this.createTerm(collectionId, secret, newTerm);
+		result.addAll(this.createPart(collectionId, secret, leadTerm, newTerm, false));
+		return result;
+	}
+	
+	
+	private void disambiguatedTerm(int collectionId, String secret,
+			Term disambiguatedTerm) throws Exception {
+		Collection collection = this.get(collectionId, secret);
+		collection.disambiguateTerm(disambiguatedTerm);
+		serializeCollection(collection);
+	}
+
 	private List<GwtEvent<?>> disambiguatePart(Collection collection, Term parentTerm, Term partTerm, IncidenceMatrix incidenceMatrix) throws Exception {
 		List<GwtEvent<?>> result = new LinkedList<GwtEvent<?>>();
+		//disambiguate existing parents
 		List<String> parents = incidenceMatrix.getParents(partTerm.getDisambiguatedValue());
 		if(parents.size() >= 1) {
-			List<Term> newlyCreatedClasses = new ArrayList<Term>(parents.size());
-			for(String aParent : parents) {
+			//List<Term> newlyCreatedParts = new ArrayList<Term>(parents.size());
+			for(String aParent : parents) {//disambiguate existing parts
 				Term aParentTerm = collection.getTerm(aParent);
-				
+				//create a new term as disambiguated term
 				Term disambiguatedTerm = TermDisambiguator.disambiguatePart(partTerm, aParentTerm);
-				result.addAll(this.createTerm(collection.getId(), collection.getSecret(), disambiguatedTerm.getValue(), 
-						disambiguatedTerm.getPartDisambiguator(), disambiguatedTerm.getClassDisambiguator()));
-				result.addAll(this.createPart(collection.getId(), collection.getSecret(), parentTerm, disambiguatedTerm, false));
-				newlyCreatedClasses.add(disambiguatedTerm);
-				result.addAll(this.createSubclass(collection.getId(), collection.getSecret(), partTerm, Arrays.asList(new Term[] { disambiguatedTerm })));
-				result.addAll(this.removePart(collection.getId(), collection.getSecret(), parentTerm, Arrays.asList(new Term[]{ partTerm })));
+				result.addAll(this.removePart(collection.getId(), collection.getSecret(), aParentTerm, Arrays.asList(new Term[]{ partTerm })));
+				//persistent the term
+				this.createTerm(collection.getId(), collection.getSecret(), disambiguatedTerm);
+				//create the new part
+				result.addAll(this.createPart(collection.getId(), collection.getSecret(), aParentTerm, disambiguatedTerm, false));
+				//newlyCreatedParts.add(disambiguatedTerm);
+				//TODO:why create subclass
+				//result.addAll(this.createSubclass(collection.getId(), collection.getSecret(), partTerm, Arrays.asList(new Term[] { disambiguatedTerm })));
+				//remove the original part
+				
 			}
-			for(Term newlyCreatedClass : newlyCreatedClasses) 
-				for(Term subclass : collection.getParts(newlyCreatedClass)) 
-					result.addAll(disambiguatePart(collection, newlyCreatedClass, subclass, incidenceMatrix));
+			
+			/**
+			 * what's the functions?
+			 
+			for(Term newlyCreatedPart : newlyCreatedParts) 
+				for(Term part : collection.getParts(newlyCreatedPart)) 
+					result.addAll(disambiguatePart(collection, newlyCreatedPart, part, incidenceMatrix));
+				*/	
 		}
+		
+		//disambiguate and add to the new parent
+		Term disambiguatedTerm = TermDisambiguator.disambiguatePart(partTerm, parentTerm);
+		this.createTerm(collection.getId(), collection.getSecret(), disambiguatedTerm);
+		//create the new part
+		result.addAll(this.createPart(collection.getId(), collection.getSecret(), parentTerm, disambiguatedTerm, false));
+		/*
 		for(Term partsPartTerm : collection.getParts(partTerm)) 
 			result.addAll(disambiguatePart(collection, partTerm, partsPartTerm, incidenceMatrix));
+			*/
 		return result;
 	}
 
@@ -225,6 +288,22 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 		collection.createSubclass(superclass, subclasses);
 		if(superclass != null)
 			result.add(new CreateSubclassEvent(superclass, subclasses));
+		serializeCollection(collection);
+		return result;
+	}
+	
+	
+	@Override
+	public List<GwtEvent<?>> createSubclass(int collectionId, String secret, Term superclass, Term subclass) throws Exception {
+		List<GwtEvent<?>> result = new LinkedList<GwtEvent<?>>();
+		Collection collection = this.get(collectionId, secret);
+		if(superclass != null && !collection.hasTerm(superclass.getDisambiguatedValue()))
+			throw new Exception("Superclass does not exist: " + superclass.getDisambiguatedValue());
+		if(!collection.hasTerm(subclass.getDisambiguatedValue()))
+				throw new Exception("Subclass does not exist: " + subclass.getDisambiguatedValue());
+		collection.createSubclass(superclass, subclass);
+		if(superclass != null)
+			result.add(new CreateSubclassEvent(superclass, subclass));
 		serializeCollection(collection);
 		return result;
 	}
@@ -326,7 +405,7 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	public List<Term> getSuperclasses(int collectionId, String secret, Term term) throws Exception {
 		Collection collection = this.get(collectionId, secret);
 		IncidenceMatrix matrix = this.getIncidenceMatrix(collectionId, secret);
-		List<String> superclasses = matrix.getParents(term.getDisambiguatedValue());
+		List<String> superclasses = matrix.getSuperclasses(term.getDisambiguatedValue());
 		List<Term> result = new ArrayList<Term>(superclasses.size());
 		for(String superclass : superclasses) {
 			result.add(collection.getTerm(superclass));
@@ -345,7 +424,4 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 		}
 		return result;
 	}
-
-	
-	
 }

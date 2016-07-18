@@ -1,8 +1,11 @@
 package edu.arizona.biosemantics.oto2.ontologize2.client.tree;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 
 import com.google.gwt.core.shared.GWT;
 import com.google.gwt.event.logical.shared.SelectionEvent;
@@ -22,6 +25,8 @@ import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 import com.sencha.gxt.widget.core.client.toolbar.ToolBar;
 
+import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
+import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreatePartEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateSubclassEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateSynonymEvent;
@@ -30,6 +35,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceTermInRelat
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemovePartEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.ICollectionService;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.ICollectionServiceAsync;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.PairTermTreeNode;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Term;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.TermTreeNode;
 
@@ -41,17 +47,24 @@ public class VisualizationView extends SimpleContainer {
 	public VisualizationView(final EventBus eventBus) {
 		this.eventBus = eventBus;
 		
-		TreeView subclassTree = new TreeView(eventBus) {
+		TreeView subclassTree = new TreeView("Type-of Hierarchy", eventBus) {
+			
+			private List<PairTermTreeNode> foldedNodes = new ArrayList();
+			//the first node of the term
+			private Map<Term,PairTermTreeNode> termFirstNodeMap = new HashMap();
+			
+			
+			
 			@Override
 			protected void bindEvents() {
 				super.bindEvents();
 				
-				
 				eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
 					@Override
 					public void onLoad(LoadCollectionEvent event) {
+						collection = event.getCollection();
 						setRootName("Thing");
-						clearTree();
+						refreshTree();
 					}
 				});
 				
@@ -78,10 +91,118 @@ public class VisualizationView extends SimpleContainer {
 						treeGrid.expandAll();
 					}
 				});*/
+				
 			}
+			
+			@Override
+			protected void refreshTree() {
+				clearTree();
+				/*
+				 * Map<String, List<String>> subclasses = collection.getSubclasses();
+				 * for(String parent : subclasses.keySet()){
+					Term parentTerm = collection.getTerm(parent);
+					TermTreeNode parentNode = new TermTreeNode(parentTerm);
+					//if(!termNodeMap.keySet().contains(parent)){
+						termNodeMap.put(parent, parentNode);
+						store.add(rootNode,parentNode);
+						addSubclasses(parent, subclasses.get(parent));
+					//}
+				}*/
+				Map<String, List<String>> subclasses = ModelController.getCollection().getFirstLevelClass();
+				/**/
+				//Breath-first
+				Queue<PairTermNode> termQueue = new LinkedList<PairTermNode>();
+				for(String parent : subclasses.keySet()){
+					Term parentTerm = ModelController.getCollection().getTerm(parent);
+					PairTermTreeNode parentNode = new PairTermTreeNode(rootNode,parentTerm);
+					termNodeMap.put(parentNode.getId(), parentNode);
+					addSubclasses(rootNode, parentNode, termQueue);
+				}
+				
+				PairTermNode pairTerm = null;
+				while((pairTerm = termQueue.poll())!=null){
+					PairTermTreeNode parentNode = pairTerm.parent;
+					PairTermTreeNode childNode = pairTerm.child;
+					addSubclasses(parentNode, childNode, termQueue);
+				}
+				
+				tree.expandAll();
+				
+				for(PairTermTreeNode foldedNode : foldedNodes){
+					//tree.getSelectionModel().select(foldedNode, true);
+					tree.setExpanded(foldedNode, false);
+				}
+			}
+			
+			
+			/**
+			 * add subclasses in the tree
+			 * Depth-first Method
+			 */
+			protected void addSubclasses(PairTermTreeNode parentNode, List<Term> children) {
+				for(Term child : children) {
+					//if(!termNodeMap.keySet().contains(child.getValue())){
+					PairTermTreeNode childNode = new PairTermTreeNode(parentNode,child);
+						termNodeMap.put(child.getDisambiguatedValue(), childNode);
+						store.add(parentNode, childNode);
+						addSubclasses(childNode,ModelController.getCollection().getSubclasses(child));
+					//}
+				}
+			}
+			
+			
+			/**
+			 * add subclasses in the tree
+			 * Breadth-first Method
+			 */
+			protected void addSubclasses(PairTermTreeNode parentNode, PairTermTreeNode currentNode, Queue<PairTermNode> termQueue) {
+				store.add(parentNode, currentNode);
+				if(!termFirstNodeMap.keySet().contains(currentNode.getTerm())){
+					termFirstNodeMap.put(currentNode.getTerm(), currentNode);
+				}else{//this term already exist in one node, unfold both
+					if(!subTreeOf(foldedNodes, currentNode)) foldedNodes.add(currentNode);
+					PairTermTreeNode pttNode = termFirstNodeMap.get(currentNode.getTerm());
+					if(!foldedNodes.contains(pttNode)) foldedNodes.add(pttNode);
+				}
+				
+				try{
+					
+					List<Term> subclasses = ModelController.getCollection().getSubclasses(currentNode.getTerm());
+					if(subclasses!=null){
+						for(Term child:subclasses){
+							PairTermTreeNode childNode = new PairTermTreeNode(currentNode,child);
+							termNodeMap.put(childNode.getId(), childNode);
+							termQueue.offer(new PairTermNode(currentNode,childNode));
+						}
+					}
+				}catch(Exception e){
+					Alerter.showAlert("exeption", e.getMessage());
+				}
+			}
+
+			private boolean subTreeOf(List<PairTermTreeNode> foldedNodes2,
+					PairTermTreeNode currentNode) {
+				String curNodeId = currentNode.getId();
+				for(PairTermTreeNode foldedNode : foldedNodes2){
+					if(curNodeId.startsWith(foldedNode.getId())) return true;
+				}
+				return false;
+			}
+			
+			@Override
+			public void clearTree(){
+				super.clearTree();
+				foldedNodes.clear();
+				termFirstNodeMap.clear();
+			}
+			
 		};
-		TreeView partsTree = new TreeView(eventBus) {
-			private List<CreatePartEvent> addPartEvents = new LinkedList<CreatePartEvent>();
+		
+		/**
+		 * the three for PART relations
+		 */
+		TreeView partsTree = new TreeView("Part-of Hierarchy",eventBus) {
+			//private List<CreatePartEvent> addPartEvents = new LinkedList<CreatePartEvent>();
 			
 			@Override
 			protected void bindEvents() {
@@ -89,8 +210,8 @@ public class VisualizationView extends SimpleContainer {
 				eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
 					@Override
 					public void onLoad(LoadCollectionEvent event) {
-						setRootName(event.getCollection().getTaxonGroup().getDisplayName());
-						clearTree();
+						setRootName("Thing");
+						refreshTree();
 					}
 				}); 
 				
@@ -166,12 +287,39 @@ public class VisualizationView extends SimpleContainer {
 				});		*/		
 			}
 			
-			/*protected void refreshTree() {
+			@Override
+			protected void refreshTree() {
 				clearTree();
-				Map<String, List<String>> parts = ModelController.getCollection().getParts();
-				for(String parent : parts.keySet()) 
-					this.addPart(parent, parts.get(parent));
+				Map<String, List<String>> parts = ModelController.getCollection().getFirstLevelParts();
+				for(String parent : parts.keySet()){
+					Term parentTerm = ModelController.getCollection().getTerm(parent);
+					PairTermTreeNode parentNode = new PairTermTreeNode(rootNode, parentTerm);
+					if(!termNodeMap.keySet().contains(parentNode.getId())){
+						termNodeMap.put(parentNode.getId(), parentNode);
+						store.add(rootNode,parentNode);
+						addParts(parentNode, ModelController.getCollection().getParts(parentTerm));
+					}
+				}
+				tree.expandAll();
 			}
+			
+			
+			/**
+			 * add subclasses in the tree
+			 */
+			protected void addParts(PairTermTreeNode parentNode, List<Term> children) {
+				for(Term child : children) {
+					if(!termNodeMap.keySet().contains(child.getValue())){
+						PairTermTreeNode childNode = new PairTermTreeNode(parentNode, child);
+						termNodeMap.put(child.getDisambiguatedValue(), childNode);
+						store.add(parentNode, childNode);
+						addParts(childNode,ModelController.getCollection().getParts(child));
+					}
+				}
+			}
+			
+			/**
+			 * add parts in the PART tree
 			
 			private void addPart(String parent, List<String> parts) {
 				if(!termNodeMap.containsKey(parent)) {
@@ -200,9 +348,11 @@ public class VisualizationView extends SimpleContainer {
 				store.addSubTree(parentNode, 0, list);
 				//store.addSubTree(parentNode, 0, moveNodes);
 				store.add(parentNode, partNodes);
-				treeGrid.expandAll();
-			}*/
+				treeGrid.expandAll(); 
+			} */
 		};
+		
+		/*
 		TreeView synonymsTree = new TreeView(eventBus) {
 			@Override
 			protected void bindEvents() {
@@ -239,15 +389,24 @@ public class VisualizationView extends SimpleContainer {
 						store.add(preferredNode, synonymNodes);
 						treeGrid.expandAll();
 					}
-				}); */
+				}); 
 			}
-		};
+		};*/
 		
 		VerticalLayoutContainer vlc = new VerticalLayoutContainer();
-		vlc.add(subclassTree, new VerticalLayoutData(1, 0.33));
-		vlc.add(partsTree, new VerticalLayoutData(1, 0.33));
-		vlc.add(synonymsTree, new VerticalLayoutData(1, 0.33));
+		vlc.add(subclassTree, new VerticalLayoutData(1, 0.5));
+		vlc.add(partsTree, new VerticalLayoutData(1, 0.5));
+		//vlc.add(synonymsTree, new VerticalLayoutData(1, 0.33));
 		this.setWidget(vlc);
 	}
 	
+	class PairTermNode{
+		public PairTermTreeNode parent;
+		public PairTermTreeNode child;
+		
+		public PairTermNode(PairTermTreeNode parent, PairTermTreeNode child){
+			this.parent = parent;
+			this.child = child;
+		}
+	}
 }

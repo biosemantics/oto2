@@ -32,7 +32,7 @@ public class StandAlone implements EntryPoint {
 	private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
 	private IToOntologyServiceAsync toOntologyService = GWT.create(IToOntologyService.class);
 	
-	public void onModuleLoad() {		
+	public void onModuleLoad() {
 		
 		/*ListStore<String> store = new ListStore<String>(new ModelKeyProvider<String>() {
 			@Override
@@ -50,8 +50,8 @@ public class StandAlone implements EntryPoint {
 		RootLayoutPanel.get().add(borderLayoutContainer);*/
 		
 		
-		int collectionId = 1;
-		String secret = "";//"my secret";
+		int collectionId = 0;
+		String secret = "secret";//"my secret";
 		
 		/*Collection collection = new Collection();
 		collection.setId(collectionId);

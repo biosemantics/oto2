@@ -21,6 +21,8 @@ public interface ICollectionService extends RemoteService {
 	
 	public List<GwtEvent<?>> createTerm(int collectionId, String secret, String term, 
 			String partDisambiguator, String classDisambiguator) throws Exception;
+	public List<GwtEvent<?>> createTerm(int collectionId, String secret, Term term)
+			throws Exception;
 	
 	public List<GwtEvent<?>> removeTerm(int collectionId, String secret, List<Term> term) throws Exception;
 	
@@ -28,9 +30,11 @@ public interface ICollectionService extends RemoteService {
 	
 	public List<GwtEvent<?>> createPart(int id, String secret, Term leadTerm, Term term, boolean disambiguate) throws Exception;
 	
+	public List<GwtEvent<?>> changeAndCreateParts(int id, String secret, Term parentTerm, Term term, Term leadTerm, boolean disambiguate) throws Exception;
+	
 	public List<GwtEvent<?>> createSubclass(int collectionId, String secret, Term superclass, List<Term> subclasses) throws Exception;
 
-	//public List<GwtEvent<?>> createSubclass(int collectionId, String secret, Term superclass, Term subclass) throws Exception;
+	public List<GwtEvent<?>> createSubclass(int collectionId, String secret, Term superclass, Term subclass) throws Exception;
 	
 	public List<GwtEvent<?>> createSynonym(int collectionId, String secret, Term preferredTerm, List<Term> synonyms) throws Exception;
 	
@@ -53,5 +57,9 @@ public interface ICollectionService extends RemoteService {
 	public List<Term> getSuperclasses(int collectionId, String secret, Term term) throws Exception;
 	
 	public List<Term> getPreferredTerms(int collectionId, String secret, Term term) throws Exception;
+
+	
+
+	
 	
 }

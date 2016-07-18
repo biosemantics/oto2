@@ -126,8 +126,24 @@ public class CandidateView extends SimpleContainer {
 						for(String line : lines) {
 							String[] terms = line.split(",");
 							//TODO register on server first
-							//for(String term : terms) 
-								//importList.add(new Term(term));
+							for(String term : terms){
+								// jin add
+								if(!collection.hasTerm(term)) {
+									collectionService.createTerm(collection.getId(), collection.getSecret(), 
+											term, "", "", new AsyncCallback<List<GwtEvent<?>>>() {
+										@Override
+										public void onFailure(Throwable caught) {
+										
+										}
+										@Override
+										public void onSuccess(List<GwtEvent<?>> result) {
+											fireEvents(result);
+										}				
+									});
+									importList.add(new Term(term));
+								}
+								//jin add end
+							}
 						}
 						addTerms(importList);
 					}
@@ -135,6 +151,9 @@ public class CandidateView extends SimpleContainer {
 				box.show();
 			}
 		});
+		
+		
+		
 		TextButton removeButton = new TextButton("Remove");
 		Menu removeMenu = new Menu();
 		MenuItem selectedRemove = new MenuItem("Selected");
@@ -144,6 +163,7 @@ public class CandidateView extends SimpleContainer {
 				remove(tree.getSelectionModel().getSelectedItems());
 			}
 		});
+		
 		MenuItem allRemove = new MenuItem("All");
 		allRemove.addSelectionHandler(new SelectionHandler<Item>() {
 			@Override
@@ -180,6 +200,8 @@ public class CandidateView extends SimpleContainer {
 							@Override
 							public void onSuccess(List<GwtEvent<?>> result) {
 								fireEvents(result);
+								//After adding, make it disappeared
+								termField.setValue("");
 							}							
 						});
 					} else {
@@ -189,6 +211,7 @@ public class CandidateView extends SimpleContainer {
 		});
 		hlc.add(termField, new HorizontalLayoutData(1, -1));
 		hlc.add(addButton);
+		
 		FieldLabel field = new FieldLabel(hlc, "Add Term");
 		
 		VerticalLayoutContainer vlc = new VerticalLayoutContainer();

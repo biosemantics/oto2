@@ -27,6 +27,10 @@ public class Term implements Serializable {
 	public String getPartDisambiguator() {
 		return partDisambiguator;
 	}
+	
+	public String setPartDisambiguator(String partDisambiguator) {
+		return this.partDisambiguator = partDisambiguator;
+	}
 
 	public String getClassDisambiguator() {
 		return classDisambiguator;

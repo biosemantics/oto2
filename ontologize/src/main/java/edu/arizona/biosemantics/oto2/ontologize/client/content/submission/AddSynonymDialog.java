@@ -12,7 +12,7 @@ import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent;
 import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent.SelectionChangedHandler;
 
 import edu.arizona.biosemantics.oto2.ontologize.client.content.candidates.TermsView;
-import edu.arizona.biosemantics.oto2.ontologize.client.layout.ModelController;
+import edu.arizona.biosemantics.oto2.ontologize.client.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Type;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.TermTreeNode;

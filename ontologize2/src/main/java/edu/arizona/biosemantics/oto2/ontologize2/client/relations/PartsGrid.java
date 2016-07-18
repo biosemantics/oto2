@@ -13,6 +13,7 @@ import java.util.Set;
 import com.google.gwt.core.shared.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.event.shared.GwtEvent;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
@@ -93,6 +94,7 @@ public class PartsGrid extends MenuTermsGrid {
 		eventBus.addHandler(CreatePartEvent.TYPE, new CreatePartEvent.Handler() {
 			@Override
 			public void onCreate(CreatePartEvent event) {
+				
 				List<Row> rows = PartsGrid.this.getLeadTermsRows(event.getParent(), true);
 				Row row = null;
 				if(event.hasRowId()) 
@@ -100,56 +102,77 @@ public class PartsGrid extends MenuTermsGrid {
 				else {
 					row = new Row(event.getParent());
 					PartsGrid.super.addRow(row);
-				}	
+				}
+				//Alerter.showAlert("Create Part", "Create part for "+event.getParent()+" "+event.getParts()[0].getDisambiguatedValue());
 				if(row != null)
 					try {
 						PartsGrid.super.addAttachedTermsToRow(row, Arrays.asList(event.getParts()));
 					} catch (Exception e) {
-						e.printStackTrace();
-						Alerter.showAlert("Create Part", "Create part failed");
+						Alerter.showAlert("Create Part", "Create part failed "+e.getMessage());
 					}
 			}
 		});
-		eventBus.addHandler(RemovePartEvent.TYPE, new RemovePartEvent.Handler() {
+		eventBus.addHandler(RemovePartEvent.TYPE, new RemovePartEvent.Handler() {///remove a cell
 			@Override
 			public void onRemove(RemovePartEvent event) {
-				//remove row
-				if(event.getParent() == null) {
-					for(Term part : event.getParts()) {
-						List<Row> rows = PartsGrid.this.getLeadTermsRows(part, true);
-						if(event.hasRowId()) {
-							Row idRow = getRowWithId(rows, event.getRowId());
-							if(idRow != null) {
-								rows = new LinkedList<Row>();
-								rows.add(idRow);
-							}
-						}
-						if(!rows.isEmpty()) {
-							try {
-								PartsGrid.super.removeRows(rows);
-							} catch (Exception e) {
-								Alerter.showAlert("Remove Part", "Remove part failed");
-							}
-						}
+				//Alerter.showAlert("selection entry remove", "remove in PartGrid by event from "+event.getParent());
+//				//remove row
+//				if(event.getParent() == null) {//this is the entry, will remove the entry term
+//					for(Term part : event.getParts()) {
+//						List<Row> rows = PartsGrid.this.getLeadTermsRows(part, true);
+//						if(event.hasRowId()) {
+//							Row idRow = getRowWithId(rows, event.getRowId());
+//							if(idRow != null) {
+//								rows = new LinkedList<Row>();
+//								rows.add(idRow);
+//							}
+//						}
+//						if(!rows.isEmpty()) {
+//							try {
+//								PartsGrid.super.removeRows(rows);
+//							} catch (Exception e) {
+//								Alerter.showAlert("Remove Part", "Remove part failed");
+//							}
+//						}
+//					}
+//				//remove attached terms
+//				} else {
+//					List<Row> rows = PartsGrid.this.getLeadTermsRows(event.getParent(), true);
+//					if(event.hasRowId()) {
+//						Row idRow = getRowWithId(rows, event.getRowId());
+//						if(idRow != null) {
+//							rows = new LinkedList<Row>();
+//							rows.add(idRow);
+//						}
+//					}
+//					if(!rows.isEmpty()) {
+//						try {
+//							PartsGrid.super.removeAttachedTermsFromRows(rows, Arrays.asList(event.getParts()));
+//						} catch (Exception e) {
+//							Alerter.showAlert("Remove Part", "Remove part failed");
+//						}
+//					}
+//				}	
+				List<Row> rows = PartsGrid.this.getLeadTermsRows(event.getParent(), true);
+				if(event.hasRowId()) {
+					Row idRow = getRowWithId(rows, event.getRowId());//select rowId
+					if(idRow != null) {
+						rows = new LinkedList<Row>();
+						rows.add(idRow);
 					}
-				//remove attached terms
-				} else {
-					List<Row> rows = PartsGrid.this.getLeadTermsRows(event.getParent(), true);
-					if(event.hasRowId()) {
-						Row idRow = getRowWithId(rows, event.getRowId());
-						if(idRow != null) {
-							rows = new LinkedList<Row>();
-							rows.add(idRow);
-						}
-					}
-					if(!rows.isEmpty()) {
+				}
+				if(!rows.isEmpty()) {
+					//if the event comes from remove row, superclass is set to null
+					if(event.getParts()==null) {//if the entry has subclasses, it can not be removed.
+						PartsGrid.super.removeRows(rows);
+					} else {//if the entry does have any subclasses, remove its subclasses and then remove it
 						try {
 							PartsGrid.super.removeAttachedTermsFromRows(rows, Arrays.asList(event.getParts()));
 						} catch (Exception e) {
-							Alerter.showAlert("Remove Part", "Remove part failed");
+							Alerter.showAlert("Remove Parts", e.getMessage());
 						}
 					}
-				}					
+				}
 			}
 		});
 	}
@@ -161,7 +184,7 @@ public class PartsGrid extends MenuTermsGrid {
 			//validAddRow(row, this.getAll());
 		} catch(Exception e) {
 			valid = false;
-			Alerter.showAlert("Add failed.", e.getMessage());
+			Alerter.showAlert("Add failed.", "Please drop in the right area!");//e.getMessage()
 		}
 		if(valid) {	
 			doAddRow(row);
@@ -193,6 +216,7 @@ public class PartsGrid extends MenuTermsGrid {
 						});
 					}
 		});
+		
 	}
 
 	@Override
@@ -229,20 +253,21 @@ public class PartsGrid extends MenuTermsGrid {
 					}
 					@Override
 					public void onSuccess(List<GwtEvent<?>> result) {
+						((RemovePartEvent)result.get(0)).setParts(null);
 						fireEvents(result, row);
-						List<Term> parts = new LinkedList<Term>();
-						parts.add(row.getLeadTerm());
-						collectionService.removePart(collection.getId(), collection.getSecret(),
-								null, parts, new AsyncCallback<List<GwtEvent<?>>>() {
-									@Override
-									public void onFailure(Throwable caught) {
-										
-									}
-									@Override
-									public void onSuccess(List<GwtEvent<?>> result) {
-										fireEvents(result, row);
-									}
-						});
+//						List<Term> parts = new LinkedList<Term>();
+//						parts.add(row.getLeadTerm());
+//						collectionService.removePart(collection.getId(), collection.getSecret(),
+//								null, parts, new AsyncCallback<List<GwtEvent<?>>>() {
+//									@Override
+//									public void onFailure(Throwable caught) {
+//										
+//									}
+//									@Override
+//									public void onSuccess(List<GwtEvent<?>> result) {
+//										fireEvents(result, row);
+//									}
+//						});
 					}
 				});
 		}
@@ -257,7 +282,7 @@ public class PartsGrid extends MenuTermsGrid {
 			valid = false;
 			Alerter.showAlert("Add failed.", e.getMessage());
 		}
-		
+		final Term parentTerm = row.getLeadTerm();
 		if(valid) {
 			for(final Term term : add) {
 				collectionService.getParents(collection.getId(), collection.getSecret(), term, new AsyncCallback<List<Term>>() {
@@ -268,14 +293,20 @@ public class PartsGrid extends MenuTermsGrid {
 					@Override
 					public void onSuccess(List<Term> result) {
 						if(!result.isEmpty()) {
-							MessageBox box = Alerter.showConfirm("Add part", 
-									"A part with the name: " + term.getDisambiguatedValue() + " already exists in " + result.size() + " parents: e.g. "
-										+ collapseTermsAsString(result) + ". "
-										+ "Proceed using this term?");
+							final Term existParentTerm = result.get(0);
+							MessageBox box = Alerter.showConfirm("Add parts", 
+									"This term \"" + term.getDisambiguatedValue() + "\" already exists as a part of \""
+										+ existParentTerm.getDisambiguatedValue()+ "\". "
+										+ "Do you agree to apply the following strategy for disambiguation: "
+										+ "1) add the term \""+existParentTerm.getDisambiguatedValue()+" "+term.getDisambiguatedValue()+"\" under \""+existParentTerm.getDisambiguatedValue()+"\", "
+										+ "2) add the term \""+parentTerm.getDisambiguatedValue()+" "+term.getDisambiguatedValue()+"\" under \""+parentTerm.getDisambiguatedValue()+"\", "
+										+ "3) remove the term \""+term.getDisambiguatedValue()+"\" under \""+existParentTerm.getDisambiguatedValue()+"\""
+										+ " If NO, please create a new term then add as a part of \""+parentTerm.getDisambiguatedValue()+"\".");
 							box.getButton(PredefinedButton.YES).addSelectHandler(new SelectHandler() {
 								@Override
 								public void onSelect(SelectEvent event) {
-									createPart(row.getLeadTerm(), term, row, false);
+									///createPart(parentTerm, term, row, true);
+									createTwoDisambiguateParts(existParentTerm, term, row.getLeadTerm() , row, true);
 								}
 							});
 							box.getButton(PredefinedButton.NO).addSelectHandler(new SelectHandler() {
@@ -308,26 +339,20 @@ public class PartsGrid extends MenuTermsGrid {
 		});
 	}
 		
-	private String collapseTermsAsString(List<Term> terms) {
-		String result = "";
-		int i = 0;
-		for(Term term : terms) {
-			result += term.getDisambiguatedValue() + ", ";
-			if(i > 5)
-				break;
-		}
-		return result.substring(0, result.length() - 2);
-	}
-
 	private void createPart(Term partent, Term part, final Row row, boolean disambiguate) {
+		///Alerter.showAlert("create part", "parent="+partent.getDisambiguatedValue()+"/"+part.getDisambiguatedValue());
 		collectionService.createPart(collection.getId(), collection.getSecret(), 
 				partent, part, disambiguate, new AsyncCallback<List<GwtEvent<?>>>() {
 			@Override
 			public void onFailure(Throwable caught) {
 				//TODO
+				Alerter.showAlert("Disambigate failed", caught.getMessage());
 			}
 			@Override
 			public void onSuccess(List<GwtEvent<?>> result) {
+//				for(GwtEvent ge:result){
+//					if(ge.getClass().getName().indexOf("RemovePartEvent")>-1) ((RemovePartEvent)ge).setParts(null);
+//				}
 				fireEvents(result, row);
 			}
 		});
@@ -413,11 +438,50 @@ public class PartsGrid extends MenuTermsGrid {
 		if(leadTermRowMap.containsKey(from.getDisambiguatedValue())) {
 			for(Row row : leadTermRowMap.get(from.getDisambiguatedValue())) {
 				for(Term attachedTerm : row.getAttachedTerms()) {
-					if(createsCircularRelationship(to, attachedTerm, leadTermRowMap))
+					//if(createsCircularRelationship(to, attachedTerm, leadTermRowMap))
+					if(to.equals(attachedTerm))
 						return true;
 				}
 			}
 		}
 		return false;
+	}
+	
+	/**
+	 * 1. change the term to Parent1+Term
+	 * 2. add a new term,
+	 * 3. attach the new term to the parent2 + term
+	 */
+	private void createTwoDisambiguateParts(
+			Term parentTerm, Term term, Term leadTerm, final Row row,
+			boolean disambiguate) {
+		collectionService.changeAndCreateParts(collection.getId(), collection.getSecret(), 
+				parentTerm, term, leadTerm, disambiguate, new AsyncCallback<List<GwtEvent<?>>>() {
+			@Override
+			public void onFailure(Throwable caught) {
+				Alerter.showAlert("Disambiguate Fail", caught.getMessage());
+			}
+			@Override
+			public void onSuccess(List<GwtEvent<?>> result) {
+				/*
+				List<GwtEvent<?>> removeEvents = new LinkedList<GwtEvent<?>>();
+				for(int i=0;i<result.size();){
+					GwtEvent ge=result.get(i);
+					Alerter.showAlert("ge.getClass().getName()", ge.getClass().getName());
+					if(ge.getClass().getName().indexOf("RemovePartEvent")>-1){
+						removeEvents.add(ge);
+						result.remove(ge);
+					}else{
+						i++;
+					}
+				}
+				//fire remove events first
+				fireEvents(removeEvents, row);
+				//then fire add events*/
+				//fireEvents(result, row);
+				Alerter.showAlert("Page Reload", "The whole page will be reloaded!");
+				Window.Location.reload();
+			}
+		});
 	}
 }

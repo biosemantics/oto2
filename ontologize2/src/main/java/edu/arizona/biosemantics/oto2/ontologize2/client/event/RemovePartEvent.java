@@ -43,6 +43,10 @@ public class RemovePartEvent extends GwtEvent<Handler> implements HasRowId, Seri
 		handler.onRemove(this);
 	}
 
+	public void setParent(Term parent) {
+		this.parent = parent;
+	}
+	
 	public Term getParent() {
 		return parent;
 	}
@@ -50,6 +54,10 @@ public class RemovePartEvent extends GwtEvent<Handler> implements HasRowId, Seri
 	public Term[] getParts() {
 		return parts;
 	}	
+	
+	public void setParts(Term[] parts) {
+		this.parts = parts;
+	}
 	
 	@Override
 	public int getRowId() {
@@ -68,5 +76,6 @@ public class RemovePartEvent extends GwtEvent<Handler> implements HasRowId, Seri
 	
 	public boolean hasParts() {
 		return parts.length > 0;
-	}	
+	}
+
 }

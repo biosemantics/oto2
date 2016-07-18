@@ -5,8 +5,8 @@ import com.google.gwt.resources.client.ImageResource;
 import com.google.web.bindery.event.shared.EventBus;
 import com.sencha.gxt.data.shared.IconProvider;
 
+import edu.arizona.biosemantics.oto2.ontologize.client.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadCollectionEvent;
-import edu.arizona.biosemantics.oto2.ontologize.client.layout.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.TermTreeNode;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.TextTreeNode;

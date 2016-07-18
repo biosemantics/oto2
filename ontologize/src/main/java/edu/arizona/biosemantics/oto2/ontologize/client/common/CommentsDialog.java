@@ -36,7 +36,6 @@ import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
 import edu.arizona.biosemantics.oto2.ontologize.client.Ontologize;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.SetCommentEvent;
-import edu.arizona.biosemantics.oto2.ontologize.client.layout.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Comment;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Commentable;
@@ -268,7 +267,7 @@ public class CommentsDialog extends CommonDialog {
 	private List<CommentEntry> createComments() {
 		List<CommentEntry> commentEntries = new LinkedList<CommentEntry>();
 		
-		Map<Commentable, List<Comment>> commentsMap =  ModelController.getCollection().getComments();
+		Map<Commentable, List<Comment>> commentsMap =  edu.arizona.biosemantics.oto2.ontologize.client.ModelController.getCollection().getComments();
 		for(Commentable commentable : commentsMap.keySet()) {
 			if(commentable instanceof Term) {
 				Term term = (Term)commentable;

@@ -3,7 +3,12 @@ package edu.arizona.biosemantics.oto2.ontologize2.client.relations.cell;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.google.gwt.cell.client.ValueUpdater;
+import com.google.gwt.cell.client.Cell.Context;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.BrowserEvents;
+import com.google.gwt.dom.client.Element;
+import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.safehtml.client.SafeHtmlTemplates;
@@ -14,6 +19,7 @@ import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
+import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid.Row;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.ICollectionService;
@@ -46,12 +52,15 @@ public class AttachedTermCell extends MenuExtendedCell<String> {
 		this.termsGrid = termsGrid;
 	}
 
+	/**
+	 * create context menu items for cells such as Remove items
+	 */
 	@Override
 	protected Menu createContextMenu(int columnIndex, int rowIndex) {
 		final Row row = termsGrid.getRow(rowIndex);
 		final Term term = row.getAttachedTerms().get(columnIndex - 1);
 		Menu menu = new Menu();
-		MenuItem removeItem = new MenuItem("Remove");
+		MenuItem removeItem = new MenuItem("Remove this term");
 		removeItem.addSelectionHandler(new SelectionHandler<Item>() {
 			@Override
 			public void onSelection(SelectionEvent<Item> event) {
@@ -70,5 +79,6 @@ public class AttachedTermCell extends MenuExtendedCell<String> {
 				columnHeaderStyles.headButton(), value, "", "", "");
 		sb.append(rendered);
 	}
+	
 
 }

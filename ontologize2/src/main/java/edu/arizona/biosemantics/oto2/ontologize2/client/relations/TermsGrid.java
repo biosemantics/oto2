@@ -21,6 +21,7 @@ import com.google.gwt.event.shared.GwtEvent;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.core.client.ValueProvider;
+import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.PropertyAccess;
@@ -194,7 +195,7 @@ public class TermsGrid implements IsWidget {
 	private RowProperties rowProperties = GWT.create(RowProperties.class);
 	protected ListStore<Row> store;
 	protected Grid<Row> grid;
-	private SimpleContainer createRowContainer;
+	protected SimpleContainer createRowContainer;//jin change to protected
 	private final int colWidth = 100;
 	private String firstColName;
 	private String nColName;
@@ -209,6 +210,7 @@ public class TermsGrid implements IsWidget {
 		store = new ListStore<Row>(rowProperties.key());
 		store.setAutoCommit(true);
 		this.grid = new Grid<Row>(store, createColumnModel(new LinkedList<Row>()));
+		
 		createCreateRowContainer();
 
 		DropTarget dropTargetGrid = new DropTarget(grid);
@@ -286,6 +288,9 @@ public class TermsGrid implements IsWidget {
 			grid.reconfigure(store, new ColumnModel<Row>(columns));
 		} */
 		store.add(row);
+		//jin add to support auto scroll
+		//this.createRowContainer.getElement().scrollIntoView(this.asWidget().getElement(), true);
+		createRowContainer.getElement().scrollIntoView();
 	}
 	
 	public void removeRows(Collection<Row> rows) {
@@ -444,7 +449,7 @@ public class TermsGrid implements IsWidget {
 				return "term-0";
 			}
 		}, colWidth, firstColName);
-		LeadTermCell cell = new LeadTermCell();
+		LeadTermCell cell = new LeadTermCell(this);
 		column1.setCell(cell);
 		columns.add(column1);
 		for(int i = 1; i <= attachedTermsCount; i++)
@@ -456,6 +461,11 @@ public class TermsGrid implements IsWidget {
 		return createColumnModel(getMaxAttachedTermsCount(rows));
 	}
 	
+	/**
+	 * create the i-th column, its path is term-i
+	 * @param i
+	 * @return
+	 */
 	private ColumnConfig<Row, ?> createColumnI(final int i) {
 		ColumnConfig<Row, String> config = new ColumnConfig<Row, String>(new ValueProvider<Row, String>() {
 			@Override
@@ -493,8 +503,8 @@ public class TermsGrid implements IsWidget {
 
 	private void createCreateRowContainer() {
 		createRowContainer = new SimpleContainer();
-		createRowContainer.setTitle("Drop here to create new entry");
-		com.google.gwt.user.client.ui.Label dropLabel = new com.google.gwt.user.client.ui.Label("Drop here to create new entry");
+		createRowContainer.setTitle("Drop here to create new row");
+		com.google.gwt.user.client.ui.Label dropLabel = new com.google.gwt.user.client.ui.Label("Drop here to create new row");
 		dropLabel.getElement().getStyle().setLineHeight(30, Unit.PX);
 		createRowContainer.setWidget(dropLabel);
 		createRowContainer.setHeight(30);
@@ -512,6 +522,10 @@ public class TermsGrid implements IsWidget {
 		VerticalLayoutContainer vlc = new VerticalLayoutContainer();
 		vlc.add(grid);
 		vlc.add(createRowContainer);
+		//jin add to support auto scroll
+		vlc.getScrollSupport().setScrollMode(ScrollMode.AUTO);
+		//jin add to support auto scroll end
+		
 		SimpleContainer simpleContainer = new SimpleContainer();
 		simpleContainer.add(vlc);
 		return simpleContainer;
@@ -525,4 +539,14 @@ public class TermsGrid implements IsWidget {
 		}
 	}
 	
+	protected String collapseTermsAsString(List<Term> terms) {
+		String result = "";
+		int i = 0;
+		for(Term term : terms) {
+			result += term.getDisambiguatedValue() + ", ";
+			if(i > 5)
+				break;
+		}
+		return result.substring(0, result.length() - 2);
+	}
 }

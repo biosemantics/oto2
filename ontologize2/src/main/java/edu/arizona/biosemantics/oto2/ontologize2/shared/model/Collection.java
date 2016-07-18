@@ -5,9 +5,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
@@ -26,7 +28,7 @@ public class Collection implements Serializable, Comparable<Collection> {
 	private Map<String, Term> disambiguatedTermsMap = new HashMap<String, Term>();
 	private Map<String, String> termBucketMap = new HashMap<String, String>();
 	private Map<String, String> termIRIMap = new HashMap<String, String>();
-	private Map<String, List<String>> partsMap = new HashMap<String, List<String>>();
+	private Map<String, List<String>> partsMap = new HashMap<String, List<String>>();//disambiguated class name
 	private Map<String, List<String>> subclassesMap = new HashMap<String, List<String>>();
 	private Map<String, List<String>> synonymsMap = new HashMap<String, List<String>>();
 	
@@ -50,6 +52,15 @@ public class Collection implements Serializable, Comparable<Collection> {
 	public void createTerm(java.util.Collection<Term> terms) {
 		for(Term term : terms)
 			this.disambiguatedTermsMap.put(term.getDisambiguatedValue(), term);
+	}
+	
+	/**
+	 * remove orgTerm that do not have disambiguate part
+	 * @param term
+	 */
+	public void disambiguateTerm(Term term){
+		this.disambiguatedTermsMap.remove(term.getValue());
+		this.disambiguatedTermsMap.put(term.getDisambiguatedValue(), term);
 	}
 	
 	public void removeTerms(Term... terms) {
@@ -125,6 +136,33 @@ public class Collection implements Serializable, Comparable<Collection> {
 		return partsMap;
 	}
 	
+	/**
+	 * get First Level parts. They will be attached to the root node.
+	 * @param parent
+	 * @param parts
+	 */
+	public Map<String, List<String>> getFirstLevelParts(){
+		Map<String, List<String>> firstLevel = new HashMap();
+		Iterator<Entry<String, List<String>>> entryIter = partsMap.entrySet().iterator();
+		while(entryIter.hasNext()){
+			Entry<String, List<String>> parentChildrenEntry = entryIter.next();
+			firstLevel.put(parentChildrenEntry.getKey(), parentChildrenEntry.getValue());
+		}
+		
+		entryIter = partsMap.entrySet().iterator();
+		while(entryIter.hasNext()){
+			Entry<String, List<String>> parentChildrenEntry = entryIter.next();
+			List<String> children = parentChildrenEntry.getValue();
+			if(children!=null){
+				for(String child:children){
+					firstLevel.remove(child);
+				}
+			}
+		}
+		
+		return firstLevel;
+	}
+	
 	public void createPart(Term parent, Term... parts) {
 		this.createPart(parent, Arrays.asList(parts));
 	}
@@ -138,6 +176,7 @@ public class Collection implements Serializable, Comparable<Collection> {
 	}
 	
 	public void removePart(Term parent, Term... parts) {
+		//System.out.println("remove parts:"+parent.getValue());
 		this.removePart(parent, Arrays.asList(parts));
 	}
 
@@ -147,6 +186,33 @@ public class Collection implements Serializable, Comparable<Collection> {
 	
 	public Map<String, List<String>> getSubclasses() {
 		return subclassesMap;
+	}
+	
+	/**
+	 * get First Level parts. They will be attached to the root node.
+	 * @param parent
+	 * @param parts
+	 */
+	public Map<String, List<String>> getFirstLevelClass(){
+		Map<String, List<String>> firstLevel = new HashMap();
+		Iterator<Entry<String, List<String>>> entryIter = subclassesMap.entrySet().iterator();
+		while(entryIter.hasNext()){
+			Entry<String, List<String>> parentChildrenEntry = entryIter.next();
+			firstLevel.put(parentChildrenEntry.getKey(), parentChildrenEntry.getValue());
+		}
+		
+		entryIter = subclassesMap.entrySet().iterator();
+		while(entryIter.hasNext()){
+			Entry<String, List<String>> parentChildrenEntry = entryIter.next();
+			List<String> children = parentChildrenEntry.getValue();
+			if(children!=null){
+				for(String child:children){
+					firstLevel.remove(child);
+				}
+			}
+		}
+		
+		return firstLevel;
 	}
 	
 	public void createSubclass(Term superclass, Term... subclasses) {
@@ -301,6 +367,11 @@ public class Collection implements Serializable, Comparable<Collection> {
 			if(parentChildMap.containsKey(parent.getDisambiguatedValue())) 
 				for(Term child : children)
 					parentChildMap.get(parent.getDisambiguatedValue()).remove(child.getDisambiguatedValue());
+			//jin add, if no children exist, remove from the parentchildmap. It can be a child of other parent terms
+			//System.out.println(parentChildMap.get(parent.getDisambiguatedValue()).size());
+			if(parentChildMap.get(parent.getDisambiguatedValue()).size()==0&&children.size()==0){
+				parentChildMap.remove(parent.getDisambiguatedValue());
+			}
 		}
 	}
 	
@@ -316,8 +387,12 @@ public class Collection implements Serializable, Comparable<Collection> {
 			return new LinkedList<Term>();
 		List<String> children = parentChildMap.get(parent.getDisambiguatedValue());
 		List<Term> childrenTerms = new ArrayList<Term>(children.size());
-		for(String child : children) 
-			childrenTerms.add(disambiguatedTermsMap.get(child));
+		for(String child : children) {
+			//maybe there are some duplicates, should remove them. this problem occurs on the tree refresh function.
+			Term childTerm = disambiguatedTermsMap.get(child);
+			if(!childrenTerms.contains(childTerm)) childrenTerms.add(childTerm);
+		}
+			
 		return childrenTerms;
 	}
 	
@@ -328,18 +403,36 @@ public class Collection implements Serializable, Comparable<Collection> {
 				parentChildMap.put(child.getDisambiguatedValue(), new LinkedList<String>());
 			return;
 		}
-		if(!children.isEmpty()) {
+		//if(!children.isEmpty()) {//if the children is empty, create the parent as well if it's not existed.
 			if(!parentChildMap.containsKey(parent.getDisambiguatedValue()))
 				parentChildMap.put(parent.getDisambiguatedValue(), new LinkedList<String>());
 			for(Term child : children) 
 				parentChildMap.get(parent.getDisambiguatedValue()).add(child.getDisambiguatedValue());
+		//}
+	}
+	
+	private void createParentChild(Term parent, Term child, Map<String, List<String>> parentChildMap) {
+		//parent == null refers to the root node
+		if(parent == null) {
+			parentChildMap.put(child.getDisambiguatedValue(), new LinkedList<String>());
+			return;
 		}
+		if(!parentChildMap.containsKey(parent.getDisambiguatedValue()))
+			parentChildMap.put(parent.getDisambiguatedValue(), new LinkedList<String>());
+		parentChildMap.get(parent.getDisambiguatedValue()).add(child.getDisambiguatedValue());
 	}
 
 	private void removeFromParentChildMap(Term term, Map<String, List<String>> parentChildMap) {
 		parentChildMap.remove(term.getDisambiguatedValue());
 		for(String parent : parentChildMap.keySet()) 
 			parentChildMap.get(parent).remove(term.getDisambiguatedValue());
+	}
+
+	
+	public Set<String> getAllClasses() {
+		Set<String> disambiguatedTermNames = new HashSet<String>();
+		Set<String> parentClassName
+		return null;
 	}
 	
 }

@@ -12,7 +12,6 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateSynonymEvent
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateTermEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveSubclassEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveSynonymEvent;
-import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceTermInRelationsEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemovePartEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveTermEvent;
@@ -21,14 +20,87 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Term;
 
 public class ModelController {
 	
-	private EventBus eventBus;
-	private Collection collection;
+	//private EventBus eventBus;
+	//private Collection collection;
 
 	public ModelController(EventBus eventBus) {
 		this.eventBus = eventBus;
 		bindEvents();
 	}
 		
+	
+	private static Collection collection;
+	private static EventBus eventBus;
+//	
+//	/*public ModelController(EventBus eventBus) {
+//		this.eventBus = eventBus;
+//		//bindEvents();
+//	}*/
+//	
+	public static void setCollection(Collection collection) {
+		ModelController.collection = collection;
+	}
+
+	public static Collection getCollection() {
+		return collection;
+	}
+	
+	public static void loadCollection(Collection collection) {
+		ModelController.collection = collection;
+	}
+	
+	public static void createTerm(Term... terms) {
+		collection.createTerm(terms);
+	}
+	
+	public static void removeTerm(Term... terms) {
+		collection.removeTerms(terms);
+	}
+	
+//	public static List<GwtEvent<?>> createPart(Term parent, List<Term> parts) {
+//		collection.createPart(parent, parts);
+//		List<GwtEvent<?>> disambiguationEvents = CollectionDisambiguator.disambiguateParts(parts);
+//		return disambiguationEvents;
+//	}
+//	
+//	public static List<GwtEvent<?>> createSubclass(Term superclass, List<Term> subclasses) {
+//		collection.createSubclass(superclass, subclasses);
+//		List<GwtEvent<?>> disambiguationEvents = CollectionDisambiguator.disambiguateClasses(subclasses);
+//		return disambiguationEvents;
+//	}
+//	
+	public static List<GwtEvent<?>> createSynonym(Term preferredTerm, List<Term> synonyms) {
+		collection.createSynonym(preferredTerm, synonyms);
+		List<GwtEvent<?>> events = new ArrayList<GwtEvent<?>>();
+		events.add(new CreateSynonymEvent(preferredTerm, synonyms));
+		return events;
+	}
+	
+	public static List<GwtEvent<?>> removePart(Term parent, Term... parts) {
+		collection.removePart(parent, parts);
+		List<GwtEvent<?>> events = new ArrayList<GwtEvent<?>>();
+		events.add(new RemovePartEvent(parent, parts));
+		return events;
+	}
+	
+	public static List<GwtEvent<?>> removeSubclass(Term superclass, Term... subclasses) {
+		collection.removePart(superclass, subclasses);
+		List<GwtEvent<?>> events = new ArrayList<GwtEvent<?>>();
+		events.add(new RemoveSubclassEvent(superclass, subclasses));
+		return events;
+	}
+	
+	public static List<GwtEvent<?>> removeSynonym(Term preferredTerm, Term... synonyms) {
+		collection.removeSynonym(preferredTerm, synonyms);
+		List<GwtEvent<?>> events = new ArrayList<GwtEvent<?>>();
+		events.add(new RemoveSynonymEvent(preferredTerm, synonyms));
+		return events;
+	}
+
+	public static void setEventBus(com.google.gwt.event.shared.EventBus eventBus) {
+		ModelController.eventBus = eventBus;
+	}
+	
 	private void bindEvents() {
 		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
 			@Override

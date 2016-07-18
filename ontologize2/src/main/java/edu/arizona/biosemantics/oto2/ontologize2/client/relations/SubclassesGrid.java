@@ -14,6 +14,10 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.event.shared.GwtEvent;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.sencha.gxt.core.client.ValueProvider;
+import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
+import com.sencha.gxt.widget.core.client.box.MessageBox;
+import com.sencha.gxt.widget.core.client.event.SelectEvent;
+import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 
 import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreatePartEvent;
@@ -81,7 +85,7 @@ public class SubclassesGrid extends MenuTermsGrid {
 					try {
 						SubclassesGrid.super.addAttachedTermsToRow(row, Arrays.asList(event.getSubclasses()));
 					} catch (Exception e) {
-						Alerter.showAlert("Create Part", "Create subclass failed");
+						Alerter.showAlert("Create subclass", "Create subclass failed");
 					}
 			}
 		});
@@ -90,16 +94,17 @@ public class SubclassesGrid extends MenuTermsGrid {
 			public void onRemove(RemoveSubclassEvent event) {
 				List<Row> rows = SubclassesGrid.this.getLeadTermsRows(event.getSuperclass(), true);
 				if(event.hasRowId()) {
-					Row idRow = getRowWithId(rows, event.getRowId());
+					Row idRow = getRowWithId(rows, event.getRowId());//select rowId
 					if(idRow != null) {
 						rows = new LinkedList<Row>();
 						rows.add(idRow);
 					}
 				}
 				if(!rows.isEmpty()) {
-					if(!event.hasSubclasses()) {
+					//if the event comes from remove row, superclass is set to null
+					if(event.getSubclasses()==null) {//if the entry has subclasses, it can not be removed.
 						SubclassesGrid.super.removeRows(rows);
-					} else {
+					} else {//if the entry does have any subclasses, remove its subclasses and then remove it
 						try {
 							SubclassesGrid.super.removeAttachedTermsFromRows(rows, Arrays.asList(event.getSubclasses()));
 						} catch (Exception e) {
@@ -168,21 +173,25 @@ public class SubclassesGrid extends MenuTermsGrid {
 			validateRemove(rows);
 		} catch(Exception e) {
 			valid = false;
-			Alerter.showAlert("Add failed.", e.getMessage());
+			Alerter.showAlert("Remove failed.", e.getMessage());
 		}
+		//Alerter.showAlert("Remove failed.", "can be removed?"+valid);
 		if(valid) {
-			for(final Row row : rows)
+			for(final Row row : rows){
+				//Alerter.showAlert("Remove failed.", "is going to remove "+row.getLeadTerm().getValue());
 				collectionService.removeSubclass(collection.getId(), collection.getSecret(), 
 						row.getLeadTerm(), row.getAttachedTerms(), new AsyncCallback<List<GwtEvent<?>>>() {
 					@Override
 					public void onFailure(Throwable caught) {
-						
+						Alerter.showAlert("SubclassGrid Delete failure ", caught.getMessage());
 					}
 					@Override
 					public void onSuccess(List<GwtEvent<?>> result) {
+						((RemoveSubclassEvent)result.get(0)).setSubclasses(null);
 						fireEvents(result, row);
 					}
 				});
+			}
 		}
 	}
 	
@@ -193,9 +202,43 @@ public class SubclassesGrid extends MenuTermsGrid {
 			validAddTermsToRow(row, add);
 		} catch(Exception e) {
 			valid = false;
-			Alerter.showAlert("Add failed.", e.getMessage());
+			Alerter.showAlert("Add terms failed.", e.getMessage());
 		}
 		if(valid) {
+			final Term parentTerm = row.getLeadTerm();
+			for(final Term term : add) {
+				collectionService.getSuperclasses(collection.getId(), collection.getSecret(), term, new AsyncCallback<List<Term>>() {
+					@Override
+					public void onFailure(Throwable caught) {
+						caught.printStackTrace();
+					}
+					@Override
+					public void onSuccess(List<Term> result) {
+						if(!result.isEmpty()) {
+							MessageBox box = Alerter.showConfirm("Add subclasses", 
+									"This term [" + term.getDisambiguatedValue() + "] already exists as subclasses of " + result.size() + " parent(s): ["
+										+ collapseTermsAsString(result) + "]. "
+										+ "Do you still want to add this term as a subclass of "+parentTerm.getDisambiguatedValue()+"?"
+										+ " If NO, please create a new term then add as a subclass of "+parentTerm.getDisambiguatedValue()+".");
+							box.getButton(PredefinedButton.YES).addSelectHandler(new SelectHandler() {
+								@Override
+								public void onSelect(SelectEvent event) {
+									createSubclass(parentTerm, term, row);
+								}
+							});
+							box.getButton(PredefinedButton.NO).addSelectHandler(new SelectHandler() {
+								@Override
+								public void onSelect(SelectEvent event) {
+									//createPart(row.getLeadTerm(), term, row, true);
+								}
+							});
+						} else {
+							createSubclass(parentTerm, term, row);
+						}
+					}
+				});
+			}
+			/*
 			collectionService.createSubclass(collection.getId(), collection.getSecret(), 
 					row.getLeadTerm(), add, new AsyncCallback<List<GwtEvent<?>>>() {
 				@Override
@@ -207,9 +250,25 @@ public class SubclassesGrid extends MenuTermsGrid {
 					fireEvents(result, row);
 				}
 			});
+			*/
 		}
 	}
 	
+	protected void createSubclass(Term leadTerm, Term addTerm, final Row row) {
+		collectionService.createSubclass(collection.getId(), collection.getSecret(), 
+				leadTerm, addTerm, new AsyncCallback<List<GwtEvent<?>>>() {
+			@Override
+			public void onFailure(Throwable caught) {
+				// TODO Auto-generated method stub
+			}
+			@Override
+			public void onSuccess(List<GwtEvent<?>> result) {
+				fireEvents(result, row);
+			}
+		});
+		
+	}
+
 	@Override
 	public void removeAttachedTermsFromRow(final Row row, List<Term> terms) {
 		collectionService.removeSubclass(collection.getId(), collection.getSecret(), 
@@ -262,7 +321,7 @@ public class SubclassesGrid extends MenuTermsGrid {
 			}
 		}
 		for(Term addTerm : add) {
-			if(existingSuperclasses.contains(addTerm)) {
+			if(existingSuperclasses.contains(addTerm.getDisambiguatedValue())) {
 				throw new Exception("Superclass is already defined as superclass of this subclass");
 			}
 			existingSuperclasses.add(addTerm.getDisambiguatedValue());
@@ -271,9 +330,11 @@ public class SubclassesGrid extends MenuTermsGrid {
 		//circular relationship
 		Map<String, Set<Row>> leadTermRowMap = createLeadTermRowMap();
 		
-		for(Term addTerm : add) 
+		for(Term addTerm : add){
 			if(createsCircularRelationship(row.getLeadTerm(), addTerm, leadTermRowMap))
 				throw new Exception("Adding superclass to subclass creates a circular relationship. Not allowed.");
+		}
+			
 	}
 
 	private Map<String, Set<Row>> createLeadTermRowMap() {
@@ -297,7 +358,9 @@ public class SubclassesGrid extends MenuTermsGrid {
 		if(leadTermRowMap.containsKey(from.getDisambiguatedValue())) {
 			for(Row row : leadTermRowMap.get(from.getDisambiguatedValue())) {
 				for(Term attachedTerm : row.getAttachedTerms()) {
-					if(createsCircularRelationship(to, attachedTerm, leadTermRowMap))
+					//Alerter.showAlert("add", "check in the circular ....  ");
+					//if(createsCircularRelationship(to, attachedTerm, leadTermRowMap))
+					if(to.equals(attachedTerm))
 						return true;
 				}
 			}

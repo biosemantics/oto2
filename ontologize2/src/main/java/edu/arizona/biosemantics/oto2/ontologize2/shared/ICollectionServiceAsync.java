@@ -23,15 +23,20 @@ public interface ICollectionServiceAsync {
 			String partDisambiguator, String classDisambiguator, 
 			AsyncCallback<List<GwtEvent<?>>> callback);
 	
+	public void createTerm(int collectionId, String secret, Term term,
+			AsyncCallback<List<GwtEvent<?>>> callback);
+	
 	public void removeTerm(int collectionId, String secret, List<Term> terms, AsyncCallback<List<GwtEvent<?>>> callback);
 	
 	public void createPart(int collectionId, String secret, Term parent, List<Term> parts, AsyncCallback<List<GwtEvent<?>>> callback);
 	
 	public void createPart(int id, String secret, Term leadTerm, Term term, boolean disambiguate, AsyncCallback<List<GwtEvent<?>>> callback);
 	
+	public void changeAndCreateParts(int id, String secret, Term parentTerm, Term term, Term leadTerm, boolean disambiguate, AsyncCallback<List<GwtEvent<?>>> callback);
+	
 	public void createSubclass(int collectionId, String secret, Term superclass, List<Term> subclasses, AsyncCallback<List<GwtEvent<?>>> callback);
 	
-	//public void createSubclass(int collectionId, String secret, Term superclass, Term subclass, AsyncCallback<List<GwtEvent<?>>> callback);
+	public void createSubclass(int collectionId, String secret, Term superclass, Term subclass, AsyncCallback<List<GwtEvent<?>>> callback);
 	
 	public void createSynonym(int collectionId, String secret, Term preferredTerm, List<Term> synonyms, AsyncCallback<List<GwtEvent<?>>> callback);
 	
@@ -54,6 +59,7 @@ public interface ICollectionServiceAsync {
 	public void getSuperclasses(int collectionId, String secret, Term term, AsyncCallback<List<Term>> callback);
 	
 	public void getPreferredTerms(int collectionId, String secret, Term term, AsyncCallback<List<Term>> callback);
+
 
 		
 }

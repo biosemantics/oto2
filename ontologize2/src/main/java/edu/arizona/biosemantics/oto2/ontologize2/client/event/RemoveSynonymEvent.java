@@ -51,6 +51,10 @@ public class RemoveSynonymEvent extends GwtEvent<Handler> implements HasRowId, S
 		return synonyms;
 	}
 	
+	public void setSynonyms(Term[] synonyms){ 
+		this.synonyms = synonyms;
+	}
+	
 	@Override
 	public int getRowId() {
 		return rowId;
@@ -67,6 +71,6 @@ public class RemoveSynonymEvent extends GwtEvent<Handler> implements HasRowId, S
 	}	
 	
 	public boolean hasSynonyms() {
-		return synonyms.length > 0;
+		return synonyms!=null&&synonyms.length > 0;
 	}
 }

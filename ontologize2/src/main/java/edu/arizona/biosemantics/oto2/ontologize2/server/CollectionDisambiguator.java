@@ -11,6 +11,7 @@ import java.util.Set;
 
 import com.google.gwt.event.shared.GwtEvent;
 
+import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreatePartEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateSubclassEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemovePartEvent;

@@ -71,6 +71,7 @@ public class MenuTermsGrid extends TermsGrid {
 				box.show();
 			}
 		});
+		/*
 		TextButton consolidateButton = new TextButton("Consolidate");
 		consolidateButton.addSelectHandler(new SelectHandler() {
 			@Override
@@ -82,13 +83,25 @@ public class MenuTermsGrid extends TermsGrid {
 				}
 			}
 		});
+		*/
 		TextButton removeButton = new TextButton("Remove");
 		Menu removeMenu = new Menu();
-		MenuItem selectedRemove = new MenuItem("Selected");
+		MenuItem selectedRemove = new MenuItem("Selected rows");//jin selected entry
 		selectedRemove.addSelectionHandler(new SelectionHandler<Item>() {
 			@Override
 			public void onSelection(SelectionEvent<Item> event) {
 				removeRows(getSelection());
+			}
+		});
+		MenuItem emptyColRemove = new MenuItem("Empty colums");//jin selected entry
+		emptyColRemove.addSelectionHandler(new SelectionHandler<Item>() {
+			@Override
+			public void onSelection(SelectionEvent<Item> event) {
+				try {
+					consolidate();
+				} catch (Exception e) {
+					Alerter.showAlert("Remove empty columns", "Error occured");
+				}
 			}
 		});
 		MenuItem allRemove = new MenuItem("All");
@@ -99,13 +112,13 @@ public class MenuTermsGrid extends TermsGrid {
 			}
 		});
 		removeMenu.add(selectedRemove);
+		removeMenu.add(emptyColRemove);
 		removeMenu.add(allRemove);
 		removeButton.setMenu(removeMenu);
 		
 		buttonBar.add(importButton);
-		buttonBar.add(consolidateButton);
+		//buttonBar.add(consolidateButton);
 		buttonBar.add(removeButton);
-		
 	}
 	
 	@Override

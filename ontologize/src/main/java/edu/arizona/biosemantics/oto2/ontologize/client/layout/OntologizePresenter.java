@@ -10,6 +10,7 @@ import com.google.web.bindery.event.shared.EventBus;
 import com.sencha.gxt.widget.core.client.box.AutoProgressMessageBox;
 import com.sencha.gxt.widget.core.client.box.MessageBox;
 
+import edu.arizona.biosemantics.oto2.ontologize.client.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.ontologize.shared.model.Collection;

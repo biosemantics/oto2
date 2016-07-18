@@ -142,12 +142,16 @@ public class SynonymsGrid extends MenuTermsGrid {
 						rows.add(idRow);
 					}
 				}
+				//Alerter.showAlert("rows.isEmpty()", rows.isEmpty()+"");
 				if(!rows.isEmpty()) {
+					//Alerter.showAlert("event.hasSynonyms()", event.hasSynonyms()+"");
 					if(!event.hasSynonyms()) {
+						//Alerter.showAlert("remove preferredTerms and synonyms", event.getPreferredTerm().getValue());
 						removePreferredTerm(event.getPreferredTerm(), preferredTerms);
 						SynonymsGrid.super.removeRows(rows);
 					} else {
 						try {
+							//Alerter.showAlert("remove synonyms", event.getPreferredTerm().getValue());
 							removeSynonyms(event.getSynonyms(), synonymTerms);
 							SynonymsGrid.super.removeAttachedTermsFromRows(rows, Arrays.asList(event.getSynonyms()));
 						} catch (Exception e) {
@@ -196,7 +200,7 @@ public class SynonymsGrid extends MenuTermsGrid {
 		
 		if(valid) {
 			for(final Row row : rows)
-				collectionService.createSubclass(collection.getId(), collection.getSecret(), 
+				collectionService.createSynonym(collection.getId(), collection.getSecret(), 
 						row.getLeadTerm(), row.getAttachedTerms(), new AsyncCallback<List<GwtEvent<?>>>() {
 					@Override
 					public void onFailure(Throwable caught) {
@@ -217,11 +221,11 @@ public class SynonymsGrid extends MenuTermsGrid {
 			validateRemove(rows);
 		} catch(Exception e) {
 			valid = false;
-			Alerter.showAlert("Add failed.", e.getMessage());
+			Alerter.showAlert("Remove failed.", e.getMessage());
 		}
 		if(valid) {
 			for(final Row row : rows)
-				collectionService.removeSubclass(collection.getId(), collection.getSecret(), 
+				collectionService.removeSynonym(collection.getId(), collection.getSecret(), 
 						row.getLeadTerm(), row.getAttachedTerms(), new AsyncCallback<List<GwtEvent<?>>>() {
 					@Override
 					public void onFailure(Throwable caught) {
@@ -229,6 +233,9 @@ public class SynonymsGrid extends MenuTermsGrid {
 					}
 					@Override
 					public void onSuccess(List<GwtEvent<?>> result) {
+						//Alerter.showAlert("Remove failed 1", "");
+						((RemoveSynonymEvent)result.get(0)).setSynonyms(null);//in order to indicate this event is removeRows
+						//Alerter.showAlert("Remove failed 2", "");
 						fireEvents(result, row);
 					}
 				});

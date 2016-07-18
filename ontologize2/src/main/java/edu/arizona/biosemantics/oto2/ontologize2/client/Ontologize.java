@@ -29,6 +29,8 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Term;
 
 public class Ontologize extends SimpleContainer {
 
+	public static String user;
+	
 	private EventBus eventBus = new SimpleEventBus();
 	private ModelController modelController = new ModelController(eventBus);
 	
