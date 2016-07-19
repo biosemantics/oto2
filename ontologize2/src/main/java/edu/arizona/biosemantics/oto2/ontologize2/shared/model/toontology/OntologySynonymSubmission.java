@@ -24,7 +24,7 @@ public class OntologySynonymSubmission implements HasSynonym, HasLabelAndIri, Se
 	private List<Synonym> synonyms = new LinkedList<Synonym>(); 
 	//private String source = "";
 	//private String sampleSentence = "";
-	private String user;
+	//private String user;
 	//private List<OntologySynonymSubmissionStatus> submissionStatuses = new LinkedList<OntologySynonymSubmissionStatus>();
 	private Type type;
 	//private Date lastUpdated;
@@ -32,10 +32,9 @@ public class OntologySynonymSubmission implements HasSynonym, HasLabelAndIri, Se
 
 	public OntologySynonymSubmission() { }
 	
-	public OntologySynonymSubmission(int id, Term term, String submissionTerm, Ontology ontology, 
-			String classIRI, String classLabel, List<Synonym> synonyms,  
-			String user) { 
-		this.id = id;
+	public OntologySynonymSubmission(Term term, String submissionTerm, Ontology ontology, 
+			String classIRI, String classLabel, List<Synonym> synonyms) { 
+		//this.id = id;
 		//this.collectionId = collectionId;
 		this.term = term;
 		this.submissionTerm = submissionTerm == null ? "" : submissionTerm;
@@ -44,7 +43,7 @@ public class OntologySynonymSubmission implements HasSynonym, HasLabelAndIri, Se
 		this.classLabel = classLabel == null ? "" : classLabel;
 		//this.source = source == null ? "" : source;
 		//this.sampleSentence = sampleSentence == null ? "" : sampleSentence;
-		this.user = user;
+		//this.user = user;
 		//this.submissionStatuses = submissionStatuses;
 		this.synonyms = synonyms;
 		//this.lastUpdated = lastUpdated;
@@ -154,13 +153,13 @@ public class OntologySynonymSubmission implements HasSynonym, HasLabelAndIri, Se
 		return this.getId() - o.getId();
 	}
 
-	public String getUser() {
-		return user;
-	}
-
-	public void setUser(String user) {
-		this.user = user;
-	}
+//	public String getUser() {
+//		return user;
+//	}
+//
+//	public void setUser(String user) {
+//		this.user = user;
+//	}
 
 	@Override
 	public int hashCode() {

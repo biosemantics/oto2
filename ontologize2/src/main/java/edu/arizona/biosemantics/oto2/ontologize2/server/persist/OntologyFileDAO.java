@@ -123,7 +123,6 @@ public class OntologyFileDAO extends PermanentOntologyFileDAO {
 	public String insertClassSubmission(OntologyClassSubmission submission) throws Exception {	
 		OWLOntology owlOntology = owlOntologyManager.getOntology(createOntologyIRI(submission));
 		OWLClass owlClass = createOwlClass(submission);
-		System.out.println(createOntologyIRI(submission));
 		//owlOntology.toString()+submission.getClassIRI());
 		boolean foreignClass = submission.hasClassIRI() ? !isEtcOntologyIRI(submission.getClassIRI()) : false;
 		if(!foreignClass) {
@@ -136,9 +135,9 @@ public class OntologyFileDAO extends PermanentOntologyFileDAO {
 			//axiomManager.addSourceSampleComment(owlOntology, submission, owlClass);
 		}
 		
-		//addSuperclasses(submission, owlClass);
-		//axiomManager.addSynonyms(owlOntology, owlClass, submission.getSynonyms());
-		//axiomManager.addPartOfs(collection, owlOntology, submission.getOntology(), owlClass, submission.getPartOfs());
+		addSuperclasses(submission, owlClass);
+		axiomManager.addSynonyms(owlOntology, owlClass, submission.getSynonyms());
+		axiomManager.addPartOfs(collection, owlOntology, submission.getOntology(), owlClass, submission.getPartOfs());
 		ontologyReasoner.checkConsistency(owlOntology);
 		owlOntologyManager.saveOntology(owlOntology, getLocalOntologyIRI(submission.getOntology()));
 		return owlClass.getIRI().toString();
@@ -170,11 +169,12 @@ public class OntologyFileDAO extends PermanentOntologyFileDAO {
 		List<Superclass> superclasses = submission.getSuperclasses();
 		for(Superclass superclass : superclasses) {
 			OWLClass superOwlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(superclass.getIri())); 
-			if(submission.getType().equals(Type.QUALITY)) 
+			
+			if(submission.getType()!=null&&submission.getType().equals(Type.QUALITY)) 
 				if(ontologyReasoner.isSubclass(owlOntology, superOwlClass, entityClass)) 
 					throw new Exception("Can not add the quality term '" + submission.getSubmissionTerm() + 
 							"' as a child to entity term '" + superclass + "'.");
-			if(submission.getType().equals(Type.ENTITY)) 
+			if(submission.getType()!=null&&submission.getType().equals(Type.ENTITY)) 
 				if(ontologyReasoner.isSubclass(owlOntology, superOwlClass, qualityClass)) 
 					throw new Exception("Can not add the entity term '" + submission.getSubmissionTerm() + 
 							"' as a child to quality term '" + superclass + "'.");
@@ -205,9 +205,10 @@ public class OntologyFileDAO extends PermanentOntologyFileDAO {
 	public String insertSynonymSubmission(OntologySynonymSubmission submission) throws Exception { 
 		OWLOntology targetOwlOntology = owlOntologyManager.getOntology(createOntologyIRI(submission));
 		OWLClass owlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(submission.getClassIRI()));
-		determineAndSetSubmissionType(submission);
+		//determineAndSetSubmissionType(submission);
 		boolean isContained = containsOwlClass(targetOwlOntology, owlClass);
-		String label = annotationsManager.get(collection, owlClass, labelProperty);
+		String label = null;
+		//String label = annotationsManager.get(collection, owlClass, labelProperty);
 		if(isContained && label != null && !label.equals(submission.getSubmissionTerm())) {
 			axiomManager.addSynonym(targetOwlOntology, owlClass, new Synonym(submission.getSubmissionTerm()));
 		} else if(!isContained) {

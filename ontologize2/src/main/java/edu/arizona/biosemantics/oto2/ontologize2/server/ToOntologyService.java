@@ -1,6 +1,7 @@
 package edu.arizona.biosemantics.oto2.ontologize2.server;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -17,6 +18,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.IToOntologyService;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Ontology;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Term;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Type;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.toontology.OntologySynonymSubmission;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.toontology.PartOf;
@@ -27,6 +29,7 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 	
 	private ICollectionService collectionService = new CollectionService();
 	
+	private Map<String, OntologyClassSubmission> classSubmissionMap = new HashMap();
 	/**
 	 * covert the collection into a list of OntologyClassSubmissions
 	 * 
@@ -42,7 +45,8 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 		
 		List<OntologyClassSubmission> classSubmissions = new ArrayList();
 		
-		int classId = 1;
+		Map<String, Integer> classIRIIDMap = generateClassIRIID(classNames);
+		
 		//2, get other information about an ontology class
 		for(String className : classNames){
 			
@@ -50,31 +54,64 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 			String submissionTerm = className;
 			String classIRI = null;
 			
-			List<Term> termSuperclasses = collectionService.getSuperclasses(collection.getId(), collection.getSecret(), term);
-			List<Superclass> superclasses = new LinkedList();
-			for(Term superclass : termSuperclasses){//convert to superclass, get superclass IRI?
-				superclasses.add(new Superclass());
-			}
-			
 			//TODO: get synonyms or get preferred Names?
-			List<Term> termSynonyms = collectionService.getSynonyms(collection.getId(), collection.getSecret(), term);
+			//TODO: check whether getPreferredTerms works wrong
+			List<Term> termSynonyms = collection.getSynonyms(term);
 			List<Synonym> synonyms = new LinkedList<Synonym>();
 			for(Term synonym:termSynonyms){
-				synonyms.add(new Synonym());
+				synonyms.add(new Synonym(synonym.getDisambiguatedValue()));
 			}
 			//private String source = "";
 			//private String sampleSentence = "";
-			//TODO: get parents or get partofterms of this term?
+			
+			OntologyClassSubmission classSubmission = new OntologyClassSubmission(term, submissionTerm, ontology, classIRI, null, synonyms, null);
+			classSubmissions.add(classSubmission);
+			classSubmission.setClassIRI(createClassIRI(classSubmission, classIRIIDMap.get(className)));
+			
+			classSubmissionMap.put(className, classSubmission);
+		}
+		
+		
+		//attach parents && partof
+		for(String className : classNames){
+			OntologyClassSubmission classSubmission =  classSubmissionMap.get(className);
+			Term term = collection.getTerm(className);
+			List<Term> termSuperclasses = collectionService.getSuperclasses(collection.getId(), collection.getSecret(), term);
+			
+			List<Superclass> superclasses = new LinkedList();
+			for(Term superclass : termSuperclasses){//convert to superclass, get superclass IRI?
+				OntologyClassSubmission superClassSubmission = classSubmissionMap.get(superclass.getDisambiguatedValue());
+				superclasses.add(new Superclass(superClassSubmission));
+			}
+			classSubmission.setSuperclasses(superclasses);
+			
+			//a kind of subclass, Part of: http://purl.obolibrary.org/obo/BFO_0000050
 			List<Term> termPartOf = collectionService.getParents(collection.getId(), collection.getSecret(), term);
 			List<PartOf> partOfs = new LinkedList<PartOf>();
-			
-			OntologyClassSubmission classSubmission = new OntologyClassSubmission(term, submissionTerm, ontology, classIRI, superclasses, synonyms, partOfs);
-			classSubmissions.add(classSubmission);
-			classSubmission.setClassIRI(createClassIRI(classSubmission, classId++));
-			
+			for(Term partOf:termPartOf){
+				OntologyClassSubmission superClassSubmission = classSubmissionMap.get(partOf.getDisambiguatedValue());
+				partOfs.add(new PartOf(superClassSubmission));
+			}
+			classSubmission.setPartOfs(partOfs);
 		}
 		
 		return classSubmissions;
+	}
+
+	/**
+	 * generate IDS for all the classes
+	 * will IDs change in each export process?
+	 * 
+	 * @param classNames
+	 * @return
+	 */
+	public Map<String, Integer> generateClassIRIID(Set<String> classNames) {
+		Map<String, Integer> classIRIIDMap = new HashMap();
+		int classId = 1;
+		for(String className : classNames){
+			classIRIIDMap.put(className, classId++);
+		}
+		return classIRIIDMap;
 	}
 
 
@@ -83,12 +120,26 @@ public class ToOntologyService extends RemoteServiceServlet implements IToOntolo
 		//1, classes to OntologyClass
 		Map<String, List<String>> synonyms = collection.getSynonyms();
 		
-		Set<String> synonymNames = extractDistinctItems(synonyms);
-		
 		List<OntologySynonymSubmission> synonymSubmissions = new ArrayList();
 		
-		for(String synonymName : synonymNames){
+		Set<String> keys = synonyms.keySet();
+		for(String keyName : keys){
+			Term term = collection.getTerm(keyName);
+			OntologyClassSubmission classSubmission = classSubmissionMap.get(keyName);
+			String submissionTerm = keyName;
+			String classIRI = classSubmission.getClassIRI();
+			String classLabel = classSubmission.getLabel();
 			
+			List<String> synonymOfTerm = synonyms.get(keyName);
+			
+			List<Synonym> synonymList = new LinkedList<Synonym>();
+			for(String synonymStr:synonymOfTerm){
+				synonymList.add(new Synonym(synonymStr));
+			}
+			
+			//Term term, String submissionTerm, Ontology ontology, String classIRI, String classLabel, List<Synonym> synonyms
+			OntologySynonymSubmission oss = new OntologySynonymSubmission(term, submissionTerm, ontology, classIRI, classLabel, synonymList);
+			synonymSubmissions.add(oss);
 		}
 		return synonymSubmissions;
 	}

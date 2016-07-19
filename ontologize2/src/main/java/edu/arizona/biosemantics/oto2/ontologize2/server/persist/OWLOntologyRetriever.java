@@ -14,6 +14,7 @@ import org.semanticweb.owlapi.search.EntitySearcher;
 import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Ontology;
+import edu.arizona.biosemantics.oto2.oto.server.db.Query.QueryException;
 
 public class OWLOntologyRetriever  {
 	
