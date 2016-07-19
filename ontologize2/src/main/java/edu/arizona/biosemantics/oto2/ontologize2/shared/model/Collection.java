@@ -428,11 +428,4 @@ public class Collection implements Serializable, Comparable<Collection> {
 			parentChildMap.get(parent).remove(term.getDisambiguatedValue());
 	}
 
-	
-	public Set<String> getAllClasses() {
-		Set<String> disambiguatedTermNames = new HashSet<String>();
-		Set<String> parentClassName = null;
-		return disambiguatedTermNames;
-	}
-	
 }

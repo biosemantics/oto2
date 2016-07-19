@@ -60,6 +60,6 @@ public interface ICollectionServiceAsync {
 	
 	public void getPreferredTerms(int collectionId, String secret, Term term, AsyncCallback<List<Term>> callback);
 
-
+	public void getSynonyms(int collectionId, String secret, Term term, AsyncCallback<List<Term>> callback);
 		
 }

@@ -417,10 +417,22 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	public List<Term> getPreferredTerms(int collectionId, String secret, Term term) throws Exception {
 		Collection collection = this.get(collectionId, secret);
 		IncidenceMatrix matrix = this.getIncidenceMatrix(collectionId, secret);
-		List<String> preferredTerms = matrix.getParents(term.getDisambiguatedValue());
+		List<String> preferredTerms = matrix.getPreferredTerms(term.getDisambiguatedValue());
 		List<Term> result = new ArrayList<Term>(preferredTerms.size());
 		for(String preferredTerm : preferredTerms) {
 			result.add(collection.getTerm(preferredTerm));
+		}
+		return result;
+	}
+	
+	@Override
+	public List<Term> getSynonyms(int collectionId, String secret, Term term) throws Exception {
+		Collection collection = this.get(collectionId, secret);
+		IncidenceMatrix matrix = this.getIncidenceMatrix(collectionId, secret);
+		List<String> getSynonymTerms = matrix.getSynonyms(term.getDisambiguatedValue());
+		List<Term> result = new ArrayList<Term>(getSynonymTerms.size());
+		for(String synonymTerm : getSynonymTerms) {
+			result.add(collection.getTerm(synonymTerm));
 		}
 		return result;
 	}

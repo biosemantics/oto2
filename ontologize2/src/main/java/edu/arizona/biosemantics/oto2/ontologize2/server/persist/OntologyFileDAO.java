@@ -49,11 +49,13 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.Ontologize;
 import edu.arizona.biosemantics.oto2.ontologize2.server.Configuration;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Ontology;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Term;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Type;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.toontology.HasSynonym;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.toontology.OntologyClassSubmission;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.toontology.OntologySubmission;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.toontology.OntologySynonymSubmission;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.toontology.PartOf;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.toontology.Superclass;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.toontology.Synonym;
 
@@ -121,21 +123,22 @@ public class OntologyFileDAO extends PermanentOntologyFileDAO {
 	public String insertClassSubmission(OntologyClassSubmission submission) throws Exception {	
 		OWLOntology owlOntology = owlOntologyManager.getOntology(createOntologyIRI(submission));
 		OWLClass owlClass = createOwlClass(submission);
-		
+		System.out.println(createOntologyIRI(submission));
+		//owlOntology.toString()+submission.getClassIRI());
 		boolean foreignClass = submission.hasClassIRI() ? !isEtcOntologyIRI(submission.getClassIRI()) : false;
 		if(!foreignClass) {
 			axiomManager.addDeclaration(owlOntology, owlClass);
 			//axiomManager.addDefinition(owlOntology, owlClass, submission.getDefinition());
 			axiomManager.addLabel(owlOntology, owlClass, owlOntologyManager.getOWLDataFactory().getOWLLiteral(
 					submission.getSubmissionTerm(), "en"));
-			axiomManager.addCreatedBy(owlOntology, owlClass);
+			//axiomManager.addCreatedBy(owlOntology, owlClass);
 			axiomManager.addCreationDate(owlOntology, owlClass);
 			//axiomManager.addSourceSampleComment(owlOntology, submission, owlClass);
 		}
 		
-		addSuperclasses(submission, owlClass);
-		axiomManager.addSynonyms(owlOntology, owlClass, submission.getSynonyms());
-		axiomManager.addPartOfs(collection, owlOntology, submission.getOntology(), owlClass, submission.getPartOfs());
+		//addSuperclasses(submission, owlClass);
+		//axiomManager.addSynonyms(owlOntology, owlClass, submission.getSynonyms());
+		//axiomManager.addPartOfs(collection, owlOntology, submission.getOntology(), owlClass, submission.getPartOfs());
 		ontologyReasoner.checkConsistency(owlOntology);
 		owlOntologyManager.saveOntology(owlOntology, getLocalOntologyIRI(submission.getOntology()));
 		return owlClass.getIRI().toString();
@@ -298,28 +301,4 @@ public class OntologyFileDAO extends PermanentOntologyFileDAO {
 		XMLOutputter xout = new XMLOutputter(Format.getPrettyFormat());
 		xout.output(doc, new FileOutputStream(file));
 	}
-
-	/**
-	 * covert the collection into a list of OntologyClassSubmissions
-	 * 
-	 * @param collection
-	 * @return
-	 */
-	public List<OntologyClassSubmission> getClassSubmission(
-			Collection collection) {
-		//1, classes to OntologyClass
-		collection.getSubclasses();
-		List<String> classNames = collection.getAllClasses();
-		//2, get other information about an ontology class
-		
-		
-		return null;
-	}
-
-	public List<OntologySynonymSubmission> getOntologySynonymSubmission(
-			Collection collection) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 }

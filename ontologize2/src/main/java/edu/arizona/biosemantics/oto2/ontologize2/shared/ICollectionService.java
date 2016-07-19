@@ -57,9 +57,7 @@ public interface ICollectionService extends RemoteService {
 	public List<Term> getSuperclasses(int collectionId, String secret, Term term) throws Exception;
 	
 	public List<Term> getPreferredTerms(int collectionId, String secret, Term term) throws Exception;
-
 	
-
-	
+	public List<Term> getSynonyms(int collectionId, String secret, Term term) throws Exception;
 	
 }
