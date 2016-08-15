@@ -16,24 +16,15 @@ public class Configuration {
 
 	/** **/
 	public static String collectionsDirectory;
-	public static String ontologyGraphs;
-	
-	/** Ontologies **/
-	public static String etcOntologyBaseIRI;
-	public static String oboOntologyBaseIRI;
-	public static String permanentOntologyDirectory;
 	public static String collectionOntologyDirectory;
-	public static String fileBase;
+	public static String ontologyGraphs;
+	public static String permanentOntologyDirectory;
 	
-	/** Bioportal **/
-	public static String bioportalUrl;
-	public static String bioportalApiKey;
+	public static String etcOntologyBaseIRI;
 	
-	public static String wordNetSource;
-
 	public static String context;
-
 	public static int contextMaxHits;
+	public static String wordNetSource;
 
 
 	static {
@@ -44,18 +35,13 @@ public class Configuration {
 			
 			collectionsDirectory = properties.getProperty("collectionsDirectory");
 			ontologyGraphs = properties.getProperty("ontologyGraphs");
-			context = properties.getProperty("context");
-			contextMaxHits = Integer.valueOf(properties.getProperty("contextMaxHits"));
-			
-			etcOntologyBaseIRI = properties.getProperty("etcOntologyBaseIRI");
-			oboOntologyBaseIRI = properties.getProperty("oboOntologyBaseIRI");
 			permanentOntologyDirectory = properties.getProperty("permanentOntologyDirectory");
 			collectionOntologyDirectory = properties.getProperty("collectionOntologyDirectory");
-			fileBase = properties.getProperty("fileBase");
 			
-			bioportalUrl = properties.getProperty("bioportalUrl");
-			bioportalApiKey = properties.getProperty("bioportalApiKey");
+			etcOntologyBaseIRI = properties.getProperty("etcOntologyBaseIRI");
 			
+			context = properties.getProperty("context");
+			contextMaxHits = Integer.valueOf(properties.getProperty("contextMaxHits"));
 			wordNetSource = properties.getProperty("wordNetSource");
 		} catch(Exception e) {
 			logger.error("Couldn't read configuration", e);

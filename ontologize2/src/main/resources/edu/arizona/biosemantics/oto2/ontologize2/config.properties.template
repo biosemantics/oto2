@@ -1,17 +1,10 @@
-#
 collectionsDirectory=C:/Users/rodenhausen.CATNET/git/oto2/ontologize2/collections
 ontologyGraphs=
-context=C:/Users/rodenhausen.CATNET/git/oto2/ontologize2/context
-contextMaxHits=100
-
-#Ontology
 permanentOntologyDirectory=
 collectionOntologyDirectory=
+
 etcOntologyBaseIRI=http://www.etc-project.org/owl/ontologies/
-oboOntologyBaseIRI=http://purl.obolibrary.org/obo/
 
-#Bioportal
-bioportalUrl=http://data.bioontology.org
-bioportalApiKey=
-
+context=C:/Users/rodenhausen.CATNET/git/oto2/ontologize2/context
+contextMaxHits=100
 wordNetSource=
