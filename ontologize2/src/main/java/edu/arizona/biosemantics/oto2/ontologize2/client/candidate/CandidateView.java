@@ -1,8 +1,6 @@
 package edu.arizona.biosemantics.oto2.ontologize2.client.candidate;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -13,21 +11,15 @@ import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
-import com.google.gwt.event.shared.GwtEvent;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
-import com.google.gwt.user.client.rpc.AsyncCallback;
-import com.google.gwt.user.client.ui.IsWidget;
-import com.google.gwt.user.client.ui.Widget;
 import com.google.web.bindery.event.shared.EventBus;
 import com.sencha.gxt.core.client.IdentityValueProvider;
 import com.sencha.gxt.core.client.Style.SelectionMode;
-import com.sencha.gxt.core.client.util.Format;
 import com.sencha.gxt.data.shared.SortDir;
-import com.sencha.gxt.data.shared.TreeStore;
 import com.sencha.gxt.data.shared.Store.StoreSortInfo;
+import com.sencha.gxt.data.shared.TreeStore;
 import com.sencha.gxt.dnd.core.client.DndDragStartEvent;
-import com.sencha.gxt.dnd.core.client.DragSource;
 import com.sencha.gxt.dnd.core.client.TreeDragSource;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
 import com.sencha.gxt.widget.core.client.box.MultiLinePromptMessageBox;
@@ -44,39 +36,32 @@ import com.sencha.gxt.widget.core.client.form.TextField;
 import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
-import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent;
-import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent.SelectionChangedHandler;
 import com.sencha.gxt.widget.core.client.toolbar.ToolBar;
 import com.sencha.gxt.widget.core.client.tree.Tree;
-import com.sencha.gxt.widget.core.client.tree.TreeSelectionModel;
 
 import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
-import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateTermEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
+import edu.arizona.biosemantics.oto2.ontologize2.client.common.TextAreaMessageBox;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateCandidateEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.LoadCollectionEvent;
-import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveTermEvent;
-import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid.Row;
-import edu.arizona.biosemantics.oto2.ontologize2.shared.ICollectionService;
-import edu.arizona.biosemantics.oto2.ontologize2.shared.ICollectionServiceAsync;
-import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Bucket;
-import edu.arizona.biosemantics.oto2.ontologize2.shared.model.BucketTreeNode;
-import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Term;
-import edu.arizona.biosemantics.oto2.ontologize2.shared.model.TermTreeNode;
-import edu.arizona.biosemantics.oto2.ontologize2.shared.model.TextTreeNode;
-import edu.arizona.biosemantics.oto2.ontologize2.shared.model.TextTreeNodeProperties;
-import edu.arizona.biosemantics.oto2.oto.client.categorize.all.LabelPortlet;
-import edu.arizona.biosemantics.oto2.oto.client.common.dnd.MainTermSynonymsLabelDnd;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveCandidateEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.SelectTermEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.BucketTreeNode;
+import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.CandidateTreeNode;
+import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.TextTreeNode;
+import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.TextTreeNodeProperties;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Candidate;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Collection;
 
 public class CandidateView extends SimpleContainer {
 
 	private static final TextTreeNodeProperties textTreeNodeProperties = GWT.create(TextTreeNodeProperties.class);
 	
-	private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
 	private Tree<TextTreeNode, TextTreeNode> tree;
-	private Map<String, TermTreeNode> termTermTreeNodeMap = new HashMap<String, TermTreeNode>();
-	private Map<String, BucketTreeNode> bucketTreeNodesMap = new HashMap<String, BucketTreeNode>();	
+	private Map<String, CandidateTreeNode> candidateNodeMap = new HashMap<String, CandidateTreeNode>();
+	private Map<String, BucketTreeNode> bucketNodesMap = new HashMap<String, BucketTreeNode>();	
 	private EventBus eventBus;
 	private ToolBar buttonBar;
-	private edu.arizona.biosemantics.oto2.ontologize2.shared.model.Collection collection;
 	
 	private CandidateView() {
 		TreeStore<TextTreeNode> treeStore = new TreeStore<TextTreeNode>(textTreeNodeProperties.key());
@@ -97,13 +82,20 @@ public class CandidateView extends SimpleContainer {
 		});
 		tree.getElement().setAttribute("source", "termsview");
 		tree.getSelectionModel().setSelectionMode(SelectionMode.MULTI);
+		/*tree.getSelectionModel().addSelectionHandler(new SelectionHandler<TextTreeNode>() {
+			@Override
+			public void onSelection(SelectionEvent<TextTreeNode> event) {
+				eventBus.fireEvent(new SelectTermEvent(event.getSelectedItem().getText()));
+			}
+		});*/
 		tree.setAutoExpand(true);
+		tree.setContextMenu(createContextMenu());
 		
 		TreeDragSource<TextTreeNode> dragSource = new TreeDragSource<TextTreeNode>(tree) {
 			@Override
 			protected void onDragStart(DndDragStartEvent event) {
 				super.onDragStart(event);
-				List<Term> data = new LinkedList<Term>();
+				List<Candidate> data = new LinkedList<Candidate>();
 				for(TextTreeNode node : tree.getSelectionModel().getSelectedItems()) {
 					addTermTreeNodes(node, data);
 				}
@@ -112,47 +104,46 @@ public class CandidateView extends SimpleContainer {
 		};
 		
 		buttonBar = new ToolBar();
-		TextButton importButton = new TextButton("Import");
-		importButton.addSelectHandler(new SelectHandler() {
-			@Override
-			public void onSelect(SelectEvent event) {
-				final MultiLinePromptMessageBox box = new MultiLinePromptMessageBox("Import terms", "");
-				box.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
-					@Override
-					public void onSelect(SelectEvent event) {
-						List<Term> importList = new LinkedList<Term>();
-						String input = box.getValue();
-						String[] lines = input.split("\\n");
-						for(String line : lines) {
-							String[] terms = line.split(",");
-							//TODO register on server first
-							for(String term : terms){
-								// jin add
-								if(!collection.hasTerm(term)) {
-									collectionService.createTerm(collection.getId(), collection.getSecret(), 
-											term, "", "", new AsyncCallback<List<GwtEvent<?>>>() {
-										@Override
-										public void onFailure(Throwable caught) {
-										
-										}
-										@Override
-										public void onSuccess(List<GwtEvent<?>> result) {
-											fireEvents(result);
-										}				
-									});
-									importList.add(new Term(term));
-								}
-								//jin add end
-							}
-						}
-						addTerms(importList);
-					}
-				});
-				box.show();
-			}
-		});
-		
-		
+//		TextButton importButton = new TextButton("Import");
+//		importButton.addSelectHandler(new SelectHandler() {
+//			@Override
+//			public void onSelect(SelectEvent event) {
+//				final TextAreaMessageBox box = new TextAreaMessageBox("Import terms", "");
+//				/*box.setResizable(true);
+//				box.setResize(true);
+//				box.setMaximizable(true);*/
+//				box.setModal(true);
+//				box.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
+//					@Override
+//					public void onSelect(SelectEvent event) {
+//						String input = box.getValue();
+//						String[] lines = input.split("\\n");
+//						List<Candidate> candidates = new LinkedList<Candidate>();
+//						for(String line : lines) {
+//							String[] candidatePath = line.split(",");
+//							if(candidatePath.length == 1) {
+//								String candidate = candidatePath[0];
+//								if(!ModelController.getCollection().getCandidates().contains(candidate))
+//									candidates.add(new Candidate(candidate));
+//								else
+//									Alerter.showAlert("Candidate exists", "Candidate + \"" + candidate + "\" already exists at \"" +
+//											ModelController.getCollection().getCandidates().getPath(candidate) + "\"");
+//							} else if(candidatePath.length >= 2) {
+//								String candidate = candidatePath[0];
+//								if(!ModelController.getCollection().getCandidates().contains(candidate))
+//									candidates.add(new Candidate(candidatePath[0], candidatePath[1]));
+//								else
+//									Alerter.showAlert("Candidate exists", "Candidate + \"" + candidate + "\" already exists at \"" +
+//											ModelController.getCollection().getCandidates().getPath(candidate) + "\"");
+//							}
+//						}
+//						
+//						eventBus.fireEvent(new CreateCandidateEvent(candidates));
+//					}
+//				});
+//				box.show();
+//			}
+//		});
 		
 		TextButton removeButton = new TextButton("Remove");
 		Menu removeMenu = new Menu();
@@ -160,7 +151,7 @@ public class CandidateView extends SimpleContainer {
 		selectedRemove.addSelectionHandler(new SelectionHandler<Item>() {
 			@Override
 			public void onSelection(SelectionEvent<Item> event) {
-				remove(tree.getSelectionModel().getSelectedItems());
+				removeNodes(tree.getSelectionModel().getSelectedItems());
 			}
 		});
 		
@@ -168,14 +159,14 @@ public class CandidateView extends SimpleContainer {
 		allRemove.addSelectionHandler(new SelectionHandler<Item>() {
 			@Override
 			public void onSelection(SelectionEvent<Item> event) {
-				remove(tree.getStore().getAll());
+				removeNodes(tree.getStore().getAll());
 			}
 		});
 		removeMenu.add(selectedRemove);
 		removeMenu.add(allRemove);
 		removeButton.setMenu(removeMenu);
 		
-		buttonBar.add(importButton);
+		//buttonBar.add(importButton);
 		buttonBar.add(removeButton);
 		
 		HorizontalLayoutContainer hlc = new HorizontalLayoutContainer();
@@ -184,29 +175,46 @@ public class CandidateView extends SimpleContainer {
 		addButton.addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
-				String newTerm = termField.getValue().trim();
-				if(newTerm.isEmpty()) 
+				final String newTerms = termField.getValue().trim();
+				if(newTerms.isEmpty()) {
 					Alerter.showAlert("Add Term", "Term field is empty");
-				else if(collection.hasTerm(newTerm)) 
-					Alerter.showAlert("Add Term", "Term already exists");
-				else
-					if(!collection.hasTerm(newTerm)) {
-						collectionService.createTerm(collection.getId(), collection.getSecret(), 
-								newTerm, "", "", new AsyncCallback<List<GwtEvent<?>>>() {
-							@Override
-							public void onFailure(Throwable caught) {
-							
-							}
-							@Override
-							public void onSuccess(List<GwtEvent<?>> result) {
-								fireEvents(result);
-								//After adding, make it disappeared
-								termField.setValue("");
-							}							
-						});
-					} else {
-						Alerter.showAlert("Create Term", "Term already exists");
+					return;
+				}
+				
+				String[] newTermsArray = newTerms.split(",");
+				List<Candidate> candidates = new LinkedList<Candidate>();
+				for(String newTerm : newTermsArray) {
+					int lastSeparatorIndex = newTerm.lastIndexOf("/");
+					if(newTerm.length() == lastSeparatorIndex + 1) {
+						Alerter.showAlert("Add term", "Malformed input to add term");
+						return;
 					}
+					
+					String term = newTerm.trim();
+					String path = ""; 
+					if(lastSeparatorIndex != -1) {
+						term = newTerm.substring(lastSeparatorIndex + 1).trim();
+						path = newTerm.substring(0, lastSeparatorIndex).trim();	
+					}
+					
+					if(ModelController.getCollection().contains(term)) {
+						Alerter.showAlert("Candidate exists", "Candidate + <i>" + term + "</i> already exists at <i>" +
+								ModelController.getCollection().getCandidates().getPath(term) + "</i>");
+						return;
+					} else {
+						if(path.isEmpty()) {
+							BucketTreeNode bucketNode = getSelectedBucket();
+							if(bucketNode != null)
+								path = bucketNode.getPath();
+						} else {
+							if(!path.startsWith("/"))
+								path = "/" + path;
+						}
+						candidates.add(new Candidate(term, path));
+					}
+				}
+				termField.setValue("");
+				eventBus.fireEvent(new CreateCandidateEvent(candidates));
 			}
 		});
 		hlc.add(termField, new HorizontalLayoutData(1, -1));
@@ -217,50 +225,70 @@ public class CandidateView extends SimpleContainer {
 		VerticalLayoutContainer vlc = new VerticalLayoutContainer();
 		vlc.add(buttonBar, new VerticalLayoutData(1, -1));
 		vlc.add(tree, new VerticalLayoutData(1, 1));
-		vlc.add(field, new VerticalLayoutData(1, 40));
+		vlc.add(field, new VerticalLayoutData(1, 25));
 		this.add(vlc);
 	}
 	
-	protected void remove(List<TextTreeNode> nodes) {
-		List<Term> remove = new LinkedList<Term>();
+	private Menu createContextMenu() {
+		Menu menu = new Menu();
+		MenuItem context = new MenuItem("Show Term Context");
+		context.addSelectionHandler(new SelectionHandler<Item>() {
+			@Override
+			public void onSelection(SelectionEvent<Item> event) {
+				eventBus.fireEvent(new SelectTermEvent(tree.getSelectionModel().getSelectedItem().getText()));
+			}
+		});
+		menu.add(context);
+		return menu;
+	}
+
+	private BucketTreeNode getSelectedBucket() {
+		List<TextTreeNode> selection = tree.getSelectionModel().getSelectedItems();
+		if(!selection.isEmpty()) {
+			TextTreeNode node = selection.get(0);
+			if(node instanceof BucketTreeNode) {
+				return (BucketTreeNode)node;
+			}
+			if(node instanceof CandidateTreeNode) {
+				TextTreeNode parent = tree.getStore().getParent(node);
+				if(parent instanceof BucketTreeNode)
+					return (BucketTreeNode) parent;
+			}
+		}
+		return null;
+	}
+	
+	protected void removeNodes(List<TextTreeNode> nodes) {
+		final List<Candidate> remove = new LinkedList<Candidate>();
 		for(TextTreeNode node : nodes) {
 			if(node instanceof BucketTreeNode) {
 				addTerms((BucketTreeNode)node, remove);
 			}
-			if(node instanceof TermTreeNode) {
-				remove.add(((TermTreeNode)node).getTerm());
+			if(node instanceof CandidateTreeNode) {
+				remove.add(((CandidateTreeNode)node).getCandidate());
 			}
 		}
-		collectionService.removeTerm(collection.getId(), collection.getSecret(), remove, new AsyncCallback<List<GwtEvent<?>> >() {
-			@Override
-			public void onFailure(Throwable caught) {
-				
-			}
-			@Override
-			public void onSuccess(List<GwtEvent<?>> result) {
-				fireEvents(result);
-			}
-		});
+		eventBus.fireEvent(new RemoveCandidateEvent(remove));
 	}
 
-	private void addTerms(BucketTreeNode node, List<Term> list) {
+	private void addTerms(BucketTreeNode node, List<Candidate> list) {
 		for(TextTreeNode childNode : tree.getStore().getChildren(node)) {
-			if(childNode instanceof TermTreeNode) {
-				list.add(((TermTreeNode)childNode).getTerm());
+			if(childNode instanceof CandidateTreeNode) {
+				list.add(((CandidateTreeNode)childNode).getCandidate());
 			} else if(childNode instanceof BucketTreeNode) {
 				this.addTerms((BucketTreeNode)childNode, list);
 			}
 		}
 	}
 
-	protected void addTermTreeNodes(TextTreeNode node, List<Term> data) {
+	protected void addTermTreeNodes(TextTreeNode node, List<Candidate> data) {
 		if(node instanceof BucketTreeNode) {
 			for(TextTreeNode child : tree.getStore().getChildren(node)) {
 				this.addTermTreeNodes(child, data);
 			}
-		} else if(node instanceof TermTreeNode) {
-			Term term = ((TermTreeNode)node).getTerm();
-			data.add(term);
+		} else if(node instanceof CandidateTreeNode) {
+			Candidate candidate = ((CandidateTreeNode)node).getCandidate();
+			data.add(candidate);
 		}
 	}
 
@@ -275,55 +303,58 @@ public class CandidateView extends SimpleContainer {
 		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
 			@Override
 			public void onLoad(LoadCollectionEvent event) {
-				collection = event.getCollection();
-				setCollection();
+				if(event.isEffectiveInModel())
+					setCollection(event.getCollection());
 			}
 		}); 
-		eventBus.addHandler(CreateTermEvent.TYPE, new CreateTermEvent.Handler() {
+		eventBus.addHandler(CreateCandidateEvent.TYPE, new CreateCandidateEvent.Handler() {
 			@Override
-			public void onCreate(CreateTermEvent event) {
-				addTerms(Arrays.asList(event.getTerms()));
+			public void onCreate(CreateCandidateEvent event) {
+				add(Arrays.asList(event.getCandidates()));
 			}
 		});
-		eventBus.addHandler(RemoveTermEvent.TYPE, new RemoveTermEvent.Handler() {
+		eventBus.addHandler(RemoveCandidateEvent.TYPE, new RemoveCandidateEvent.Handler() {
 			@Override
-			public void onCreate(RemoveTermEvent event) {
-				removeTerms(event.getTerms());
+			public void onRemove(RemoveCandidateEvent event) {
+				remove(Arrays.asList(event.getCandidates()));
 			}
 		});
 	}
 	
-	public void setCollection() {
+	public void setCollection(Collection collection) {
 		tree.getStore().clear();
-		termTermTreeNodeMap.clear();
-		bucketTreeNodesMap.clear();
-		addTerms(collection.getTerms());
-		initializeCollapsing(bucketTreeNodesMap);
+		//termTermTreeNodeMap.clear();
+		//bucketTreeNodesMap.clear();
+		add(collection.getCandidates());
+		//initializeCollapsing(bucketTreeNodesMap);
 	}
 
-	protected void removeTerms(Term[] terms) {
-		for(Term term : terms)
-			if(termTermTreeNodeMap.containsKey(term.getDisambiguatedValue()))
-				tree.getStore().remove(termTermTreeNodeMap.get(term.getDisambiguatedValue()));
+	protected void remove(Iterable<Candidate> candidates) {
+		for(Candidate candidate : candidates)
+			if(candidateNodeMap.containsKey(candidate.getText())) {
+				tree.getStore().remove(candidateNodeMap.get(candidate.getText()));
+				candidateNodeMap.remove(candidate.getText());
+			}
 	}
 
-	private void addTerms(Collection<Term> terms) {
-		for(Term term : terms) {
-			String bucketsPath = collection.getBucket(term.getDisambiguatedValue());
-			createBucketNodes(bucketTreeNodesMap, bucketsPath);
-			addTermTreeNode(bucketTreeNodesMap.get(bucketsPath), new TermTreeNode(term));
+	private void add(Iterable<Candidate> candidates) {
+		for(Candidate candidate : candidates) {
+			createBucketNodes(bucketNodesMap, candidate.getPath());
+			addTermTreeNode(bucketNodesMap.get(candidate.getPath()), new CandidateTreeNode(candidate));
 		}
 	}
 
-	protected void createBucketNodes(Map<String, BucketTreeNode> bucketsMap, String bucketsPath) {
-		String[] buckets = bucketsPath.split("/");
+	protected void createBucketNodes(Map<String, BucketTreeNode> bucketsMap, String path) {
+		if(path == null) 
+			return;
+		String[] buckets = path.split("/");
 		String cumulativePath = "";
 		String parentPath = "";
 		for(String bucket : buckets) {
 			if(!bucket.isEmpty()) {
 				cumulativePath += "/" + bucket;
 				if(!bucketsMap.containsKey(cumulativePath)) {
-					BucketTreeNode bucketTreeNode = new BucketTreeNode(new Bucket(bucket));
+					BucketTreeNode bucketTreeNode = new BucketTreeNode(cumulativePath);
 					if(parentPath.isEmpty())
 						tree.getStore().add(bucketTreeNode);
 					else
@@ -335,23 +366,21 @@ public class CandidateView extends SimpleContainer {
 		}
 	}
 
-	protected void addTermTreeNode(BucketTreeNode bucketNode, TermTreeNode termTreeNode) {
-		this.termTermTreeNodeMap.put(termTreeNode.getTerm().getDisambiguatedValue(), termTreeNode);
-		this.tree.getStore().add(bucketNode, termTreeNode);
+	protected void addTermTreeNode(BucketTreeNode bucketNode, CandidateTreeNode candidateTreeNode) {
+		this.candidateNodeMap.put(candidateTreeNode.getCandidate().getText(), candidateTreeNode);
+		if(bucketNode == null)
+			this.tree.getStore().add(candidateTreeNode);
+		else
+			this.tree.getStore().add(bucketNode, candidateTreeNode);
 	}
 	
 	private void initializeCollapsing(Map<String, BucketTreeNode> bucketTreeNodes) {
-		for(BucketTreeNode node : bucketTreeNodes.values()) {
-			if(tree.getStore().getChildren(node).get(0) instanceof TermTreeNode) {
-				tree.setExpanded(node, false);
-			} else {
-				tree.setExpanded(node, true);
-			}
-		}
+//		for(BucketTreeNode node : bucketTreeNodes.values()) {
+//			if(tree.getStore().getChildren(node).get(0) instanceof TermTreeNode) {
+//				tree.setExpanded(node, false);
+//			} else {
+//				tree.setExpanded(node, true);
+//			}
+//		}
 	}	
-	
-	private void fireEvents(List<GwtEvent<?>> result) {
-		for(GwtEvent<?> event : result)
-			eventBus.fireEvent(event);
-	}
 }

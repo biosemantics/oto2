@@ -1,10 +1,15 @@
 package edu.arizona.biosemantics.oto2.ontologize2.client;
 
+import java.util.List;
+
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.box.AutoProgressMessageBox;
 import com.sencha.gxt.widget.core.client.box.ConfirmMessageBox;
 import com.sencha.gxt.widget.core.client.box.MessageBox;
+import com.sencha.gxt.widget.core.client.box.PromptMessageBox;
+
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Vertex;
 
 public class Alerter {
 
@@ -57,6 +62,23 @@ public class Alerter {
         box.setIcon(MessageBox.ICONS.question());
         box.show();
         return box;
+	}
+	
+	public static String collapseTermsAsString(List<Vertex> vertices) {
+		String result = "";
+		int i = 0;
+		for(Vertex v : vertices) {
+			result += v.getValue() + ", ";
+			if(i > 5)
+				break;
+		}
+		return result.substring(0, result.length() - 2);
+	}
+
+	public static PromptMessageBox showPromptMessageBox(String title, String message) {
+		PromptMessageBox box = new PromptMessageBox(title, message);
+		box.show();
+		return box;
 	}
 
 }

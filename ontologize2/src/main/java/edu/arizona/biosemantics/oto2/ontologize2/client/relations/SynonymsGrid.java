@@ -1,324 +1,261 @@
 package edu.arizona.biosemantics.oto2.ontologize2.client.relations;
 
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
-import com.google.gwt.core.shared.GWT;
+import com.google.gwt.dom.client.Element;
+import com.google.gwt.dom.client.Style.BorderStyle;
+import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.sencha.gxt.core.client.ValueProvider;
+import com.sencha.gxt.dnd.core.client.DndDragStartEvent;
+import com.sencha.gxt.dnd.core.client.DndDropEvent;
+import com.sencha.gxt.dnd.core.client.GridDragSource;
+import com.sencha.gxt.dnd.core.client.DndDropEvent.DndDropHandler;
+import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
+import com.sencha.gxt.widget.core.client.box.MessageBox;
+import com.sencha.gxt.widget.core.client.box.PromptMessageBox;
+import com.sencha.gxt.widget.core.client.button.TextButton;
+import com.sencha.gxt.widget.core.client.container.SimpleContainer;
+import com.sencha.gxt.widget.core.client.event.SelectEvent;
+import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 
 import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
-import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreatePartEvent;
-import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateSynonymEvent;
-import edu.arizona.biosemantics.oto2.ontologize2.client.event.HasRowId;
-import edu.arizona.biosemantics.oto2.ontologize2.client.event.LoadCollectionEvent;
-import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemovePartEvent;
-import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveSynonymEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
+import edu.arizona.biosemantics.oto2.ontologize2.client.common.TextAreaMessageBox;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid.Row;
-import edu.arizona.biosemantics.oto2.ontologize2.shared.ICollectionService;
-import edu.arizona.biosemantics.oto2.ontologize2.shared.ICollectionServiceAsync;
-import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Term;
+import edu.arizona.biosemantics.oto2.ontologize2.client.relations.cell.DefaultMenuCreator;
+import edu.arizona.biosemantics.oto2.ontologize2.client.relations.cell.LeadCell;
+import edu.arizona.biosemantics.oto2.ontologize2.client.relations.cell.SynonymMenuCreator;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Candidate;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Vertex;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Origin;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Type;
 
 public class SynonymsGrid extends MenuTermsGrid {
-	
-	//allowed: duplicates of preferred terms: can be consolidated
-	//not allowed: same synonym term for different preferred terms
-	//not allowed: a term that's preferred term and synonym anywhere at the same time
-	private edu.arizona.biosemantics.oto2.ontologize2.shared.model.Collection collection;
-	private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
-	
-	private Map<String, Integer> synonymTerms = new HashMap<String, Integer>();
-	private Map<String, Integer> preferredTerms = new HashMap<String, Integer>();
-	
+
 	public SynonymsGrid(EventBus eventBus) {
-		super(eventBus, "synonym", "preferred term", "synonym", new ValueProvider<Term, String>() {
-			@Override 
-			public String getValue(Term object) {
-				return object.getDisambiguatedValue();
+		super(eventBus, Type.SYNONYM_OF);
+		
+		TextButton addButton = new TextButton("Add Preferred Term");
+		addButton.addSelectHandler(new SelectHandler() {
+			@Override
+			public void onSelect(SelectEvent event) {
+				final PromptMessageBox box = Alerter.showPromptMessageBox("Add Preferred Term", "Term");
+				box.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
+					@Override
+					public void onSelect(SelectEvent event) {
+						Vertex source = new Vertex(type.getRootLabel());
+						Vertex target = new Vertex(box.getTextField().getText());
+						Edge relation = new Edge(source, target, type, Origin.USER);
+						CreateRelationEvent createRelationEvent = new CreateRelationEvent(relation);
+						fire(createRelationEvent);
+					}
+				});
+			}
+		});
+		
+		buttonBar.insert(addButton, 0);
+		
+		GridDragSource<Row> dndSource = new GridDragSource<Row>(grid) {
+			@Override
+			protected void onDragStart(DndDragStartEvent event) {
+				super.onDragStart(event);
+				Element element = event.getDragStartEvent().getStartElement();
+				int targetRowIndex = grid.getView().findRowIndex(element);
+				int targetColIndex = grid.getView().findCellIndex(element, null);
+				Row row = store.get(targetRowIndex);
+				Vertex v = row.getLead();
+				if(targetColIndex > 0) {
+					v = row.getAttached().get(targetColIndex - 1).getDest();
+				}
+				
+				OntologyGraph g = ModelController.getCollection().getGraph();
+				List<Edge> inRelations = g.getInRelations(v, type);
+				if(inRelations.size() > 1) {
+					Alerter.showAlert("Moving", "Moving of term with more than one preferred term is not allowed"); // at this time
+					event.setCancelled(true);
+				}
+				if(inRelations.size() == 1)
+					event.setData(inRelations.get(0));
+				else {
+					Alerter.showAlert("Moving", "Cannot move the root");
+					event.setCancelled(true);
+				}
+			}
+		};
+		
+		dropTarget.setAllowSelfAsSource(true);
+		dropTarget.addDropHandler(new DndDropHandler() {
+			@Override
+			public void onDrop(DndDropEvent event) {
+				Element element = event.getDragEndEvent().getNativeEvent().getEventTarget().<Element> cast();
+				int targetRowIndex = grid.getView().findRowIndex(element);
+				int targetColIndex = grid.getView().findCellIndex(element, null);
+				Row row = store.get(targetRowIndex);
+				
+				if(event.getData() instanceof Edge) {
+					Edge r = (Edge)event.getData();
+					fire(new ReplaceRelationEvent(r, row.getLead()));
+				}
+			}
+		});
+	}
+	
+	@Override
+	public void fire(GwtEvent<? extends EventHandler> e) {
+		if(e instanceof CreateRelationEvent) {
+			final CreateRelationEvent createRelationEvent = (CreateRelationEvent)e;
+			OntologyGraph g = ModelController.getCollection().getGraph();
+			for(Edge r : createRelationEvent.getRelations()) {
+				try {
+					g.isValidSynonym(r);
+					eventBus.fireEvent(createRelationEvent);
+				} catch(Exception ex) {
+					final MessageBox box = Alerter.showAlert("Create synonym", ex.getMessage());
+					box.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
+						@Override
+						public void onSelect(SelectEvent event) {
+							box.hide();
+						}
+					});
+				}
+			}
+		} else if(e instanceof RemoveRelationEvent) {
+			eventBus.fireEvent(e);
+		} else {
+			eventBus.fireEvent(e);
+		}
+	}
+	
+	@Override
+	protected void onLoad(OntologyGraph g) {
+		createEdges(g, g.getRoot(type), new HashSet<String>());
+	}
+	
+	@Override
+	protected void createRelation(Edge r) {
+		if(r.getType().equals(type)) {
+			OntologyGraph g = ModelController.getCollection().getGraph();
+			if(r.getSrc().equals(g.getRoot(type))) {
+				if(!leadRowMap.containsKey(r.getDest()))
+					this.addRow(new Row(r.getDest()));
+			} else {
+				super.createRelation(r);
+			}
+		}
+	}
+	
+	@Override
+	protected void addAttached(Row row, Edge... add) throws Exception {
+		row.add(Arrays.asList(add));
+		updateRow(row);
+	}
+	
+	@Override
+	protected SimpleContainer createCreateRowContainer() {
+		createRowContainer = new SimpleContainer();
+		createRowContainer.setTitle("Drop here to create new preferred term");
+		com.google.gwt.user.client.ui.Label dropLabel = new com.google.gwt.user.client.ui.Label("Drop here to create new preferred term");
+		dropLabel.getElement().getStyle().setLineHeight(30, Unit.PX);
+		createRowContainer.setWidget(dropLabel);
+		createRowContainer.setHeight(30);
+		createRowContainer.getElement().getStyle().setBorderWidth(1, Unit.PX);
+		createRowContainer.getElement().getStyle().setBorderStyle(BorderStyle.DASHED);
+		createRowContainer.getElement().getStyle().setBorderColor("gray");
+		createRowContainer.getElement().getStyle().setProperty("mozMorderMadius", "7px");
+		createRowContainer.getElement().getStyle().setProperty("webkitBorderRadius", "7px");
+		createRowContainer.getElement().getStyle().setProperty("borderRadius", "7px");
+		createRowContainer.getElement().getStyle().setBackgroundColor("#ffffcc");
+		return createRowContainer;
+	}
+	
+	@Override
+	protected String getDefaultImportText() {
+		return "preferred term, synonym 1, synonym 2, ...[e.g. apex, tip, appex]"; 
+	}
+	
+	@Override
+	protected LeadCell createLeadCell() {
+		LeadCell leadCell = new LeadCell(new ValueProvider<Vertex, String>() {
+			@Override
+			public String getValue(Vertex object) {
+				return object.getValue();
 			}
 			@Override
-			public void setValue(Term object, String value) { }
+			public void setValue(Vertex object, String value) { }
 			@Override
 			public String getPath() {
-				return "synonym-term";
+				return "lead";
 			}
-		});
-	}
-	
-	private void addPreferredTerm(Term term, Map<String, Integer> preferredTerms) {
-		if(!preferredTerms.containsKey(term.getDisambiguatedValue()))
-			preferredTerms.put(term.getDisambiguatedValue(), 0);
-		preferredTerms.put(term.getDisambiguatedValue(), preferredTerms.get(term.getDisambiguatedValue()) + 1);
-	}
-	
-	private void addSynonyms(List<Term> terms, Map<String, Integer> synonymTerms) {
-		for(Term term : terms)
-			addSynonym(term, synonymTerms);
-	}
-	
-	private void addSynonym(Term term, Map<String, Integer> synonymTerms) {
-		if(!synonymTerms.containsKey(term.getDisambiguatedValue()))
-			synonymTerms.put(term.getDisambiguatedValue(), 0);
-		synonymTerms.put(term.getDisambiguatedValue(), synonymTerms.get(term.getDisambiguatedValue()) + 1);
-	}
-	
-	private void removePreferredTerm(Term term, Map<String, Integer> preferredTerms) {
-		if(!preferredTerms.containsKey(term.getDisambiguatedValue()))
-			return;
-		int count = preferredTerms.get(term.getDisambiguatedValue()) - 1;
-		if(count <= 0)
-			preferredTerms.remove(term.getDisambiguatedValue());
-		else
-			preferredTerms.put(term.getDisambiguatedValue(), count);
-	}
-	
-	private void removeSynonyms(Term[] terms, Map<String, Integer> synonymTerms) {
-		for(Term term : terms)
-			removeSynonym(term, synonymTerms);
-	}
-	
-	private void removeSynonym(Term term, Map<String, Integer> synonymTerms) {
-		if(!synonymTerms.containsKey(term.getDisambiguatedValue()))
-			return;
-		int count = synonymTerms.get(term.getDisambiguatedValue()) - 1;
-		if(count <= 0)
-			synonymTerms.remove(term.getDisambiguatedValue());
-		else
-			synonymTerms.put(term.getDisambiguatedValue(), count);
+		}, new SynonymMenuCreator(eventBus, this));
+		return leadCell;
 	}
 	
 	@Override
-	public void bindEvents() {
-		super.bindEvents();
-		
-		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
-			@Override
-			public void onLoad(LoadCollectionEvent event) {
-				collection = event.getCollection();
-				store.clear();
-				for(String preferred : collection.getSynonyms().keySet()) {
-					Term preferredTerm = collection.getTerm(preferred);
-					eventBus.fireEvent(new CreateSynonymEvent(preferredTerm, collection.getSynonyms(preferredTerm)));
-				}
-			}
-		}); 
-		eventBus.addHandler(CreateSynonymEvent.TYPE, new CreateSynonymEvent.Handler() {
-			@Override
-			public void onCreate(CreateSynonymEvent event) {
-				List<Row> rows = SynonymsGrid.this.getLeadTermsRows(event.getPreferredTerm(), true);
-				Row row = null;
-				if(event.hasRowId()) 
-					row = getRowWithId(rows, event.getRowId()); 
-				else {
-					row = new Row(event.getPreferredTerm());
-					SynonymsGrid.super.addRow(row);
-				}
-				if(row != null)
-					try {
-						addPreferredTerm(event.getPreferredTerm(), preferredTerms);
-						addSynonyms(Arrays.asList(event.getSynonyms()), synonymTerms);
-						SynonymsGrid.super.addAttachedTermsToRow(row, Arrays.asList(event.getSynonyms()));
-					} catch (Exception e) {
-						Alerter.showAlert("Create Synonym", "Create synonym failed");
-					}
-			}
-		});
-		eventBus.addHandler(RemoveSynonymEvent.TYPE, new RemoveSynonymEvent.Handler() {
-			@Override
-			public void onRemove(RemoveSynonymEvent event) {
-				List<Row> rows = SynonymsGrid.this.getLeadTermsRows(event.getPreferredTerm(), true);
-				if(event.hasRowId()) {
-					Row idRow = getRowWithId(rows, event.getRowId());
-					if(idRow != null) {
-						rows = new LinkedList<Row>();
-						rows.add(idRow);
-					}
-				}
-				//Alerter.showAlert("rows.isEmpty()", rows.isEmpty()+"");
-				if(!rows.isEmpty()) {
-					//Alerter.showAlert("event.hasSynonyms()", event.hasSynonyms()+"");
-					if(!event.hasSynonyms()) {
-						//Alerter.showAlert("remove preferredTerms and synonyms", event.getPreferredTerm().getValue());
-						removePreferredTerm(event.getPreferredTerm(), preferredTerms);
-						SynonymsGrid.super.removeRows(rows);
-					} else {
-						try {
-							//Alerter.showAlert("remove synonyms", event.getPreferredTerm().getValue());
-							removeSynonyms(event.getSynonyms(), synonymTerms);
-							SynonymsGrid.super.removeAttachedTermsFromRows(rows, Arrays.asList(event.getSynonyms()));
-						} catch (Exception e) {
-							Alerter.showAlert("Remove Synonym", "Remove synonym failed");
-						}
-					}
-				}
-					
-			}
-		});
+	protected void removeRelation(Edge r, boolean recursive) {
+		OntologyGraph graph = ModelController.getCollection().getGraph();
+		if(r.getSrc().equals(graph.getRoot(type))) {
+			Row row = leadRowMap.get(r.getDest());
+			this.removeRow(row, true);
+		} else
+			super.removeRelation(r, recursive);
 	}
 	
 	@Override
-	public void addRow(Row row) {
-		boolean valid = true;
-		try { 
-			validAddRow(row.getLeadTerm(), this.preferredTerms, this.synonymTerms);
-		} catch(Exception e) {
-			valid = false;
-			Alerter.showAlert("Add failed.", e.getMessage());
-		}
-		if(valid) {
-			collectionService.createSynonym(collection.getId(), collection.getSecret(), 
-					row.getLeadTerm(), new LinkedList<Term>(), new AsyncCallback<List<GwtEvent<?>>>() {
-				@Override
-				public void onFailure(Throwable caught) {
-					
-				}
-				@Override
-				public void onSuccess(List<GwtEvent<?>> result) {
-					fireEvents(result, null);
-				}
-			});
-		}
-	}
-	
-	@Override
-	public void setRows(List<Row> rows) {
-		boolean valid = true;
-		try { 
-			validSetRows(rows);
-		} catch(Exception e) {
-			valid = false;
-			Alerter.showAlert("Add failed.", e.getMessage());
-		}
-		
-		if(valid) {
-			for(final Row row : rows)
-				collectionService.createSynonym(collection.getId(), collection.getSecret(), 
-						row.getLeadTerm(), row.getAttachedTerms(), new AsyncCallback<List<GwtEvent<?>>>() {
-					@Override
-					public void onFailure(Throwable caught) {
-						
-					}
-					@Override
-					public void onSuccess(List<GwtEvent<?>> result) {
-						fireEvents(result, row);
-					}
-				});
-		}
-	}
-	
-	@Override
-	public void removeRows(Collection<Row> rows) {
-		boolean valid = true;
-		try { 
-			validateRemove(rows);
-		} catch(Exception e) {
-			valid = false;
-			Alerter.showAlert("Remove failed.", e.getMessage());
-		}
-		if(valid) {
-			for(final Row row : rows)
-				collectionService.removeSynonym(collection.getId(), collection.getSecret(), 
-						row.getLeadTerm(), row.getAttachedTerms(), new AsyncCallback<List<GwtEvent<?>>>() {
-					@Override
-					public void onFailure(Throwable caught) {
-						
-					}
-					@Override
-					public void onSuccess(List<GwtEvent<?>> result) {
-						//Alerter.showAlert("Remove failed 1", "");
-						((RemoveSynonymEvent)result.get(0)).setSynonyms(null);//in order to indicate this event is removeRows
-						//Alerter.showAlert("Remove failed 2", "");
-						fireEvents(result, row);
-					}
-				});
-		}
-	}
-	
-	@Override
-	public void addAttachedTermsToRow(final Row row, List<Term> add) throws Exception {
-		boolean valid = true;
-		try { 
-			validAddTermsToRow(row, add, preferredTerms, synonymTerms);
-		} catch(Exception e) {
-			valid = false;
-			Alerter.showAlert("Add failed.", e.getMessage());
-		}
-		if(valid) {
-			collectionService.createSynonym(collection.getId(), collection.getSecret(), 
-					row.getLeadTerm(), add, new AsyncCallback<List<GwtEvent<?>>>() {
-				@Override
-				public void onFailure(Throwable caught) {
-					// TODO Auto-generated method stub
-				}
-				@Override
-				public void onSuccess(List<GwtEvent<?>> result) {
-					fireEvents(result, row);
-				}
-			});
+	protected void replaceRelation(Edge oldRelation, Vertex newSource) {
+		if(oldRelation.getType().equals(type)) {	
+			List<Vertex> newAttached = new LinkedList<Vertex>();
+			newAttached.add(oldRelation.getDest());
 			
+			OntologyGraph g = ModelController.getCollection().getGraph();		
+			if(oldRelation.getSrc().equals(g.getRoot(type))) {
+				Row oldRow = leadRowMap.get(oldRelation.getDest());
+				for(Edge relation : oldRow.getAttached()) 
+					newAttached.add(relation.getDest());
+				store.remove(oldRow);
+				leadRowMap.remove(oldRow.getLead());
+			} else if(leadRowMap.containsKey(oldRelation.getSrc())) {
+				Row oldRow = leadRowMap.get(oldRelation.getSrc());
+				oldRow.remove(oldRelation);
+				updateRow(oldRow);
+			}
+			if(newSource.equals(g.getRoot(type))) {
+				Row newRow = new Row(oldRelation.getDest());
+				this.addRow(newRow);
+			} else if(leadRowMap.containsKey(newSource)) {
+				Row newRow = leadRowMap.get(newSource);
+				try {
+					for(Vertex newAttach : newAttached)
+						addAttached(newRow, new Edge(newSource, newAttach, oldRelation.getType(), oldRelation.getOrigin()));
+				} catch (Exception e) {
+					Alerter.showAlert("Failed to replace relation", "Failed to replace relation");
+					return;
+				}
+			} else {
+				Alerter.showAlert("Failed to replace relation", "Failed to replace relation");
+			}
 		}
 	}
 	
 	@Override
-	public void removeAttachedTermsFromRow(final Row row, List<Term> terms) {
-		collectionService.removeSynonym(collection.getId(), collection.getSecret(), 
-				row.getLeadTerm(), terms, new AsyncCallback<List<GwtEvent<?>>>() {
-			@Override
-			public void onFailure(Throwable caught) {
-				
-			}
-			@Override
-			public void onSuccess(List<GwtEvent<?>> result) {
-				fireEvents(result, row);
-			}
-		});
-	}
-	
-	private void validAddTermsToRow(Row row, List<Term> add, Map<String, Integer> preferredTerms, Map<String, Integer> synonymTerms) throws Exception { 
-		for(Term term : add) {
-			if(synonymTerms.containsKey(term.getDisambiguatedValue()))
-				throw new Exception("Synonym term is already defined as a synonym of another term.");
-			if(preferredTerms.containsKey(term.getDisambiguatedValue()))
-				throw new Exception("Synonym term is already defined as a preferred term");
-		}
-	}
-	
-	private void validAddRow(Term preferredTerm, Map<String, Integer> preferredTerms, Map<String, Integer> synonymTerms) throws Exception {
-		if(synonymTerms.containsKey(preferredTerm.getDisambiguatedValue()))
-			throw new Exception("Preferred term is already defined as a synonym of another term.");
-		/*for(Term term : row.getAttachedTerms()) {
-			if(synonymTerms.contains(term))
-				throw new Exception("Synonym term is already defined as a synonym of another term.");
-			if(preferredTerms.contains(term))
-				throw new Exception("Synonym term is already defined as a preferred term");
-		}*/
-	}
-	
-	private void validSetRows(List<Row> rows) throws Exception {
-		Map<String, Integer> preferredTerms = new HashMap<String, Integer>();
-		Map<String, Integer> synonymTerms = new HashMap<String, Integer>();
-		for(Row row : rows) {
-			validAddRow(row.getLeadTerm(), preferredTerms, synonymTerms);
-			Row hypotheticRow = new Row(row.getLeadTerm());
-			this.addPreferredTerm(row.getLeadTerm(), preferredTerms);
-			validAddTermsToRow(hypotheticRow, row.getAttachedTerms(), preferredTerms, synonymTerms);
-			this.addSynonyms(row.getAttachedTerms(), synonymTerms);
-		}
-	}
-	
-	private void validateRemove(Collection<Row> rows) throws Exception {
-		for(Row row : rows) {
-			if(store.findModel(row) == null) {
-				throw new Exception("Row does not exist");
-			}
-		}
+	protected void createRowFromEdgeDrop(Edge oldRelation) {
+		OntologyGraph g = ModelController.getCollection().getGraph();		
+		if(oldRelation.getSrc().equals(g.getRoot(type))) {
+			return;
+		} else {
+			fire(new ReplaceRelationEvent(oldRelation, g.getRoot(type)));
+			//fire(new RemoveRelationEvent(false, oldRelation));
+			//fire(new CreateRelationEvent(new Edge(g.getRoot(type), oldRelation.getDest(), type, Origin.USER)));
+		}	
 	}
 }

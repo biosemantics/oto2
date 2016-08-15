@@ -12,9 +12,11 @@ import edu.arizona.biosemantics.common.log.Logger;
 public class Configuration {
 
 	private final static Logger logger = Logger.getLogger(Configuration.class);
+	private static Properties properties;
 
 	/** **/
 	public static String collectionsDirectory;
+	public static String ontologyGraphs;
 	
 	/** Ontologies **/
 	public static String etcOntologyBaseIRI;
@@ -23,23 +25,15 @@ public class Configuration {
 	public static String collectionOntologyDirectory;
 	public static String fileBase;
 	
-	/** Database **/
-	public static String databaseName;
-	public static String databaseUser;
-	public static String databasePassword;
-	public static String databaseHost;
-	public static String databasePort;
-	public static int database_minConnectionsPerPartition;
-	public static int database_maxConnectionsPerPartition;
-	public static int database_partitionCount;
-	
 	/** Bioportal **/
 	public static String bioportalUrl;
 	public static String bioportalApiKey;
-		
-	private static Properties properties;
-
+	
 	public static String wordNetSource;
+
+	public static String context;
+
+	public static int contextMaxHits;
 
 
 	static {
@@ -49,21 +43,15 @@ public class Configuration {
 			properties.load(loader.getResourceAsStream("edu/arizona/biosemantics/oto2/ontologize2/config.properties"));
 			
 			collectionsDirectory = properties.getProperty("collectionsDirectory");
+			ontologyGraphs = properties.getProperty("ontologyGraphs");
+			context = properties.getProperty("context");
+			contextMaxHits = Integer.valueOf(properties.getProperty("contextMaxHits"));
 			
 			etcOntologyBaseIRI = properties.getProperty("etcOntologyBaseIRI");
 			oboOntologyBaseIRI = properties.getProperty("oboOntologyBaseIRI");
 			permanentOntologyDirectory = properties.getProperty("permanentOntologyDirectory");
 			collectionOntologyDirectory = properties.getProperty("collectionOntologyDirectory");
 			fileBase = properties.getProperty("fileBase");
-			
-			databaseName = properties.getProperty("databaseName");
-			databaseUser = properties.getProperty("databaseUser");
-			databasePassword = properties.getProperty("databasePassword");
-			databaseHost = properties.getProperty("databaseHost");
-			databasePort = properties.getProperty("databasePort");
-			database_minConnectionsPerPartition = Integer.valueOf(properties.getProperty("database_minConnectionsPerPartition"));
-			database_maxConnectionsPerPartition = Integer.valueOf(properties.getProperty("database_maxConnectionsPerPartition"));
-			database_partitionCount = Integer.valueOf(properties.getProperty("database_partitionCount"));
 			
 			bioportalUrl = properties.getProperty("bioportalUrl");
 			bioportalApiKey = properties.getProperty("bioportalApiKey");
