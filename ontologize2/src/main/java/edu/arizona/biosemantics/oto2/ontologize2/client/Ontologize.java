@@ -38,6 +38,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.relations.RelationsView;
 import edu.arizona.biosemantics.oto2.ontologize2.client.candidate.CandidateView;
 import edu.arizona.biosemantics.oto2.ontologize2.client.common.TabPanelMessageBox;
 import edu.arizona.biosemantics.oto2.ontologize2.client.common.TextAreaMessageBox;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.DownloadEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.info.ContextView;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.TreeView;
@@ -84,6 +85,15 @@ public class Ontologize extends SimpleContainer {
 				}
 			});
 			sub.add(generateItem);
+			
+			MenuItem downloadItem = new MenuItem("Download Ontology");
+			downloadItem.addSelectionHandler(new SelectionHandler<Item>() {
+				@Override
+				public void onSelection(SelectionEvent<Item> arg0) {
+					eventBus.fireEvent(new DownloadEvent(ModelController.getCollection()));
+				}
+			});
+			sub.add(downloadItem);
 			add(item);
 		}
 	}
@@ -150,6 +160,10 @@ public class Ontologize extends SimpleContainer {
 
 	public EventBus getEventBus() {
 		return eventBus;
+	}
+
+	public void setUser(String user) {
+		Ontologize.user = user;
 	}
 
 }
