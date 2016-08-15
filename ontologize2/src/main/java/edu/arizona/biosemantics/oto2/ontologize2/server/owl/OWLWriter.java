@@ -55,7 +55,7 @@ public class OWLWriter {
 	
 	public OWLWriter(Collection c) throws Exception {
 		this.c = c;
-		this.outputDirectory = Configuration.collectionOntologyDirectory + File.separator + c.getId();
+		this.outputDirectory = Configuration.collectionsDirectory + File.separator + c.getId() + File.separator + "owl";
 		this.o = om.createOntology(IRI.create(Configuration.etcOntologyBaseIRI + c.getId()));
 		this.orf = new StructuralReasonerFactory();
 		this.oret = new OWLOntologyRetriever(om, c);

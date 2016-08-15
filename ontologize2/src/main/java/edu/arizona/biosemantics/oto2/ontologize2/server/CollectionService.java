@@ -147,7 +147,7 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 			OWLWriter ow = new OWLWriter(c);
 			ow.write();
 			
-			File[] children = new File(Configuration.collectionOntologyDirectory + File.separator + c.getId()).listFiles();
+			File[] children = new File(Configuration.collectionsDirectory + File.separator + c.getId() + File.separator + "owl").listFiles();
 			String[][] result = new String[children.length][2];
 			for(int i=0; i<children.length; i++) {
 				result[i][0] = getFileContent(children[i]);

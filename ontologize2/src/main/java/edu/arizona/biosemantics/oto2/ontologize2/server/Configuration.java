@@ -16,7 +16,6 @@ public class Configuration {
 
 	/** **/
 	public static String collectionsDirectory;
-	public static String collectionOntologyDirectory;
 	public static String ontologyGraphs;
 	public static String permanentOntologyDirectory;
 	
@@ -36,7 +35,6 @@ public class Configuration {
 			collectionsDirectory = properties.getProperty("collectionsDirectory");
 			ontologyGraphs = properties.getProperty("ontologyGraphs");
 			permanentOntologyDirectory = properties.getProperty("permanentOntologyDirectory");
-			collectionOntologyDirectory = properties.getProperty("collectionOntologyDirectory");
 			
 			etcOntologyBaseIRI = properties.getProperty("etcOntologyBaseIRI");
 			
