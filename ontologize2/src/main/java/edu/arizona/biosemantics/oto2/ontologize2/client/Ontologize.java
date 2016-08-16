@@ -49,8 +49,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.ICollectionServiceAsync;
 public class Ontologize extends SimpleContainer {
 
 	public class MenuView extends MenuBar {
-
-		private EventBus eventBus;
+		
 		private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
 
 		public MenuView() {
