@@ -60,6 +60,10 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 		File collectionDirectory = new File(Configuration.collectionsDirectory + File.separator + collection.getId());
 		if(!collectionDirectory.exists())
 			collectionDirectory.mkdir();
+		File owlDirectory = new File(Configuration.collectionsDirectory + File.separator + collection.getId() + 
+				File.separator + "owl");
+		if(!owlDirectory.exists())
+			owlDirectory.mkdir();
 		
 		try(ObjectOutputStream collectionOutput = new ObjectOutputStream(new FileOutputStream(
 				Configuration.collectionsDirectory + File.separator + collection.getId() + File.separator + "collection.ser"))) {
