@@ -303,7 +303,7 @@ public class CandidateView extends SimpleContainer {
 		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
 			@Override
 			public void onLoad(LoadCollectionEvent event) {
-				if(event.isEffectiveInModel())
+				if(!event.isEffectiveInModel())
 					setCollection(event.getCollection());
 			}
 		}); 
@@ -323,10 +323,9 @@ public class CandidateView extends SimpleContainer {
 	
 	public void setCollection(Collection collection) {
 		tree.getStore().clear();
-		//termTermTreeNodeMap.clear();
-		//bucketTreeNodesMap.clear();
+		candidateNodeMap.clear();
+		bucketNodesMap.clear();
 		add(collection.getCandidates());
-		//initializeCollapsing(bucketTreeNodesMap);
 	}
 
 	protected void remove(Iterable<Candidate> candidates) {
