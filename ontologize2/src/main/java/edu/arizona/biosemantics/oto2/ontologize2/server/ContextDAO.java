@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -118,7 +119,6 @@ public class ContextDAO {
 		List<ExtractContext> result = new LinkedList<ExtractContext>();
 		Matcher matcher = pattern.matcher(context.getText());
 		
-		int id = 0;
 		if(matcher.find()) {
 			matcher.reset();
 		    while (matcher.find()) {
@@ -133,7 +133,7 @@ public class ContextDAO {
 		    	extractedText = extractedText.replaceAll("(?i)" + replaceTerm, "<b>" + replaceTerm + "</b>");
 		    	String fullText = context.getText().replaceAll("(?i)" + replaceTerm, "<b>" + replaceTerm + "</b>").replaceAll("\n", "</br>");
 		    	
-		    	String idString = String.valueOf(context.getId()) + "-" + id++;
+		    	String idString = UUID.randomUUID().toString();
 		    	ExtractContext extracted = new ExtractContext(idString, context.getSource(), extractedText, fullText);
 		    	result.add(extracted);
 		    }
