@@ -57,6 +57,11 @@ public class SynonymsGrid extends MenuTermsGrid {
 						Vertex source = new Vertex(type.getRootLabel());
 						Vertex target = new Vertex(box.getTextField().getText());
 						Edge relation = new Edge(source, target, type, Origin.USER);
+						
+						if(ModelController.getCollection().getGraph().isClosedRelations(source, type)) {
+							Alerter.showAlert("Create Relation", "Can not create relation for a closed row.");
+							return;
+						}
 						CreateRelationEvent createRelationEvent = new CreateRelationEvent(relation);
 						fire(createRelationEvent);
 					}
@@ -105,6 +110,11 @@ public class SynonymsGrid extends MenuTermsGrid {
 				
 				if(event.getData() instanceof Edge) {
 					Edge r = (Edge)event.getData();
+					OntologyGraph g = ModelController.getCollection().getGraph();
+					if(g.isClosedRelations(r.getSrc(), type) || g.isClosedRelations(row.getLead(), type)) {
+						Alerter.showAlert("Create Relation", "Can not create relation for a closed row.");
+						return;
+					}
 					fire(new ReplaceRelationEvent(r, row.getLead()));
 				}
 			}
@@ -253,6 +263,10 @@ public class SynonymsGrid extends MenuTermsGrid {
 		if(oldRelation.getSrc().equals(g.getRoot(type))) {
 			return;
 		} else {
+			if(g.isClosedRelations(oldRelation.getSrc(), type)) {
+				Alerter.showAlert("Create Relation", "Can not create relation for a closed row.");
+				return;
+			}
 			fire(new ReplaceRelationEvent(oldRelation, g.getRoot(type)));
 			//fire(new RemoveRelationEvent(false, oldRelation));
 			//fire(new CreateRelationEvent(new Edge(g.getRoot(type), oldRelation.getDest(), type, Origin.USER)));

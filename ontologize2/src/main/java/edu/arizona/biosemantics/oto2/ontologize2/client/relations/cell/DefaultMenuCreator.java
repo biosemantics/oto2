@@ -11,12 +11,14 @@ import com.sencha.gxt.widget.core.client.box.MessageBox;
 import com.sencha.gxt.widget.core.client.box.PromptMessageBox;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
+import com.sencha.gxt.widget.core.client.menu.CheckMenuItem;
 import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
 import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.CloseRelationsEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.SelectTermEvent;
@@ -42,12 +44,17 @@ public class DefaultMenuCreator implements LeadCell.MenuCreator {
 		Menu menu = new Menu();
 		final OntologyGraph g = ModelController.getCollection().getGraph();
 		final Row row = termsGrid.getRow(rowIndex);
+		final boolean closed = ModelController.getCollection().getGraph().isClosedRelations(row.getLead(), termsGrid.getType());
 		
 		MenuItem addItem = new MenuItem("Add " + termsGrid.getType().getTargetLabel());
 		addItem.addSelectionHandler(new SelectionHandler<Item>() {
 			@Override
 			public void onSelection(SelectionEvent<Item> event) {
 				OntologyGraph g = ModelController.getCollection().getGraph();
+				if(g.isClosedRelations(row.getLead(), termsGrid.getType())) {
+					Alerter.showAlert("Create Relation", "Can not create relation for a closed row.");
+					return;
+				}
 				
 				final PromptMessageBox box = Alerter.showPromptMessageBox("Add " + termsGrid.getType().getTargetLabel(), 
 						"Add " + termsGrid.getType().getTargetLabel());
@@ -60,6 +67,7 @@ public class DefaultMenuCreator implements LeadCell.MenuCreator {
 				});
 			}
 		});
+		addItem.setEnabled(!closed);
 		
 		MenuItem removeItem = new MenuItem("Remove all " + termsGrid.getType().getTargetLabelPlural());
 		removeItem.addSelectionHandler(new SelectionHandler<Item>() {
@@ -67,6 +75,12 @@ public class DefaultMenuCreator implements LeadCell.MenuCreator {
 			public void onSelection(SelectionEvent<Item> event) {
 				OntologyGraph g = ModelController.getCollection().getGraph();
 				Vertex targetVertex = row.getLead();
+				
+				if(g.isClosedRelations(targetVertex, termsGrid.getType())) {
+					Alerter.showAlert("Create Relation", "Can not create relation for a closed row.");
+					return;
+				}
+				
 				for(final Edge r : g.getOutRelations(targetVertex, termsGrid.getType())) {
 					if(g.getInRelations(r.getDest(), termsGrid.getType()).size() <= 1) {
 						if(g.getOutRelations(r.getDest(), termsGrid.getType()).isEmpty()) {
@@ -78,6 +92,18 @@ public class DefaultMenuCreator implements LeadCell.MenuCreator {
 						eventBus.fireEvent(new RemoveRelationEvent(false, r));
 					}
 				} 
+			}
+		});
+		removeItem.setEnabled(!closed);
+		
+		CheckMenuItem closeItem = new CheckMenuItem("Close");
+		closeItem.setChecked(closed);
+		closeItem.addSelectionHandler(new SelectionHandler<Item>() {
+			@Override
+			public void onSelection(SelectionEvent<Item> event) {
+				OntologyGraph g = ModelController.getCollection().getGraph();
+				Vertex targetVertex = row.getLead();
+				eventBus.fireEvent(new CloseRelationsEvent(targetVertex, termsGrid.getType(), !closed)); 
 			}
 		});
 		
@@ -112,6 +138,7 @@ public class DefaultMenuCreator implements LeadCell.MenuCreator {
 		//menu.add(removeRowItem);
 		menu.add(addItem);
 		menu.add(removeItem);
+		menu.add(closeItem);
 		menu.add(context);
 		
 		return menu;

@@ -74,6 +74,11 @@ public class SubclassesGrid extends MenuTermsGrid {
 				
 				if(event.getData() instanceof Edge) {
 					Edge r = (Edge)event.getData();
+					OntologyGraph g = ModelController.getCollection().getGraph();
+					if(g.isClosedRelations(r.getSrc(), type) || g.isClosedRelations(row.getLead(), type)) {
+						Alerter.showAlert("Create Relation", "Can not create relation for a closed row.");
+						return;
+					}
 					fire(new ReplaceRelationEvent(r, row.getLead()));
 				}
 			}

@@ -49,6 +49,10 @@ public class SynonymMenuCreator implements LeadCell.MenuCreator {
 			@Override
 			public void onSelection(SelectionEvent<Item> event) {
 				OntologyGraph g = ModelController.getCollection().getGraph();
+				if(g.isClosedRelations(row.getLead(), termsGrid.getType())) {
+					Alerter.showAlert("Create Relation", "Can not create relation for a closed row.");
+					return;
+				}
 				
 				final PromptMessageBox box = Alerter.showPromptMessageBox("Add " + termsGrid.getType().getTargetLabel(), 
 						"Add " + termsGrid.getType().getTargetLabel());
@@ -68,6 +72,12 @@ public class SynonymMenuCreator implements LeadCell.MenuCreator {
 			public void onSelection(SelectionEvent<Item> event) {
 				OntologyGraph g = ModelController.getCollection().getGraph();
 				Vertex targetVertex = row.getLead();
+				
+				if(g.isClosedRelations(targetVertex, termsGrid.getType())) {
+					Alerter.showAlert("Create Relation", "Can not create relation for a closed row.");
+					return;
+				}
+				
 				for(final Edge r : g.getOutRelations(targetVertex, termsGrid.getType())) {
 					if(g.getInRelations(r.getDest(), termsGrid.getType()).size() <= 1) {
 						if(g.getOutRelations(r.getDest(), termsGrid.getType()).isEmpty()) {

@@ -71,6 +71,11 @@ public class AttachedCell extends MenuExtendedCell<Row> {
 			@Override
 			public void onSelection(SelectionEvent<Item> event) {
 				OntologyGraph g = ModelController.getCollection().getGraph();
+				if(g.isClosedRelations(r.getDest(), termsGrid.getType())) {
+					Alerter.showAlert("Create Relation", "Can not create relation for a closed row.");
+					return;
+				}
+				
 				if(g.getInRelations(r.getDest(), termsGrid.getType()).size() <= 1) {
 					if(g.getOutRelations(r.getDest(), termsGrid.getType()).isEmpty()) {
 						eventBus.fireEvent(new RemoveRelationEvent(false, r));

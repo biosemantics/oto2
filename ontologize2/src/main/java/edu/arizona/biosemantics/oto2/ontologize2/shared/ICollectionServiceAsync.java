@@ -7,6 +7,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Candidate;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Type;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Vertex;
 
 public interface ICollectionServiceAsync {	
@@ -28,6 +29,8 @@ public interface ICollectionServiceAsync {
 	
 	public void remove(int id, String secret, List<Candidate> candidates, AsyncCallback<Void> callback);
 
-	public void getOWL(int id, String secret, AsyncCallback<String[][]> asyncCallback);
+	public void getOWL(int id, String secret, AsyncCallback<String[][]> callback);
+
+	public void close(int collectionId, String secret, Vertex vertex, Type type, boolean close, AsyncCallback<Void> callback);
 		
 }

@@ -78,7 +78,7 @@ public class OWLWriter {
 		axm.addDefaultAxioms(o);
 		
 		for(Vertex v : g.getVertices()) { 
-			Map<Ontology, Set<edu.arizona.biosemantics.common.ontology.graph.OntologyGraph.Vertex>> matches = new 
+			/*Map<Ontology, Set<edu.arizona.biosemantics.common.ontology.graph.OntologyGraph.Vertex>> matches = new 
 					HashMap<Ontology, Set<edu.arizona.biosemantics.common.ontology.graph.OntologyGraph.Vertex>>();
 			int matchCount = 0;
 			for(Ontology ro : Ontology.getRelevantOntologies(c.getTaxonGroup())) {
@@ -101,16 +101,15 @@ public class OWLWriter {
 					iriMap.put(v, match.getIri());
 					break;
 				}
-			} else if(matchCount > 1 || matchCount == 0) {
+			} else if(matchCount > 1 || matchCount == 0) {*/
 				iriMap.put(v, Configuration.etcOntologyBaseIRI + c.getId() + "#" + v.getValue());
-			}
+			//}
 		}
 		
 		for(Vertex v : g.getVertices()) {
 			System.out.println("Processing " + v.getValue());
 			OWLClass oc = om.getOWLDataFactory().getOWLClass(IRI.create(iriMap.get(v)));
 			if(!iriMap.get(v).startsWith(Configuration.etcOntologyBaseIRI)) {
-				System.out.println("Create module");
 				createModule(oc);
 			}
 			axm.addDeclaration(o, oc);

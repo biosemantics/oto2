@@ -25,6 +25,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Candidate;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Type;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Vertex;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Origin;
 import edu.uci.ics.jung.graph.util.EdgeType;
@@ -168,6 +169,13 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	private String getFileContent(File file) throws IOException {
 		 byte[] encoded = Files.readAllBytes(Paths.get(file.getAbsolutePath()));
 		  return new String(encoded, "UTF8");
+	}
+
+	@Override
+	public void close(int collectionId, String secret, Vertex vertex, Type type, boolean close) throws Exception {
+		Collection collection = this.get(collectionId, secret);
+		collection.getGraph().setClosedRelation(vertex, type, close);
+		update(collection);
 	}
 
 

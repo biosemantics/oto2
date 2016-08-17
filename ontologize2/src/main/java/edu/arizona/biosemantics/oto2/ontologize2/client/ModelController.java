@@ -7,6 +7,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.web.bindery.event.shared.EventBus;
 import com.sencha.gxt.widget.core.client.box.MessageBox;
 
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.CloseRelationsEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateCandidateEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.LoadCollectionEvent;
@@ -90,7 +91,11 @@ public class ModelController {
 								Alerter.stopLoading(box2);
 							}
 						});
-						collection.getGraph().removeRelation(relation, event.isRecursive());
+						try {
+							collection.getGraph().removeRelation(relation, event.isRecursive());
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
 					}
 					event.setEffectiveInModel(true);
 					eventBus.fireEvent(event);
@@ -171,6 +176,29 @@ public class ModelController {
 				for(Candidate candidate : event.getCandidates())
 					collection.remove(candidate.getText());
 				Alerter.stopLoading(box);
+			}
+		});
+		eventBus.addHandler(CloseRelationsEvent.TYPE, new CloseRelationsEvent.Handler() {
+			@Override
+			public void onClose(CloseRelationsEvent event) {
+				if(!event.isEffectiveInModel()) {
+					final MessageBox box = Alerter.startLoading();
+					final MessageBox box2 = Alerter.startLoading();
+					collectionService.close(collection.getId(), collection.getSecret(), 
+							event.getVertex(), event.getType(), event.isClose(), new AsyncCallback<Void>() {
+						@Override
+						public void onFailure(Throwable caught) {
+							Alerter.stopLoading(box);
+						}
+						@Override
+						public void onSuccess(Void result) {
+							Alerter.stopLoading(box);
+						}
+					});
+					
+					ModelController.getCollection().getGraph().setClosedRelation(event.getVertex(), event.getType(), event.isClose());
+					Alerter.stopLoading(box2);
+				} 
 			}
 		});
 	}

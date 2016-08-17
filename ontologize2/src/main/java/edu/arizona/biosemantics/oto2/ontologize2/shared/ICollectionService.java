@@ -10,6 +10,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Candidate;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Vertex;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Type;
 
 @RemoteServiceRelativePath("ontologize2_collection")
 public interface ICollectionService extends RemoteService {
@@ -31,4 +32,7 @@ public interface ICollectionService extends RemoteService {
 	public void remove(int id, String secret, List<Candidate> candidates) throws Exception;
 	
 	public String[][] getOWL(int id, String secret) throws Exception;
+
+	public void close(int collectionId, String secret, Vertex vertex, Type type, boolean close) throws Exception;
+
 }

@@ -129,6 +129,11 @@ public class MenuTermsGrid extends TermsGrid {
 									if(terms[i].trim().isEmpty()) 
 										continue;
 									Vertex target = new Vertex(terms[i]);
+									
+									if(ModelController.getCollection().getGraph().isClosedRelations(source, type)) {
+										Alerter.showAlert("Create Relation", "Can not create relation for a closed row.");
+										continue;
+									}
 									eventBus.fireEvent(new CreateRelationEvent(new Edge(source, target, type, Origin.USER)));
 									alreadyAttached.add(target);
 								}

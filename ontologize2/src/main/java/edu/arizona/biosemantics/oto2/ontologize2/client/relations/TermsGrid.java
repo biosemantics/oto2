@@ -232,7 +232,7 @@ public class TermsGrid implements IsWidget {
 				Element element = event.getDragEndEvent().getNativeEvent().getEventTarget().<Element> cast();
 				int targetRowIndex = grid.getView().findRowIndex(element);
 				Row row = store.get(targetRowIndex);
-				
+
 				if(event.getData() instanceof List<?>) {
 					List<Edge> add = new LinkedList<Edge>();
 					List<?> list = (List<?>)event.getData();
@@ -241,6 +241,11 @@ public class TermsGrid implements IsWidget {
 							Candidate c = (Candidate)item;
 							add.add(new Edge(row.getLead(), new Vertex(c.getText()), type, Origin.USER));
 						}
+					}
+					
+					if(ModelController.getCollection().getGraph().isClosedRelations(row.getLead(), type)) {
+						Alerter.showAlert("Create Relation", "Can not create relation for a closed row.");
+						return;
 					}
 					CreateRelationEvent createRelationEvent = new CreateRelationEvent(add);
 					fire(createRelationEvent);
@@ -261,6 +266,11 @@ public class TermsGrid implements IsWidget {
 								Vertex source = new Vertex(type.getRootLabel());
 								Vertex target = new Vertex(((Candidate)item).getText());
 								Edge relation = new Edge(source, target, type, Origin.USER);
+								
+								if(ModelController.getCollection().getGraph().isClosedRelations(source, type)) {
+									Alerter.showAlert("Create Relation", "Can not create relation for a closed row.");
+									return;
+								}
 								CreateRelationEvent createRelationEvent = new CreateRelationEvent(relation);
 								fire(createRelationEvent);
 							}

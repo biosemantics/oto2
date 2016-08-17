@@ -2,6 +2,7 @@ package edu.arizona.biosemantics.oto2.ontologize2.shared.model;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -210,12 +211,14 @@ public class OntologyGraph implements Serializable {
 
 	private DirectedSparseMultigraph<Vertex, Edge> graph;
 	private Map<String, Vertex> index;
+	private Map<Vertex, Set<Type>> closedRelations;
 
 	public OntologyGraph() { }
 	
 	public OntologyGraph(Type... types) {
 		graph = new DirectedSparseMultigraph<Vertex, Edge>();
 		index = new HashMap<String, Vertex>();
+		closedRelations = new HashMap<Vertex, Set<Type>>();
 		for (Type type : types)
 			this.addVertex(new Vertex(type.getRootLabel()));
 	}
@@ -229,12 +232,16 @@ public class OntologyGraph implements Serializable {
 
 	private boolean removeVertex(Vertex vertex) {
 		boolean result = graph.removeVertex(vertex);
-		if (result)
+		if (result) {
 			index.remove(vertex.getValue());
+			closedRelations.remove(vertex);
+		}
 		return result;
 	}
 
 	public boolean addRelation(Edge edge) throws Exception {
+		if(isClosedRelations(edge.getSrc(), edge.getType()))
+			throw new Exception("There are no new outgoing relations allowed for " + edge.getSrc());
 		switch(edge.getType()) {
 			case PART_OF:
 				return addPartOf(edge);
@@ -245,7 +252,8 @@ public class OntologyGraph implements Serializable {
 		}
 		return false;
 	}
-	
+
+
 	private boolean doAddRelation(Edge edge) {
 		if(!graph.containsVertex(edge.getSrc()))
 			this.addVertex(edge.getSrc());
@@ -380,7 +388,39 @@ public class OntologyGraph implements Serializable {
 		}
 		return false;
 	}
+		
+	public void setClosedRelation(Vertex v, Type type, boolean close) {
+		if(close) {
+			if(!closedRelations.containsKey(v))
+				closedRelations.put(v, new HashSet<Type>());
+			this.closedRelations.get(v).add(type);
+		} else {
+			if(closedRelations.containsKey(v)) {
+				closedRelations.get(v).remove(type);
+				if(closedRelations.get(v).isEmpty())
+					closedRelations.remove(v);
+			}
+		}
+	}
+	
+	private void setClosedRelations(Vertex v, Set<Type> closedRelations) {
+		this.closedRelations.put(v, closedRelations);
+	}
 
+	private Set<Type> getClosedRelations(Vertex v) {
+		if(!closedRelations.containsKey(v))
+			return new HashSet<Type>();
+		return closedRelations.get(v);
+	}
+	
+	public boolean isClosedRelations(Vertex src, Type type) {
+		if(closedRelations.containsKey(src)) {
+			if(closedRelations.get(src).contains(type))
+				return true;
+		}
+		return false;
+	}
+	
 	private void renameVertex(Vertex v, String newValue, Type... types) throws Exception {
 		Vertex newV = new Vertex(newValue);
 		List<Edge> inRelations = new LinkedList<Edge>();
@@ -389,8 +429,11 @@ public class OntologyGraph implements Serializable {
 			inRelations.addAll(this.getInRelations(v, type));
 			outRelations.addAll(this.getOutRelations(v, type));
 		}
-		
+		Set<Type> closedRelations = this.getClosedRelations(v);
 		this.removeVertex(v);
+		this.addVertex(newV);
+		this.setClosedRelations(newV, closedRelations);
+		
 		for(Edge inRelation : inRelations) {
 			Edge newEdge = new Edge(inRelation.getSrc(), newV, inRelation.getType(), inRelation.getOrigin());
 			this.addRelation(inRelation);
@@ -440,7 +483,10 @@ public class OntologyGraph implements Serializable {
 		return result;
 	}
 
-	public void removeRelation(Edge e, boolean recursive) {
+	public void removeRelation(Edge e, boolean recursive) throws Exception {
+		if(isClosedRelations(e.getSrc(), e.getType())) {
+			throw new Exception("There are no outgoing relations allowed to be removed from " + e.getSrc());
+		}
 		if(recursive) {
 			graph.removeEdge(e);
 			for(Edge outRelation : this.getOutRelations(e.getDest(), e.getType())) {
@@ -488,6 +534,10 @@ public class OntologyGraph implements Serializable {
 	}
 
 	public void replaceRelation(Edge oldRelation, Vertex newSource) throws Exception {
+		if(this.isClosedRelations(oldRelation.getSrc(), oldRelation.getType()))
+			throw new Exception("There are no outgoing relations allowed to be removed from " + oldRelation.getSrc());
+		if(this.isClosedRelations(newSource, oldRelation.getType()))
+			throw new Exception("There are no new outgoing relations allowed for " + newSource);
 		graph.removeEdge(oldRelation);
 		try {
 			Edge newEdge = new Edge(newSource, oldRelation.getDest(), oldRelation.getType(), oldRelation.getOrigin());
@@ -499,8 +549,7 @@ public class OntologyGraph implements Serializable {
 		
 		if(oldRelation.getType().equals(Type.SYNONYM_OF)) {
 			for(Edge e : this.getOutRelations(oldRelation.getDest(), Type.SYNONYM_OF)) {
-				this.removeRelation(e, true);
-				this.addRelation(new Edge(newSource, e.getDest(), oldRelation.getType(), oldRelation.getOrigin()));
+				this.replaceRelation(e, newSource);
 			}
 		}
 	}
