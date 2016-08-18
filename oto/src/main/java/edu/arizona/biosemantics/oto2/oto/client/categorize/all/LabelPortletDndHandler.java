@@ -44,35 +44,24 @@ public class LabelPortletDndHandler implements DndDragEnterHandler, DndDragLeave
 		this.labelPortlet = labelPortlet;
 	}
 	
-	private void restoreToolTip() {
-		labelPortlet.refreshToolTip();
-		labelPortlet.setTitle(null);
-		labelPortlet.getTree().setTitle(null);
-	}
-	
-	private void hideToolTip() {
-		labelPortlet.getHeader().getToolTip().setVisible(false);
+	private void clearTitle() {
 		labelPortlet.setTitle(null);
 		labelPortlet.getTree().setTitle(null);
 	}
 	
 	private void setTreeDragDropToolTip() {
-		//labelPortlet.getHeader().removeToolTip();
-		labelPortlet.getHeader().getToolTip().setVisible(false);
 		labelPortlet.setTitle(null);
 		labelPortlet.getTree().setTitle("You are creating a synonym.");
 	}
 	
 	private void setPortletDragDropToolTip() {
-		//labelPortlet.getHeader().removeToolTip();
-		labelPortlet.getHeader().getToolTip().setVisible(false);
 		labelPortlet.setTitle("You are categorizing this term.");
 		labelPortlet.getTree().setTitle(null);
 	}
 	
 	@Override
 	public void onDrop(DndDropEvent event) {
-		restoreToolTip();
+		clearTitle();
 		if(event.getDropTarget() instanceof TreeDropTarget) {
 			doTreeDrop(event);
 		} else {
@@ -212,7 +201,7 @@ public class LabelPortletDndHandler implements DndDragEnterHandler, DndDragLeave
 			
 			//System.out.println(event.getTarget().getClass());
 			if(event.getTarget() instanceof LabelPortlet) {
-				hideToolTip();
+				clearTitle();
 			}
 			if(event.getTarget() instanceof Tree) {
 				setTreeDragDropToolTip();
@@ -221,7 +210,7 @@ public class LabelPortletDndHandler implements DndDragEnterHandler, DndDragLeave
 		} else {
 			restoreExpansionState();
 			dragInsidePortletOngoing = false;
-			hideToolTip();
+			clearTitle();
 		}
 	}
 
@@ -250,7 +239,7 @@ public class LabelPortletDndHandler implements DndDragEnterHandler, DndDragLeave
 
 	@Override
 	public void onDragCancel(DndDragCancelEvent event) {
-		this.restoreToolTip();
+		this.clearTitle();
 	}
 
 }
