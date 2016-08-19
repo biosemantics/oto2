@@ -37,7 +37,9 @@ import com.sencha.gxt.dnd.core.client.DndDragMoveEvent.DndDragMoveHandler;
 import com.sencha.gxt.dnd.core.client.DndDragStartEvent;
 import com.sencha.gxt.dnd.core.client.DropTarget;
 import com.sencha.gxt.dnd.core.client.TreeDragSource;
+import com.sencha.gxt.widget.core.client.Dialog;
 import com.sencha.gxt.widget.core.client.Portlet;
+import com.sencha.gxt.widget.core.client.box.MessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.button.ToolButton;
 import com.sencha.gxt.widget.core.client.container.FlowLayoutContainer;
@@ -48,11 +50,15 @@ import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
+import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.tree.Tree;
 
 import edu.arizona.biosemantics.oto2.oto.shared.model.TermType;
 import edu.arizona.biosemantics.oto2.oto.client.categorize.TermMenu;
 import edu.arizona.biosemantics.oto2.oto.client.common.AllowSurpressSelectEventsTreeSelectionModel;
+import edu.arizona.biosemantics.oto2.oto.client.common.HelpView;
+import edu.arizona.biosemantics.oto2.oto.client.common.LabelInfoContainer;
+import edu.arizona.biosemantics.oto2.oto.client.common.LabelModifyDialog;
 import edu.arizona.biosemantics.oto2.oto.client.common.SelectedTermsExtractor;
 import edu.arizona.biosemantics.oto2.oto.client.common.dnd.MainTermSynonymsLabelDnd;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeCopyRemoveTermEvent;
@@ -103,7 +109,8 @@ public class LabelPortlet extends Portlet {
 	private Map<Term, TermTreeNode> termTermTreeNodeMap = new HashMap<Term, TermTreeNode>();
 	private Collection collection;
 	private LabelPortletsView labelPortletsView;
-	private ToolButton toolButton;
+	private ToolButton toolButton1;
+	private ToolButton toolButton2;
 	private SelectedTermsExtractor selectedTermsExtractor = new SelectedTermsExtractor();
 	
 	public LabelPortlet(EventBus eventBus, Label label, Collection collection, LabelPortletsView labelPortletsView) {
@@ -122,9 +129,12 @@ public class LabelPortlet extends Portlet {
 		this.setCollapsible(true);
 		this.setAnimCollapse(true);
 		
-		toolButton = new ToolButton(ToolButton.GEAR);
+		toolButton1 = new ToolButton(ToolButton.GEAR);
+		toolButton2 = new ToolButton(ToolButton.QUESTION);
+		
 		if(!(this.label instanceof TrashLabel)) {
-			this.getHeader().addTool(toolButton);
+			this.getHeader().addTool(toolButton2);
+			this.getHeader().addTool(toolButton1);
 			this.setContextMenu(new LabelMenu(eventBus, this, collection));
 		}
 		
@@ -201,7 +211,7 @@ public class LabelPortlet extends Portlet {
 		add(flowLayoutContainer);
 		
 		setupDnD();
-		refreshToolTip();
+		//refreshToolTip();
 		
 		for(Term mainTerm : label.getMainTerms()) {
 			addMainTerm(mainTerm);
@@ -212,15 +222,15 @@ public class LabelPortlet extends Portlet {
 		bindEvents();
 	}
 	
-	protected void refreshToolTip() {		
+	/*protected void refreshToolTip() {		
 		if(!label.getDescription().trim().isEmpty()) {
 			this.getHeader().setToolTip(label.getName() + ":</br>" + label.getDescription());
 			//this.setTitle(label.getName() + ":</br>" + label.getDescription());
-		} else {
+		}else {
 			this.getHeader().setToolTip(null);
 			//this.setTitle(null);
 		}
-	}
+	}*/
 
 	public MainTermTreeNode addMainTerm(Term term) {
 		if(!termTermTreeNodeMap.containsKey(term))  {
@@ -347,7 +357,7 @@ public class LabelPortlet extends Portlet {
 				Label label = event.getLabel();
 				if(label.equals(LabelPortlet.this.label)) {
 					LabelPortlet.this.setHeadingText(label.getName());
-					refreshToolTip();
+					//refreshToolTip();
 				}
 			}
 		});
@@ -421,13 +431,30 @@ public class LabelPortlet extends Portlet {
 				eventBus.fireEvent(new LabelSelectEvent(label));
 			}
 		});
-		toolButton.addSelectHandler(new SelectHandler() {
+		toolButton1.addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
 				LabelMenu menu = new LabelMenu(eventBus, LabelPortlet.this, collection);
-				menu.show(toolButton);
+				menu.show(toolButton1);
 				eventBus.fireEvent(new LabelSelectEvent(label));
 		}});
+		
+		toolButton2.addSelectHandler(new SelectHandler() {
+			@Override
+			public void onSelect(SelectEvent event) {
+				if(!label.getDescription().trim().isEmpty()) {
+					MessageBox popUpMessageBox = new MessageBox("What is \""+ label.getName() +"\"?", "<textarea readonly style=\"width: 433px; height:100px\">" + label.getDescription() + "</textarea>");
+					popUpMessageBox.setWidth("450");
+					popUpMessageBox.show();
+				}
+				else {
+					MessageBox popUpMessageBox = new MessageBox("Please input definition for \""+ label.getName() +"\".", "<textarea readonly style=\"width: 433px; height:100px\"> Please go to \"Setting->Category->Modify\" to input description </textarea>");
+					popUpMessageBox.setWidth("450");
+					popUpMessageBox.show();
+				}
+					
+			}});
+		
 		this.addDomHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
