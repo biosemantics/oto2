@@ -3,6 +3,7 @@ package edu.arizona.biosemantics.oto2.ontologize2.client.tree;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -57,6 +58,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize2.client.candidate.TermTreeNodeIconProvider;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.LoadCollectionEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.OrderEdgesEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveCandidateEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
@@ -114,12 +116,14 @@ public class TreeView extends SimpleContainer {
 		ColumnModel<VertexTreeNode> cm = new ColumnModel<VertexTreeNode>(list);
 		treeGrid = new TreeGrid<VertexTreeNode>(store, cm, valueCol);
 		store.setAutoCommit(true);
-		store.addSortInfo(new StoreSortInfo<VertexTreeNode>(new Comparator<VertexTreeNode>() {
+		/*store.addSortInfo(new StoreSortInfo<VertexTreeNode>(new Comparator<VertexTreeNode>() {
 			@Override
 			public int compare(VertexTreeNode o1, VertexTreeNode o2) {
 				return o1.compareTo(o2);
 			}
 		}, SortDir.ASC));
+		*/
+		
 		//treeGrid.setIconProvider(new TermTreeNodeIconProvider());
 		/*tree.setCell(new AbstractCell<PairTermTreeNode>() {
 			@Override
@@ -218,6 +222,42 @@ public class TreeView extends SimpleContainer {
 					removeCandidate(c);
 			}
 		});*/
+		eventBus.addHandler(OrderEdgesEvent.TYPE, new OrderEdgesEvent.Handler() {
+			@Override
+			public void onOrder(OrderEdgesEvent event) {
+				if(event.getType().equals(type) && event.isEffectiveInModel()) {
+					if(vertexNodeMap.containsKey(event.getSrc())) {
+						if(vertexNodeMap.get(event.getSrc()).size() == 1) {
+							Vertex vertex = event.getSrc();
+							VertexTreeNode parent = vertexNodeMap.get(vertex).iterator().next();
+							boolean expand = treeGrid.isExpanded(parent);
+							
+							List<TreeNode<VertexTreeNode>> childNodes = new LinkedList<TreeNode<VertexTreeNode>>();
+							for(VertexTreeNode childNode : store.getChildren(parent)) {
+								childNodes.add(store.getSubTree(childNode));
+							}
+							System.out.println("test2");
+							final List<Vertex> order = ModelController.getCollection().getGraph().getDestinations(vertex, type);
+							Collections.sort(childNodes, new Comparator<TreeNode<VertexTreeNode>>() {
+								@Override
+								public int compare(TreeNode<VertexTreeNode> o1,	TreeNode<VertexTreeNode> o2) {
+									System.out.println(order);
+									if(!order.contains(o1.getData().getVertex()) || 
+											!order.contains(o2.getData().getVertex()))
+										return Integer.MAX_VALUE;
+									return order.indexOf(o1.getData().getVertex()) - 
+											order.indexOf(o2.getData().getVertex());
+								}
+							});
+							store.removeChildren(parent);
+							store.addSubTree(parent, 0, childNodes);
+							treeGrid.setExpanded(parent, expand);
+						}
+					}
+				}
+				treeGrid.getView().refresh(true);
+			}
+		});
 	}
 	
 	protected void replaceRelation(Edge oldRelation, Vertex newSource) {

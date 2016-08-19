@@ -7,6 +7,7 @@ import com.google.gwt.dom.client.Element;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
+import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.dnd.core.client.DndDragStartEvent;
 import com.sencha.gxt.dnd.core.client.DndDropEvent;
 import com.sencha.gxt.dnd.core.client.GridDragSource;
@@ -23,6 +24,9 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEven
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid.Row;
+import edu.arizona.biosemantics.oto2.ontologize2.client.relations.cell.LeadCell;
+import edu.arizona.biosemantics.oto2.ontologize2.client.relations.cell.SubclassMenuCreator;
+import edu.arizona.biosemantics.oto2.ontologize2.client.relations.cell.SynonymMenuCreator;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.VertexTreeNode;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Origin;
@@ -43,22 +47,24 @@ public class SubclassesGrid extends MenuTermsGrid {
 				int targetRowIndex = grid.getView().findRowIndex(element);
 				int targetColIndex = grid.getView().findCellIndex(element, null);
 				Row row = store.get(targetRowIndex);
-				Vertex v = row.getLead();
-				if(targetColIndex > 0) {
-					v = row.getAttached().get(targetColIndex - 1).getDest();
-				}
-				
-				OntologyGraph g = ModelController.getCollection().getGraph();
-				List<Edge> inRelations = g.getInRelations(v, type);
-				if(inRelations.size() > 1) {
-					Alerter.showAlert("Moving", "Moving of term with more than one superclasses is not allowed"); // at this time
-					event.setCancelled(true);
-				}
-				if(inRelations.size() == 1)
-					event.setData(inRelations.get(0));
-				else {
-					Alerter.showAlert("Moving", "Cannot move the root");
-					event.setCancelled(true);
+				if(row != null) {
+					Vertex v = row.getLead();
+					if(targetColIndex > 0) {
+						v = row.getAttached().get(targetColIndex - 1).getDest();
+					}
+					
+					OntologyGraph g = ModelController.getCollection().getGraph();
+					List<Edge> inRelations = g.getInRelations(v, type);
+					if(inRelations.size() > 1) {
+						Alerter.showAlert("Moving", "Moving of term with more than one superclasses is not allowed"); // at this time
+						event.setCancelled(true);
+					}
+					if(inRelations.size() == 1)
+						event.setData(inRelations.get(0));
+					else {
+						Alerter.showAlert("Moving", "Cannot move the root");
+						event.setCancelled(true);
+					}
 				}
 			}
 		};
@@ -83,6 +89,23 @@ public class SubclassesGrid extends MenuTermsGrid {
 				}
 			}
 		});
+	}
+	
+	@Override
+	protected LeadCell createLeadCell() {
+		LeadCell leadCell = new LeadCell(new ValueProvider<Vertex, String>() {
+			@Override
+			public String getValue(Vertex object) {
+				return object.getValue();
+			}
+			@Override
+			public void setValue(Vertex object, String value) { }
+			@Override
+			public String getPath() {
+				return "lead";
+			}
+		}, new SubclassMenuCreator(eventBus, this));
+		return leadCell;
 	}
 	
 	@Override

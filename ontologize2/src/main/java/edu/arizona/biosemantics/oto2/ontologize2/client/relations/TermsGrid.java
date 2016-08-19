@@ -3,6 +3,8 @@ package edu.arizona.biosemantics.oto2.ontologize2.client.relations;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -46,6 +48,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.LoadCollectionEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.OrderEdgesEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveCandidateEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
@@ -354,6 +357,30 @@ public class TermsGrid implements IsWidget {
 				//removeCandidates(event.getCandidates());
 			}
 		});*/
+		eventBus.addHandler(OrderEdgesEvent.TYPE, new OrderEdgesEvent.Handler() {
+			@Override
+			public void onOrder(OrderEdgesEvent event) {
+				if(event.isEffectiveInModel()) {
+					if(event.getType().equals(type))
+						orderEdges(event.getSrc(), event.getEdges());
+				}
+			}
+		});
+	}
+
+	protected void orderEdges(Vertex src, final List<Edge> edges) {
+		Row row = this.leadRowMap.get(src);
+		Collections.sort(row.attached, new Comparator<Edge>() {
+			@Override
+			public int compare(Edge o1, Edge o2) {
+				if(!edges.contains(o1))
+					return Integer.MAX_VALUE;
+				if(!edges.contains(o2))
+					return Integer.MAX_VALUE;
+				return edges.indexOf(o1) - edges.indexOf(o2);	
+			}
+		});
+		this.updateRow(row);
 	}
 
 	protected void replaceRelation(Edge oldRelation, Vertex newSource) {

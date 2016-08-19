@@ -32,5 +32,7 @@ public interface ICollectionServiceAsync {
 	public void getOWL(int id, String secret, AsyncCallback<String[][]> callback);
 
 	public void close(int collectionId, String secret, Vertex vertex, Type type, boolean close, AsyncCallback<Void> callback);
+
+	public void order(int id, String secret, Vertex src, List<Edge> edges, Type type, AsyncCallback<Void> callback);
 		
 }

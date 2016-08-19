@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -13,8 +15,10 @@ import java.util.Set;
 
 import edu.uci.ics.jung.graph.DirectedSparseMultigraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Origin;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Type;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Vertex;
 
 public class OntologyGraph implements Serializable {
 
@@ -159,7 +163,7 @@ public class OntologyGraph implements Serializable {
 
 		@Override
 		public String toString() {
-			return type + " (" + origin + ")";
+			return src + " ---- " + type + " (" + origin + ") ----> " + dest;
 		}
 		
 		public Vertex getSrc() {
@@ -208,10 +212,11 @@ public class OntologyGraph implements Serializable {
 			return true;
 		}
 	}
-
+	
 	private DirectedSparseMultigraph<Vertex, Edge> graph;
 	private Map<String, Vertex> index;
 	private Map<Vertex, Set<Type>> closedRelations;
+	private Map<Vertex, Map<Type, List<Edge>>> orderedEdges;
 
 	public OntologyGraph() { }
 	
@@ -219,6 +224,7 @@ public class OntologyGraph implements Serializable {
 		graph = new DirectedSparseMultigraph<Vertex, Edge>();
 		index = new HashMap<String, Vertex>();
 		closedRelations = new HashMap<Vertex, Set<Type>>();
+		orderedEdges = new HashMap<Vertex, Map<Type, List<Edge>>>();
 		for (Type type : types)
 			this.addVertex(new Vertex(type.getRootLabel()));
 	}
@@ -235,6 +241,7 @@ public class OntologyGraph implements Serializable {
 		if (result) {
 			index.remove(vertex.getValue());
 			closedRelations.remove(vertex);
+			orderedEdges.remove(vertex);
 		}
 		return result;
 	}
@@ -380,7 +387,7 @@ public class OntologyGraph implements Serializable {
 					Vertex parentSrc = parentRelation.getSrc();
 					Vertex disambiguatedDest = new Vertex(parentSrc + " " + dest);
 					this.addRelation(new Edge(dest, disambiguatedDest, Type.SUBCLASS_OF, e.getOrigin()));
-					renameVertex(dest, newValue, Type.PART_OF);
+					renameVertex(dest, newValue);
 				}
 				e.getDest().setValue(newValue);
 			}
@@ -421,32 +428,30 @@ public class OntologyGraph implements Serializable {
 		return false;
 	}
 	
-	private void renameVertex(Vertex v, String newValue, Type... types) throws Exception {
+	private void renameVertex(Vertex v, String newValue) throws Exception {
 		Vertex newV = new Vertex(newValue);
-		List<Edge> inRelations = new LinkedList<Edge>();
-		List<Edge> outRelations = new LinkedList<Edge>();
-		for(Type type : types) {
-			inRelations.addAll(this.getInRelations(v, type));
-			outRelations.addAll(this.getOutRelations(v, type));
-		}
+		List<Edge> inRelations = this.getInRelations(v);
+		List<Edge> outRelations = this.getOutRelations(v);
+		
 		Set<Type> closedRelations = this.getClosedRelations(v);
+		Map<Type, List<Edge>> orderedEdges = this.getOrderedEdges(v);
 		this.removeVertex(v);
 		this.addVertex(newV);
 		this.setClosedRelations(newV, closedRelations);
+		this.setOrderedEdges(newV, orderedEdges);
 		
 		for(Edge inRelation : inRelations) {
 			Edge newEdge = new Edge(inRelation.getSrc(), newV, inRelation.getType(), inRelation.getOrigin());
-			this.addRelation(inRelation);
+			this.addRelation(newEdge);
 		}
 		for(Edge outRelation : outRelations) {
 			Edge newEdge = new Edge(newV, outRelation.getDest(), outRelation.getType(), outRelation.getOrigin());
-			this.addRelation(outRelation);
+			this.addRelation(newEdge);
 			Vertex dest = outRelation.getDest();
 			
 			//on prefix-match with old parent name, propagate rename to children
 			if(dest.getValue().startsWith(v.getValue() + " ")) {
-				renameVertex(dest, 
-						dest.getValue().replaceFirst(v.getValue() + " ", newV.getValue() + " "), types);
+				renameVertex(dest, dest.getValue().replaceFirst(v.getValue() + " ", newV.getValue() + " "));
 			}
 		}
 	}
@@ -468,6 +473,92 @@ public class OntologyGraph implements Serializable {
 					result.add(edge);
 			}
 		}
+		
+		if(orderedEdges.containsKey(vertex) && orderedEdges.get(vertex).containsKey(type)) {
+			final List<Edge> order = orderedEdges.get(vertex).get(type);
+			Collections.sort(result, new Comparator<Edge>() {
+				@Override
+				public int compare(Edge o1, Edge o2) {
+					if(!order.contains(o1) || !order.contains(o2)) 
+						return Integer.MAX_VALUE;
+					return order.indexOf(o1) - order.indexOf(o2);
+				}
+			});
+		}
+		return result;
+	}
+	
+	public List<Edge> getInRelations(Vertex vertex) {
+		List<Edge> result = new LinkedList<Edge>();
+		if(graph.containsVertex(vertex)) {
+			java.util.Collection<Edge> edges = graph.getInEdges(vertex);
+			for(Edge edge : edges) 
+				result.add(edge);
+		}
+		return result;
+	}
+	
+	public List<Vertex> getDestinations(final Vertex vertex) {
+		List<Edge> edges = this.getOutRelations(vertex);
+		List<Vertex> result = new ArrayList<Vertex>(edges.size());
+		for(Edge e : edges)
+			result.add(e.getDest());
+		return result;
+	}
+	
+	public List<Vertex> getDestinations(final Vertex vertex, final Type type) {
+		List<Edge> edges = this.getOutRelations(vertex, type);
+		List<Vertex> result = new ArrayList<Vertex>(edges.size());
+		for(Edge e : edges)
+			result.add(e.getDest());
+		return result;
+	}
+	
+	public List<Vertex> getSources(final Vertex vertex) {
+		List<Edge> edges = this.getInRelations(vertex);
+		List<Vertex> result = new ArrayList<Vertex>(edges.size());
+		for(Edge e : edges)
+			result.add(e.getSrc());
+		return result;
+	}
+	
+	public List<Vertex> getSources(final Vertex vertex, final Type type) {
+		List<Edge> edges = this.getInRelations(vertex, type);
+		List<Vertex> result = new ArrayList<Vertex>(edges.size());
+		for(Edge e : edges)
+			result.add(e.getSrc());
+		return result;
+	}
+	
+	public List<Edge> getOutRelations(final Vertex vertex) {
+		List<Edge> result = new LinkedList<Edge>();
+		if(graph.containsVertex(vertex)) {
+			java.util.Collection<Edge> edges = graph.getOutEdges(vertex);
+			for(Edge edge : edges) 
+				result.add(edge);
+		}
+
+		if(orderedEdges.containsKey(vertex)) {
+			final List<Edge> order = new LinkedList<Edge>(); 
+			for(Type type : Type.values()) {
+				Set<Edge> outRelations = new HashSet<Edge>(this.getOutRelations(vertex, type));
+				if(orderedEdges.get(vertex).containsKey(type)) {
+					outRelations.removeAll(orderedEdges.get(vertex).get(type));
+					order.addAll(orderedEdges.get(vertex).get(type));	
+					order.addAll(outRelations);
+				} else {
+					order.addAll(outRelations);
+				}
+			}
+			Collections.sort(result, new Comparator<Edge>() {
+				@Override
+				public int compare(Edge o1, Edge o2) {
+					if(!order.contains(o1) || !order.contains(o2)) 
+						return Integer.MAX_VALUE;
+					return order.indexOf(o1) - order.indexOf(o2);
+				}
+			});
+		}
 		return result;
 	}
 	
@@ -488,7 +579,7 @@ public class OntologyGraph implements Serializable {
 			throw new Exception("There are no outgoing relations allowed to be removed from " + e.getSrc());
 		}
 		if(recursive) {
-			graph.removeEdge(e);
+			removeEdge(e);
 			for(Edge outRelation : this.getOutRelations(e.getDest(), e.getType())) {
 				this.removeRelation(outRelation, recursive);
 			}
@@ -496,7 +587,7 @@ public class OntologyGraph implements Serializable {
 				this.removeVertex(e.getDest());
 			}
 		} else {
-			graph.removeEdge(e);
+			removeEdge(e);
 			for(Edge outRelation : this.getOutRelations(e.getDest(), e.getType())) {
 				try {
 					Edge newEdge = new Edge(e.getSrc(), outRelation.getDest(), e.getType(), Origin.USER);
@@ -513,6 +604,12 @@ public class OntologyGraph implements Serializable {
 		}
 	}
 	
+	private void removeEdge(Edge e) {
+		graph.removeEdge(e);
+		if(orderedEdges.containsKey(e.getSrc()) && orderedEdges.get(e.getSrc()).containsKey(e.getType()))
+			orderedEdges.get(e.getSrc()).get(e.getType()).remove(e);
+	}
+
 	public OntologyGraph getSubGraph(Type... types) throws Exception {
 		OntologyGraph result = new OntologyGraph(types);
 		for(Type type : types) {
@@ -538,7 +635,7 @@ public class OntologyGraph implements Serializable {
 			throw new Exception("There are no outgoing relations allowed to be removed from " + oldRelation.getSrc());
 		if(this.isClosedRelations(newSource, oldRelation.getType()))
 			throw new Exception("There are no new outgoing relations allowed for " + newSource);
-		graph.removeEdge(oldRelation);
+		this.removeEdge(oldRelation);
 		try {
 			Edge newEdge = new Edge(newSource, oldRelation.getDest(), oldRelation.getType(), oldRelation.getOrigin());
 			this.addRelation(newEdge);			
@@ -552,5 +649,40 @@ public class OntologyGraph implements Serializable {
 				this.replaceRelation(e, newSource);
 			}
 		}
+	}
+
+	public void setOrderedEdges(Vertex src, List<Edge> edges, Type type) throws Exception {
+		Set<Edge> existingEdges = new HashSet<Edge>(this.getOutRelations(src, type));
+		for(Edge edge : edges) {
+			if(existingEdges.contains(edge))
+				existingEdges.remove(edge);
+			else
+				throw new Exception("Can not add new edges when ordering");
+		}
+		if(!existingEdges.isEmpty())
+			throw new Exception("Can not remove edges when ordering");
+		
+		if(!orderedEdges.containsKey(src))
+			orderedEdges.put(src, new HashMap<Type, List<Edge>>());
+		orderedEdges.get(src).put(type, edges);
+	}
+	
+	private void setOrderedEdges(Vertex v, Map<Type, List<Edge>> orderedEdges) throws Exception {
+		for(Type type : orderedEdges.keySet())
+			this.setOrderedEdges(v, orderedEdges.get(type), type);
+	}
+
+	private Map<Type, List<Edge>> getOrderedEdges(Vertex v) {
+		if(!orderedEdges.containsKey(v))
+			return new HashMap<Type, List<Edge>>();
+		return orderedEdges.get(v);
+	}
+	
+	private List<Edge> getOrderedEdges(Vertex v, Type type) {
+		if(!orderedEdges.containsKey(v))
+			return new LinkedList<Edge>();
+		if(!orderedEdges.get(v).containsKey(type))
+			return new LinkedList<Edge>();
+		return orderedEdges.get(v).get(type);
 	}
 }

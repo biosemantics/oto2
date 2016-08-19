@@ -14,6 +14,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.event.LoadCollectionEven
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveCandidateEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.OrderEdgesEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.AddCandidateResult;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.ICollectionService;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.ICollectionServiceAsync;
@@ -64,7 +65,7 @@ public class ModelController {
 						try {
 							collection.getGraph().addRelation(relation);
 						} catch (Exception e) {
-							e.printStackTrace();
+							Alerter.showAlert("Data out of sync", "The data became out of sync with the server. Please reload the window.", e);
 						}
 					}
 					event.setEffectiveInModel(true);
@@ -94,7 +95,7 @@ public class ModelController {
 						try {
 							collection.getGraph().removeRelation(relation, event.isRecursive());
 						} catch (Exception e) {
-							e.printStackTrace();
+							Alerter.showAlert("Data out of sync", "The data became out of sync with the server. Please reload the window.", e);
 						}
 					}
 					event.setEffectiveInModel(true);
@@ -123,16 +124,15 @@ public class ModelController {
 					});
 					try {
 						collection.getGraph().replaceRelation(event.getOldRelation(), event.getNewSource());
-						event.setEffectiveInModel(true);
-						eventBus.fireEvent(event);
 					} catch(Exception e) {
-						Alerter.showAlert("Replace Relation", "Failed to replace relation.", e);
+						Alerter.showAlert("Data out of sync", "The data became out of sync with the server. Please reload the window.", e);
 					}
+					event.setEffectiveInModel(true);
+					eventBus.fireEvent(event);
 					Alerter.stopLoading(box);
 				}
 			}
 		});
-		
 		eventBus.addHandler(CreateCandidateEvent.TYPE, new CreateCandidateEvent.Handler() {
 			@Override
 			public void onCreate(CreateCandidateEvent event) {
@@ -188,6 +188,7 @@ public class ModelController {
 							event.getVertex(), event.getType(), event.isClose(), new AsyncCallback<Void>() {
 						@Override
 						public void onFailure(Throwable caught) {
+							Alerter.showAlert("Data out of sync", "The data became out of sync with the server. Please reload the window.", caught);
 							Alerter.stopLoading(box);
 						}
 						@Override
@@ -197,6 +198,37 @@ public class ModelController {
 					});
 					
 					ModelController.getCollection().getGraph().setClosedRelation(event.getVertex(), event.getType(), event.isClose());
+					event.setEffectiveInModel(true);
+					eventBus.fireEvent(event);
+					Alerter.stopLoading(box2);
+				} 
+			}
+		});
+		eventBus.addHandler(OrderEdgesEvent.TYPE, new OrderEdgesEvent.Handler() {
+			@Override
+			public void onOrder(OrderEdgesEvent event) {
+				if(!event.isEffectiveInModel()) {
+					final MessageBox box = Alerter.startLoading();
+					final MessageBox box2 = Alerter.startLoading();
+					collectionService.order(collection.getId(), collection.getSecret(), 
+							event.getSrc(), event.getEdges(), event.getType(), new AsyncCallback<Void>() {
+						@Override
+						public void onFailure(Throwable caught) {
+							Alerter.showAlert("Data out of sync", "The data became out of sync with the server. Please reload the window.", caught);
+							Alerter.stopLoading(box);
+						}
+						@Override
+						public void onSuccess(Void result) {
+							Alerter.stopLoading(box);
+						}
+					});
+					try {
+						ModelController.getCollection().getGraph().setOrderedEdges(event.getSrc(), event.getEdges(), event.getType());
+					} catch (Exception e) {
+						Alerter.showAlert("Data out of sync", "The data became out of sync with the server. Please reload the window.", e);
+					}
+					event.setEffectiveInModel(true);
+					eventBus.fireEvent(event);
 					Alerter.stopLoading(box2);
 				} 
 			}

@@ -178,5 +178,11 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 		update(collection);
 	}
 
+	@Override
+	public void order(int collectionId, String secret, Vertex src, List<Edge> edges, Type type) throws Exception {
+		Collection collection = this.get(collectionId, secret);
+		collection.getGraph().setOrderedEdges(src, edges, type);
+		update(collection);
+	}
 
 }

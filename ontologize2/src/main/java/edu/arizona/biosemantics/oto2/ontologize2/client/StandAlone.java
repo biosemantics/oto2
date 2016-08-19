@@ -9,7 +9,10 @@ import com.google.gwt.core.shared.GWT;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.RootPanel;
+import com.sencha.gxt.core.client.IdentityValueProvider;
+import com.sencha.gxt.data.shared.TreeStore;
 import com.sencha.gxt.widget.core.client.container.Viewport;
+import com.sencha.gxt.widget.core.client.tree.Tree;
 import com.google.gwt.event.shared.EventBus;
 
 import edu.arizona.biosemantics.common.biology.TaxonGroup;
@@ -27,6 +30,8 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Origin;
 import edu.uci.ics.jung.graph.DirectedSparseMultigraph;
 
+import com.sencha.gxt.data.shared.ModelKeyProvider;
+
 public class StandAlone implements EntryPoint {
 
 	private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
@@ -34,6 +39,28 @@ public class StandAlone implements EntryPoint {
 	
 	@Override
 	public void onModuleLoad() {
+
+//		TreeStore<String> store = new TreeStore<String>(new ModelKeyProvider<String>() {
+//			@Override
+//			public String getKey(String item) {
+//				return item;
+//			}
+//		});
+//		Tree<String, String> tree = new Tree<String, String>(store, new IdentityValueProvider());
+//		RootPanel.get().add(tree);
+//		store.add("test");
+//		store.add("test2");
+//		store.add("test3");
+//		
+//		store.add("test", "a");
+//		store.add("test", "b");
+//		store.add("test", "c");
+//		store.add("test", "d");
+//		store.add("test", "e");
+		
+		
+		
+		
 //		
 		final Collection c = new Collection("my collection", TaxonGroup.PLANT, "secret");
 		

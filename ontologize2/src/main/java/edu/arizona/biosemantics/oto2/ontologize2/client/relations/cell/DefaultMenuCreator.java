@@ -31,8 +31,12 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge
 
 public class DefaultMenuCreator implements LeadCell.MenuCreator {
 
-	private EventBus eventBus;
-	private TermsGrid termsGrid;
+	protected EventBus eventBus;
+	protected TermsGrid termsGrid;
+	protected MenuItem addItem;
+	protected MenuItem removeItem;
+	protected CheckMenuItem closeItem;
+	protected MenuItem context;
 
 	public DefaultMenuCreator(EventBus eventBus, TermsGrid termsGrid) {
 		this.eventBus = eventBus;
@@ -46,7 +50,7 @@ public class DefaultMenuCreator implements LeadCell.MenuCreator {
 		final Row row = termsGrid.getRow(rowIndex);
 		final boolean closed = ModelController.getCollection().getGraph().isClosedRelations(row.getLead(), termsGrid.getType());
 		
-		MenuItem addItem = new MenuItem("Add " + termsGrid.getType().getTargetLabel());
+		addItem = new MenuItem("Add " + termsGrid.getType().getTargetLabel());
 		addItem.addSelectionHandler(new SelectionHandler<Item>() {
 			@Override
 			public void onSelection(SelectionEvent<Item> event) {
@@ -69,7 +73,7 @@ public class DefaultMenuCreator implements LeadCell.MenuCreator {
 		});
 		addItem.setEnabled(!closed);
 		
-		MenuItem removeItem = new MenuItem("Remove all " + termsGrid.getType().getTargetLabelPlural());
+		removeItem = new MenuItem("Remove all " + termsGrid.getType().getTargetLabelPlural());
 		removeItem.addSelectionHandler(new SelectionHandler<Item>() {
 			@Override
 			public void onSelection(SelectionEvent<Item> event) {
@@ -96,7 +100,7 @@ public class DefaultMenuCreator implements LeadCell.MenuCreator {
 		});
 		removeItem.setEnabled(!closed);
 		
-		CheckMenuItem closeItem = new CheckMenuItem("Close");
+		closeItem = new CheckMenuItem("Close");
 		closeItem.setChecked(closed);
 		closeItem.addSelectionHandler(new SelectionHandler<Item>() {
 			@Override
@@ -128,7 +132,7 @@ public class DefaultMenuCreator implements LeadCell.MenuCreator {
 			}
 		});*/
 		
-		MenuItem context = new MenuItem("Show Term Context");
+		context = new MenuItem("Show Term Context");
 		context.addSelectionHandler(new SelectionHandler<Item>() {
 			@Override
 			public void onSelection(SelectionEvent<Item> event) {

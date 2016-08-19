@@ -34,5 +34,7 @@ public interface ICollectionService extends RemoteService {
 	public String[][] getOWL(int id, String secret) throws Exception;
 
 	public void close(int collectionId, String secret, Vertex vertex, Type type, boolean close) throws Exception;
+	
+	public void order(int id, String secret, Vertex src, List<Edge> edges, Type type) throws Exception;
 
 }
