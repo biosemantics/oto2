@@ -1,5 +1,6 @@
 package edu.arizona.biosemantics.oto2.ontologize2.client.relations;
 
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -208,9 +209,19 @@ public class PartsGrid extends MenuTermsGrid {
 			eventBus.fireEvent(e);
 		}
 	}	
+	
+	@Override
+	protected void onLoad(OntologyGraph g) {
+		createEdges(g, g.getRoot(type), new HashSet<String>());
+	}
 
+	@Override
 	protected void createRelation(Edge r) {
-		if(r.getType().equals(Type.PART_OF)) {
+		if(r.getType().equals(type)) {
+			
+		}
+		
+		if(r.getType().equals(type)) {
 			OntologyGraph g = ModelController.getCollection().getGraph();
 			Vertex dest = r.getDest();
 			Vertex src = r.getSrc();
@@ -225,9 +236,20 @@ public class PartsGrid extends MenuTermsGrid {
 					replace(parentSrc, dest, disambiguatedDest);
 				}
 				
-				super.createRelation(new Edge(src, new Vertex(newValue), r.getType(), r.getOrigin()));
+				r = new Edge(src, new Vertex(newValue), r.getType(), r.getOrigin());
+				if(r.getSrc().equals(g.getRoot(type))) {
+					if(!leadRowMap.containsKey(r.getDest()))
+						this.addRow(new Row(r.getDest()));
+				} else {
+					super.createRelation(r);
+				}
 			} else {
-				super.createRelation(r);
+				if(r.getSrc().equals(g.getRoot(type))) {
+					if(!leadRowMap.containsKey(r.getDest()))
+						this.addRow(new Row(r.getDest()));
+				} else {
+					super.createRelation(r);
+				}
 			}
 		}
 	}
@@ -250,7 +272,20 @@ public class PartsGrid extends MenuTermsGrid {
 	
 	@Override
 	protected SimpleContainer createCreateRowContainer() {
-		return null;
+		createRowContainer = new SimpleContainer();
+		createRowContainer.setTitle("Drop here to create new parent");
+		com.google.gwt.user.client.ui.Label dropLabel = new com.google.gwt.user.client.ui.Label("Drop here to create new parent");
+		dropLabel.getElement().getStyle().setLineHeight(30, Unit.PX);
+		createRowContainer.setWidget(dropLabel);
+		createRowContainer.setHeight(30);
+		createRowContainer.getElement().getStyle().setBorderWidth(1, Unit.PX);
+		createRowContainer.getElement().getStyle().setBorderStyle(BorderStyle.DASHED);
+		createRowContainer.getElement().getStyle().setBorderColor("gray");
+		createRowContainer.getElement().getStyle().setProperty("mozMorderMadius", "7px");
+		createRowContainer.getElement().getStyle().setProperty("webkitBorderRadius", "7px");
+		createRowContainer.getElement().getStyle().setProperty("borderRadius", "7px");
+		createRowContainer.getElement().getStyle().setBackgroundColor("#ffffcc");
+		return createRowContainer;
 	}
 	
 	@Override

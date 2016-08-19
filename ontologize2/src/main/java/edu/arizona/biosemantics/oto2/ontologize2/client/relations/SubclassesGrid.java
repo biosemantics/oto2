@@ -1,9 +1,12 @@
 package edu.arizona.biosemantics.oto2.ontologize2.client.relations;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import com.google.gwt.dom.client.Element;
+import com.google.gwt.dom.client.Style.BorderStyle;
+import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
@@ -162,8 +165,21 @@ public class SubclassesGrid extends MenuTermsGrid {
 		}
 	}
 	
+	@Override
+	protected void onLoad(OntologyGraph g) {
+		createEdges(g, g.getRoot(type), new HashSet<String>());
+	}
+		
 	protected void createRelation(Edge r) {
-		super.createRelation(r);
+		if(r.getType().equals(type)) {
+			OntologyGraph g = ModelController.getCollection().getGraph();
+			if(r.getSrc().equals(g.getRoot(type))) {
+				if(!leadRowMap.containsKey(r.getDest()))
+					this.addRow(new Row(r.getDest()));
+			} else {
+				super.createRelation(r);
+			}
+		}
 		
 		if(r.getType().equals(Type.PART_OF)) {
 			OntologyGraph g = ModelController.getCollection().getGraph();
@@ -204,7 +220,20 @@ public class SubclassesGrid extends MenuTermsGrid {
 	
 	@Override
 	protected SimpleContainer createCreateRowContainer() {
-		return null;
+		createRowContainer = new SimpleContainer();
+		createRowContainer.setTitle("Drop here to create new superclass");
+		com.google.gwt.user.client.ui.Label dropLabel = new com.google.gwt.user.client.ui.Label("Drop here to create new superclass");
+		dropLabel.getElement().getStyle().setLineHeight(30, Unit.PX);
+		createRowContainer.setWidget(dropLabel);
+		createRowContainer.setHeight(30);
+		createRowContainer.getElement().getStyle().setBorderWidth(1, Unit.PX);
+		createRowContainer.getElement().getStyle().setBorderStyle(BorderStyle.DASHED);
+		createRowContainer.getElement().getStyle().setBorderColor("gray");
+		createRowContainer.getElement().getStyle().setProperty("mozMorderMadius", "7px");
+		createRowContainer.getElement().getStyle().setProperty("webkitBorderRadius", "7px");
+		createRowContainer.getElement().getStyle().setProperty("borderRadius", "7px");
+		createRowContainer.getElement().getStyle().setBackgroundColor("#ffffcc");
+		return createRowContainer;
 	}
 	
 	@Override
@@ -223,5 +252,7 @@ public class SubclassesGrid extends MenuTermsGrid {
 	protected String getDefaultImportText() {
 		return "superclass, subclass 1, subclass 2, ...[e.g. fruits, simple fruits, aggregate fruits, composite fruits]"; 
 	}
+		
+
 
 }
