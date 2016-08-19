@@ -189,7 +189,7 @@ public class SubclassesGrid extends MenuTermsGrid {
 			
 			List<Edge> parentRelations = g.getInRelations(dest, Type.PART_OF);
 			if(!parentRelations.isEmpty()) {			
-				super.createRelation(new Edge(g.getRoot(Type.SUBCLASS_OF), dest, Type.SUBCLASS_OF, Origin.USER));
+				//super.createRelation(new Edge(g.getRoot(Type.SUBCLASS_OF), dest, Type.SUBCLASS_OF, Origin.USER));
 				for(Edge parentRelation : parentRelations) {
 					Vertex parentSrc = parentRelation.getSrc();
 					Vertex disambiguatedDest = new Vertex(parentSrc + " " + dest);
