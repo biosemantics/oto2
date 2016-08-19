@@ -79,22 +79,25 @@ public class SynonymsGrid extends MenuTermsGrid {
 				int targetRowIndex = grid.getView().findRowIndex(element);
 				int targetColIndex = grid.getView().findCellIndex(element, null);
 				Row row = store.get(targetRowIndex);
-				Vertex v = row.getLead();
-				if(targetColIndex > 0) {
-					v = row.getAttached().get(targetColIndex - 1).getDest();
-				}
 				
-				OntologyGraph g = ModelController.getCollection().getGraph();
-				List<Edge> inRelations = g.getInRelations(v, type);
-				if(inRelations.size() > 1) {
-					Alerter.showAlert("Moving", "Moving of term with more than one preferred term is not allowed"); // at this time
-					event.setCancelled(true);
-				}
-				if(inRelations.size() == 1)
-					event.setData(inRelations.get(0));
-				else {
-					Alerter.showAlert("Moving", "Cannot move the root");
-					event.setCancelled(true);
+				if(row != null) {
+					Vertex v = row.getLead();
+					if(targetColIndex > 0) {
+						v = row.getAttached().get(targetColIndex - 1).getDest();
+					}
+					
+					OntologyGraph g = ModelController.getCollection().getGraph();
+					List<Edge> inRelations = g.getInRelations(v, type);
+					if(inRelations.size() > 1) {
+						Alerter.showAlert("Moving", "Moving of term with more than one preferred term is not allowed"); // at this time
+						event.setCancelled(true);
+					}
+					if(inRelations.size() == 1)
+						event.setData(inRelations.get(0));
+					else {
+						Alerter.showAlert("Moving", "Cannot move the root");
+						event.setCancelled(true);
+					}
 				}
 			}
 		};
@@ -108,14 +111,16 @@ public class SynonymsGrid extends MenuTermsGrid {
 				int targetColIndex = grid.getView().findCellIndex(element, null);
 				Row row = store.get(targetRowIndex);
 				
-				if(event.getData() instanceof Edge) {
-					Edge r = (Edge)event.getData();
-					OntologyGraph g = ModelController.getCollection().getGraph();
-					if(g.isClosedRelations(r.getSrc(), type) || g.isClosedRelations(row.getLead(), type)) {
-						Alerter.showAlert("Create Relation", "Can not create relation for a closed row.");
-						return;
+				if(row != null) {
+					if(event.getData() instanceof Edge) {
+						Edge r = (Edge)event.getData();
+						OntologyGraph g = ModelController.getCollection().getGraph();
+						if(g.isClosedRelations(r.getSrc(), type) || g.isClosedRelations(row.getLead(), type)) {
+							Alerter.showAlert("Create Relation", "Can not create relation for a closed row.");
+							return;
+						}
+						fire(new ReplaceRelationEvent(r, row.getLead()));
 					}
-					fire(new ReplaceRelationEvent(r, row.getLead()));
 				}
 			}
 		});

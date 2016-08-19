@@ -261,11 +261,18 @@ public class OntologyGraph implements Serializable {
 	}
 
 
-	private boolean doAddRelation(Edge edge) {
+	private boolean doAddRelation(Edge edge) throws Exception {
 		if(!graph.containsVertex(edge.getSrc()))
 			this.addVertex(edge.getSrc());
 		if(!graph.containsVertex(edge.getDest()))
 			this.addVertex(edge.getDest());
+		
+		Vertex src = edge.getSrc();
+		Type type = edge.getType();
+		Vertex root = this.getRoot(type);
+		if(!src.equals(root) && this.getInRelations(src, type).size() == 0) {
+			this.addRelation(new Edge(this.getRoot(type), src, type, edge.getOrigin()));
+		}
 		
 		return graph.addEdge(edge, edge.getSrc(), edge.getDest(), EdgeType.DIRECTED);
 	}
@@ -380,16 +387,21 @@ public class OntologyGraph implements Serializable {
 		if(isValidPartOf(e)) {
 			Vertex src = e.getSrc();
 			Vertex dest = e.getDest();
-			String newValue = src + " " + dest;
+			String originalDestValue = dest.getValue();
+			String newDestValue = src + " " + dest;
 			List<Edge> parentRelations = this.getInRelations(dest, Type.PART_OF);
 			if(!parentRelations.isEmpty()) {			
 				for(Edge parentRelation : parentRelations) {
 					Vertex parentSrc = parentRelation.getSrc();
-					Vertex disambiguatedDest = new Vertex(parentSrc + " " + dest);
-					this.addRelation(new Edge(dest, disambiguatedDest, Type.SUBCLASS_OF, e.getOrigin()));
-					renameVertex(dest, newValue);
+					String existingNewDestValue = parentSrc + " " + dest;
+					Vertex disambiguatedExistingDest = new Vertex(existingNewDestValue);
+					renameVertex(dest, existingNewDestValue);
+					Vertex originalDest = new Vertex(originalDestValue);
+					this.addVertex(originalDest);
+					this.addRelation(new Edge(originalDest, disambiguatedExistingDest, Type.SUBCLASS_OF, e.getOrigin()));
 				}
-				e.getDest().setValue(newValue);
+				e.getDest().setValue(newDestValue);
+				this.addRelation(new Edge(new Vertex(originalDestValue), e.getDest(), Type.SUBCLASS_OF, e.getOrigin()));
 			}
 			return doAddRelation(e);
 		}

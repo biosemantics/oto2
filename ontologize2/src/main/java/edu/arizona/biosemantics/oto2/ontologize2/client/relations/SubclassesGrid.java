@@ -81,14 +81,16 @@ public class SubclassesGrid extends MenuTermsGrid {
 				int targetColIndex = grid.getView().findCellIndex(element, null);
 				Row row = store.get(targetRowIndex);
 				
-				if(event.getData() instanceof Edge) {
-					Edge r = (Edge)event.getData();
-					OntologyGraph g = ModelController.getCollection().getGraph();
-					if(g.isClosedRelations(r.getSrc(), type) || g.isClosedRelations(row.getLead(), type)) {
-						Alerter.showAlert("Create Relation", "Can not create relation for a closed row.");
-						return;
+				if(row != null) {
+					if(event.getData() instanceof Edge) {
+						Edge r = (Edge)event.getData();
+						OntologyGraph g = ModelController.getCollection().getGraph();
+						if(g.isClosedRelations(r.getSrc(), type) || g.isClosedRelations(row.getLead(), type)) {
+							Alerter.showAlert("Create Relation", "Can not create relation for a closed row.");
+							return;
+						}
+						fire(new ReplaceRelationEvent(r, row.getLead()));
 					}
-					fire(new ReplaceRelationEvent(r, row.getLead()));
 				}
 			}
 		});

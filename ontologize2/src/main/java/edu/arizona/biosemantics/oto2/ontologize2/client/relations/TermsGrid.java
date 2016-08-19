@@ -235,23 +235,24 @@ public class TermsGrid implements IsWidget {
 				Element element = event.getDragEndEvent().getNativeEvent().getEventTarget().<Element> cast();
 				int targetRowIndex = grid.getView().findRowIndex(element);
 				Row row = store.get(targetRowIndex);
-
-				if(event.getData() instanceof List<?>) {
-					List<Edge> add = new LinkedList<Edge>();
-					List<?> list = (List<?>)event.getData();
-					for(Object item : list) {
-						if(item instanceof Candidate) {
-							Candidate c = (Candidate)item;
-							add.add(new Edge(row.getLead(), new Vertex(c.getText()), type, Origin.USER));
+				if(row != null) {
+					if(event.getData() instanceof List<?>) {
+						List<Edge> add = new LinkedList<Edge>();
+						List<?> list = (List<?>)event.getData();
+						for(Object item : list) {
+							if(item instanceof Candidate) {
+								Candidate c = (Candidate)item;
+								add.add(new Edge(row.getLead(), new Vertex(c.getText()), type, Origin.USER));
+							}
 						}
+						
+						if(ModelController.getCollection().getGraph().isClosedRelations(row.getLead(), type)) {
+							Alerter.showAlert("Create Relation", "Can not create relation for a closed row.");
+							return;
+						}
+						CreateRelationEvent createRelationEvent = new CreateRelationEvent(add);
+						fire(createRelationEvent);
 					}
-					
-					if(ModelController.getCollection().getGraph().isClosedRelations(row.getLead(), type)) {
-						Alerter.showAlert("Create Relation", "Can not create relation for a closed row.");
-						return;
-					}
-					CreateRelationEvent createRelationEvent = new CreateRelationEvent(add);
-					fire(createRelationEvent);
 				}
 			}
 		});
