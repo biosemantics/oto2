@@ -266,7 +266,6 @@ public class TreeView extends SimpleContainer {
 				VertexTreeNode targetNode = vertexNodeMap.get(oldRelation.getDest()).iterator().next();
 				VertexTreeNode newSourceNode = vertexNodeMap.get(newSource).iterator().next();
 				
-				
 				List<TreeNode<VertexTreeNode>> targetNodes = new LinkedList<TreeNode<VertexTreeNode>>();
 				targetNodes.add(store.getSubTree(targetNode));
 				store.remove(targetNode);

@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.Stack;
 
 import com.google.gwt.event.shared.EventBus;
+import com.sencha.gxt.data.shared.TreeStore.TreeNode;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
@@ -116,13 +117,24 @@ public class SubclassTreeView extends TreeView {
 		Vertex source = r.getSrc();
 		if(currentRoot.equals(source))
 			return true;
-		if(g.getInRelations(source, Type.SUBCLASS_OF).size() > 1) 
+		if(g.getInRelations(source, type).size() > 1) 
 			return false;
 		for(Edge in : g.getInRelations(r.getSrc(), type)) {
 			if(!isVisible(in))
 				return false;
 		}
 		return true;
+	}
+	
+	@Override
+	protected void replaceRelation(Edge oldRelation, Vertex newSource) {
+		if(oldRelation.getType().equals(type)) {
+			Edge newRelation = new Edge(newSource, oldRelation.getDest(), oldRelation.getType(), oldRelation.getOrigin());
+			if(!isVisible(newRelation))
+				return;
+			else
+				super.replaceRelation(oldRelation, newSource);
+		}
 	}
 
 	private void refreshNodes(Set<VertexTreeNode> nodes) {
