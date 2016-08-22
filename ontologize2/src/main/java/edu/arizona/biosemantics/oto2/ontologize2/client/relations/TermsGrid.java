@@ -390,17 +390,14 @@ public class TermsGrid implements IsWidget {
 				Row oldRow = leadRowMap.get(oldRelation.getSrc());
 				oldRow.remove(oldRelation);
 				updateRow(oldRow);
+			}
 				
-				Row newRow = leadRowMap.get(newSource);
-				try {
-					addAttached(newRow, new Edge(newSource, oldRelation.getDest(), oldRelation.getType(), oldRelation.getOrigin()));
-				} catch (Exception e) {
-					Alerter.showAlert("Failed to replace relation", "Failed to replace relation");
-					return;
-				}
-				
-			} else {
+			Row newRow = leadRowMap.get(newSource);
+			try {
+				addAttached(newRow, new Edge(newSource, oldRelation.getDest(), oldRelation.getType(), oldRelation.getOrigin()));
+			} catch (Exception e) {
 				Alerter.showAlert("Failed to replace relation", "Failed to replace relation");
+				return;
 			}
 		}
 	}
