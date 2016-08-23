@@ -40,9 +40,9 @@ public class SynonymMenuCreator extends DefaultMenuCreator implements LeadCell.M
 			}
 		});
 		
-		menu.add(removeRowItem);
 		menu.add(addItem);
-		menu.add(removeItem);
+		menu.add(removeRowItem);
+		menu.add(removeAllItem);
 		menu.add(context);
 		
 		return menu;

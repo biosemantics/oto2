@@ -34,9 +34,10 @@ public class DefaultMenuCreator implements LeadCell.MenuCreator {
 	protected EventBus eventBus;
 	protected TermsGrid termsGrid;
 	protected MenuItem addItem;
-	protected MenuItem removeItem;
+	protected MenuItem removeAllItem;
 	protected CheckMenuItem closeItem;
 	protected MenuItem context;
+	protected MenuItem removeItem;
 
 	public DefaultMenuCreator(EventBus eventBus, TermsGrid termsGrid) {
 		this.eventBus = eventBus;
@@ -73,32 +74,22 @@ public class DefaultMenuCreator implements LeadCell.MenuCreator {
 		});
 		addItem.setEnabled(!closed);
 		
-		removeItem = new MenuItem("Remove all " + termsGrid.getType().getTargetLabelPlural());
+		removeItem = new MenuItem("Remove row");
 		removeItem.addSelectionHandler(new SelectionHandler<Item>() {
 			@Override
 			public void onSelection(SelectionEvent<Item> event) {
-				OntologyGraph g = ModelController.getCollection().getGraph();
-				Vertex targetVertex = row.getLead();
-				
-				if(g.isClosedRelations(targetVertex, termsGrid.getType())) {
-					Alerter.showAlert("Create Relation", "Can not create relation for a closed row.");
-					return;
-				}
-				
-				for(final Edge r : g.getOutRelations(targetVertex, termsGrid.getType())) {
-					if(g.getInRelations(r.getDest(), termsGrid.getType()).size() <= 1) {
-						if(g.getOutRelations(r.getDest(), termsGrid.getType()).isEmpty()) {
-							eventBus.fireEvent(new RemoveRelationEvent(false, r));
-						} else {
-							doAskForRecursiveRemoval(r);
-						}
-					} else {
-						eventBus.fireEvent(new RemoveRelationEvent(false, r));
-					}
-				} 
+				removeAll(row, true);
 			}
 		});
-		removeItem.setEnabled(!closed);
+		
+		removeAllItem = new MenuItem("Remove all " + termsGrid.getType().getTargetLabelPlural());
+		removeAllItem.addSelectionHandler(new SelectionHandler<Item>() {
+			@Override
+			public void onSelection(SelectionEvent<Item> event) {
+				removeAll(row, false);
+			}
+		});
+		removeAllItem.setEnabled(!closed);
 		
 		closeItem = new CheckMenuItem("Close");
 		closeItem.setChecked(closed);
@@ -142,12 +133,42 @@ public class DefaultMenuCreator implements LeadCell.MenuCreator {
 		//menu.add(removeRowItem);
 		menu.add(addItem);
 		menu.add(removeItem);
+		menu.add(removeAllItem);
 		menu.add(closeItem);
 		menu.add(context);
 		
 		return menu;
 	}
 	
+	protected void removeAll(Row row, boolean removeRowHead) {
+		OntologyGraph g = ModelController.getCollection().getGraph();
+		Vertex targetVertex = row.getLead();
+		
+		if(g.isClosedRelations(targetVertex, termsGrid.getType())) {
+			Alerter.showAlert("Remove Relation", "Can not remove relation for a closed row.");
+			return;
+		}
+		
+		for(final Edge r : g.getOutRelations(targetVertex, termsGrid.getType())) {
+			if(g.getInRelations(r.getDest(), termsGrid.getType()).size() <= 1) {
+				if(g.getOutRelations(r.getDest(), termsGrid.getType()).isEmpty()) {
+					eventBus.fireEvent(new RemoveRelationEvent(false, r));
+				} else {
+					doAskForRecursiveRemoval(r);
+				}
+			} else {
+				eventBus.fireEvent(new RemoveRelationEvent(false, r));
+			}
+		}
+		
+		if(removeRowHead) {
+			if(termsGrid.getRowsWhereAttached(targetVertex).isEmpty())
+				eventBus.fireEvent(new RemoveRelationEvent(false, new Edge(g.getRoot(termsGrid.getType()), targetVertex, 
+						termsGrid.getType(), Origin.USER)));
+			termsGrid.removeRow(targetVertex, true);
+		}
+	}
+
 	protected void doAskForRecursiveRemoval(final Edge relation) {
 		OntologyGraph g = ModelController.getCollection().getGraph();
 		List<Vertex> targets = new LinkedList<Vertex>();

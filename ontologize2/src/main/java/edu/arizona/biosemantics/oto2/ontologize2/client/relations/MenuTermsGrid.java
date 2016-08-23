@@ -122,7 +122,7 @@ public class MenuTermsGrid extends TermsGrid {
 							if(!terms[0].trim().isEmpty()) {
 								Vertex source = new Vertex(terms[0]);
 								if(!alreadyAttached.contains(source)) {
-									eventBus.fireEvent(new CreateRelationEvent(new Edge(root, source, type, Origin.USER)));
+									fire(new CreateRelationEvent(new Edge(root, source, type, Origin.USER)));
 									alreadyAttached.add(source);
 								}
 								for(int i=1; i<terms.length; i++) {
@@ -134,7 +134,7 @@ public class MenuTermsGrid extends TermsGrid {
 										Alerter.showAlert("Create Relation", "Can not create relation for a closed row.");
 										continue;
 									}
-									eventBus.fireEvent(new CreateRelationEvent(new Edge(source, target, type, Origin.USER)));
+									fire(new CreateRelationEvent(new Edge(source, target, type, Origin.USER)));
 									alreadyAttached.add(target);
 								}
 							} else {

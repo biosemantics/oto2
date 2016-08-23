@@ -70,60 +70,6 @@ public class SynonymsGrid extends MenuTermsGrid {
 		});
 		
 		buttonBar.insert(addButton, 0);
-		
-		GridDragSource<Row> dndSource = new GridDragSource<Row>(grid) {
-			@Override
-			protected void onDragStart(DndDragStartEvent event) {
-				super.onDragStart(event);
-				Element element = event.getDragStartEvent().getStartElement();
-				int targetRowIndex = grid.getView().findRowIndex(element);
-				int targetColIndex = grid.getView().findCellIndex(element, null);
-				Row row = store.get(targetRowIndex);
-				
-				if(row != null) {
-					Vertex v = row.getLead();
-					if(targetColIndex > 0) {
-						v = row.getAttached().get(targetColIndex - 1).getDest();
-					}
-					
-					OntologyGraph g = ModelController.getCollection().getGraph();
-					List<Edge> inRelations = g.getInRelations(v, type);
-					if(inRelations.size() > 1) {
-						Alerter.showAlert("Moving", "Moving of term with more than one preferred term is not allowed"); // at this time
-						event.setCancelled(true);
-					}
-					if(inRelations.size() == 1)
-						event.setData(inRelations.get(0));
-					else {
-						Alerter.showAlert("Moving", "Cannot move the root");
-						event.setCancelled(true);
-					}
-				}
-			}
-		};
-		
-		dropTarget.setAllowSelfAsSource(true);
-		dropTarget.addDropHandler(new DndDropHandler() {
-			@Override
-			public void onDrop(DndDropEvent event) {
-				Element element = event.getDragEndEvent().getNativeEvent().getEventTarget().<Element> cast();
-				int targetRowIndex = grid.getView().findRowIndex(element);
-				int targetColIndex = grid.getView().findCellIndex(element, null);
-				Row row = store.get(targetRowIndex);
-				
-				if(row != null) {
-					if(event.getData() instanceof Edge) {
-						Edge r = (Edge)event.getData();
-						OntologyGraph g = ModelController.getCollection().getGraph();
-						if(g.isClosedRelations(r.getSrc(), type) || g.isClosedRelations(row.getLead(), type)) {
-							Alerter.showAlert("Create Relation", "Can not create relation for a closed row.");
-							return;
-						}
-						fire(new ReplaceRelationEvent(r, row.getLead()));
-					}
-				}
-			}
-		});
 	}
 	
 	@Override
@@ -220,8 +166,10 @@ public class SynonymsGrid extends MenuTermsGrid {
 	protected void removeRelation(Edge r, boolean recursive) {
 		OntologyGraph graph = ModelController.getCollection().getGraph();
 		if(r.getSrc().equals(graph.getRoot(type))) {
-			Row row = leadRowMap.get(r.getDest());
-			this.removeRow(row, true);
+			if(leadRowMap.containsKey(r.getDest())) {
+				Row row = leadRowMap.get(r.getDest());
+				this.removeRow(row, true);
+			}
 		} else
 			super.removeRelation(r, recursive);
 	}
@@ -234,11 +182,13 @@ public class SynonymsGrid extends MenuTermsGrid {
 			
 			OntologyGraph g = ModelController.getCollection().getGraph();		
 			if(oldRelation.getSrc().equals(g.getRoot(type))) {
-				Row oldRow = leadRowMap.get(oldRelation.getDest());
-				for(Edge relation : oldRow.getAttached()) 
-					newAttached.add(relation.getDest());
-				store.remove(oldRow);
-				leadRowMap.remove(oldRow.getLead());
+				if(leadRowMap.containsKey(oldRelation.getDest())) {
+					Row oldRow = leadRowMap.get(oldRelation.getDest());
+					for(Edge relation : oldRow.getAttached()) 
+						newAttached.add(relation.getDest());
+					store.remove(oldRow);
+					leadRowMap.remove(oldRow.getLead());
+				}
 			} else if(leadRowMap.containsKey(oldRelation.getSrc())) {
 				Row oldRow = leadRowMap.get(oldRelation.getSrc());
 				oldRow.remove(oldRelation);

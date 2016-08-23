@@ -59,59 +59,6 @@ public class PartsGrid extends MenuTermsGrid {
 	
 	public PartsGrid(EventBus eventBus) {
 		super(eventBus, Type.PART_OF);
-		
-		GridDragSource<Row> dndSource = new GridDragSource<Row>(grid) {
-			@Override
-			protected void onDragStart(DndDragStartEvent event) {
-				super.onDragStart(event);
-				Element element = event.getDragStartEvent().getStartElement();
-				int targetRowIndex = grid.getView().findRowIndex(element);
-				int targetColIndex = grid.getView().findCellIndex(element, null);
-				Row row = store.get(targetRowIndex);
-				if(row != null) {
-					Vertex v = row.getLead();
-					if(targetColIndex > 0) {
-						v = row.getAttached().get(targetColIndex - 1).getDest();
-					}
-					
-					OntologyGraph g = ModelController.getCollection().getGraph();
-					List<Edge> inRelations = g.getInRelations(v, type);
-					if(inRelations.size() > 1) {
-						Alerter.showAlert("Moving", "Moving of term with more than one parent is not allowed"); // at this time
-						event.setCancelled(true);
-					}
-					if(inRelations.size() == 1)
-						event.setData(inRelations.get(0));
-					else {
-						Alerter.showAlert("Moving", "Cannot move the root");
-						event.setCancelled(true);
-					}
-				}
-			}
-		};
-		dropTarget.setAllowSelfAsSource(true);
-		dropTarget.addDropHandler(new DndDropHandler() {
-			@Override
-			public void onDrop(DndDropEvent event) {
-				Element element = event.getDragEndEvent().getNativeEvent().getEventTarget().<Element> cast();
-				int targetRowIndex = grid.getView().findRowIndex(element);
-				int targetColIndex = grid.getView().findCellIndex(element, null);
-				Row row = store.get(targetRowIndex);
-				
-				if(row != null) {
-					if(event.getData() instanceof Edge) {
-						Edge r = (Edge)event.getData();
-						
-						OntologyGraph g = ModelController.getCollection().getGraph();
-						if(g.isClosedRelations(r.getSrc(), type) || g.isClosedRelations(row.getLead(), type)) {
-							Alerter.showAlert("Create Relation", "Can not create relation for a closed row.");
-							return;
-						}
-						fire(new ReplaceRelationEvent(r, row.getLead()));
-					}
-				}
-			}
-		});
 	}
 	
 	@Override
@@ -220,11 +167,7 @@ public class PartsGrid extends MenuTermsGrid {
 	}
 
 	@Override
-	protected void createRelation(Edge r) {
-		if(r.getType().equals(type)) {
-			
-		}
-		
+	protected void createRelation(Edge r) {		
 		if(r.getType().equals(type)) {
 			OntologyGraph g = ModelController.getCollection().getGraph();
 			Vertex dest = r.getDest();
@@ -262,14 +205,16 @@ public class PartsGrid extends MenuTermsGrid {
 		leadRowMap.get(src).replaceAttachedDest(dest, newDest);
 		updateRow(leadRowMap.get(src));
 		
-		leadRowMap.get(dest).setLead(newDest);
-		leadRowMap.put(newDest, leadRowMap.get(dest));
-		leadRowMap.remove(dest);
-		updateRow(leadRowMap.get(newDest));
-		
-		for(Edge r : leadRowMap.get(newDest).getAttached()) {
-			if(r.getDest().getValue().startsWith(dest.getValue())) {
-				replace(dest, r.getDest(), new Vertex(newDest.getValue() + " " + r.getDest().getValue()));
+		if(leadRowMap.containsKey(dest)) {
+			leadRowMap.get(dest).setLead(newDest);
+			leadRowMap.put(newDest, leadRowMap.get(dest));
+			leadRowMap.remove(dest);
+			updateRow(leadRowMap.get(newDest));
+			
+			for(Edge r : leadRowMap.get(newDest).getAttached()) {
+				if(r.getDest().getValue().startsWith(dest.getValue())) {
+					replace(dest, r.getDest(), new Vertex(newDest.getValue() + " " + r.getDest().getValue()));
+				}
 			}
 		}
 	}
@@ -295,5 +240,10 @@ public class PartsGrid extends MenuTermsGrid {
 	@Override
 	protected String getDefaultImportText() {
 		return "parent, part 1, part 2, ...[e.g. flower, calyx, corolla]"; 
+	}
+	
+	@Override
+	protected void createRowFromEdgeDrop(Edge edge) {
+		this.addRow(new Row(edge.getDest()));
 	}
 }

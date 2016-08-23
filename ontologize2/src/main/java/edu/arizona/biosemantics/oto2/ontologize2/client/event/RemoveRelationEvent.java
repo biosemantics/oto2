@@ -63,6 +63,6 @@ public class RemoveRelationEvent extends GwtEvent<Handler> implements Serializab
 
 	public void setEffectiveInModel(boolean isEffectiveInModel) {
 		this.isEffectiveInModel = isEffectiveInModel;
-	}
+	}	
 	
 }

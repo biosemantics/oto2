@@ -83,21 +83,23 @@ public class OntologyGraph implements Serializable {
 	public static class Edge implements Serializable {
 
 		public static enum Type {
-			SUBCLASS_OF("category", "superclass", "subclass", "subclasses", "category hierarchy", "Thing"), 
-			PART_OF("part", "parent", "part", "parts", "part-of hierarchy", "Whole Organism"), 
-			SYNONYM_OF("synonym", "preferred term", "synonym", "synonyms", "synonym-hierarchy", "Synonym-Root");
+			SUBCLASS_OF("category", "superclass", "superclasses", "subclass", "subclasses", "category hierarchy", "Thing"), 
+			PART_OF("part", "parent", "parents", "part", "parts", "part-of hierarchy", "Whole Organism"), 
+			SYNONYM_OF("synonym", "preferred term", "preferred terms", "synonym", "synonyms", "synonym-hierarchy", "Synonym-Root");
 
 			private String displayLabel;
 			private String sourceLabel;
 			private String targetLabel;
 			private String treeLabel;
 			private String rootLabel;
+			private String sourceLabelPlural;
 			private String targetLabelPlural;
 
-			private Type(String displayLabel, String sourceLabel,
+			private Type(String displayLabel, String sourceLabel, String sourceLabelPlural,
 					String targetLabel, String targetLabelPlural, String treeLabel, String rootLabel) {
 				this.displayLabel = displayLabel;
 				this.sourceLabel = sourceLabel;
+				this.sourceLabelPlural = sourceLabelPlural;
 				this.targetLabel = targetLabel;
 				this.targetLabelPlural = targetLabelPlural;
 				this.treeLabel = treeLabel;
@@ -126,6 +128,10 @@ public class OntologyGraph implements Serializable {
 
 			public String getTargetLabelPlural() {
 				return targetLabelPlural;
+			}
+
+			public String getSourceLabelPlural() {
+				return sourceLabelPlural;
 			}
 		}
 
@@ -278,23 +284,49 @@ public class OntologyGraph implements Serializable {
 	}
 	
 	public boolean isCreatesCircular(Edge potentialRelation) {
-		Set<Vertex> visited = new HashSet<Vertex>();
-		visited.add(potentialRelation.getSrc());
-		return isCreatesCircular(potentialRelation, visited);
-	}
-	
-	private boolean isCreatesCircular(Edge e, Set<Vertex> visited) {
-		if(visited.contains(e.getDest()))
+		Vertex search = potentialRelation.getSrc();
+		Vertex source = potentialRelation.getDest();
+		if(search.equals(source))
 			return true;
-		else
-			visited.add(e.getDest());
-		for(Edge next : this.getOutRelations(e.getDest(), e.getType())) {
-			boolean result = isCreatesCircular(next, visited);
-			if(result)
+		List<Edge> out = getOutRelations(source, potentialRelation.getType());
+		for(Edge e : out) {
+			if(isCreatesCircular(e))
 				return true;
 		}
 		return false;
+		
+		//Set<Vertex> potentialCircle = new HashSet<Vertex>();
+		//Set<Vertex> visited = new HashSet<Vertex>();
+		//potentialCircle.add(potentialRelation.getSrc());
+		//return isCreatesCircular(potentialRelation, potentialCircle, visited);
 	}
+	
+	/**
+	 * Searches for all circles. Above limits search to circle just closed by relation. More efficient
+	 * @param edge
+	 * @param potentialCircle
+	 * @param visited
+	 * @return
+	 */
+//	private boolean isCreatesCircular(Edge e, Set<Vertex> potentialCircle, Set<Vertex> visited) {
+//		if(potentialCircle.contains(e.getDest()))
+//			return true;
+//		else
+//			potentialCircle.add(e.getDest());
+//		
+//		if(visited.contains(e.getDest()))
+//			return false;
+//		else
+//			visited.add(e.getDest());
+//		
+//		for(Edge next : this.getOutRelations(e.getDest(), e.getType())) {
+//			boolean result = isCreatesCircular(next, potentialCircle, visited);
+//			if(result)
+//				return true;
+//			potentialCircle.remove(next.getDest());
+//		}
+//		return false;
+//	}
 	
 
 	/**
@@ -347,7 +379,7 @@ public class OntologyGraph implements Serializable {
 		return true;
 	}
 
-	private boolean existsRelation(Edge r) {
+	public boolean existsRelation(Edge r) {
 		for(Edge e : graph.getOutEdges(r.getSrc())) {
             if(graph.getOpposite(r.getSrc(), e).equals(r.getDest()))
             	if(e.getType().equals(r.getType()))
