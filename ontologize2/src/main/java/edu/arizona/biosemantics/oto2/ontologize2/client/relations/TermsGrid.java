@@ -455,11 +455,12 @@ public class TermsGrid implements IsWidget {
 
 	protected void replaceRelation(Edge oldRelation, Vertex newSource) {
 		if(oldRelation.getType().equals(type)) {
-			if(leadRowMap.containsKey(oldRelation.getSrc()) && leadRowMap.containsKey(newSource)) {
-				Row oldRow = leadRowMap.get(oldRelation.getSrc());
-				oldRow.remove(oldRelation);
-				updateRow(oldRow);
-				
+			if(leadRowMap.containsKey(newSource)) {
+				if(leadRowMap.containsKey(oldRelation.getSrc())) {
+					Row oldRow = leadRowMap.get(oldRelation.getSrc());
+					oldRow.remove(oldRelation);
+					updateRow(oldRow);
+				}
 				Row newRow = leadRowMap.get(newSource);
 				try {
 					addAttached(newRow, new Edge(newSource, oldRelation.getDest(), oldRelation.getType(), oldRelation.getOrigin()));
@@ -573,7 +574,8 @@ public class TermsGrid implements IsWidget {
 			List<Edge> inRelations = graph.getInRelations(lead, type);
 			if(inRelations.size() == 1 && inRelations.get(0).getSrc().equals(graph.getRoot(type))) {
 				for(Edge e : row.getAttached())
-					this.addRow(new Row(e.getDest()));
+					if(!leadRowMap.containsKey(e.getDest()))
+						this.addRow(new Row(e.getDest()));
 			} else {
 				for(Edge r : graph.getInRelations(lead, type)) {
 					if(leadRowMap.containsKey(r.getSrc())) {

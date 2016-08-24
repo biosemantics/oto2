@@ -130,9 +130,10 @@ public class SubclassTreeView extends TreeView {
 	protected void replaceRelation(Edge oldRelation, Vertex newSource) {
 		if(oldRelation.getType().equals(type)) {
 			Edge newRelation = new Edge(newSource, oldRelation.getDest(), oldRelation.getType(), oldRelation.getOrigin());
-			if(!isVisible(newRelation))
+			if(!isVisible(newRelation)) {
+				removeRelation(oldRelation, true);
 				return;
-			else
+			}else
 				super.replaceRelation(oldRelation, newSource);
 		}
 	}

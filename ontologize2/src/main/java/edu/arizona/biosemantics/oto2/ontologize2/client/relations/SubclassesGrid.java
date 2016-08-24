@@ -204,7 +204,8 @@ public class SubclassesGrid extends MenuTermsGrid {
 		
 	@Override
 	protected void createRowFromEdgeDrop(Edge edge) {
-		this.addRow(new Row(edge.getDest()));
+		if(!leadRowMap.containsKey(edge.getDest()))
+			this.addRow(new Row(edge.getDest()));
 	}
 
 }

@@ -195,8 +195,10 @@ public class SynonymsGrid extends MenuTermsGrid {
 				updateRow(oldRow);
 			}
 			if(newSource.equals(g.getRoot(type))) {
-				Row newRow = new Row(oldRelation.getDest());
-				this.addRow(newRow);
+				if(!leadRowMap.containsKey(oldRelation.getDest())) {
+					Row newRow = new Row(oldRelation.getDest());
+					this.addRow(newRow);
+				}
 			} else if(leadRowMap.containsKey(newSource)) {
 				Row newRow = leadRowMap.get(newSource);
 				try {
