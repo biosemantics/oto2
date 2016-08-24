@@ -519,9 +519,9 @@ public class TermsGrid implements IsWidget {
 	protected void removeRelation(Edge r, boolean recursive) {
 		OntologyGraph g = ModelController.getCollection().getGraph();
 		if(r.getType().equals(type)) {
-			if(r.getSrc().equals(g.getRoot(type)))
-				return;
-			if(leadRowMap.containsKey(r.getSrc())) {
+			if(r.getSrc().equals(g.getRoot(type))) {
+				removeRow(r.getDest(), recursive);
+			} else if(leadRowMap.containsKey(r.getSrc())) {
 				Row row = leadRowMap.get(r.getSrc());
 				removeAttached(row, r, recursive);
 			} else {
@@ -570,20 +570,35 @@ public class TermsGrid implements IsWidget {
 		} else {
 			OntologyGraph graph = ModelController.getCollection().getGraph();
 			Vertex lead = row.getLead();
-			for(Edge r : graph.getInRelations(lead, type)) {
-				if(leadRowMap.containsKey(r.getSrc())) {
-					try {
-						Row targetRow = leadRowMap.get(r.getSrc());
-						if(!row.getAttached().isEmpty()) {
-							targetRow.add(row.getAttached());
-							updateRow(targetRow);
+			List<Edge> inRelations = graph.getInRelations(lead, type);
+			if(inRelations.size() == 1 && inRelations.get(0).getSrc().equals(graph.getRoot(type))) {
+				for(Edge e : row.getAttached())
+					this.addRow(new Row(e.getDest()));
+			} else {
+				for(Edge r : graph.getInRelations(lead, type)) {
+					if(leadRowMap.containsKey(r.getSrc())) {
+						try {
+							Row targetRow = leadRowMap.get(r.getSrc());
+							if(!row.getAttached().isEmpty()) {
+								targetRow.add(row.getAttached());
+								updateRow(targetRow);
+							}
+						} catch (Exception e) {
+							Alerter.showAlert("Failed to reattach", "Failed to reattach");
 						}
-					} catch (Exception e) {
-						Alerter.showAlert("Failed to reattach", "Failed to reattach");
 					}
 				}
 			}
 		}
+		removeRow(row);
+	}
+
+	public void removeRow(Vertex lead) {
+		if(leadRowMap.containsKey(lead))
+			this.removeRow(leadRowMap.get(lead));
+	}
+	
+	private void removeRow(Row row) {
 		store.remove(row);
 		leadRowMap.remove(row.getLead());
 	}

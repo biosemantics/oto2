@@ -42,7 +42,7 @@ public class SubclassMenuCreator extends DefaultMenuCreator implements LeadCell.
 				dialog.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
 					@Override
 					public void onSelect(SelectEvent event) {
-						eventBus.fireEvent(new OrderEdgesEvent(row.getLead(), sortVertexView.getEdges(), termsGrid.getType()));
+						termsGrid.fire(new OrderEdgesEvent(row.getLead(), sortVertexView.getEdges(), termsGrid.getType()));
 					}
 				});
 			}

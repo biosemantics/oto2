@@ -57,7 +57,7 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 		return collection;
 	}
 
-	private void serializeCollection(Collection collection) {
+	private synchronized void serializeCollection(Collection collection) {
 		File collectionDirectory = new File(Configuration.collectionsDirectory + File.separator + collection.getId());
 		if(!collectionDirectory.exists())
 			collectionDirectory.mkdir();
@@ -75,7 +75,7 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	}
 
 	@Override
-	public Collection get(int collectionId, String secret) throws Exception {
+	public synchronized Collection get(int collectionId, String secret) throws Exception {
 		try(ObjectInputStream is = new ObjectInputStream(new FileInputStream(
 				Configuration.collectionsDirectory + File.separator + collectionId + File.separator + "collection.ser"))) {
 			Object object = is.readObject();
@@ -106,9 +106,13 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	
 	@Override
 	public void remove(int collectionId, String secret, Edge relation, boolean recursive) throws Exception {
-		Collection collection = this.get(collectionId, secret);
-		collection.getGraph().removeRelation(relation, recursive);
-		update(collection);
+		try {
+			Collection collection = this.get(collectionId, secret);
+			collection.getGraph().removeRelation(relation, recursive);
+			update(collection);
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	@Override

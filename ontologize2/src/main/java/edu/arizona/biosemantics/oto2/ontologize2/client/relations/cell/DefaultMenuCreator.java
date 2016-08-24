@@ -98,7 +98,7 @@ public class DefaultMenuCreator implements LeadCell.MenuCreator {
 			public void onSelection(SelectionEvent<Item> event) {
 				OntologyGraph g = ModelController.getCollection().getGraph();
 				Vertex targetVertex = row.getLead();
-				eventBus.fireEvent(new CloseRelationsEvent(targetVertex, termsGrid.getType(), !closed)); 
+				termsGrid.fire(new CloseRelationsEvent(targetVertex, termsGrid.getType(), !closed)); 
 			}
 		});
 		
@@ -112,12 +112,12 @@ public class DefaultMenuCreator implements LeadCell.MenuCreator {
 				for(final Relation r : g.getOutRelations(targetVertex, termsGrid.getType())) {
 					if(g.getInRelations(r.getDestination(), termsGrid.getType()).size() <= 1) {
 						if(g.getOutRelations(r.getDestination(), termsGrid.getType()).isEmpty()) {
-							eventBus.fireEvent(new RemoveRelationEvent(false, r));
+							termsGrid.fire(new RemoveRelationEvent(false, r));
 						} else {
 							doAskForRecursiveRemoval(r);
 						}
 					} else {
-						eventBus.fireEvent(new RemoveRelationEvent(false, r));
+						termsGrid.fire(new RemoveRelationEvent(false, r));
 					}
 				} 
 			}
@@ -127,7 +127,7 @@ public class DefaultMenuCreator implements LeadCell.MenuCreator {
 		context.addSelectionHandler(new SelectionHandler<Item>() {
 			@Override
 			public void onSelection(SelectionEvent<Item> event) {
-				eventBus.fireEvent(new SelectTermEvent(row.getLead().getValue()));
+				termsGrid.fire(new SelectTermEvent(row.getLead().getValue()));
 			}
 		});
 		//menu.add(removeRowItem);
@@ -140,32 +140,36 @@ public class DefaultMenuCreator implements LeadCell.MenuCreator {
 		return menu;
 	}
 	
-	protected void removeAll(Row row, boolean removeRowHead) {
+	protected void removeAll(Row row, final boolean removeRowHead) {
 		OntologyGraph g = ModelController.getCollection().getGraph();
-		Vertex targetVertex = row.getLead();
+		final Vertex targetVertex = row.getLead();
 		
-		if(g.isClosedRelations(targetVertex, termsGrid.getType())) {
-			Alerter.showAlert("Remove Relation", "Can not remove relation for a closed row.");
-			return;
+		if(removeRowHead) {
+			Edge rootEdge = new Edge(g.getRoot(termsGrid.getType()), row.getLead(), 
+					termsGrid.getType(), Origin.USER);
+			if(g.existsRelation(rootEdge)) {
+				this.doAskForRecursiveRemoval(rootEdge);		
+			} else {
+				removeAllOutgoing(targetVertex);
+				termsGrid.removeRow(targetVertex);
+			}
+		} else {
+			removeAllOutgoing(targetVertex);
 		}
-		
+	}
+
+	private void removeAllOutgoing(Vertex targetVertex) {
+		OntologyGraph g = ModelController.getCollection().getGraph();
 		for(final Edge r : g.getOutRelations(targetVertex, termsGrid.getType())) {
 			if(g.getInRelations(r.getDest(), termsGrid.getType()).size() <= 1) {
 				if(g.getOutRelations(r.getDest(), termsGrid.getType()).isEmpty()) {
-					eventBus.fireEvent(new RemoveRelationEvent(false, r));
+					termsGrid.fire(new RemoveRelationEvent(false, r));
 				} else {
 					doAskForRecursiveRemoval(r);
 				}
 			} else {
-				eventBus.fireEvent(new RemoveRelationEvent(false, r));
+				termsGrid.fire(new RemoveRelationEvent(false, r));
 			}
-		}
-		
-		if(removeRowHead) {
-			if(termsGrid.getRowsWhereAttached(targetVertex).isEmpty())
-				eventBus.fireEvent(new RemoveRelationEvent(false, new Edge(g.getRoot(termsGrid.getType()), targetVertex, 
-						termsGrid.getType(), Origin.USER)));
-			termsGrid.removeRow(targetVertex, true);
 		}
 	}
 
@@ -182,9 +186,9 @@ public class DefaultMenuCreator implements LeadCell.MenuCreator {
 		box.getButton(PredefinedButton.YES).addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
-				eventBus.fireEvent(new RemoveRelationEvent(true, relation));
+				termsGrid.fire(new RemoveRelationEvent(true, relation));
 				/*for(GwtEvent<Handler> e : createRemoveEvents(true, relation)) {
-					eventBus.fireEvent(e);
+					termsGrid.fire(e);
 				}*/
 				box.hide();
 			}
@@ -192,9 +196,9 @@ public class DefaultMenuCreator implements LeadCell.MenuCreator {
 		box.getButton(PredefinedButton.NO).addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
-				eventBus.fireEvent(new RemoveRelationEvent(false, relation));
+				termsGrid.fire(new RemoveRelationEvent(false, relation));
 				/*for(GwtEvent<Handler> e : createRemoveEvents(false, relation)) {
-					eventBus.fireEvent(e);
+					termsGrid.fire(e);
 				}*/
 				box.hide();
 			}

@@ -35,7 +35,7 @@ public class SynonymMenuCreator extends DefaultMenuCreator implements LeadCell.M
 			public void onSelection(SelectionEvent<Item> event) {
 				OntologyGraph g = ModelController.getCollection().getGraph();
 				Vertex targetVertex = row.getLead();
-				eventBus.fireEvent(new RemoveRelationEvent(true, 
+				termsGrid.fire(new RemoveRelationEvent(true, 
 						g.getInRelations(targetVertex, termsGrid.getType()).iterator().next()));
 			}
 		});

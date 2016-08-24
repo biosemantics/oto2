@@ -78,12 +78,12 @@ public class AttachedCell extends MenuExtendedCell<Row> {
 				
 				if(g.getInRelations(r.getDest(), termsGrid.getType()).size() <= 1) {
 					if(g.getOutRelations(r.getDest(), termsGrid.getType()).isEmpty()) {
-						eventBus.fireEvent(new RemoveRelationEvent(false, r));
+						termsGrid.fire(new RemoveRelationEvent(false, r));
 					} else {
 						doAskForRecursiveRemoval(r);
 					}
 				} else {
-					eventBus.fireEvent(new RemoveRelationEvent(false, r));
+					termsGrid.fire(new RemoveRelationEvent(false, r));
 				}
 			}
 		});
@@ -91,7 +91,7 @@ public class AttachedCell extends MenuExtendedCell<Row> {
 		context.addSelectionHandler(new SelectionHandler<Item>() {
 			@Override
 			public void onSelection(SelectionEvent<Item> event) {
-				eventBus.fireEvent(new SelectTermEvent(r.getDest().getValue()));
+				termsGrid.fire(new SelectTermEvent(r.getDest().getValue()));
 			}
 		});
 		menu.add(removeItem);
@@ -112,9 +112,9 @@ public class AttachedCell extends MenuExtendedCell<Row> {
 		box.getButton(PredefinedButton.YES).addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
-				eventBus.fireEvent(new RemoveRelationEvent(true, relation));
+				termsGrid.fire(new RemoveRelationEvent(true, relation));
 				/*for(GwtEvent<Handler> e : createRemoveEvents(true, relation)) {
-					eventBus.fireEvent(e);
+					termsGrid.fire(e);
 				}*/
 				box.hide();
 			}
@@ -122,9 +122,9 @@ public class AttachedCell extends MenuExtendedCell<Row> {
 		box.getButton(PredefinedButton.NO).addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
-				eventBus.fireEvent(new RemoveRelationEvent(false, relation));
+				termsGrid.fire(new RemoveRelationEvent(false, relation));
 				/*for(GwtEvent<Handler> e : createRemoveEvents(false, relation)) {
-					eventBus.fireEvent(e);
+					termsGrid.fire(e);
 				}*/
 				box.hide();
 			}
