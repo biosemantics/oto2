@@ -277,7 +277,7 @@ public class OntologyGraph implements Serializable {
 		Type type = edge.getType();
 		Vertex root = this.getRoot(type);
 		if(!src.equals(root) && this.getInRelations(src, type).size() == 0) {
-			this.addRelation(new Edge(this.getRoot(type), src, type, edge.getOrigin()));
+			this.addRelation(new Edge(root, src, type, edge.getOrigin()));
 		}
 		
 		return graph.addEdge(edge, edge.getSrc(), edge.getDest(), EdgeType.DIRECTED);

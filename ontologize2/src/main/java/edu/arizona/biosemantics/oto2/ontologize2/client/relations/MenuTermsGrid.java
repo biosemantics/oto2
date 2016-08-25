@@ -237,8 +237,8 @@ public class MenuTermsGrid extends TermsGrid {
 				sb.append(row.getLead());
 				for(Edge a : row.getAttached())
 					sb.append(", " + a.getDest().getValue());
+				sb.append("\n");
 			}
-			sb.append("\n");
 		}
 		return sb.toString();
 	}
