@@ -632,14 +632,21 @@ public class OntologyGraph implements Serializable {
 			}
 		} else {
 			removeEdge(e);
-			for(Edge outRelation : this.getOutRelations(e.getDest(), e.getType())) {
-				try {
-					Edge newEdge = new Edge(e.getSrc(), outRelation.getDest(), e.getType(), Origin.USER);
-					this.addRelation(newEdge);
-				} catch(Exception ex) {
-					//This should never happen
-					System.out.println("Failed to reattach child nodes");
-					ex.printStackTrace();
+			List<Edge> inRelations = this.getInRelations(e.getDest());
+			if(inRelations.size() == 0) {	
+				for(Edge outRelation : this.getOutRelations(e.getDest(), e.getType())) {
+					List<Edge> in = this.getInRelations(outRelation.getDest());
+					inRelations.remove(outRelation);
+					if(inRelations.isEmpty()) {
+						try {
+							Edge newEdge = new Edge(e.getSrc(), outRelation.getDest(), e.getType(), Origin.USER);
+							this.addRelation(newEdge);
+						} catch(Exception ex) {
+							//This should never happen
+							System.out.println("Failed to reattach child nodes");
+							ex.printStackTrace();
+						}
+					}
 				}
 			}
 			if(this.getInRelations(e.getDest(), e.getType()).isEmpty()) {

@@ -1,8 +1,11 @@
 package edu.arizona.biosemantics.oto2.ontologize2.client.relations;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.Style.BorderStyle;
@@ -26,6 +29,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.Handler;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid.Row;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.cell.LeadCell;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.cell.SubclassMenuCreator;
@@ -39,6 +43,8 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph;
 
 public class SubclassesGrid extends MenuTermsGrid {
 
+	protected Map<GwtEvent<Handler>, List<Vertex>> refreshNodes = new HashMap<GwtEvent<Handler>, List<Vertex>>();
+	
 	public SubclassesGrid(EventBus eventBus) {
 		super(eventBus, Type.SUBCLASS_OF);
 	}
@@ -159,11 +165,19 @@ public class SubclassesGrid extends MenuTermsGrid {
 	}
 	
 	@Override
-	protected void onRemoveRelationEffectiveInModel(Edge r) {
+	protected void onRemoveRelationEffectiveInModel(GwtEvent event, Edge r) {
 		if(r.getType().equals(type)) {
 			Vertex dest = r.getDest();
 			for(Row row : getRowsWhereIncluded(dest)) 
 				grid.getStore().update(row);
+			
+			OntologyGraph g = ModelController.getCollection().getGraph();
+			if(this.refreshNodes.containsKey(event)) {
+				for(Vertex visibleNode : refreshNodes.get(event)) {
+					this.updateVertex(visibleNode);
+				}
+				refreshNodes.remove(event);
+			}
 		}
 	}
 	
@@ -206,6 +220,39 @@ public class SubclassesGrid extends MenuTermsGrid {
 	protected void createRowFromEdgeDrop(Edge edge) {
 		if(!leadRowMap.containsKey(edge.getDest()))
 			this.addRow(new Row(edge.getDest()));
+	}
+	
+	@Override
+	protected void removeAttached(GwtEvent event, Row row, Edge r, boolean recursive) {
+		row.remove(r);
+		updateRow(row);
+		
+		OntologyGraph g = ModelController.getCollection().getGraph();
+		if(leadRowMap.containsKey(r.getDest())) {
+			if(g.getInRelations(r.getDest()).size() <= 1) {
+				Row targetRow = leadRowMap.get(r.getDest());
+				removeRow(event, targetRow, recursive);
+			}
+		}
+	}
+	
+	@Override
+	public void removeRow(GwtEvent event, Row row, boolean recursive) {
+		if(!recursive) {
+			OntologyGraph g = ModelController.getCollection().getGraph();
+			Vertex lead = row.getLead();
+			List<Edge> inRelations = g.getInRelations(lead, type);
+			if(inRelations.size() == 1 && inRelations.get(0).getSrc().equals(g.getRoot(type))) {
+				List<Vertex> refreshNodes = new LinkedList<Vertex>();
+				for(Edge e : row.getAttached()) {
+					List<Edge> in = g.getInRelations(e.getDest());
+					if(in.size() == 2) 
+						refreshNodes.add(e.getDest());
+				}
+				this.refreshNodes.put(event, refreshNodes);
+			}
+		} 
+		super.removeRow(event, row, recursive);
 	}
 
 }

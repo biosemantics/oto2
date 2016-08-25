@@ -108,7 +108,8 @@ public class AttachedCell extends MenuExtendedCell<Row> {
 				"You are about to remove " + termsGrid.getType().getTargetLabel() + "<i>" + relation.getDest() + "</i>"
 				+ " from <i>" + relation.getSrc() + "</i>.\n" +
 				"Do you want to remove all " + termsGrid.getType().getTargetLabelPlural() + " of <i>" + relation.getDest() + "</i> (Yes)" +
-				" or make them instead a " + termsGrid.getType().getTargetLabel() + " of <i>" + relation.getSrc() + "</i> (No)?");
+				" or, where they do not have multiple " + termsGrid.getType().getSourceLabelPlural() + ", make them instead a "
+						+ "" + termsGrid.getType().getTargetLabel() + " of <i>" + relation.getSrc() + "</i> (No)?");
 		box.getButton(PredefinedButton.YES).addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {

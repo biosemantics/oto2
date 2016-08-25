@@ -2,6 +2,7 @@ package edu.arizona.biosemantics.oto2.ontologize2.shared;
 
 import java.util.List;
 
+import com.google.gwt.event.shared.GwtEvent;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
@@ -36,5 +37,7 @@ public interface ICollectionService extends RemoteService {
 	public void close(int collectionId, String secret, Vertex vertex, Type type, boolean close) throws Exception;
 	
 	public void order(int id, String secret, Vertex src, List<Edge> edges, Type type) throws Exception;
+	
+	public List<GwtEvent<?>> importRelations(int collectionId, String secret, Type type, String text) throws Exception;
 
 }

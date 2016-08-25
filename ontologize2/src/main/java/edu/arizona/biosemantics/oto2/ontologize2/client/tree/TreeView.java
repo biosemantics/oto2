@@ -21,6 +21,7 @@ import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.event.shared.GwtEvent;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.client.ui.Label;
@@ -63,6 +64,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveCandidateEve
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.SelectTermEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.Handler;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid.Row;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.TextTreeNodeProperties;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.VertexCell;
@@ -199,19 +201,19 @@ public class TreeView extends SimpleContainer {
 			public void onRemove(RemoveRelationEvent event) {
 				if(!event.isEffectiveInModel())
 					for(Edge r : event.getRelations())
-						removeRelation(r, event.isRecursive());
+						removeRelation(event, r, event.isRecursive());
 				else
 					for(Edge r : event.getRelations()) 
-						onRemoveRelationEffectiveInModel(r);
+						onRemoveRelationEffectiveInModel(event, r, event.isRecursive());
 			}
 		});
 		eventBus.addHandler(ReplaceRelationEvent.TYPE, new ReplaceRelationEvent.Handler() {
 			@Override
 			public void onReplace(ReplaceRelationEvent event) {
 				if(!event.isEffectiveInModel()) {
-					replaceRelation(event.getOldRelation(), event.getNewSource());
+					replaceRelation(event, event.getOldRelation(), event.getNewSource());
 				} else {
-					onReplaceRelationEffectiveInModel(event.getOldRelation(), event.getNewSource());
+					onReplaceRelationEffectiveInModel(event, event.getOldRelation(), event.getNewSource());
 				}
 			}
 		});
@@ -260,7 +262,7 @@ public class TreeView extends SimpleContainer {
 		});
 	}
 	
-	protected void replaceRelation(Edge oldRelation, Vertex newSource) {
+	protected void replaceRelation(ReplaceRelationEvent event, Edge oldRelation, Vertex newSource) {
 		if(oldRelation.getType().equals(type)) {
 			if(vertexNodeMap.containsKey(oldRelation.getDest()) && vertexNodeMap.containsKey(newSource)) {
 				VertexTreeNode targetNode = vertexNodeMap.get(oldRelation.getDest()).iterator().next();
@@ -274,18 +276,15 @@ public class TreeView extends SimpleContainer {
 		}
 	}
 
-	protected void onReplaceRelationEffectiveInModel(Edge relation, Vertex vertex) {
-		// TODO Auto-generated method stub
+	protected void onReplaceRelationEffectiveInModel(GwtEvent event, Edge relation, Vertex vertex) {
 		
 	}
 
 	protected void onLoadCollectionEffectiveInModel() {
-		// TODO Auto-generated method stub
 		
 	}
 
-	protected void onRemoveRelationEffectiveInModel(Edge r) {
-		// TODO Auto-generated method stub
+	protected void onRemoveRelationEffectiveInModel(GwtEvent event, Edge r, boolean recursive) {
 		
 	}
 
@@ -338,7 +337,8 @@ public class TreeView extends SimpleContainer {
 		}
 	}
 	
-	protected void removeRelation(Edge r, boolean recursive) {
+	protected void removeRelation(GwtEvent event, Edge r, boolean recursive) {
+		OntologyGraph g = ModelController.getCollection().getGraph();
 		if(r.getType().equals(type)) {
 			if(vertexNodeMap.containsKey(r.getSrc()) && vertexNodeMap.containsKey(r.getDest())) {
 				VertexTreeNode sourceNode = vertexNodeMap.get(r.getSrc()).iterator().next();
@@ -348,7 +348,9 @@ public class TreeView extends SimpleContainer {
 				} else {
 					List<TreeNode<VertexTreeNode>> targetChildNodes = new LinkedList<TreeNode<VertexTreeNode>>();
 					for(VertexTreeNode targetChild : store.getChildren(targetNode)) {
-						targetChildNodes.add(store.getSubTree(targetChild));
+						List<Edge> inRelations = g.getInRelations(targetChild.getVertex());
+						if(inRelations.size() <= 1) 
+							targetChildNodes.add(store.getSubTree(targetChild));
 					}
 					remove(targetNode);
 					store.addSubTree(sourceNode, store.getChildCount(sourceNode), targetChildNodes);

@@ -403,10 +403,10 @@ public class TermsGrid implements IsWidget {
 			public void onRemove(RemoveRelationEvent event) {
 				if(!event.isEffectiveInModel())
 					for(Edge r : event.getRelations())
-						removeRelation(r, event.isRecursive());
+						removeRelation(event, r, event.isRecursive());
 				else 
 					for(Edge r : event.getRelations())
-						onRemoveRelationEffectiveInModel(r);
+						onRemoveRelationEffectiveInModel(event, r);
 			}
 		});
 		eventBus.addHandler(ReplaceRelationEvent.TYPE, new ReplaceRelationEvent.Handler() {
@@ -477,7 +477,7 @@ public class TermsGrid implements IsWidget {
 		
 	}
 
-	protected void onRemoveRelationEffectiveInModel(Edge r) {
+	protected void onRemoveRelationEffectiveInModel(GwtEvent event, Edge r) {
 		// TODO Auto-generated method stub
 		
 	}
@@ -517,14 +517,14 @@ public class TermsGrid implements IsWidget {
 		}
 	}
 
-	protected void removeRelation(Edge r, boolean recursive) {
+	protected void removeRelation(GwtEvent event, Edge r, boolean recursive) {
 		OntologyGraph g = ModelController.getCollection().getGraph();
 		if(r.getType().equals(type)) {
 			if(r.getSrc().equals(g.getRoot(type))) {
-				removeRow(r.getDest(), recursive);
+				removeRow(event, r.getDest(), recursive);
 			} else if(leadRowMap.containsKey(r.getSrc())) {
 				Row row = leadRowMap.get(r.getSrc());
-				removeAttached(row, r, recursive);
+				removeAttached(event, row, r, recursive);
 			} else {
 				Alerter.showAlert("Failed to remove relation", "Failed to remove relation");
 			}
@@ -554,18 +554,18 @@ public class TermsGrid implements IsWidget {
 		leadRowMap.put(row.getLead(), row);
 	}
 	
-	public void removeRow(Vertex lead, boolean recursive) {
+	public void removeRow(GwtEvent event,Vertex lead, boolean recursive) {
 		if(leadRowMap.containsKey(lead)) {
-			this.removeRow(this.leadRowMap.get(lead), recursive);
+			this.removeRow(event, this.leadRowMap.get(lead), recursive);
 		}
 	}
 	
-	public void removeRow(Row row, boolean recursive) {
+	public void removeRow(GwtEvent event, Row row, boolean recursive) {
 		if(recursive) {
 			for(Edge relation : row.getAttached()) {
 				if(leadRowMap.containsKey(relation.getDest())) {
 					Row attachedRow = leadRowMap.get(relation.getDest());
-					removeRow(attachedRow, true);
+					removeRow(event, attachedRow, true);
 				}
 			}
 		} else {
@@ -616,13 +616,13 @@ public class TermsGrid implements IsWidget {
 		}
 	}
 	
-	protected void removeAttached(Row row, Edge r, boolean recursive) {
+	protected void removeAttached(GwtEvent event, Row row, Edge r, boolean recursive) {
 		row.remove(r);
 		updateRow(row);
 		
 		if(leadRowMap.containsKey(r.getDest())) {
 			Row targetRow = leadRowMap.get(r.getDest());
-			removeRow(targetRow, recursive);
+			removeRow(event, targetRow, recursive);
 		}
 	}
 	
@@ -633,6 +633,11 @@ public class TermsGrid implements IsWidget {
 			this.reconfigureForAttachedTerms(row.getAttachedCount());
 			store.update(row);
 		}
+	}
+	
+	protected void updateVertex(Vertex v) {
+		for(Row row : this.getRowsWhereIncluded(v))
+			store.update(row);
 	}
 	
 	public List<Row> getRowsWhereIncluded(Vertex v) {

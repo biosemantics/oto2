@@ -9,15 +9,20 @@ import java.io.ObjectOutputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
+import com.google.gwt.event.shared.GwtEvent;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
 import edu.arizona.biosemantics.common.log.LogLevel;
+import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.server.owl.OWLWriter;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.AddCandidateResult;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.ICollectionService;
@@ -89,7 +94,7 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	}
 
 	@Override
-	public void update(Collection collection) throws Exception {
+	public synchronized void update(Collection collection) throws Exception {
 		Collection storedCollection = this.get(collection.getId(), collection.getSecret());
 		if(storedCollection.getSecret().equals(collection.getSecret())) {
 			serializeCollection(collection);
@@ -97,7 +102,7 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	}
 
 	@Override
-	public boolean add(int collectionId, String secret, Edge relation)	throws Exception {
+	public synchronized boolean add(int collectionId, String secret, Edge relation)	throws Exception {
 		Collection collection = this.get(collectionId, secret);
 		boolean result = collection.getGraph().addRelation(relation);
 		update(collection);
@@ -105,7 +110,7 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	}
 	
 	@Override
-	public void remove(int collectionId, String secret, Edge relation, boolean recursive) throws Exception {
+	public synchronized void remove(int collectionId, String secret, Edge relation, boolean recursive) throws Exception {
 		try {
 			Collection collection = this.get(collectionId, secret);
 			collection.getGraph().removeRelation(relation, recursive);
@@ -116,14 +121,14 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	}
 	
 	@Override
-	public void replace(int collectionId, String secret, Edge oldRelation, Vertex newSource) throws Exception {
+	public synchronized void replace(int collectionId, String secret, Edge oldRelation, Vertex newSource) throws Exception {
 		Collection collection = this.get(collectionId, secret);
 		collection.getGraph().replaceRelation(oldRelation, newSource);
 		update(collection);
 	}
 
 	@Override
-	public AddCandidateResult add(int collectionId, String secret, List<Candidate> candidates) throws Exception {
+	public synchronized AddCandidateResult add(int collectionId, String secret, List<Candidate> candidates) throws Exception {
 		Collection collection = this.get(collectionId, secret);
 		List<Candidate> successfully = new LinkedList<Candidate>();
 		List<Candidate> unsuccessfully = new LinkedList<Candidate>();
@@ -142,7 +147,7 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	}
 
 	@Override
-	public void remove(int collectionId, String secret, List<Candidate> candidates) throws Exception {
+	public synchronized void remove(int collectionId, String secret, List<Candidate> candidates) throws Exception {
 		Collection collection = this.get(collectionId, secret);
 		for(Candidate candidate : candidates) 
 			collection.getCandidates().remove(candidate.getText());
@@ -150,7 +155,7 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	}
 
 	@Override
-	public String[][] getOWL(int collectionId, String secret) throws Exception {
+	public synchronized String[][] getOWL(int collectionId, String secret) throws Exception {
 		try {
 			Collection c = this.get(collectionId, secret);
 			OWLWriter ow = new OWLWriter(c);
@@ -176,17 +181,72 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	}
 
 	@Override
-	public void close(int collectionId, String secret, Vertex vertex, Type type, boolean close) throws Exception {
+	public synchronized void close(int collectionId, String secret, Vertex vertex, Type type, boolean close) throws Exception {
 		Collection collection = this.get(collectionId, secret);
 		collection.getGraph().setClosedRelation(vertex, type, close);
 		update(collection);
 	}
 
 	@Override
-	public void order(int collectionId, String secret, Vertex src, List<Edge> edges, Type type) throws Exception {
+	public synchronized void order(int collectionId, String secret, Vertex src, List<Edge> edges, Type type) throws Exception {
 		Collection collection = this.get(collectionId, secret);
 		collection.getGraph().setOrderedEdges(src, edges, type);
 		update(collection);
+	}
+	
+	@Override
+	public synchronized List<GwtEvent<?>> importRelations(int collectionId, String secret, Type type, String text) throws Exception {
+		List<GwtEvent<?>> result = new LinkedList<GwtEvent<?>>();
+		Collection collection = this.get(collectionId, secret);
+		
+		OntologyGraph g = collection.getGraph();
+		Vertex root = new Vertex(type.getRootLabel());
+		String[] lines = text.split("\\n");
+		Set<Vertex> alreadyAttached = new HashSet<Vertex>(collection.getGraph().getVertices());						
+		for(String line : lines) {
+			String[] terms = line.split(",");
+			
+			if(!terms[0].trim().isEmpty()) {
+				Vertex source = new Vertex(terms[0].trim());
+				if(!alreadyAttached.contains(source)) {
+					Edge newEdge = new Edge(root, source, type, Origin.USER);
+					collection.getGraph().addRelation(newEdge);
+					result.add(new CreateRelationEvent(newEdge));
+					alreadyAttached.add(source);
+				}
+				for(int i=1; i<terms.length; i++) {
+					if(terms[i].trim().isEmpty()) 
+						continue;
+					Vertex target = new Vertex(terms[i].trim());
+					
+					if(collection.getGraph().isClosedRelations(source, type)) {
+						throw new Exception("Can not create relation for a closed row.");
+					}
+					
+					if(alreadyAttached.contains(target)) {
+						Edge rootEdge = new Edge(g.getRoot(type), target, type, Origin.USER);
+						if(g.existsRelation(rootEdge)) {
+							collection.getGraph().replaceRelation(rootEdge, source);
+							result.add(new ReplaceRelationEvent(rootEdge, source));
+						} else {
+							Edge newEdge = new Edge(source, target, type, Origin.USER);
+							collection.getGraph().addRelation(newEdge);
+							result.add(new CreateRelationEvent(newEdge));
+						}
+					} else {
+						Edge newEdge = new Edge(source, target, type, Origin.USER);
+						collection.getGraph().addRelation(newEdge);
+						result.add(new CreateRelationEvent(newEdge));
+						alreadyAttached.add(target);
+					}
+				}
+			} else {
+				throw new Exception("Malformed input");
+			}
+		}
+
+		update(collection);	
+		return result;
 	}
 
 }

@@ -2,6 +2,7 @@ package edu.arizona.biosemantics.oto2.ontologize2.shared;
 
 import java.util.List;
 
+import com.google.gwt.event.shared.GwtEvent;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Candidate;
@@ -34,5 +35,6 @@ public interface ICollectionServiceAsync {
 	public void close(int collectionId, String secret, Vertex vertex, Type type, boolean close, AsyncCallback<Void> callback);
 
 	public void order(int id, String secret, Vertex src, List<Edge> edges, Type type, AsyncCallback<Void> callback);
-		
+
+	public void importRelations(int collectionId, String secret, Type type, String text, AsyncCallback<List<GwtEvent<?>>> callback);
 }

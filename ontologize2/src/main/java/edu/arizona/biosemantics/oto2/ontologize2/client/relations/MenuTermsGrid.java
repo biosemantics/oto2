@@ -37,6 +37,8 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize2.client.common.TextAreaMessageBox;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.ImportEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Origin;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Type;
@@ -112,35 +114,8 @@ public class MenuTermsGrid extends TermsGrid {
 				box.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
 					@Override
 					public void onSelect(SelectEvent event) {
-						Vertex root = new Vertex(type.getRootLabel());
-						String input = box.getValue();
-						String[] lines = input.split("\\n");						
-						for(String line : lines) {
-							String[] terms = line.split(",");
-							Set<Vertex> alreadyAttached = new HashSet<Vertex>(leadRowMap.keySet());
-							
-							if(!terms[0].trim().isEmpty()) {
-								Vertex source = new Vertex(terms[0]);
-								if(!alreadyAttached.contains(source)) {
-									fire(new CreateRelationEvent(new Edge(root, source, type, Origin.USER)));
-									alreadyAttached.add(source);
-								}
-								for(int i=1; i<terms.length; i++) {
-									if(terms[i].trim().isEmpty()) 
-										continue;
-									Vertex target = new Vertex(terms[i]);
-									
-									if(ModelController.getCollection().getGraph().isClosedRelations(source, type)) {
-										Alerter.showAlert("Create Relation", "Can not create relation for a closed row.");
-										continue;
-									}
-									fire(new CreateRelationEvent(new Edge(source, target, type, Origin.USER)));
-									alreadyAttached.add(target);
-								}
-							} else {
-								Alerter.showAlert("Import", "Malformed input");
-							}
-						}
+						fire(new ImportEvent(type, box.getValue().trim()));
+						box.hide();
 					}
 				});
 				box.show();

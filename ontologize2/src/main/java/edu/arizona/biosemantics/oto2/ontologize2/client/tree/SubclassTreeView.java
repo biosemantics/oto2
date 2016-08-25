@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.Stack;
 
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.event.shared.GwtEvent;
 import com.sencha.gxt.data.shared.TreeStore.TreeNode;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
@@ -18,6 +19,8 @@ import com.sencha.gxt.widget.core.client.menu.Menu;
 
 import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.Handler;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid.Row;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.VertexTreeNode;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph;
@@ -30,6 +33,7 @@ public class SubclassTreeView extends TreeView {
 
 	private Stack<Vertex> rootStack = new Stack<Vertex>();
 	private TextButton backButton;
+	protected Map<GwtEvent<Handler>, List<VertexTreeNode>> visiblilityCheckNodes = new HashMap<GwtEvent<Handler>, List<VertexTreeNode>>();
 	
 	public SubclassTreeView(EventBus eventBus) {
 		super(eventBus, Type.SUBCLASS_OF);
@@ -127,20 +131,20 @@ public class SubclassTreeView extends TreeView {
 	}
 	
 	@Override
-	protected void replaceRelation(Edge oldRelation, Vertex newSource) {
+	protected void replaceRelation(ReplaceRelationEvent event, Edge oldRelation, Vertex newSource) {
 		if(oldRelation.getType().equals(type)) {
 			Edge newRelation = new Edge(newSource, oldRelation.getDest(), oldRelation.getType(), oldRelation.getOrigin());
 			if(!isVisible(newRelation)) {
-				removeRelation(oldRelation, true);
+				removeRelation(event, oldRelation, true);
 				return;
 			}else
-				super.replaceRelation(oldRelation, newSource);
+				super.replaceRelation(event, oldRelation, newSource);
 		}
 	}
 
 	private void refreshNodes(Set<VertexTreeNode> nodes) {
 		for(VertexTreeNode n : nodes) {
-			treeGrid.getStore().update(n);
+			store.update(n);
 		}
 	}
 
@@ -184,13 +188,56 @@ public class SubclassTreeView extends TreeView {
 	}
 	
 	@Override
-	protected void onRemoveRelationEffectiveInModel(Edge r) {
+	protected void removeRelation(GwtEvent event, Edge r, boolean recursive) {
+		OntologyGraph g = ModelController.getCollection().getGraph();
+		if(r.getType().equals(type)) {
+			if(vertexNodeMap.containsKey(r.getSrc()) && vertexNodeMap.containsKey(r.getDest())) {
+				VertexTreeNode targetNode = vertexNodeMap.get(r.getDest()).iterator().next();
+				if(!recursive) {
+					List<VertexTreeNode> visibleNodes = new LinkedList<VertexTreeNode>();
+					for(VertexTreeNode targetChild : store.getChildren(targetNode)) {
+						List<Edge> inRelations = g.getInRelations(targetChild.getVertex());
+						if(inRelations.size() == 2) 
+							visibleNodes.add(targetChild);
+					}
+					visiblilityCheckNodes.put(event, visibleNodes);
+				}
+			}
+		}
+		super.removeRelation(event, r, recursive);
+	}
+	
+	@Override
+	protected void onReplaceRelationEffectiveInModel(GwtEvent event, Edge r, Vertex vertex) {
+		if(r.getType().equals(type)) {
+			OntologyGraph g = ModelController.getCollection().getGraph();
+			if(this.visiblilityCheckNodes.containsKey(event)) {
+				for(VertexTreeNode visibleNode : visiblilityCheckNodes.get(event)) {
+					createFromVertex(g, visibleNode.getVertex());
+					refreshNodes(vertexNodeMap.get(visibleNode.getVertex()));
+				}
+				visiblilityCheckNodes.remove(event);
+			}
+		}
+	}
+	
+	@Override
+	protected void onRemoveRelationEffectiveInModel(GwtEvent event, Edge r, boolean recursive) {
 		if(r.getType().equals(type)) {
 			if(!isVisible(r))
 				return;
 			if(vertexNodeMap.containsKey(r.getDest()))
 				refreshNodes(vertexNodeMap.get(r.getDest()));
-		}
+			
+			OntologyGraph g = ModelController.getCollection().getGraph();
+			if(this.visiblilityCheckNodes.containsKey(event)) {
+				for(VertexTreeNode visibleNode : visiblilityCheckNodes.get(event)) {
+					createFromVertex(g, visibleNode.getVertex());
+					refreshNodes(vertexNodeMap.get(visibleNode.getVertex()));
+				}
+				visiblilityCheckNodes.remove(event);
+			}
+		}		
 	}
 	
 	@Override

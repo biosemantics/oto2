@@ -163,15 +163,15 @@ public class SynonymsGrid extends MenuTermsGrid {
 	}
 	
 	@Override
-	protected void removeRelation(Edge r, boolean recursive) {
+	protected void removeRelation(GwtEvent event, Edge r, boolean recursive) {
 		OntologyGraph graph = ModelController.getCollection().getGraph();
 		if(r.getSrc().equals(graph.getRoot(type))) {
 			if(leadRowMap.containsKey(r.getDest())) {
 				Row row = leadRowMap.get(r.getDest());
-				this.removeRow(row, true);
+				this.removeRow(event, row, true);
 			}
 		} else
-			super.removeRelation(r, recursive);
+			super.removeRelation(event, r, recursive);
 	}
 	
 	@Override

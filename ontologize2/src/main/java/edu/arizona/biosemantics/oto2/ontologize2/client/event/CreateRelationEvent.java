@@ -10,7 +10,7 @@ import com.google.gwt.event.shared.GwtEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent.Handler;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge;
 
-public class CreateRelationEvent extends GwtEvent<Handler> implements Serializable {
+public class CreateRelationEvent extends GwtEvent<Handler> implements Serializable, HasIsRemoteEvent {
 
 	public interface Handler extends EventHandler {
 		void onCreate(CreateRelationEvent event);
@@ -19,6 +19,7 @@ public class CreateRelationEvent extends GwtEvent<Handler> implements Serializab
     public static Type<Handler> TYPE = new Type<Handler>();
 	private Edge[] relations = new Edge[] { };
 	private boolean isEffectiveInModel = false;
+	private boolean isRemote = true;
 	
 	private CreateRelationEvent() { }
 	
@@ -46,6 +47,14 @@ public class CreateRelationEvent extends GwtEvent<Handler> implements Serializab
 
 	public boolean isEffectiveInModel() {
 		return isEffectiveInModel;
+	}
+	
+	public void setIsRemote(boolean isRemote) {
+		this.isRemote = isRemote;
+	}
+
+	public boolean isRemote() {
+		return isRemote;
 	}
 
 	public void setEffectiveInModel(boolean isEffectiveInModel) {
