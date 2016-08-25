@@ -245,9 +245,10 @@ public class TermsGrid implements IsWidget {
 					OntologyGraph g = ModelController.getCollection().getGraph();
 					List<Edge> inRelations = g.getInRelations(v, type);
 					if(inRelations.size() > 1) {
-						Alerter.showAlert("Moving", "Moving of term with more than one " + 
-								type.getSourceLabelPlural() + " is not allowed"); // at this time
-						event.setCancelled(true);
+						//Alerter.showAlert("Moving", "Moving of term with more than one " + 
+						//		type.getSourceLabelPlural() + " is not allowed"); // at this time
+						//event.setCancelled(true);
+						event.setData(inRelations);
 					} else if(inRelations.size() == 1)
 						event.setData(inRelations.get(0));
 					else {
@@ -310,11 +311,11 @@ public class TermsGrid implements IsWidget {
 			dropTargetNewRow.addDropHandler(new DndDropHandler() {
 				@Override
 				public void onDrop(DndDropEvent event) {
-					if(event.getData() instanceof List<?>) {
+					if(event.getData() instanceof List<?>) {						
 						List<?> list = (List<?>)event.getData();
-						if(list.size() == 1) {
-							Object item = list.get(0);
-							if(item instanceof Candidate) {
+						if(!list.isEmpty()) {
+							if(list.get(0) instanceof Candidate) {
+								Object item = list.get(0);
 								Vertex source = new Vertex(type.getRootLabel());
 								Vertex target = new Vertex(((Candidate)item).getText());
 								List<Row> attachedRows = TermsGrid.this.getRowsWhereIncluded(target);
@@ -331,6 +332,9 @@ public class TermsGrid implements IsWidget {
 									if(!TermsGrid.this.leadRowMap.containsKey(target))
 										TermsGrid.this.addRow(new Row(target));
 								}
+							}
+							else if(list.get(0) instanceof Edge) {
+								createRowFromEdgeDrop((Edge)list.get(0));
 							}
 						}
 					}
