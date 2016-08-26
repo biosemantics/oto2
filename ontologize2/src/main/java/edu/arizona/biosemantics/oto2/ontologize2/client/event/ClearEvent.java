@@ -29,8 +29,7 @@ public class ClearEvent extends GwtEvent<Handler> {
 	}
 
 	public boolean isEffectiveInModel() {
-		// TODO Auto-generated method stub
-		return false;
+		return isEffectiveInModel;
 	}
 	
 	public void setIsEffectiveInModel(boolean value) {
