@@ -48,6 +48,7 @@ import com.sencha.gxt.widget.core.client.grid.filters.StringFilter;
 
 import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.ClearEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.OrderEdgesEvent;
@@ -391,6 +392,13 @@ public class TermsGrid implements IsWidget {
 				}
 			}
 		}); 
+		eventBus.addHandler(ClearEvent.TYPE, new ClearEvent.Handler() {
+			@Override
+			public void onClear(ClearEvent event) {
+				store.clear();
+				leadRowMap.clear();
+			}
+		});
 		eventBus.addHandler(CreateRelationEvent.TYPE, new CreateRelationEvent.Handler() {
 			@Override
 			public void onCreate(CreateRelationEvent event) {

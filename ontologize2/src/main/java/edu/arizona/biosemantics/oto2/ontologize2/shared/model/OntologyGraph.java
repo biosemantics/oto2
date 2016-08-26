@@ -219,6 +219,7 @@ public class OntologyGraph implements Serializable {
 		}
 	}
 	
+	private Type[] types;
 	private DirectedSparseMultigraph<Vertex, Edge> graph;
 	private Map<String, Vertex> index;
 	private Map<Vertex, Set<Type>> closedRelations;
@@ -227,12 +228,8 @@ public class OntologyGraph implements Serializable {
 	public OntologyGraph() { }
 	
 	public OntologyGraph(Type... types) {
-		graph = new DirectedSparseMultigraph<Vertex, Edge>();
-		index = new HashMap<String, Vertex>();
-		closedRelations = new HashMap<Vertex, Set<Type>>();
-		orderedEdges = new HashMap<Vertex, Map<Type, List<Edge>>>();
-		for (Type type : types)
-			this.addVertex(new Vertex(type.getRootLabel()));
+		this.types = types;
+		init();
 	}
 	
 	private boolean addVertex(Vertex vertex) {
@@ -754,5 +751,14 @@ public class OntologyGraph implements Serializable {
 			result.addAll(getAllSources(e.getSrc(), type));
 		}
 		return result;
+	}
+
+	public void init() {
+		graph = new DirectedSparseMultigraph<Vertex, Edge>();
+		index = new HashMap<String, Vertex>();
+		closedRelations = new HashMap<Vertex, Set<Type>>();
+		orderedEdges = new HashMap<Vertex, Map<Type, List<Edge>>>();
+		for (Type type : types)
+			this.addVertex(new Vertex(type.getRootLabel()));
 	}
 }

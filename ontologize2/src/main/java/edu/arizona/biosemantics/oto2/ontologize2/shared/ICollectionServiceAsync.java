@@ -37,4 +37,6 @@ public interface ICollectionServiceAsync {
 	public void order(int id, String secret, Vertex src, List<Edge> edges, Type type, AsyncCallback<Void> callback);
 
 	public void importRelations(int collectionId, String secret, Type type, String text, AsyncCallback<List<GwtEvent<?>>> callback);
+
+	public void clear(int id, String secret, AsyncCallback<Void> callback);
 }

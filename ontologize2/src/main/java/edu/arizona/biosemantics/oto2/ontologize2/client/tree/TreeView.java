@@ -57,6 +57,7 @@ import com.sencha.gxt.widget.core.client.treegrid.TreeGrid;
 import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize2.client.candidate.TermTreeNodeIconProvider;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.ClearEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.OrderEdgesEvent;
@@ -184,6 +185,13 @@ public class TreeView extends SimpleContainer {
 				}
 			}
 		}); 
+		eventBus.addHandler(ClearEvent.TYPE, new ClearEvent.Handler() {
+			@Override
+			public void onClear(ClearEvent event) {
+				store.clear();
+				vertexNodeMap.clear();
+			}
+		});
 		eventBus.addHandler(CreateRelationEvent.TYPE, new CreateRelationEvent.Handler() {
 			@Override
 			public void onCreate(CreateRelationEvent event) {

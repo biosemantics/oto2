@@ -15,6 +15,7 @@ import com.sencha.gxt.data.shared.Store;
 import com.sencha.gxt.data.shared.Store.StoreFilter;
 import com.sencha.gxt.messages.client.DefaultMessages;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
+import com.sencha.gxt.widget.core.client.box.MessageBox;
 import com.sencha.gxt.widget.core.client.box.MultiLinePromptMessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.SimpleContainer;
@@ -36,6 +37,7 @@ import com.sencha.gxt.widget.core.client.toolbar.ToolBar;
 import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize2.client.common.TextAreaMessageBox;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.ClearEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ImportEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
@@ -143,6 +145,28 @@ public class MenuTermsGrid extends TermsGrid {
 			}
 		});
 		
+		
+		TextButton clearButton = new TextButton("Clear");
+		clearButton.addSelectHandler(new SelectHandler() {
+			@Override
+			public void onSelect(SelectEvent event) {
+				final MessageBox box = Alerter.showConfirm("Remove All Rows", "Are you sure you want to remove all rows");
+				box.getButton(PredefinedButton.YES).addSelectHandler(new SelectHandler() {
+					@Override
+					public void onSelect(SelectEvent event) {
+						fire(new ClearEvent());
+						box.hide();
+					}
+				});
+				box.getButton(PredefinedButton.NO).addSelectHandler(new SelectHandler() {
+					@Override
+					public void onSelect(SelectEvent event) {
+						box.hide();
+					}
+				});
+			}
+		});
+		
 		/*
 		TextButton consolidateButton = new TextButton("Consolidate");
 		consolidateButton.addSelectHandler(new SelectHandler() {
@@ -192,6 +216,7 @@ public class MenuTermsGrid extends TermsGrid {
 		
 		buttonBar.add(importButton);
 		buttonBar.add(exportButton);
+		buttonBar.add(clearButton);
 		//buttonBar.add(consolidateButton);
 		//buttonBar.add(removeButton);
 		

@@ -11,6 +11,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.web.bindery.event.shared.EventBus;
 import com.sencha.gxt.widget.core.client.box.MessageBox;
 
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.ClearEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CloseRelationsEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateCandidateEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
@@ -48,6 +49,12 @@ public class ModelController {
 			@Override
 			public void onLoad(LoadCollectionEvent event) {
 				loadCollection(event);
+			}
+		});
+		eventBus.addHandler(ClearEvent.TYPE, new ClearEvent.Handler() {
+			@Override
+			public void onClear(ClearEvent event) {
+				clearRelations();
 			}
 		});
 		eventBus.addHandler(ImportEvent.TYPE, new ImportEvent.Handler() {
@@ -100,6 +107,24 @@ public class ModelController {
 		});
 	}
 	
+	protected void clearRelations() {
+		final MessageBox box = Alerter.startLoading();
+		final MessageBox box2 = Alerter.startLoading();
+		collectionService.clear(collection.getId(), collection.getSecret(), new AsyncCallback<Void>() {
+			@Override
+			public void onFailure(Throwable caught) {
+				Alerter.showAlert("Data out of sync", "The data became out of sync with the server. Please reload the window.", caught);
+				Alerter.stopLoading(box);
+			}
+			@Override
+			public void onSuccess(Void result) {
+				Alerter.stopLoading(box);
+			}
+		});
+		collection.getGraph().init();
+		Alerter.stopLoading(box2);
+	}
+
 	protected void orderEdges(OrderEdgesEvent event) {
 		if(!event.isEffectiveInModel()) {
 			final MessageBox box = Alerter.startLoading();
@@ -117,7 +142,7 @@ public class ModelController {
 				}
 			});
 			try {
-				ModelController.getCollection().getGraph().setOrderedEdges(event.getSrc(), event.getEdges(), event.getType());
+				collection.getGraph().setOrderedEdges(event.getSrc(), event.getEdges(), event.getType());
 			} catch (Exception e) {
 				Alerter.showAlert("Data out of sync", "The data became out of sync with the server. Please reload the window.", e);
 			}
@@ -144,7 +169,7 @@ public class ModelController {
 				}
 			});
 			
-			ModelController.getCollection().getGraph().setClosedRelation(event.getVertex(), event.getType(), event.isClose());
+			collection.getGraph().setClosedRelation(event.getVertex(), event.getType(), event.isClose());
 			event.setEffectiveInModel(true);
 			eventBus.fireEvent(event);
 			Alerter.stopLoading(box2);

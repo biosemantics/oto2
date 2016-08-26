@@ -126,6 +126,13 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 		collection.getGraph().replaceRelation(oldRelation, newSource);
 		update(collection);
 	}
+	
+	@Override
+	public synchronized void clear(int collectionId, String secret) throws Exception {
+		Collection collection = this.get(collectionId, secret);
+		collection.getGraph().init();
+		update(collection);
+	}
 
 	@Override
 	public synchronized AddCandidateResult add(int collectionId, String secret, List<Candidate> candidates) throws Exception {
@@ -248,5 +255,7 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 		update(collection);	
 		return result;
 	}
+
+
 
 }
