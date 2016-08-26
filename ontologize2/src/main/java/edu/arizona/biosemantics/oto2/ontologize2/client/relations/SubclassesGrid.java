@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.Style.BorderStyle;
@@ -43,7 +44,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph;
 
 public class SubclassesGrid extends MenuTermsGrid {
 
-	protected Map<GwtEvent<Handler>, List<Vertex>> refreshNodes = new HashMap<GwtEvent<Handler>, List<Vertex>>();
+	protected Map<GwtEvent<?>, Set<Vertex>> refreshNodes = new HashMap<GwtEvent<?>, Set<Vertex>>();
 	
 	public SubclassesGrid(EventBus eventBus) {
 		super(eventBus, Type.SUBCLASS_OF);
@@ -165,7 +166,7 @@ public class SubclassesGrid extends MenuTermsGrid {
 	}
 	
 	@Override
-	protected void onRemoveRelationEffectiveInModel(GwtEvent event, Edge r) {
+	protected void onRemoveRelationEffectiveInModel(GwtEvent<?> event, Edge r) {
 		if(r.getType().equals(type)) {
 			Vertex dest = r.getDest();
 			for(Row row : getRowsWhereIncluded(dest)) 
@@ -223,13 +224,13 @@ public class SubclassesGrid extends MenuTermsGrid {
 	}
 	
 	@Override
-	protected void removeAttached(GwtEvent event, Row row, Edge r, boolean recursive) {
+	protected void removeAttached(GwtEvent<?> event, Row row, Edge r, boolean recursive) {
 		row.remove(r);
 		updateRow(row);
 		
 		OntologyGraph g = ModelController.getCollection().getGraph();
 		if(leadRowMap.containsKey(r.getDest())) {
-			if(g.getInRelations(r.getDest()).size() <= 1) {
+			if(g.getInRelations(r.getDest(), type).size() <= 1) {
 				Row targetRow = leadRowMap.get(r.getDest());
 				removeRow(event, targetRow, recursive);
 			}
@@ -237,19 +238,28 @@ public class SubclassesGrid extends MenuTermsGrid {
 	}
 	
 	@Override
-	public void removeRow(GwtEvent event, Row row, boolean recursive) {
-		if(!recursive) {
-			OntologyGraph g = ModelController.getCollection().getGraph();
+	public void removeRow(GwtEvent<?> event, Row row, boolean recursive) {
+		if(!this.refreshNodes.containsKey(event))
+			this.refreshNodes.put(event, new HashSet<Vertex>());
+		OntologyGraph g = ModelController.getCollection().getGraph();
+		if(recursive) {
+			List<Vertex> refreshNodes = new LinkedList<Vertex>();
+			List<Vertex> recursiveDestinations = g.getAllDestinations(row.getLead(), type);
+			for(Vertex dest : recursiveDestinations) 
+				if(g.getInRelations(dest, type).size() == 2)
+					refreshNodes.add(dest);
+			this.refreshNodes.get(event).addAll(refreshNodes);
+		} else {
 			Vertex lead = row.getLead();
 			List<Edge> inRelations = g.getInRelations(lead, type);
 			if(inRelations.size() == 1 && inRelations.get(0).getSrc().equals(g.getRoot(type))) {
 				List<Vertex> refreshNodes = new LinkedList<Vertex>();
 				for(Edge e : row.getAttached()) {
-					List<Edge> in = g.getInRelations(e.getDest());
+					List<Edge> in = g.getInRelations(e.getDest(), type);
 					if(in.size() == 2) 
 						refreshNodes.add(e.getDest());
 				}
-				this.refreshNodes.put(event, refreshNodes);
+				this.refreshNodes.get(event).addAll(refreshNodes);
 			}
 		} 
 		super.removeRow(event, row, recursive);

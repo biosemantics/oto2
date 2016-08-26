@@ -33,7 +33,7 @@ public class SubclassTreeView extends TreeView {
 
 	private Stack<Vertex> rootStack = new Stack<Vertex>();
 	private TextButton backButton;
-	protected Map<GwtEvent<Handler>, List<VertexTreeNode>> visiblilityCheckNodes = new HashMap<GwtEvent<Handler>, List<VertexTreeNode>>();
+	protected Map<GwtEvent<?>, Set<VertexTreeNode>> visiblilityCheckNodes = new HashMap<GwtEvent<?>, Set<VertexTreeNode>>();
 	
 	public SubclassTreeView(EventBus eventBus) {
 		super(eventBus, Type.SUBCLASS_OF);
@@ -144,7 +144,8 @@ public class SubclassTreeView extends TreeView {
 
 	private void refreshNodes(Set<VertexTreeNode> nodes) {
 		for(VertexTreeNode n : nodes) {
-			store.update(n);
+			if(store.findModel(n) != null)
+				store.update(n);
 		}
 	}
 
@@ -188,27 +189,51 @@ public class SubclassTreeView extends TreeView {
 	}
 	
 	@Override
-	protected void removeRelation(GwtEvent event, Edge r, boolean recursive) {
+	protected void removeRelation(GwtEvent<?> event, Edge r, boolean recursive) {
+		if(!this.visiblilityCheckNodes.containsKey(event))
+			this.visiblilityCheckNodes.put(event, new HashSet<VertexTreeNode>());
 		OntologyGraph g = ModelController.getCollection().getGraph();
 		if(r.getType().equals(type)) {
 			if(vertexNodeMap.containsKey(r.getSrc()) && vertexNodeMap.containsKey(r.getDest())) {
-				VertexTreeNode targetNode = vertexNodeMap.get(r.getDest()).iterator().next();
-				if(!recursive) {
-					List<VertexTreeNode> visibleNodes = new LinkedList<VertexTreeNode>();
-					for(VertexTreeNode targetChild : store.getChildren(targetNode)) {
-						List<Edge> inRelations = g.getInRelations(targetChild.getVertex());
-						if(inRelations.size() == 2) 
-							visibleNodes.add(targetChild);
+				VertexTreeNode sourceNode = vertexNodeMap.get(r.getSrc()).iterator().next();
+				Set<VertexTreeNode> targetCandidates = vertexNodeMap.get(r.getDest());
+				VertexTreeNode targetNode = null;
+				for(VertexTreeNode child : store.getChildren(sourceNode)) 
+					if(targetCandidates.contains(child)) 
+						targetNode = child;
+				
+				if(targetNode != null) {
+					if(recursive) {
+						List<VertexTreeNode> visibleNodes = new LinkedList<VertexTreeNode>();
+						List<VertexTreeNode> recursiveChildren = store.getAllChildren(targetNode);
+						for(VertexTreeNode child : recursiveChildren) 
+							if(g.getInRelations(child.getVertex(), type).size() == 2)
+								visibleNodes.add(child);
+						visiblilityCheckNodes.get(event).addAll(visibleNodes);
+						
+						remove(targetNode);
+					} else {
+						List<TreeNode<VertexTreeNode>> targetChildNodes = new LinkedList<TreeNode<VertexTreeNode>>();
+						List<VertexTreeNode> visibleNodes = new LinkedList<VertexTreeNode>();
+						for(VertexTreeNode targetChild : store.getChildren(targetNode)) {
+							List<Edge> inRelations = g.getInRelations(targetChild.getVertex(), type);
+							if(inRelations.size() <= 1) 
+								targetChildNodes.add(store.getSubTree(targetChild));
+							if(inRelations.size() == 2) 
+								visibleNodes.add(targetChild);
+						}
+						visiblilityCheckNodes.get(event).addAll(visibleNodes);
+						
+						remove(targetNode);
+						store.addSubTree(sourceNode, store.getChildCount(sourceNode), targetChildNodes);
 					}
-					visiblilityCheckNodes.put(event, visibleNodes);
 				}
 			}
 		}
-		super.removeRelation(event, r, recursive);
-	}
+	}	
 	
 	@Override
-	protected void onReplaceRelationEffectiveInModel(GwtEvent event, Edge r, Vertex vertex) {
+	protected void onReplaceRelationEffectiveInModel(GwtEvent<?> event, Edge r, Vertex vertex) {
 		if(r.getType().equals(type)) {
 			OntologyGraph g = ModelController.getCollection().getGraph();
 			if(this.visiblilityCheckNodes.containsKey(event)) {
@@ -222,7 +247,7 @@ public class SubclassTreeView extends TreeView {
 	}
 	
 	@Override
-	protected void onRemoveRelationEffectiveInModel(GwtEvent event, Edge r, boolean recursive) {
+	protected void onRemoveRelationEffectiveInModel(GwtEvent<?> event, Edge r, boolean recursive) {
 		if(r.getType().equals(type)) {
 			if(!isVisible(r))
 				return;
@@ -233,7 +258,8 @@ public class SubclassTreeView extends TreeView {
 			if(this.visiblilityCheckNodes.containsKey(event)) {
 				for(VertexTreeNode visibleNode : visiblilityCheckNodes.get(event)) {
 					createFromVertex(g, visibleNode.getVertex());
-					refreshNodes(vertexNodeMap.get(visibleNode.getVertex()));
+					if(vertexNodeMap.containsKey(visibleNode.getVertex()))
+						refreshNodes(vertexNodeMap.get(visibleNode.getVertex()));
 				}
 				visiblilityCheckNodes.remove(event);
 			}

@@ -481,7 +481,7 @@ public class TermsGrid implements IsWidget {
 		
 	}
 
-	protected void onRemoveRelationEffectiveInModel(GwtEvent event, Edge r) {
+	protected void onRemoveRelationEffectiveInModel(GwtEvent<?> event, Edge r) {
 		// TODO Auto-generated method stub
 		
 	}
@@ -521,7 +521,7 @@ public class TermsGrid implements IsWidget {
 		}
 	}
 
-	protected void removeRelation(GwtEvent event, Edge r, boolean recursive) {
+	protected void removeRelation(GwtEvent<?> event, Edge r, boolean recursive) {
 		OntologyGraph g = ModelController.getCollection().getGraph();
 		if(r.getType().equals(type)) {
 			if(r.getSrc().equals(g.getRoot(type))) {
@@ -558,30 +558,30 @@ public class TermsGrid implements IsWidget {
 		leadRowMap.put(row.getLead(), row);
 	}
 	
-	public void removeRow(GwtEvent event,Vertex lead, boolean recursive) {
+	public void removeRow(GwtEvent<?> event,Vertex lead, boolean recursive) {
 		if(leadRowMap.containsKey(lead)) {
 			this.removeRow(event, this.leadRowMap.get(lead), recursive);
 		}
 	}
 	
-	public void removeRow(GwtEvent event, Row row, boolean recursive) {
+	public void removeRow(GwtEvent<?> event, Row row, boolean recursive) {
+		OntologyGraph g = ModelController.getCollection().getGraph();
 		if(recursive) {
 			for(Edge relation : row.getAttached()) {
-				if(leadRowMap.containsKey(relation.getDest())) {
+				if(g.getInRelations(relation.getDest(), type).size() == 1 && leadRowMap.containsKey(relation.getDest())) {
 					Row attachedRow = leadRowMap.get(relation.getDest());
 					removeRow(event, attachedRow, true);
 				}
 			}
 		} else {
-			OntologyGraph graph = ModelController.getCollection().getGraph();
 			Vertex lead = row.getLead();
-			List<Edge> inRelations = graph.getInRelations(lead, type);
-			if(inRelations.size() == 1 && inRelations.get(0).getSrc().equals(graph.getRoot(type))) {
+			List<Edge> inRelations = g.getInRelations(lead, type);
+			if(inRelations.size() == 1 && inRelations.get(0).getSrc().equals(g.getRoot(type))) {
 				for(Edge e : row.getAttached())
 					if(!leadRowMap.containsKey(e.getDest()))
 						this.addRow(new Row(e.getDest()));
 			} else {
-				for(Edge r : graph.getInRelations(lead, type)) {
+				for(Edge r : g.getInRelations(lead, type)) {
 					if(leadRowMap.containsKey(r.getSrc())) {
 						try {
 							Row targetRow = leadRowMap.get(r.getSrc());
@@ -620,7 +620,7 @@ public class TermsGrid implements IsWidget {
 		}
 	}
 	
-	protected void removeAttached(GwtEvent event, Row row, Edge r, boolean recursive) {
+	protected void removeAttached(GwtEvent<?> event, Row row, Edge r, boolean recursive) {
 		row.remove(r);
 		updateRow(row);
 		

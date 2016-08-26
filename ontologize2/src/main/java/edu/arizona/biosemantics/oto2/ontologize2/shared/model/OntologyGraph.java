@@ -625,19 +625,20 @@ public class OntologyGraph implements Serializable {
 		if(recursive) {
 			removeEdge(e);
 			for(Edge outRelation : this.getOutRelations(e.getDest(), e.getType())) {
-				this.removeRelation(outRelation, recursive);
+				if(this.getInRelations(outRelation.getDest()).size() == 1) 
+					this.removeRelation(outRelation, recursive);
 			}
 			if(this.getInRelations(e.getDest(), e.getType()).isEmpty()) {
 				this.removeVertex(e.getDest());
 			}
 		} else {
 			removeEdge(e);
-			List<Edge> inRelations = this.getInRelations(e.getDest());
+			List<Edge> inRelations = this.getInRelations(e.getDest(), e.getType());
 			if(inRelations.size() == 0) {	
 				for(Edge outRelation : this.getOutRelations(e.getDest(), e.getType())) {
-					List<Edge> in = this.getInRelations(outRelation.getDest());
-					inRelations.remove(outRelation);
-					if(inRelations.isEmpty()) {
+					List<Edge> in = this.getInRelations(outRelation.getDest(), e.getType());
+					in.remove(outRelation);
+					if(in.isEmpty()) {
 						try {
 							Edge newEdge = new Edge(e.getSrc(), outRelation.getDest(), e.getType(), Origin.USER);
 							this.addRelation(newEdge);
@@ -735,5 +736,23 @@ public class OntologyGraph implements Serializable {
 		if(!orderedEdges.get(v).containsKey(type))
 			return new LinkedList<Edge>();
 		return orderedEdges.get(v).get(type);
+	}
+
+	public List<Vertex> getAllDestinations(Vertex src, Type type) {
+		List<Vertex> result = new LinkedList<Vertex>();
+		for(Edge e : this.getOutRelations(src, type)) { 
+			result.add(e.getDest());
+			result.addAll(getAllDestinations(e.getDest(), type));
+		}
+		return result;
+	}
+	
+	public List<Vertex> getAllSources(Vertex dest, Type type) {
+		List<Vertex> result = new LinkedList<Vertex>();
+		for(Edge e : this.getInRelations(dest, type)) { 
+			result.add(e.getSrc());
+			result.addAll(getAllSources(e.getSrc(), type));
+		}
+		return result;
 	}
 }

@@ -276,7 +276,7 @@ public class TreeView extends SimpleContainer {
 		}
 	}
 
-	protected void onReplaceRelationEffectiveInModel(GwtEvent event, Edge relation, Vertex vertex) {
+	protected void onReplaceRelationEffectiveInModel(GwtEvent<?> event, Edge relation, Vertex vertex) {
 		
 	}
 
@@ -284,7 +284,7 @@ public class TreeView extends SimpleContainer {
 		
 	}
 
-	protected void onRemoveRelationEffectiveInModel(GwtEvent event, Edge r, boolean recursive) {
+	protected void onRemoveRelationEffectiveInModel(GwtEvent<?> event, Edge r, boolean recursive) {
 		
 	}
 
@@ -337,7 +337,7 @@ public class TreeView extends SimpleContainer {
 		}
 	}
 	
-	protected void removeRelation(GwtEvent event, Edge r, boolean recursive) {
+	protected void removeRelation(GwtEvent<?> event, Edge r, boolean recursive) {
 		OntologyGraph g = ModelController.getCollection().getGraph();
 		if(r.getType().equals(type)) {
 			if(vertexNodeMap.containsKey(r.getSrc()) && vertexNodeMap.containsKey(r.getDest())) {
@@ -348,7 +348,7 @@ public class TreeView extends SimpleContainer {
 				} else {
 					List<TreeNode<VertexTreeNode>> targetChildNodes = new LinkedList<TreeNode<VertexTreeNode>>();
 					for(VertexTreeNode targetChild : store.getChildren(targetNode)) {
-						List<Edge> inRelations = g.getInRelations(targetChild.getVertex());
+						List<Edge> inRelations = g.getInRelations(targetChild.getVertex(), type);
 						if(inRelations.size() <= 1) 
 							targetChildNodes.add(store.getSubTree(targetChild));
 					}
