@@ -354,7 +354,7 @@ public class TreeView extends SimpleContainer {
 				VertexTreeNode sourceNode = vertexNodeMap.get(r.getSrc()).iterator().next();
 				VertexTreeNode targetNode = vertexNodeMap.get(r.getDest()).iterator().next();
 				if(recursive) {
-					remove(targetNode);
+					remove(targetNode, true);
 				} else {
 					List<TreeNode<VertexTreeNode>> targetChildNodes = new LinkedList<TreeNode<VertexTreeNode>>();
 					for(VertexTreeNode targetChild : store.getChildren(targetNode)) {
@@ -362,7 +362,7 @@ public class TreeView extends SimpleContainer {
 						if(inRelations.size() <= 1) 
 							targetChildNodes.add(store.getSubTree(targetChild));
 					}
-					remove(targetNode);
+					remove(targetNode, false);
 					store.addSubTree(sourceNode, store.getChildCount(sourceNode), targetChildNodes);
 				}
 			}
@@ -381,13 +381,14 @@ public class TreeView extends SimpleContainer {
 		}
 		
 		VertexTreeNode parent = store.getParent(oldNode);
-		remove(oldNode);
+		remove(oldNode, false);
 		add(parent, newNode);
 		store.addSubTree(newNode, 0, childNodes);
 	}
 	
-	protected void remove(VertexTreeNode node) {
-		removeAllChildren(node);
+	protected void remove(VertexTreeNode node, boolean removeChildren) {
+		if(removeChildren)
+			removeAllChildren(node);
 		store.remove(node);
 		if(vertexNodeMap.containsKey(node.getVertex())) {
 			vertexNodeMap.get(node.getVertex()).remove(node);

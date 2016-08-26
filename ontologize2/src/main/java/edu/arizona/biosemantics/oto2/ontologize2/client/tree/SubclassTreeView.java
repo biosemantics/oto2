@@ -206,7 +206,7 @@ public class SubclassTreeView extends TreeView {
 								visibleNodes.add(child);
 						visiblilityCheckNodes.get(event).addAll(visibleNodes);
 						
-						remove(targetNode);
+						remove(targetNode, true);
 					} else {
 						List<TreeNode<VertexTreeNode>> targetChildNodes = new LinkedList<TreeNode<VertexTreeNode>>();
 						List<VertexTreeNode> visibleNodes = new LinkedList<VertexTreeNode>();
@@ -219,7 +219,7 @@ public class SubclassTreeView extends TreeView {
 						}
 						visiblilityCheckNodes.get(event).addAll(visibleNodes);
 						
-						store.remove(targetNode);
+						remove(targetNode, false);
 						store.addSubTree(sourceNode, store.getChildCount(sourceNode), targetChildNodes);
 					}
 				}
