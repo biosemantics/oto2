@@ -54,7 +54,7 @@ public class ModelController {
 		eventBus.addHandler(ClearEvent.TYPE, new ClearEvent.Handler() {
 			@Override
 			public void onClear(ClearEvent event) {
-				clearRelations();
+				clearRelations(event);
 			}
 		});
 		eventBus.addHandler(ImportEvent.TYPE, new ImportEvent.Handler() {
@@ -107,22 +107,26 @@ public class ModelController {
 		});
 	}
 	
-	protected void clearRelations() {
-		final MessageBox box = Alerter.startLoading();
-		final MessageBox box2 = Alerter.startLoading();
-		collectionService.clear(collection.getId(), collection.getSecret(), new AsyncCallback<Void>() {
-			@Override
-			public void onFailure(Throwable caught) {
-				Alerter.showAlert("Data out of sync", "The data became out of sync with the server. Please reload the window.", caught);
-				Alerter.stopLoading(box);
-			}
-			@Override
-			public void onSuccess(Void result) {
-				Alerter.stopLoading(box);
-			}
-		});
-		collection.getGraph().init();
-		Alerter.stopLoading(box2);
+	protected void clearRelations(ClearEvent event) {
+		if(!event.isEffectiveInModel()) {
+			final MessageBox box = Alerter.startLoading();
+			final MessageBox box2 = Alerter.startLoading();
+			collectionService.clear(collection.getId(), collection.getSecret(), new AsyncCallback<Void>() {
+				@Override
+				public void onFailure(Throwable caught) {
+					Alerter.showAlert("Data out of sync", "The data became out of sync with the server. Please reload the window.", caught);
+					Alerter.stopLoading(box);
+				}
+				@Override
+				public void onSuccess(Void result) {
+					Alerter.stopLoading(box);
+				}
+			});
+			collection.getGraph().init();
+			event.setIsEffectiveInModel(true);
+			eventBus.fireEvent(event);
+			Alerter.stopLoading(box2);
+		}
 	}
 
 	protected void orderEdges(OrderEdgesEvent event) {

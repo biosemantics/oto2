@@ -172,11 +172,6 @@ public class SubclassTreeView extends TreeView {
 			this.createFromRoot(g, v);
 		}
 	}
-
-	@Override
-	protected void createFromRoot(OntologyGraph g, Vertex root) {
-		super.createFromRoot(g, root);
-	}
 	
 	@Override
 	protected void onCreateRelationEffectiveInModel(Edge r) {
@@ -224,14 +219,14 @@ public class SubclassTreeView extends TreeView {
 						}
 						visiblilityCheckNodes.get(event).addAll(visibleNodes);
 						
-						remove(targetNode);
+						store.remove(targetNode);
 						store.addSubTree(sourceNode, store.getChildCount(sourceNode), targetChildNodes);
 					}
 				}
 			}
 		}
 	}	
-	
+
 	@Override
 	protected void onReplaceRelationEffectiveInModel(GwtEvent<?> event, Edge r, Vertex vertex) {
 		if(r.getType().equals(type)) {

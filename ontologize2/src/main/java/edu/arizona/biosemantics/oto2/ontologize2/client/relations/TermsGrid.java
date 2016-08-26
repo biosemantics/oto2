@@ -395,8 +395,10 @@ public class TermsGrid implements IsWidget {
 		eventBus.addHandler(ClearEvent.TYPE, new ClearEvent.Handler() {
 			@Override
 			public void onClear(ClearEvent event) {
-				store.clear();
-				leadRowMap.clear();
+				if(event.isEffectiveInModel()) {
+					store.clear();
+					leadRowMap.clear();
+				}
 			}
 		});
 		eventBus.addHandler(CreateRelationEvent.TYPE, new CreateRelationEvent.Handler() {

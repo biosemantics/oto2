@@ -13,6 +13,7 @@ public class ClearEvent extends GwtEvent<Handler> {
 	}
 	
     public static Type<Handler> TYPE = new Type<Handler>();
+	private boolean isEffectiveInModel = false;
 
     public ClearEvent() {
     }
@@ -25,6 +26,15 @@ public class ClearEvent extends GwtEvent<Handler> {
 	@Override
 	protected void dispatch(Handler handler) {
 		handler.onClear(this);
+	}
+
+	public boolean isEffectiveInModel() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	
+	public void setIsEffectiveInModel(boolean value) {
+		this.isEffectiveInModel  = value;
 	}
 
 }
