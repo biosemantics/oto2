@@ -188,8 +188,8 @@ public class TreeView extends SimpleContainer {
 		eventBus.addHandler(ClearEvent.TYPE, new ClearEvent.Handler() {
 			@Override
 			public void onClear(ClearEvent event) {
-				store.clear();
-				vertexNodeMap.clear();
+				OntologyGraph g = ModelController.getCollection().getGraph();
+				createFromRoot(g, g.getRoot(type));
 			}
 		});
 		eventBus.addHandler(CreateRelationEvent.TYPE, new CreateRelationEvent.Handler() {
