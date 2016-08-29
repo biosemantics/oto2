@@ -377,11 +377,13 @@ public class OntologyGraph implements Serializable {
 	}
 
 	public boolean existsRelation(Edge r) {
-		for(Edge e : graph.getOutEdges(r.getSrc())) {
-            if(graph.getOpposite(r.getSrc(), e).equals(r.getDest()))
-            	if(e.getType().equals(r.getType()))
-            		return true;
-        }
+		if(graph.containsVertex(r.getSrc()) && graph.containsVertex(r.getDest())) {
+			for(Edge e : graph.getOutEdges(r.getSrc())) {
+	            if(graph.getOpposite(r.getSrc(), e).equals(r.getDest()))
+	            	if(e.getType().equals(r.getType()))
+	            		return true;
+	        }
+		}
 		return false;
 	}
 
@@ -760,5 +762,19 @@ public class OntologyGraph implements Serializable {
 		orderedEdges = new HashMap<Vertex, Map<Type, List<Edge>>>();
 		for (Type type : types)
 			this.addVertex(new Vertex(type.getRootLabel()));
+	}
+
+	public boolean containsVertex(Vertex vertex) {
+		return graph.containsVertex(vertex);
+	}
+
+	public int getMaxOutRelations(Type type) {
+		int max = 0;
+		for(Vertex v : this.getVertices()) {
+			int size = this.getOutRelations(v, type).size();
+			if(size > max)
+				max = size;
+		}
+		return max;
 	}
 }

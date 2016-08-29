@@ -314,6 +314,7 @@ public class TreeView extends SimpleContainer {
 
 	protected void createFromVertex(OntologyGraph g, Vertex source) {
 		for(Edge r : g.getOutRelations(source, type)) {
+			System.out.println(r);
 			createRelation(r);
 			createFromVertex(g, r.getDest());
 		}

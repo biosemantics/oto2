@@ -100,26 +100,29 @@ public class SynonymsGrid extends MenuTermsGrid {
 	
 	@Override
 	protected void onLoad(OntologyGraph g) {
-		createEdges(g, g.getRoot(type), new HashSet<String>());
+		this.reconfigureForAttachedTerms(g.getMaxOutRelations(type));
+		createEdges(g, g.getRoot(type), new HashSet<String>(), false);
+		grid.getView().refresh(false);
 	}
 	
 	@Override
-	protected void createRelation(Edge r) {
+	protected void createRelation(Edge r, boolean updateRow) {
 		if(r.getType().equals(type)) {
 			OntologyGraph g = ModelController.getCollection().getGraph();
 			if(r.getSrc().equals(g.getRoot(type))) {
 				if(!leadRowMap.containsKey(r.getDest()))
 					this.addRow(new Row(r.getDest()));
 			} else {
-				super.createRelation(r);
+				super.createRelation(r, updateRow);
 			}
 		}
 	}
 	
 	@Override
-	protected void addAttached(Row row, Edge... add) throws Exception {
+	protected void addAttached(boolean updateRow, Row row, Edge... add) throws Exception {
 		row.add(Arrays.asList(add));
-		updateRow(row);
+		if(updateRow)
+			updateRow(row);
 	}
 	
 	@Override
@@ -203,7 +206,7 @@ public class SynonymsGrid extends MenuTermsGrid {
 				Row newRow = leadRowMap.get(newSource);
 				try {
 					for(Vertex newAttach : newAttached)
-						addAttached(newRow, new Edge(newSource, newAttach, oldRelation.getType(), oldRelation.getOrigin()));
+						addAttached(true, newRow, new Edge(newSource, newAttach, oldRelation.getType(), oldRelation.getOrigin()));
 				} catch (Exception e) {
 					Alerter.showAlert("Failed to replace relation", "Failed to replace relation");
 					return;

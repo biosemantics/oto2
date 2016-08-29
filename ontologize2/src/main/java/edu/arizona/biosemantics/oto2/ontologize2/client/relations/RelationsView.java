@@ -20,9 +20,9 @@ public class RelationsView extends SimpleContainer {
 	public RelationsView(final EventBus eventBus) {
 		this.eventBus = eventBus;
 		
-		final PartsGrid partsGrid = new PartsGrid(eventBus);
+		//final PartsGrid partsGrid = new PartsGrid(eventBus);
 		final SubclassesGrid subclassGrid = new SubclassesGrid(eventBus);
-		final SynonymsGrid synonymGrid = new SynonymsGrid(eventBus);
+		//final SynonymsGrid synonymGrid = new SynonymsGrid(eventBus);
 		
 		/*VerticalLayoutContainer vlc = new VerticalLayoutContainer();
 		vlc.add(subclassGrid.asWidget(), new VerticalLayoutData(1, 0.33));
@@ -45,8 +45,8 @@ public class RelationsView extends SimpleContainer {
 		tabPanel.setTabScroll(true);
 		tabPanel.setAnimScroll(true);
 		tabPanel.add(subclassGrid, new TabItemConfig("Categories", false));
-		tabPanel.add(partsGrid, new TabItemConfig("Parts", false));
-		tabPanel.add(synonymGrid, new TabItemConfig("Synonyms", false));
+		//tabPanel.add(partsGrid, new TabItemConfig("Parts", false));
+		//tabPanel.add(synonymGrid, new TabItemConfig("Synonyms", false));
 		this.add(tabPanel);
 	}
 

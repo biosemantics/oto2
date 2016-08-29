@@ -406,7 +406,7 @@ public class TermsGrid implements IsWidget {
 			public void onCreate(CreateRelationEvent event) {
 				if(!event.isEffectiveInModel())
 					for(Edge r : event.getRelations())
-						createRelation(r);
+						createRelation(r, true);
 				else
 					for(Edge r : event.getRelations())
 						onCreateRelationEffectiveInModel(r);
@@ -477,7 +477,7 @@ public class TermsGrid implements IsWidget {
 				}
 				Row newRow = leadRowMap.get(newSource);
 				try {
-					addAttached(newRow, new Edge(newSource, oldRelation.getDest(), oldRelation.getType(), oldRelation.getOrigin()));
+					addAttached(true, newRow, new Edge(newSource, oldRelation.getDest(), oldRelation.getType(), oldRelation.getOrigin()));
 				} catch (Exception e) {
 					Alerter.showAlert("Failed to replace relation", "Failed to replace relation");
 					return;
@@ -512,21 +512,24 @@ public class TermsGrid implements IsWidget {
 	}
 	
 	protected void onLoad(OntologyGraph g) {
+		this.reconfigureForAttachedTerms(g.getMaxOutRelations(type));
 		Row rootRow = new Row(g.getRoot(type));
 		addRow(rootRow);
 		
-		createEdges(g, g.getRoot(type), new HashSet<String>());
+		createEdges(g, g.getRoot(type), new HashSet<String>(), false);
 		//grid.reconfigure(store, createColumnModel(this.getAll()));
 		//grid.getView().refresh(true);
+		grid.getView().refresh(false);
 	}
 	
-	protected void createEdges(OntologyGraph g, Vertex source, Set<String> createdRelations) {
+	protected void createEdges(OntologyGraph g, Vertex source, Set<String> createdRelations, boolean updateRow) {
 		for(Edge r : g.getOutRelations(source, type)) {
+			System.out.println(r);
 			String relationIdentifier = r.getSrc().getValue() + " - " + r.getDest().getValue() + " " + r.getType().toString();
 			if(!createdRelations.contains(relationIdentifier)) {
 				createdRelations.add(relationIdentifier);
-				createRelation(r);
-				createEdges(g, r.getDest(), createdRelations);
+				createRelation(r, updateRow);
+				createEdges(g, r.getDest(), createdRelations, updateRow);
 			}
 		}
 	}
@@ -545,7 +548,7 @@ public class TermsGrid implements IsWidget {
 		}
 	}
 
-	protected void createRelation(Edge r) {
+	protected void createRelation(Edge r, boolean updateRow) {
 		if(r.getType().equals(type)) {
 			Row row = null;
 			if(leadRowMap.containsKey(r.getSrc())) {
@@ -555,7 +558,7 @@ public class TermsGrid implements IsWidget {
 				this.addRow(row);
 			}	
 			try {
-				addAttached(row, new Edge(r.getSrc(), r.getDest(), r.getType(), r.getOrigin()));
+				addAttached(updateRow, row, new Edge(r.getSrc(), r.getDest(), r.getType(), r.getOrigin()));
 			} catch (Exception e) {
 				Alerter.showAlert("Failed to create relation", "Failed to create relation");
 				return;
@@ -619,15 +622,16 @@ public class TermsGrid implements IsWidget {
 		leadRowMap.remove(row.getLead());
 	}
 
-	protected void addAttached(Row row, Edge... add) throws Exception {
+	protected void addAttached(boolean updateRow, Row row, Edge... add) throws Exception {
 		row.add(Arrays.asList(add));
-		updateRow(row);
-		for(Edge r : add) {
-			/*if(!leadRowMap.containsKey(r.getDest())) {
+		if(updateRow);
+			updateRow(row);
+		/*for(Edge r : add) {
+			if(!leadRowMap.containsKey(r.getDest())) {
 				Row addRow = new Row(r.getDest());
 				this.addRow(addRow);
-			}*/
-		}
+			}
+		}*/
 	}
 	
 	protected void removeAttached(GwtEvent<?> event, Row row, Edge r, boolean recursive) {
@@ -690,7 +694,8 @@ public class TermsGrid implements IsWidget {
 		return new ArrayList<Row>(grid.getStore().getAll());
 	}
 
-	private void reconfigureForAttachedTerms(int attachedTermsCount) {
+	protected void reconfigureForAttachedTerms(int attachedTermsCount) {
+		System.out.println("reconfigure");
 		grid.reconfigure(store, createColumnModel(attachedTermsCount));
 	}
 	

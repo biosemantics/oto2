@@ -123,7 +123,11 @@ public class SubclassesGrid extends MenuTermsGrid {
 	
 	@Override
 	protected void onLoad(OntologyGraph g) {
-		createEdges(g, g.getRoot(type), new HashSet<String>());
+		this.reconfigureForAttachedTerms(g.getMaxOutRelations(type));
+		
+		createEdges(g, g.getRoot(type), new HashSet<String>(), false);
+		
+		grid.getView().refresh(false);
 	}
 		
 	protected void createRelation(Edge r) {
@@ -133,7 +137,7 @@ public class SubclassesGrid extends MenuTermsGrid {
 				if(!leadRowMap.containsKey(r.getDest()))
 					this.addRow(new Row(r.getDest()));
 			} else {
-				super.createRelation(r);
+				super.createRelation(r, true);
 			}
 		}
 		
@@ -150,9 +154,9 @@ public class SubclassesGrid extends MenuTermsGrid {
 					Vertex parentSrc = parentRelation.getSrc();
 					Vertex disambiguatedDest = new Vertex(parentSrc + " " + dest);
 					
-					super.createRelation(new Edge(dest, disambiguatedDest, Type.SUBCLASS_OF, Origin.USER));
+					super.createRelation(new Edge(dest, disambiguatedDest, Type.SUBCLASS_OF, Origin.USER), true);
 				}
-				super.createRelation(new Edge(dest, new Vertex(newValue), Type.SUBCLASS_OF, Origin.USER));
+				super.createRelation(new Edge(dest, new Vertex(newValue), Type.SUBCLASS_OF, Origin.USER), true);
 			}
 		}
 	}

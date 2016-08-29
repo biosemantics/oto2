@@ -163,11 +163,13 @@ public class PartsGrid extends MenuTermsGrid {
 	
 	@Override
 	protected void onLoad(OntologyGraph g) {
-		createEdges(g, g.getRoot(type), new HashSet<String>());
+		this.reconfigureForAttachedTerms(g.getMaxOutRelations(type));
+		createEdges(g, g.getRoot(type), new HashSet<String>(), false);
+		grid.getView().refresh(false);
 	}
 
 	@Override
-	protected void createRelation(Edge r) {		
+	protected void createRelation(Edge r, boolean updateRow) {		
 		if(r.getType().equals(type)) {
 			OntologyGraph g = ModelController.getCollection().getGraph();
 			Vertex dest = r.getDest();
@@ -188,14 +190,14 @@ public class PartsGrid extends MenuTermsGrid {
 					if(!leadRowMap.containsKey(r.getDest()))
 						this.addRow(new Row(r.getDest()));
 				} else {
-					super.createRelation(r);
+					super.createRelation(r, updateRow);
 				}
 			} else {
 				if(r.getSrc().equals(g.getRoot(type))) {
 					if(!leadRowMap.containsKey(r.getDest()))
 						this.addRow(new Row(r.getDest()));
 				} else {
-					super.createRelation(r);
+					super.createRelation(r, updateRow);
 				}
 			}
 		}

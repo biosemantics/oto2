@@ -156,6 +156,7 @@ public class SubclassTreeView extends TreeView {
 			return;
 		} else {
 			for(Edge r : g.getOutRelations(source, type)) {
+				System.out.println(r);
 				createRelation(r);
 				createFromVertex(g, r.getDest());
 			}

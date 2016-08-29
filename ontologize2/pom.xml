@@ -7,7 +7,7 @@
 	<groupId>edu.arizona.biosemantics.oto2</groupId>
 	<artifactId>ontologize2</artifactId>
 	<packaging>war</packaging>
-	<version>0.0.8-SNAPSHOT</version>
+	<version>0.0.10-SNAPSHOT</version>
 
 	<properties>
 		<gwtVersion>2.6.1</gwtVersion>
@@ -41,15 +41,20 @@
 	</repositories>
 
 	<dependencies>
-		<dependency>
-			<groupId>edu.arizona.biosemantics.common.ontology</groupId>
-		 	<artifactId>graph</artifactId>
-		  	<version>0.0.7-SNAPSHOT</version>
+			<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>5.1.35</version>
 		</dependency>
 		<dependency>
 			<groupId>edu.arizona.biosemantics.common.ontology</groupId>
 		 	<artifactId>graph</artifactId>
-		  	<version>0.0.7-SNAPSHOT</version>
+		  	<version>0.0.8-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>edu.arizona.biosemantics.common.ontology</groupId>
+		 	<artifactId>graph</artifactId>
+		  	<version>0.0.8-SNAPSHOT</version>
 		  	<classifier>sources</classifier>
 		</dependency>
 		<dependency>
