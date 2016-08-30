@@ -97,4 +97,8 @@ public class Collection implements Serializable, Comparable<Collection> {
 		return candidates;
 	}
 
+	@Override
+	public String toString() {
+		return ontologyGraph.toString();
+	}
 }

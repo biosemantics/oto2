@@ -236,10 +236,10 @@ public class MenuTermsGrid extends TermsGrid {
 		checkFilterItem.setChecked(activate, true);
 		if(!activate) {
 			filterField.setText("");
-			store.removeFilters();
-			store.setEnableFilters(false);
+			allRowStore.removeFilters();
+			allRowStore.setEnableFilters(false);
 		} else {
-			store.addFilter(new StoreFilter<Row>() {
+			allRowStore.addFilter(new StoreFilter<Row>() {
 				@Override
 				public boolean select(Store<Row> store, Row parent, Row item) {
 					String all = item.getLead().getValue() + " ";
@@ -248,8 +248,9 @@ public class MenuTermsGrid extends TermsGrid {
 					return all.contains(filterField.getText());
 				}
 			});
-			store.setEnableFilters(true);
+			allRowStore.setEnableFilters(true);
 		}
+		loader.load(loader.getLastLoadConfig());
 	}
 
 	protected String createExport() {

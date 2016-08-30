@@ -27,10 +27,19 @@ import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.core.client.Style.HideMode;
 import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
+import com.sencha.gxt.data.client.loader.RpcProxy;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.PropertyAccess;
+import com.sencha.gxt.data.shared.SortDir;
+import com.sencha.gxt.data.shared.SortInfoBean;
 import com.sencha.gxt.data.shared.TreeStore.TreeNode;
+import com.sencha.gxt.data.shared.loader.FilterPagingLoadConfig;
+import com.sencha.gxt.data.shared.loader.FilterPagingLoadConfigBean;
+import com.sencha.gxt.data.shared.loader.LoadResultListStoreBinding;
+import com.sencha.gxt.data.shared.loader.PagingLoadConfig;
+import com.sencha.gxt.data.shared.loader.PagingLoadResult;
+import com.sencha.gxt.data.shared.loader.PagingLoader;
 import com.sencha.gxt.dnd.core.client.DND.Operation;
 import com.sencha.gxt.dnd.core.client.DndDragStartEvent;
 import com.sencha.gxt.dnd.core.client.DndDropEvent;
@@ -40,11 +49,13 @@ import com.sencha.gxt.dnd.core.client.DropTarget;
 import com.sencha.gxt.state.client.GridFilterStateHandler;
 import com.sencha.gxt.widget.core.client.container.SimpleContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
+import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.Grid;
 import com.sencha.gxt.widget.core.client.grid.filters.GridFilters;
 import com.sencha.gxt.widget.core.client.grid.filters.StringFilter;
+import com.sencha.gxt.widget.core.client.toolbar.PagingToolBar;
 
 import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
@@ -207,11 +218,13 @@ public class TermsGrid implements IsWidget {
 
 		@Path("all")
 		ValueProvider<Row, List<Vertex>> all();
+		
+		@Path("lead")
+		ValueProvider<Row, Vertex> lead();
 	}
 	
 	protected EventBus eventBus;
 	private RowProperties rowProperties = GWT.create(RowProperties.class);
-	protected ListStore<Row> store;
 	protected Map<Vertex, Row> leadRowMap = new HashMap<Vertex, Row>();
 	protected Grid<Row> grid;
 	protected SimpleContainer createRowContainer;
@@ -219,16 +232,28 @@ public class TermsGrid implements IsWidget {
 	protected Type type;
 	private VerticalLayoutContainer vlc;
 	private SimpleContainer simpleContainer;
+	protected PagingLoader<PagingLoadConfig, PagingLoadResult<Row>> loader;
+	protected ListStore<Row> store;
+	protected AllRowStore allRowStore;
 	
 	public TermsGrid(final EventBus eventBus, final Type type) {
 		this.eventBus = eventBus;
 		this.type = type;
+		
+		allRowStore = new AllRowStore();
 		store = new ListStore<Row>(rowProperties.key());
 		store.setAutoCommit(true);
+		loader = new PagingLoader<PagingLoadConfig, PagingLoadResult<Row>>(allRowStore);
+		loader.setRemoteSort(true);
+		loader.addLoadHandler(new LoadResultListStoreBinding<PagingLoadConfig, Row, PagingLoadResult<Row>>(store));
+		loader.useLoadConfig(new FilterPagingLoadConfigBean());
+		//loader.addSortInfo(new SortInfoBean(rowProperties..submissionTerm(), SortDir.ASC));
+		
 		this.grid = new Grid<Row>(store, createColumnModel(new LinkedList<Row>()));// createColumnModel(1));//createColumnModel(new LinkedList<Row>()));
+		this.grid.setLoader(loader);
 		
 		createRowContainer = createCreateRowContainer();
-
+		
 		GridDragSource<Row> dndSource = new GridDragSource<Row>(grid) {
 			@Override
 			protected void onDragStart(DndDragStartEvent event) {
@@ -331,7 +356,7 @@ public class TermsGrid implements IsWidget {
 									fire(createRelationEvent);
 								} else {
 									if(!TermsGrid.this.leadRowMap.containsKey(target))
-										TermsGrid.this.addRow(new Row(target));
+										TermsGrid.this.addRow(new Row(target), true);
 								}
 							}
 							else if(list.get(0) instanceof Edge) {
@@ -347,9 +372,15 @@ public class TermsGrid implements IsWidget {
 			dropTargetNewRow.setOperation(Operation.COPY);
 		}
 		vlc = new VerticalLayoutContainer();
-		vlc.add(grid);
+		vlc.add(grid, new VerticalLayoutData(1, 1));
 		if(createRowContainer != null)
-			vlc.add(createRowContainer);
+			vlc.add(createRowContainer, new VerticalLayoutData(1, -1));
+		
+		final PagingToolBar toolBar = new PagingToolBar(10);
+	    toolBar.setBorders(false);
+	    toolBar.bind(loader);
+		vlc.add(toolBar, new VerticalLayoutData(1, -1));
+	    
 		vlc.getScrollSupport().setScrollMode(ScrollMode.AUTO);
 		simpleContainer = new SimpleContainer();
 		simpleContainer.add(vlc);
@@ -396,6 +427,7 @@ public class TermsGrid implements IsWidget {
 			@Override
 			public void onClear(ClearEvent event) {
 				if(event.isEffectiveInModel()) {
+					allRowStore.clear();
 					store.clear();
 					leadRowMap.clear();
 				}
@@ -417,7 +449,7 @@ public class TermsGrid implements IsWidget {
 			public void onRemove(RemoveRelationEvent event) {
 				if(!event.isEffectiveInModel())
 					for(Edge r : event.getRelations())
-						removeRelation(event, r, event.isRecursive());
+						removeRelation(event, r, event.isRecursive(), true);
 				else 
 					for(Edge r : event.getRelations())
 						onRemoveRelationEffectiveInModel(event, r);
@@ -507,58 +539,61 @@ public class TermsGrid implements IsWidget {
 	}
 
 	protected void clearGrid() {
+		allRowStore.clear();
 		store.clear();
 		leadRowMap.clear();
 	}
 	
 	protected void onLoad(OntologyGraph g) {
-		this.reconfigureForAttachedTerms(g.getMaxOutRelations(type));
+		this.reconfigureForAttachedTerms(g.getMaxOutRelations(type, new HashSet<Vertex>(Arrays.asList(g.getRoot(type)))));
 		Row rootRow = new Row(g.getRoot(type));
-		addRow(rootRow);
+		addRow(rootRow, false);
 		
 		createEdges(g, g.getRoot(type), new HashSet<String>(), false);
 		//grid.reconfigure(store, createColumnModel(this.getAll()));
 		//grid.getView().refresh(true);
-		grid.getView().refresh(false);
+		//grid.getView().refresh(false);
+		
+		loader.load();
 	}
 	
-	protected void createEdges(OntologyGraph g, Vertex source, Set<String> createdRelations, boolean updateRow) {
+	protected void createEdges(OntologyGraph g, Vertex source, Set<String> createdRelations, boolean refresh) {
 		for(Edge r : g.getOutRelations(source, type)) {
 			System.out.println(r);
 			String relationIdentifier = r.getSrc().getValue() + " - " + r.getDest().getValue() + " " + r.getType().toString();
 			if(!createdRelations.contains(relationIdentifier)) {
 				createdRelations.add(relationIdentifier);
-				createRelation(r, updateRow);
-				createEdges(g, r.getDest(), createdRelations, updateRow);
+				createRelation(r, refresh);
+				createEdges(g, r.getDest(), createdRelations, refresh);
 			}
 		}
 	}
 
-	protected void removeRelation(GwtEvent<?> event, Edge r, boolean recursive) {
+	protected void removeRelation(GwtEvent<?> event, Edge r, boolean recursive, boolean refresh) {
 		OntologyGraph g = ModelController.getCollection().getGraph();
 		if(r.getType().equals(type)) {
 			if(r.getSrc().equals(g.getRoot(type))) {
-				removeRow(event, r.getDest(), recursive);
+				removeRow(event, r.getDest(), recursive, refresh);
 			} else if(leadRowMap.containsKey(r.getSrc())) {
 				Row row = leadRowMap.get(r.getSrc());
-				removeAttached(event, row, r, recursive);
+				removeAttached(event, row, r, recursive, refresh);
 			} else {
 				Alerter.showAlert("Failed to remove relation", "Failed to remove relation");
 			}
 		}
 	}
 
-	protected void createRelation(Edge r, boolean updateRow) {
+	protected void createRelation(Edge r, boolean refresh) {
 		if(r.getType().equals(type)) {
 			Row row = null;
 			if(leadRowMap.containsKey(r.getSrc())) {
 				row = leadRowMap.get(r.getSrc());
 			} else {
 				row = new Row(r.getSrc());
-				this.addRow(row);
+				this.addRow(row, refresh);
 			}	
 			try {
-				addAttached(updateRow, row, new Edge(r.getSrc(), r.getDest(), r.getType(), r.getOrigin()));
+				addAttached(refresh, row, r);
 			} catch (Exception e) {
 				Alerter.showAlert("Failed to create relation", "Failed to create relation");
 				return;
@@ -566,24 +601,26 @@ public class TermsGrid implements IsWidget {
 		}
 	}
 
-	protected void addRow(Row row) {
-		store.add(row);
+	protected void addRow(Row row, boolean refresh) {
+		allRowStore.add(row);
 		leadRowMap.put(row.getLead(), row);
+		if(refresh)
+			loader.load(loader.getLastLoadConfig());
 	}
 	
-	public void removeRow(GwtEvent<?> event,Vertex lead, boolean recursive) {
+	public void removeRow(GwtEvent<?> event,Vertex lead, boolean recursive, boolean refresh) {
 		if(leadRowMap.containsKey(lead)) {
-			this.removeRow(event, this.leadRowMap.get(lead), recursive);
+			this.removeRow(event, this.leadRowMap.get(lead), recursive, refresh);
 		}
 	}
 	
-	public void removeRow(GwtEvent<?> event, Row row, boolean recursive) {
+	public void removeRow(GwtEvent<?> event, Row row, boolean recursive, boolean refresh) {
 		OntologyGraph g = ModelController.getCollection().getGraph();
 		if(recursive) {
 			for(Edge relation : row.getAttached()) {
 				if(g.getInRelations(relation.getDest(), type).size() == 1 && leadRowMap.containsKey(relation.getDest())) {
 					Row attachedRow = leadRowMap.get(relation.getDest());
-					removeRow(event, attachedRow, true);
+					removeRow(event, attachedRow, true, refresh);
 				}
 			}
 		} else {
@@ -592,7 +629,7 @@ public class TermsGrid implements IsWidget {
 			if(inRelations.size() == 1 && inRelations.get(0).getSrc().equals(g.getRoot(type))) {
 				for(Edge e : row.getAttached())
 					if(!leadRowMap.containsKey(e.getDest()))
-						this.addRow(new Row(e.getDest()));
+						this.addRow(new Row(e.getDest()), refresh);
 			} else {
 				for(Edge r : g.getInRelations(lead, type)) {
 					if(leadRowMap.containsKey(r.getSrc())) {
@@ -618,13 +655,13 @@ public class TermsGrid implements IsWidget {
 	}
 	
 	private void removeRow(Row row) {
-		store.remove(row);
+		allRowStore.remove(row);
 		leadRowMap.remove(row.getLead());
 	}
 
-	protected void addAttached(boolean updateRow, Row row, Edge... add) throws Exception {
+	protected void addAttached(boolean refresh, Row row, Edge... add) throws Exception {
 		row.add(Arrays.asList(add));
-		if(updateRow);
+		if(refresh)
 			updateRow(row);
 		/*for(Edge r : add) {
 			if(!leadRowMap.containsKey(r.getDest())) {
@@ -634,28 +671,32 @@ public class TermsGrid implements IsWidget {
 		}*/
 	}
 	
-	protected void removeAttached(GwtEvent<?> event, Row row, Edge r, boolean recursive) {
+	protected void removeAttached(GwtEvent<?> event, Row row, Edge r, boolean recursive, boolean refresh) {
 		row.remove(r);
-		updateRow(row);
+		if(refresh)
+			updateRow(row);
 		
 		if(leadRowMap.containsKey(r.getDest())) {
 			Row targetRow = leadRowMap.get(r.getDest());
-			removeRow(event, targetRow, recursive);
+			removeRow(event, targetRow, recursive, refresh);
 		}
 	}
 	
 	protected void updateRow(Row row) {
-		if(row.size() <= grid.getColumnModel().getColumnCount()) 
-			store.update(row);
-		else {
+		if(row.size() <= grid.getColumnModel().getColumnCount()) {
+			if(isVisible(row))
+				store.update(row);
+		} else {
 			this.reconfigureForAttachedTerms(row.getAttachedCount());
-			store.update(row);
+			if(isVisible(row))
+				store.update(row);
 		}
 	}
 	
 	protected void updateVertex(Vertex v) {
 		for(Row row : this.getRowsWhereIncluded(v))
-			store.update(row);
+			if(isVisible(row))
+				store.update(row);
 	}
 	
 	public List<Row> getRowsWhereIncluded(Vertex v) {
@@ -669,6 +710,10 @@ public class TermsGrid implements IsWidget {
 			}
 		}
 		return result;
+	}
+	
+	public boolean isVisible(Row row) {
+		return this.store.findModel(row) != null;
 	}
 	
 	public List<Row> getRowsWhereAttached(Vertex v) {
@@ -691,11 +736,10 @@ public class TermsGrid implements IsWidget {
 	}
 
 	protected List<Row> getAll() {
-		return new ArrayList<Row>(grid.getStore().getAll());
+		return allRowStore.getAll();
 	}
 
 	protected void reconfigureForAttachedTerms(int attachedTermsCount) {
-		System.out.println("reconfigure");
 		grid.reconfigure(store, createColumnModel(attachedTermsCount));
 	}
 	

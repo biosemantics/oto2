@@ -252,7 +252,7 @@ public class Main {
 
 	private void serializeCollection(Collection collection) {
 		//String collectionDir = Configuration.collectionsDirectory + File.separator + collection.getId();
-		String collectionDir = "collections";
+		String collectionDir = "collections/0";
 		
 		File collectionDirectory = new File(collectionDir);
 		if(!collectionDirectory.exists())

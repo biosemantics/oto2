@@ -1,6 +1,7 @@
 package edu.arizona.biosemantics.oto2.ontologize2.client.relations;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -123,21 +124,24 @@ public class SubclassesGrid extends MenuTermsGrid {
 	
 	@Override
 	protected void onLoad(OntologyGraph g) {
-		this.reconfigureForAttachedTerms(g.getMaxOutRelations(type));
+		this.reconfigureForAttachedTerms(g.getMaxOutRelations(type, new HashSet<Vertex>(Arrays.asList(g.getRoot(type)))));
 		
 		createEdges(g, g.getRoot(type), new HashSet<String>(), false);
 		
 		grid.getView().refresh(false);
+		
+		loader.load();
 	}
 		
-	protected void createRelation(Edge r) {
+	@Override
+	protected void createRelation(Edge r, boolean refresh) {
 		if(r.getType().equals(type)) {
 			OntologyGraph g = ModelController.getCollection().getGraph();
 			if(r.getSrc().equals(g.getRoot(type))) {
 				if(!leadRowMap.containsKey(r.getDest()))
-					this.addRow(new Row(r.getDest()));
+					this.addRow(new Row(r.getDest()), refresh);
 			} else {
-				super.createRelation(r, true);
+				super.createRelation(r, refresh);
 			}
 		}
 		
@@ -154,18 +158,20 @@ public class SubclassesGrid extends MenuTermsGrid {
 					Vertex parentSrc = parentRelation.getSrc();
 					Vertex disambiguatedDest = new Vertex(parentSrc + " " + dest);
 					
-					super.createRelation(new Edge(dest, disambiguatedDest, Type.SUBCLASS_OF, Origin.USER), true);
+					super.createRelation(new Edge(dest, disambiguatedDest, Type.SUBCLASS_OF, Origin.USER), refresh);
 				}
-				super.createRelation(new Edge(dest, new Vertex(newValue), Type.SUBCLASS_OF, Origin.USER), true);
+				super.createRelation(new Edge(dest, new Vertex(newValue), Type.SUBCLASS_OF, Origin.USER), refresh);
 			}
 		}
 	}
 	
+	@Override
 	protected void onCreateRelationEffectiveInModel(Edge r) {
 		if(r.getType().equals(type)) {
 			Vertex dest = r.getDest();
 			for(Row row : getRowsWhereIncluded(dest)) 
-				grid.getStore().update(row);
+				if(isVisible(row))
+					grid.getStore().update(row);
 		}
 	}
 	
@@ -174,7 +180,8 @@ public class SubclassesGrid extends MenuTermsGrid {
 		if(r.getType().equals(type)) {
 			Vertex dest = r.getDest();
 			for(Row row : getRowsWhereIncluded(dest)) 
-				grid.getStore().update(row);
+				if(isVisible(row))
+					grid.getStore().update(row);
 			
 			OntologyGraph g = ModelController.getCollection().getGraph();
 			if(this.refreshNodes.containsKey(event)) {
@@ -211,7 +218,8 @@ public class SubclassesGrid extends MenuTermsGrid {
 			List<Edge> inRelations = g.getInRelations(v, type);
 			if(inRelations.size() > 1) {
 				for(Row row : getRowsWhereIncluded(v)) 
-					grid.getStore().update(row);
+					if(isVisible(row))
+						grid.getStore().update(row);
 			}
 		}
 	}
@@ -224,11 +232,11 @@ public class SubclassesGrid extends MenuTermsGrid {
 	@Override
 	protected void createRowFromEdgeDrop(Edge edge) {
 		if(!leadRowMap.containsKey(edge.getDest()))
-			this.addRow(new Row(edge.getDest()));
+			this.addRow(new Row(edge.getDest()), true);
 	}
 	
 	@Override
-	protected void removeAttached(GwtEvent<?> event, Row row, Edge r, boolean recursive) {
+	protected void removeAttached(GwtEvent<?> event, Row row, Edge r, boolean recursive, boolean refresh) {
 		row.remove(r);
 		updateRow(row);
 		
@@ -236,13 +244,13 @@ public class SubclassesGrid extends MenuTermsGrid {
 		if(leadRowMap.containsKey(r.getDest())) {
 			if(g.getInRelations(r.getDest(), type).size() <= 1) {
 				Row targetRow = leadRowMap.get(r.getDest());
-				removeRow(event, targetRow, recursive);
+				removeRow(event, targetRow, recursive, refresh);
 			}
 		}
 	}
 	
 	@Override
-	public void removeRow(GwtEvent<?> event, Row row, boolean recursive) {
+	public void removeRow(GwtEvent<?> event, Row row, boolean recursive, boolean refresh) {
 		if(!this.refreshNodes.containsKey(event))
 			this.refreshNodes.put(event, new HashSet<Vertex>());
 		OntologyGraph g = ModelController.getCollection().getGraph();
@@ -266,7 +274,7 @@ public class SubclassesGrid extends MenuTermsGrid {
 				this.refreshNodes.get(event).addAll(refreshNodes);
 			}
 		} 
-		super.removeRow(event, row, recursive);
+		super.removeRow(event, row, recursive, refresh);
 	}
 
 }

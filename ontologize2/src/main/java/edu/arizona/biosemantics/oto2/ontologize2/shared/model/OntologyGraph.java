@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -144,6 +145,7 @@ public class OntologyGraph implements Serializable {
 		private Origin origin;
 		private Vertex src;
 		private Vertex dest;
+		private Date creation;
 
 		public Edge() {
 		}
@@ -153,6 +155,7 @@ public class OntologyGraph implements Serializable {
 			this.dest = dest;
 			this.type = type;
 			this.origin = origin;
+			this.creation = new Date();
 		}
 
 		public Type getType() {
@@ -169,7 +172,7 @@ public class OntologyGraph implements Serializable {
 
 		@Override
 		public String toString() {
-			return src + " ---- " + type + " (" + origin + ") ----> " + dest;
+			return src + " ---- " + type + " (" + origin + ") " + creation.toString() + " ----> " + dest;
 		}
 		
 		public Vertex getSrc() {
@@ -178,6 +181,10 @@ public class OntologyGraph implements Serializable {
 
 		public Vertex getDest() {
 			return dest;
+		}
+		
+		public Date getCreation() {
+			return creation;
 		}
 
 		@Override
@@ -768,13 +775,20 @@ public class OntologyGraph implements Serializable {
 		return graph.containsVertex(vertex);
 	}
 
-	public int getMaxOutRelations(Type type) {
+	public int getMaxOutRelations(Type type, Set<Vertex> exclusions) {
 		int max = 0;
 		for(Vertex v : this.getVertices()) {
-			int size = this.getOutRelations(v, type).size();
-			if(size > max)
-				max = size;
+			if(!exclusions.contains(v)) {
+				int size = this.getOutRelations(v, type).size();
+				if(size > max)
+					max = size;
+			}
 		}
 		return max;
+	}
+	
+	@Override
+	public String toString() {
+		return graph.toString();
 	}
 }

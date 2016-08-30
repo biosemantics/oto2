@@ -100,28 +100,28 @@ public class SynonymsGrid extends MenuTermsGrid {
 	
 	@Override
 	protected void onLoad(OntologyGraph g) {
-		this.reconfigureForAttachedTerms(g.getMaxOutRelations(type));
+		this.reconfigureForAttachedTerms(g.getMaxOutRelations(type, new HashSet<Vertex>(Arrays.asList(g.getRoot(type)))));
 		createEdges(g, g.getRoot(type), new HashSet<String>(), false);
 		grid.getView().refresh(false);
 	}
 	
 	@Override
-	protected void createRelation(Edge r, boolean updateRow) {
+	protected void createRelation(Edge r, boolean refresh) {
 		if(r.getType().equals(type)) {
 			OntologyGraph g = ModelController.getCollection().getGraph();
 			if(r.getSrc().equals(g.getRoot(type))) {
 				if(!leadRowMap.containsKey(r.getDest()))
-					this.addRow(new Row(r.getDest()));
+					this.addRow(new Row(r.getDest()), refresh);
 			} else {
-				super.createRelation(r, updateRow);
+				super.createRelation(r, refresh);
 			}
 		}
 	}
 	
 	@Override
-	protected void addAttached(boolean updateRow, Row row, Edge... add) throws Exception {
+	protected void addAttached(boolean refresh, Row row, Edge... add) throws Exception {
 		row.add(Arrays.asList(add));
-		if(updateRow)
+		if(refresh)
 			updateRow(row);
 	}
 	
@@ -166,15 +166,15 @@ public class SynonymsGrid extends MenuTermsGrid {
 	}
 	
 	@Override
-	protected void removeRelation(GwtEvent<?> event, Edge r, boolean recursive) {
+	protected void removeRelation(GwtEvent<?> event, Edge r, boolean recursive, boolean refresh) {
 		OntologyGraph graph = ModelController.getCollection().getGraph();
 		if(r.getSrc().equals(graph.getRoot(type))) {
 			if(leadRowMap.containsKey(r.getDest())) {
 				Row row = leadRowMap.get(r.getDest());
-				this.removeRow(event, row, true);
+				this.removeRow(event, row, true, refresh);
 			}
 		} else
-			super.removeRelation(event, r, recursive);
+			super.removeRelation(event, r, recursive, refresh);
 	}
 	
 	@Override
@@ -189,7 +189,7 @@ public class SynonymsGrid extends MenuTermsGrid {
 					Row oldRow = leadRowMap.get(oldRelation.getDest());
 					for(Edge relation : oldRow.getAttached()) 
 						newAttached.add(relation.getDest());
-					store.remove(oldRow);
+					allRowStore.remove(oldRow);
 					leadRowMap.remove(oldRow.getLead());
 				}
 			} else if(leadRowMap.containsKey(oldRelation.getSrc())) {
@@ -200,7 +200,7 @@ public class SynonymsGrid extends MenuTermsGrid {
 			if(newSource.equals(g.getRoot(type))) {
 				if(!leadRowMap.containsKey(oldRelation.getDest())) {
 					Row newRow = new Row(oldRelation.getDest());
-					this.addRow(newRow);
+					this.addRow(newRow, true);
 				}
 			} else if(leadRowMap.containsKey(newSource)) {
 				Row newRow = leadRowMap.get(newSource);

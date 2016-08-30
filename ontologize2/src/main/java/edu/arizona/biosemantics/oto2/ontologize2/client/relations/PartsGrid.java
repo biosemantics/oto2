@@ -1,5 +1,6 @@
 package edu.arizona.biosemantics.oto2.ontologize2.client.relations;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -163,13 +164,13 @@ public class PartsGrid extends MenuTermsGrid {
 	
 	@Override
 	protected void onLoad(OntologyGraph g) {
-		this.reconfigureForAttachedTerms(g.getMaxOutRelations(type));
+		this.reconfigureForAttachedTerms(g.getMaxOutRelations(type, new HashSet<Vertex>(Arrays.asList(g.getRoot(type)))));
 		createEdges(g, g.getRoot(type), new HashSet<String>(), false);
 		grid.getView().refresh(false);
 	}
 
 	@Override
-	protected void createRelation(Edge r, boolean updateRow) {		
+	protected void createRelation(Edge r, boolean refresh) {		
 		if(r.getType().equals(type)) {
 			OntologyGraph g = ModelController.getCollection().getGraph();
 			Vertex dest = r.getDest();
@@ -188,16 +189,16 @@ public class PartsGrid extends MenuTermsGrid {
 				r = new Edge(src, new Vertex(newValue), r.getType(), r.getOrigin());
 				if(r.getSrc().equals(g.getRoot(type))) {
 					if(!leadRowMap.containsKey(r.getDest()))
-						this.addRow(new Row(r.getDest()));
+						this.addRow(new Row(r.getDest()), refresh);
 				} else {
-					super.createRelation(r, updateRow);
+					super.createRelation(r, refresh);
 				}
 			} else {
 				if(r.getSrc().equals(g.getRoot(type))) {
 					if(!leadRowMap.containsKey(r.getDest()))
-						this.addRow(new Row(r.getDest()));
+						this.addRow(new Row(r.getDest()), refresh);
 				} else {
-					super.createRelation(r, updateRow);
+					super.createRelation(r, refresh);
 				}
 			}
 		}
@@ -247,6 +248,6 @@ public class PartsGrid extends MenuTermsGrid {
 	@Override
 	protected void createRowFromEdgeDrop(Edge edge) {
 		if(!leadRowMap.containsKey(edge.getDest()))
-			this.addRow(new Row(edge.getDest()));
+			this.addRow(new Row(edge.getDest()), true);
 	}
 }
