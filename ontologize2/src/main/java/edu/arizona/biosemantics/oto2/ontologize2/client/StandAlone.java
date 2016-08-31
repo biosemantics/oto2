@@ -11,6 +11,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.sencha.gxt.core.client.IdentityValueProvider;
 import com.sencha.gxt.data.shared.TreeStore;
+import com.sencha.gxt.widget.core.client.box.MessageBox;
 import com.sencha.gxt.widget.core.client.container.Viewport;
 import com.sencha.gxt.widget.core.client.tree.Tree;
 import com.google.gwt.event.shared.EventBus;
@@ -159,7 +160,9 @@ public class StandAlone implements EntryPoint {
 						}
 						@Override
 						public void onSuccess(Collection result) {
+							MessageBox box = Alerter.startLoading();
 							eventBus.fireEvent(new LoadCollectionEvent(result));
+							Alerter.stopLoading(box);
 						}
 						
 					});

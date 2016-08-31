@@ -376,7 +376,7 @@ public class TermsGrid implements IsWidget {
 		if(createRowContainer != null)
 			vlc.add(createRowContainer, new VerticalLayoutData(1, -1));
 		
-		final PagingToolBar toolBar = new PagingToolBar(10);
+		final PagingToolBar toolBar = new PagingToolBar(20);
 	    toolBar.setBorders(false);
 	    toolBar.bind(loader);
 		vlc.add(toolBar, new VerticalLayoutData(1, -1));
@@ -559,7 +559,6 @@ public class TermsGrid implements IsWidget {
 	
 	protected void createEdges(OntologyGraph g, Vertex source, Set<String> createdRelations, boolean refresh) {
 		for(Edge r : g.getOutRelations(source, type)) {
-			System.out.println(r);
 			String relationIdentifier = r.getSrc().getValue() + " - " + r.getDest().getValue() + " " + r.getType().toString();
 			if(!createdRelations.contains(relationIdentifier)) {
 				createdRelations.add(relationIdentifier);

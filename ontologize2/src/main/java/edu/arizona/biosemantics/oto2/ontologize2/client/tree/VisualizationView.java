@@ -19,8 +19,8 @@ public class VisualizationView extends SimpleContainer {
 	public VisualizationView(final EventBus eventBus) {
 		this.eventBus = eventBus;
 		
-		//SubclassTreeView subclassTree = new SubclassTreeView(eventBus);
-		//PartsTreeView partsTree = new PartsTreeView(eventBus);
+		SubclassTreeView subclassTree = new SubclassTreeView(eventBus);
+		PartsTreeView partsTree = new PartsTreeView(eventBus);
 		//TreeView synonymsTree = new TreeView(eventBus, Type.SYNONYM_OF);
 		
 		//VerticalLayoutContainer vlc = new VerticalLayoutContainer();
@@ -32,9 +32,9 @@ public class VisualizationView extends SimpleContainer {
 		TabPanel tabPanel = new TabPanel();
 		tabPanel.setTabScroll(true);
 		tabPanel.setAnimScroll(true);
-		//tabPanel.add(subclassTree, new TabItemConfig("Categories", false));
-		//tabPanel.add(partsTree, new TabItemConfig("Parts", false));
-		//tabPanel.add(synonymGrid, new TabItemConfig("Synonyms", false));
+		tabPanel.add(subclassTree, new TabItemConfig("Categories", false));
+		tabPanel.add(partsTree, new TabItemConfig("Parts", false));
+		//tabPanel.add(synonymsTree, new TabItemConfig("Synonyms", false));
 		this.add(tabPanel);
 	}
 }

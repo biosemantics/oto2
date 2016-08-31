@@ -74,7 +74,6 @@ public class AllRowStore implements DataProxy<PagingLoadConfig, PagingLoadResult
 	public void load(PagingLoadConfig loadConfig, Callback<PagingLoadResult<Row>, Throwable> callback) {
 		if(loadConfig instanceof FilterPagingLoadConfig) {
 			List<FilterConfig> filters = ((FilterPagingLoadConfig)loadConfig).getFilters();
-			System.out.println(filters);
 		}
 		int offset = loadConfig.getOffset();
 		int limit = loadConfig.getLimit();

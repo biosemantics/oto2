@@ -170,8 +170,7 @@ public class SubclassesGrid extends MenuTermsGrid {
 		if(r.getType().equals(type)) {
 			Vertex dest = r.getDest();
 			for(Row row : getRowsWhereIncluded(dest)) 
-				if(isVisible(row))
-					grid.getStore().update(row);
+				updateRow(row);
 		}
 	}
 	
@@ -180,9 +179,7 @@ public class SubclassesGrid extends MenuTermsGrid {
 		if(r.getType().equals(type)) {
 			Vertex dest = r.getDest();
 			for(Row row : getRowsWhereIncluded(dest)) 
-				if(isVisible(row))
-					grid.getStore().update(row);
-			
+				updateRow(row);
 			OntologyGraph g = ModelController.getCollection().getGraph();
 			if(this.refreshNodes.containsKey(event)) {
 				for(Vertex visibleNode : refreshNodes.get(event)) {
@@ -218,8 +215,7 @@ public class SubclassesGrid extends MenuTermsGrid {
 			List<Edge> inRelations = g.getInRelations(v, type);
 			if(inRelations.size() > 1) {
 				for(Row row : getRowsWhereIncluded(v)) 
-					if(isVisible(row))
-						grid.getStore().update(row);
+					updateRow(row);
 			}
 		}
 	}

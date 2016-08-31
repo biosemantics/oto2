@@ -278,12 +278,14 @@ public class OntologyGraph implements Serializable {
 			this.addVertex(edge.getDest());
 		
 		Vertex src = edge.getSrc();
+		Vertex dest = edge.getDest();
 		Type type = edge.getType();
 		Vertex root = this.getRoot(type);
 		if(!src.equals(root) && this.getInRelations(src, type).size() == 0) {
 			this.addRelation(new Edge(root, src, type, edge.getOrigin()));
+			System.out.println("Added root: Dangling relation");
 		}
-		
+		this.removeRootEdgeOnEdgeAddIfNecessary(edge);
 		return graph.addEdge(edge, edge.getSrc(), edge.getDest(), EdgeType.DIRECTED);
 	}
 	
@@ -427,6 +429,7 @@ public class OntologyGraph implements Serializable {
 			Vertex dest = e.getDest();
 			String originalDestValue = dest.getValue();
 			String newDestValue = src + " " + dest;
+			removeRootEdgeOnEdgeAddIfNecessary(e);
 			List<Edge> parentRelations = this.getInRelations(dest, Type.PART_OF);
 			if(!parentRelations.isEmpty()) {			
 				for(Edge parentRelation : parentRelations) {
@@ -446,6 +449,24 @@ public class OntologyGraph implements Serializable {
 		return false;
 	}
 		
+	private void removeRootEdgeOnEdgeAddIfNecessary(Edge e) throws Exception {
+		Vertex root = this.getRoot(e.getType());
+		Vertex src = e.getSrc();
+		Vertex dest = e.getDest();
+		List<Edge> inRelations = this.getInRelations(dest, e.getType());
+		if(!inRelations.isEmpty()) {
+			if(src.equals(root))
+				throw new Exception("Root " + root + " can not be part of multiple inheritance");
+			else
+				for(Edge in : inRelations) {
+					if(in.getSrc().equals(root)) {
+						this.removeEdge(in);
+						System.out.println("Removed root: Multiple inheritance");
+					}
+				}
+		}
+	}
+
 	public void setClosedRelation(Vertex v, Type type, boolean close) {
 		if(close) {
 			if(!closedRelations.containsKey(v))

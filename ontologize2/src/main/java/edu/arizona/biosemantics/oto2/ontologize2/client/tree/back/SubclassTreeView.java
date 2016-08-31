@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto2.ontologize2.client.tree;
+package edu.arizona.biosemantics.oto2.ontologize2.client.tree.back;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -151,13 +151,21 @@ public class SubclassTreeView extends TreeView {
 
 	@Override
 	protected void createFromVertex(OntologyGraph g, Vertex source) {
+		System.out.println("create from vertex " + source);
 		Vertex currentRoot = getRoot();
-		if(!currentRoot.equals(source) && g.getInRelations(source, Type.SUBCLASS_OF).size() > 1) {
-			return;
-		} else {
+		if(currentRoot == null) {
 			for(Edge r : g.getOutRelations(source, type)) {
 				createRelation(r);
 				createFromVertex(g, r.getDest());
+			}
+		} else {
+			if(!currentRoot.equals(source) && g.getInRelations(source, Type.SUBCLASS_OF).size() > 1) {
+				return;
+			} else {
+				for(Edge r : g.getOutRelations(source, type)) {
+					createRelation(r);
+					createFromVertex(g, r.getDest());
+				}
 			}
 		}
 	}
@@ -193,14 +201,14 @@ public class SubclassTreeView extends TreeView {
 				VertexTreeNode sourceNode = vertexNodeMap.get(r.getSrc()).iterator().next();
 				Set<VertexTreeNode> targetCandidates = vertexNodeMap.get(r.getDest());
 				VertexTreeNode targetNode = null;
-				for(VertexTreeNode child : store.getChildren(sourceNode)) 
+				for(VertexTreeNode child : allVertexStore.getChildren(sourceNode)) 
 					if(targetCandidates.contains(child)) 
 						targetNode = child;
 				
 				if(targetNode != null) {
 					if(recursive) {
 						List<VertexTreeNode> visibleNodes = new LinkedList<VertexTreeNode>();
-						List<VertexTreeNode> recursiveChildren = store.getAllChildren(targetNode);
+						List<VertexTreeNode> recursiveChildren = allVertexStore.getAllChildren(targetNode);
 						for(VertexTreeNode child : recursiveChildren) 
 							if(g.getInRelations(child.getVertex(), type).size() == 2)
 								visibleNodes.add(child);
@@ -210,17 +218,17 @@ public class SubclassTreeView extends TreeView {
 					} else {
 						List<TreeNode<VertexTreeNode>> targetChildNodes = new LinkedList<TreeNode<VertexTreeNode>>();
 						List<VertexTreeNode> visibleNodes = new LinkedList<VertexTreeNode>();
-						for(VertexTreeNode targetChild : store.getChildren(targetNode)) {
+						for(VertexTreeNode targetChild : allVertexStore.getChildren(targetNode)) {
 							List<Edge> inRelations = g.getInRelations(targetChild.getVertex(), type);
 							if(inRelations.size() <= 1) 
-								targetChildNodes.add(store.getSubTree(targetChild));
+								targetChildNodes.add(allVertexStore.getSubTree(targetChild));
 							if(inRelations.size() == 2) 
 								visibleNodes.add(targetChild);
 						}
 						visiblilityCheckNodes.get(event).addAll(visibleNodes);
 						
 						remove(targetNode, false);
-						store.addSubTree(sourceNode, store.getChildCount(sourceNode), targetChildNodes);
+						allVertexStore.addSubTree(sourceNode, allVertexStore.getChildCount(sourceNode), targetChildNodes);
 					}
 				}
 			}

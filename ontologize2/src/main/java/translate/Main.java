@@ -78,6 +78,7 @@ public class Main {
 	}
 
 	public static void main(String[] args) throws Exception {
+		System.out.println("==========start==========");
 		Main main = new Main();
 		main.run();
 	}
@@ -203,6 +204,19 @@ public class Main {
 				System.out.println("add relation: " + e);
 				g.addRelation(e);
 			}
+		}
+		
+		for(SynSub ss : ssMap.values()) {
+			Vertex src = new Vertex(iriCsMap.get(ss.getIri()).getTerm());
+			Vertex dest = new Vertex(ss.getTerm());
+			OntologyGraph.Edge e = new OntologyGraph.Edge(g.getRoot(Type.SYNONYM_OF), src, Type.SYNONYM_OF, Origin.USER);
+			if(!g.existsRelation(e)) {
+				System.out.println("add relation: " + e);
+				g.addRelation(e);
+			}
+			e = new OntologyGraph.Edge(src, dest, Type.SYNONYM_OF, Origin.USER);
+			System.out.println("add relation: " + e);
+			g.addRelation(e);
 		}
 		
 		for(Vertex src : g.getVertices()) {

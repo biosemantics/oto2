@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto2.ontologize2.client.tree;
+package edu.arizona.biosemantics.oto2.ontologize2.client.tree.back;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,6 +33,8 @@ import com.sencha.gxt.data.shared.SortDir;
 import com.sencha.gxt.data.shared.TreeStore;
 import com.sencha.gxt.data.shared.Store.StoreSortInfo;
 import com.sencha.gxt.data.shared.TreeStore.TreeNode;
+import com.sencha.gxt.data.shared.loader.ChildTreeStoreBinding;
+import com.sencha.gxt.data.shared.loader.TreeLoader;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.SimpleContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
@@ -66,6 +68,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEven
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.SelectTermEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.Handler;
+import edu.arizona.biosemantics.oto2.ontologize2.client.relations.AllRowStore;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid.Row;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.TextTreeNodeProperties;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.VertexCell;
@@ -87,17 +90,30 @@ public class TreeView extends SimpleContainer {
 	protected EventBus eventBus;
 	
 	protected Type type;	
-	
+
+	protected AllVertexStore allVertexStore;
 	protected TreeStore<VertexTreeNode> store;
 	protected Map<Vertex, Set<VertexTreeNode>> vertexNodeMap = new HashMap<Vertex, Set<VertexTreeNode>>();
 	protected TreeGrid<VertexTreeNode> treeGrid;
 	
 	protected ToolBar buttonBar;
+
+	private TreeLoader<VertexTreeNode> loader;
 	
 	public TreeView(EventBus eventBus, Type type) {
 		this.eventBus = eventBus;
 		this.type = type;
-		
+
+		store = new TreeStore<VertexTreeNode>(vertexTreeNodeProperties.key());
+		allVertexStore = new AllVertexStore();
+		loader = new TreeLoader<VertexTreeNode>(allVertexStore) {
+	        @Override
+	        public boolean hasChildren(VertexTreeNode parent) {
+	          return allVertexStore.hasChildren(parent);
+	        }
+	      };
+	    loader.addLoadHandler(new ChildTreeStoreBinding<VertexTreeNode>(store));
+	      
 		buttonBar = new ToolBar();
 		
 		Label titleLabel = new Label(type.getTreeLabel());
@@ -107,7 +123,6 @@ public class TreeView extends SimpleContainer {
 		titleLabel.getElement().getStyle().setPaddingLeft(3, Unit.PX);
 		titleLabel.getElement().getStyle().setColor("#15428b");
 		
-		store = new TreeStore<VertexTreeNode>(vertexTreeNodeProperties.key());
 		ColumnConfig<VertexTreeNode, Vertex> valueCol = new ColumnConfig<VertexTreeNode, Vertex>(vertexTreeNodeProperties.vertex(), 300, "");
 		valueCol.setCell(new VertexCell(eventBus, this, type));
 		valueCol.setSortable(false);
@@ -118,6 +133,7 @@ public class TreeView extends SimpleContainer {
 		list.add(valueCol);
 		ColumnModel<VertexTreeNode> cm = new ColumnModel<VertexTreeNode>(list);
 		treeGrid = new TreeGrid<VertexTreeNode>(store, cm, valueCol);
+		treeGrid.setTreeLoader(loader);
 		store.setAutoCommit(true);
 		/*store.addSortInfo(new StoreSortInfo<VertexTreeNode>(new Comparator<VertexTreeNode>() {
 			@Override
@@ -180,6 +196,7 @@ public class TreeView extends SimpleContainer {
 					OntologyGraph g = event.getCollection().getGraph();
 					Vertex root = g.getRoot(type);
 					createFromRoot(g, root);
+					loader.load();
 				} else {
 					onLoadCollectionEffectiveInModel();
 				}
@@ -245,8 +262,8 @@ public class TreeView extends SimpleContainer {
 							boolean expand = treeGrid.isExpanded(parent);
 							
 							List<TreeNode<VertexTreeNode>> childNodes = new LinkedList<TreeNode<VertexTreeNode>>();
-							for(VertexTreeNode childNode : store.getChildren(parent)) {
-								childNodes.add(store.getSubTree(childNode));
+							for(VertexTreeNode childNode : allVertexStore.getChildren(parent)) {
+								childNodes.add(allVertexStore.getSubTree(childNode));
 							}
 							final List<Vertex> order = ModelController.getCollection().getGraph().getDestinations(vertex, type);
 							Collections.sort(childNodes, new Comparator<TreeNode<VertexTreeNode>>() {
@@ -259,9 +276,9 @@ public class TreeView extends SimpleContainer {
 											order.indexOf(o2.getData().getVertex());
 								}
 							});
-							store.removeChildren(parent);
-							store.addSubTree(parent, 0, childNodes);
-							treeGrid.setExpanded(parent, expand);
+							allVertexStore.removeChildren(parent);
+							allVertexStore.addSubTree(parent, 0, childNodes);
+							//treeGrid.setExpanded(parent, expand);
 						}
 					}
 				}
@@ -277,9 +294,9 @@ public class TreeView extends SimpleContainer {
 				VertexTreeNode newSourceNode = vertexNodeMap.get(newSource).iterator().next();
 				
 				List<TreeNode<VertexTreeNode>> targetNodes = new LinkedList<TreeNode<VertexTreeNode>>();
-				targetNodes.add(store.getSubTree(targetNode));
-				store.remove(targetNode);
-				store.addSubTree(newSourceNode, store.getChildCount(newSourceNode), targetNodes);
+				targetNodes.add(allVertexStore.getSubTree(targetNode));
+				allVertexStore.remove(targetNode);
+				allVertexStore.addSubTree(newSourceNode, allVertexStore.getChildCount(newSourceNode), targetNodes);
 			}
 		}
 	}
@@ -355,39 +372,40 @@ public class TreeView extends SimpleContainer {
 					remove(targetNode, true);
 				} else {
 					List<TreeNode<VertexTreeNode>> targetChildNodes = new LinkedList<TreeNode<VertexTreeNode>>();
-					for(VertexTreeNode targetChild : store.getChildren(targetNode)) {
+					for(VertexTreeNode targetChild : allVertexStore.getChildren(targetNode)) {
 						List<Edge> inRelations = g.getInRelations(targetChild.getVertex(), type);
 						if(inRelations.size() <= 1) 
-							targetChildNodes.add(store.getSubTree(targetChild));
+							targetChildNodes.add(allVertexStore.getSubTree(targetChild));
 					}
 					remove(targetNode, false);
-					store.addSubTree(sourceNode, store.getChildCount(sourceNode), targetChildNodes);
+					allVertexStore.addSubTree(sourceNode, allVertexStore.getChildCount(sourceNode), targetChildNodes);
 				}
 			}
 		}
 	}
 
 	protected void clearTree() {
+		allVertexStore.clear();
 		store.clear();
 		vertexNodeMap.clear();
 	}
 	
 	protected void replaceNode(VertexTreeNode oldNode, VertexTreeNode newNode) {
 		List<TreeNode<VertexTreeNode>> childNodes = new LinkedList<TreeNode<VertexTreeNode>>();
-		for(VertexTreeNode childNode : store.getChildren(oldNode)) {
-			childNodes.add(store.getSubTree(childNode));
+		for(VertexTreeNode childNode : allVertexStore.getChildren(oldNode)) {
+			childNodes.add(allVertexStore.getSubTree(childNode));
 		}
 		
-		VertexTreeNode parent = store.getParent(oldNode);
+		VertexTreeNode parent = allVertexStore.getParent(oldNode);
 		remove(oldNode, false);
 		add(parent, newNode);
-		store.addSubTree(newNode, 0, childNodes);
+		allVertexStore.addSubTree(newNode, 0, childNodes);
 	}
 	
 	protected void remove(VertexTreeNode node, boolean removeChildren) {
 		if(removeChildren)
 			removeAllChildren(node);
-		store.remove(node);
+		allVertexStore.remove(node);
 		if(vertexNodeMap.containsKey(node.getVertex())) {
 			vertexNodeMap.get(node.getVertex()).remove(node);
 			if(vertexNodeMap.get(node.getVertex()).isEmpty())
@@ -396,7 +414,7 @@ public class TreeView extends SimpleContainer {
 	}
 	
 	protected void removeAllChildren(VertexTreeNode frommNode) {
-		List<VertexTreeNode> allRemoves = store.getAllChildren(frommNode);
+		List<VertexTreeNode> allRemoves = allVertexStore.getAllChildren(frommNode);
 		for(VertexTreeNode remove : allRemoves) {
 			Vertex v = remove.getVertex();
 			if(vertexNodeMap.containsKey(v)) {
@@ -405,14 +423,14 @@ public class TreeView extends SimpleContainer {
 					vertexNodeMap.remove(v);
 			}
 		}
-		store.removeChildren(frommNode);
+		allVertexStore.removeChildren(frommNode);
 	}
 	
 	protected void add(VertexTreeNode parent, VertexTreeNode child) {
 		if(parent == null)
-			store.add(child);
+			allVertexStore.add(child);
 		else
-			store.add(parent, child);
+			allVertexStore.add(parent, child);
 		if(!vertexNodeMap.containsKey(child.getVertex()))
 			vertexNodeMap.put(child.getVertex(), new HashSet<VertexTreeNode>(Arrays.asList(child)));
 		else {
@@ -421,7 +439,7 @@ public class TreeView extends SimpleContainer {
 	}
 
 	protected Vertex getRoot() {
-		return treeGrid.getTreeStore().getRootItems().get(0).getVertex();
+		return allVertexStore.getRootItems().get(0).getVertex();
 	}
 	
 }

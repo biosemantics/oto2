@@ -21,16 +21,16 @@ public class Fake {
 
 	private void run() throws Exception {
 		OntologyGraph g = new OntologyGraph(Type.values());
-		/*for(int i=0; i<20; i++) {
+		for(int i=0; i<20; i=i+2) {
 			OntologyGraph.Edge e = new OntologyGraph.Edge(g.getRoot(Type.SUBCLASS_OF), 
 					new Vertex("m" + i), Type.SUBCLASS_OF, Origin.USER);
 			g.addRelation(e);	
 			if(i>=1) {
-				e = new OntologyGraph.Edge(new Vertex("m" + (i - 1)), 
-						new Vertex("m" + i), Type.SUBCLASS_OF, Origin.USER);
+				e = new OntologyGraph.Edge(new Vertex("m" + i), 
+						new Vertex("m" + (i+1)), Type.SUBCLASS_OF, Origin.USER);
 				g.addRelation(e);	
 			}
-		}*/
+		}
 		
 		Collection c = new Collection();
 		c.setGraph(g);
