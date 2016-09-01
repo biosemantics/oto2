@@ -172,7 +172,7 @@ public class OntologyGraph implements Serializable {
 
 		@Override
 		public String toString() {
-			return src + " ---- " + type + " (" + origin + ") " + creation.toString() + " ----> " + dest;
+			return src + " ---- " + type + " (" + origin + ") " + creation + " ----> " + dest;
 		}
 		
 		public Vertex getSrc() {

@@ -43,21 +43,36 @@ public class AllRowStore implements DataProxy<PagingLoadConfig, PagingLoadResult
 			super(list, totalLength, offset);
 		}
 	}
-
+	
+	private StoreSortInfo<Row> defaultSortInfo = new StoreSortInfo<Row>(new Comparator<Row>() {
+		@Override
+		public int compare(Row o1, Row o2) {
+			Date d1 = getCreationDate(o1.getLead());
+			Date d2 = getCreationDate(o2.getLead());
+			return d1.compareTo(d2);
+		}
+	}, SortDir.DESC);
 	private RowProperties rowProperties = GWT.create(RowProperties.class);
 	private ListStore<Row> store;
 	
 	public AllRowStore() {
 		store = new ListStore<Row>(rowProperties.key());
 		store.setAutoCommit(true);
-		store.addSortInfo(new StoreSortInfo<Row>(new Comparator<Row>() {
-			@Override
-			public int compare(Row o1, Row o2) {
-				Date d1 = getCreationDate(o1.getLead());
-				Date d2 = getCreationDate(o2.getLead());
-				return d1.compareTo(d2);
-			}
-		}, SortDir.DESC));
+		setDefaultSortInfo();
+	}
+	
+	private void setDefaultSortInfo() {
+		if(store.getSortInfo().size() == 1 && 
+				store.getSortInfo().get(0).equals(defaultSortInfo))
+			return;
+		else {
+			store.clearSortInfo();
+			store.addSortInfo(defaultSortInfo);
+		}
+	}
+
+	public void applySort(boolean fireEvent) {
+		store.applySort(fireEvent);
 	}
 	
 	protected Date getCreationDate(Vertex v) {
@@ -77,7 +92,27 @@ public class AllRowStore implements DataProxy<PagingLoadConfig, PagingLoadResult
 		}
 		int offset = loadConfig.getOffset();
 		int limit = loadConfig.getLimit();
-		List<? extends SortInfo> sortInfo = loadConfig.getSortInfo();
+		List<? extends SortInfo> sortInfos = loadConfig.getSortInfo();
+		if(sortInfos.isEmpty())
+			this.setDefaultSortInfo();
+		else {
+			store.clearSortInfo();
+			for(SortInfo sortInfo : sortInfos) {
+				switch(sortInfo.getSortField()) {
+					case "lead":
+						store.clearSortInfo();
+						store.addSortInfo(new StoreSortInfo<Row>(new Comparator<Row>() {
+							@Override
+							public int compare(Row o1, Row o2) {
+								return o1.getLead().getValue().compareTo(o2.getLead().getValue());
+							}
+						}, sortInfo.getSortDir()));
+						break;
+					default:
+						this.setDefaultSortInfo();	
+				}
+			}
+		}
 		List<Row> data = new LinkedList<Row>();
 		for(int i=offset; i<offset+limit; i++) {
 			Row row = store.get(i);

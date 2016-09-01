@@ -166,8 +166,6 @@ public class PartsGrid extends MenuTermsGrid {
 	protected void onLoad(OntologyGraph g) {
 		this.reconfigureForAttachedTerms(g.getMaxOutRelations(type, new HashSet<Vertex>(Arrays.asList(g.getRoot(type)))));
 		createEdges(g, g.getRoot(type), new HashSet<String>(), false);
-		grid.getView().refresh(false);
-		loader.load();
 	}
 
 	@Override

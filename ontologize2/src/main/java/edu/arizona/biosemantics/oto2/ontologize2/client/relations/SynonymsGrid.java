@@ -102,8 +102,6 @@ public class SynonymsGrid extends MenuTermsGrid {
 	protected void onLoad(OntologyGraph g) {
 		this.reconfigureForAttachedTerms(g.getMaxOutRelations(type, new HashSet<Vertex>(Arrays.asList(g.getRoot(type)))));
 		createEdges(g, g.getRoot(type), new HashSet<String>(), false);
-		grid.getView().refresh(false);
-		loader.load();
 	}
 	
 	@Override
@@ -190,8 +188,7 @@ public class SynonymsGrid extends MenuTermsGrid {
 					Row oldRow = leadRowMap.get(oldRelation.getDest());
 					for(Edge relation : oldRow.getAttached()) 
 						newAttached.add(relation.getDest());
-					allRowStore.remove(oldRow);
-					leadRowMap.remove(oldRow.getLead());
+					this.removeRow(oldRow, true);
 				}
 			} else if(leadRowMap.containsKey(oldRelation.getSrc())) {
 				Row oldRow = leadRowMap.get(oldRelation.getSrc());

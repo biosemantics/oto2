@@ -21,7 +21,7 @@ public class Fake {
 
 	private void run() throws Exception {
 		OntologyGraph g = new OntologyGraph(Type.values());
-		for(int i=0; i<20; i=i+2) {
+		for(int i=0; i<4; i=i+2) {
 			OntologyGraph.Edge e = new OntologyGraph.Edge(g.getRoot(Type.SUBCLASS_OF), 
 					new Vertex("m" + i), Type.SUBCLASS_OF, Origin.USER);
 			g.addRelation(e);	

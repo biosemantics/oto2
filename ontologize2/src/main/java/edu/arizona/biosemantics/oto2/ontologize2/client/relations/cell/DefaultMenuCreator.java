@@ -151,7 +151,7 @@ public class DefaultMenuCreator implements LeadCell.MenuCreator {
 				this.doAskForRecursiveRemoval(rootEdge);		
 			} else {
 				removeAllOutgoing(targetVertex);
-				termsGrid.removeRow(targetVertex);
+				termsGrid.removeRow(targetVertex, true);
 			}
 		} else {
 			removeAllOutgoing(targetVertex);

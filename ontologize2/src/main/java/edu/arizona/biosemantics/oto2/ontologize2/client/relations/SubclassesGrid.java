@@ -125,12 +125,7 @@ public class SubclassesGrid extends MenuTermsGrid {
 	@Override
 	protected void onLoad(OntologyGraph g) {
 		this.reconfigureForAttachedTerms(g.getMaxOutRelations(type, new HashSet<Vertex>(Arrays.asList(g.getRoot(type)))));
-		
 		createEdges(g, g.getRoot(type), new HashSet<String>(), false);
-		
-		grid.getView().refresh(false);
-		
-		loader.load();
 	}
 		
 	@Override
@@ -210,6 +205,7 @@ public class SubclassesGrid extends MenuTermsGrid {
 	
 	@Override
 	protected void onLoadCollectionEffectiveInModel() {
+		super.onLoadCollectionEffectiveInModel();
 		OntologyGraph g = ModelController.getCollection().getGraph();
 		for(Vertex v : g.getVertices()) {
 			List<Edge> inRelations = g.getInRelations(v, type);

@@ -428,8 +428,8 @@ public class TermsGrid implements IsWidget {
 			public void onClear(ClearEvent event) {
 				if(event.isEffectiveInModel()) {
 					allRowStore.clear();
-					store.clear();
 					leadRowMap.clear();
+					loader.load(loader.getLastLoadConfig());
 				}
 			}
 		});
@@ -529,8 +529,8 @@ public class TermsGrid implements IsWidget {
 	}
 
 	protected void onLoadCollectionEffectiveInModel() {
-		// TODO Auto-generated method stub
-		
+		this.allRowStore.applySort(true);
+		this.loader.load();
 	}
 
 	protected void onCreateRelationEffectiveInModel(Edge r) {
@@ -540,21 +540,15 @@ public class TermsGrid implements IsWidget {
 
 	protected void clearGrid() {
 		allRowStore.clear();
-		store.clear();
 		leadRowMap.clear();
+		loader.load(loader.getLastLoadConfig());
 	}
 	
 	protected void onLoad(OntologyGraph g) {
 		this.reconfigureForAttachedTerms(g.getMaxOutRelations(type, new HashSet<Vertex>(Arrays.asList(g.getRoot(type)))));
 		Row rootRow = new Row(g.getRoot(type));
 		addRow(rootRow, false);
-		
 		createEdges(g, g.getRoot(type), new HashSet<String>(), false);
-		//grid.reconfigure(store, createColumnModel(this.getAll()));
-		//grid.getView().refresh(true);
-		//grid.getView().refresh(false);
-		
-		loader.load();
 	}
 	
 	protected void createEdges(OntologyGraph g, Vertex source, Set<String> createdRelations, boolean refresh) {
@@ -645,17 +639,19 @@ public class TermsGrid implements IsWidget {
 				}
 			}
 		}
-		removeRow(row);
+		removeRow(row, refresh);
 	}
 
-	public void removeRow(Vertex lead) {
+	public void removeRow(Vertex lead, boolean refresh) {
 		if(leadRowMap.containsKey(lead))
-			this.removeRow(leadRowMap.get(lead));
+			this.removeRow(leadRowMap.get(lead), refresh);
 	}
 	
-	private void removeRow(Row row) {
+	protected void removeRow(Row row, boolean refresh) {
 		allRowStore.remove(row);
 		leadRowMap.remove(row.getLead());
+		if(refresh)
+			loader.load(loader.getLastLoadConfig());
 	}
 
 	protected void addAttached(boolean refresh, Row row, Edge... add) throws Exception {
@@ -756,7 +752,7 @@ public class TermsGrid implements IsWidget {
 				return "lead";
 			}
 		}, colWidth, SafeHtmlUtils.fromTrustedString("<b>" + type.getSourceLabel() + "</b>"));
-		column1.setSortable(false);
+		column1.setSortable(true);
 		column1.setHideable(false);
 		column1.setGroupable(false);
 		column1.setMenuDisabled(true);
