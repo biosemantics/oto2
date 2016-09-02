@@ -131,9 +131,9 @@ public class TreeView extends SimpleContainer {
 			VertexTreeNode p1 = store.getParent(o1);
 			VertexTreeNode p2 = store.getParent(o2);
 			if(p1 != null && p2 != null && p1.equals(p2)) {
-				if(g.hasOrderedEdges(p1, type)) {
+				if(g.hasOrderedEdges(p1.getVertex(), type)) {
 					List<Edge> orderedEdges = g.getOrderedEdges(p1.getVertex(), type);
-					return orderedEdges.indexOf(o1.getVertex()) - orderedEdges.indexOf(o2.getVertex());
+					return getIndex(o2.getVertex(), orderedEdges) - getIndex(o1.getVertex(), orderedEdges);
 				} else {
 					return d1.compareTo(d2);
 				}
@@ -141,6 +141,15 @@ public class TreeView extends SimpleContainer {
 			return d1.compareTo(d2);
 		}
 		
+		private int getIndex(Vertex vertex, List<Edge> orderedEdges) {
+			for(int i=0; i<orderedEdges.size(); i++) {
+				Edge orderedEdge = orderedEdges.get(i);
+				if(orderedEdge.getDest().equals(vertex))
+					return i;
+			}
+			return -1;
+		}
+
 		protected Date getCreationDate(Vertex v) {
 			OntologyGraph g = ModelController.getCollection().getGraph();
 			Date result = new Date();
@@ -158,7 +167,7 @@ public class TreeView extends SimpleContainer {
 			VertexTreeNode p1 = store.getParent(o1);
 			VertexTreeNode p2 = store.getParent(o2);
 			if(p1 != null && p2 != null && p1.equals(p2)) {
-				if(g.hasOrderedEdges(p1, type)) {
+				if(g.hasOrderedEdges(p1.getVertex(), type)) {
 					List<Edge> orderedEdges = g.getOrderedEdges(p1.getVertex(), type);
 					return orderedEdges.indexOf(o1.getVertex()) - orderedEdges.indexOf(o2.getVertex());
 				} else {
@@ -284,25 +293,25 @@ public class TreeView extends SimpleContainer {
 		creationAscButton.addSelectionHandler(new SelectionHandler<Item>() {
 			@Override
 			public void onSelection(SelectionEvent<Item> event) {
-				sort("creation", SortDir.ASC);
+				sort(creationComparator, SortDir.ASC);
 			}
 		});
 		creationDescButton.addSelectionHandler(new SelectionHandler<Item>() {
 			@Override
 			public void onSelection(SelectionEvent<Item> event) {
-				sort("creation", SortDir.DESC);
+				sort(creationComparator, SortDir.DESC);
 			}
 		});
 		nameAscButton.addSelectionHandler(new SelectionHandler<Item>() {
 			@Override
 			public void onSelection(SelectionEvent<Item> event) {
-				sort("name", SortDir.ASC);
+				sort(nameComparator, SortDir.ASC);
 			}
 		});
 		nameDescButton.addSelectionHandler(new SelectionHandler<Item>() {
 			@Override
 			public void onSelection(SelectionEvent<Item> event) {
-				sort("name", SortDir.DESC);
+				sort(nameComparator, SortDir.DESC);
 			}
 		});
 		return sortButton;
@@ -489,7 +498,7 @@ public class TreeView extends SimpleContainer {
 	}
 	
 	protected void onOrderEffectiveInModel(OrderEdgesEvent event, Vertex src, List<Edge> edges, Type type2) {
-		store.applySort(false);
+		this.sort();
 	}
 
 	protected void onOrder(OrderEdgesEvent event, Vertex src, List<Edge> edges, Type type) {
@@ -515,8 +524,7 @@ public class TreeView extends SimpleContainer {
 	}
 
 	protected void onLoadCollectionEffectiveInModel() {
-		this.sort("creation", SortDir.DESC);
-		treeGrid.setExpanded(store.getRootItems().get(0), true);
+		this.sort(creationComparator, SortDir.DESC);
 	}
 
 	protected void onRemoveRelationEffectiveInModel(GwtEvent<?> event, Edge r, boolean recursive) {
@@ -651,28 +659,14 @@ public class TreeView extends SimpleContainer {
 		return treeGrid.getTreeStore().getRootItems().get(0).getVertex();
 	}
 	
-	public void sort(final String field, final SortDir sortDir) {
-		final OntologyGraph g = ModelController.getCollection().getGraph();
+	public void sort(final Comparator<VertexTreeNode> comparator, final SortDir sortDir) {
 		store.clearSortInfo();
-		switch(field) {
-		case "name":
-			store.addSortInfo(new StoreSortInfo<VertexTreeNode>(new Comparator<VertexTreeNode>() {
-				@Override
-				public int compare(VertexTreeNode o1, VertexTreeNode o2) {
-					return nameComparator.compare(o1, o2);
-				}
-			}, sortDir));
-			break;
-		case "creation":
-		default:
-			store.addSortInfo(new StoreSortInfo<VertexTreeNode>(new Comparator<VertexTreeNode>() {
-				@Override
-				public int compare(VertexTreeNode o1, VertexTreeNode o2) {
-					return creationComparator.compare(o1, o2);
-				}
-			}, sortDir));
-			break;
-		}
+		store.addSortInfo(new StoreSortInfo<VertexTreeNode>(comparator, sortDir));
+		treeGrid.setExpanded(store.getRootItems().get(0), true);
+	}
+	
+	public void sort() {
+		store.applySort(false);
 		treeGrid.setExpanded(store.getRootItems().get(0), true);
 	}
 }

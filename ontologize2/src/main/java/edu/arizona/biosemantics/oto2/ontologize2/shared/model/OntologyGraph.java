@@ -773,6 +773,8 @@ public class OntologyGraph implements Serializable {
 			return new LinkedList<Edge>();
 		return orderedEdges.get(v).get(type);
 	}
+	
+	
 
 	public List<Vertex> getAllDestinations(Vertex src, Type type) {
 		List<Vertex> result = new LinkedList<Vertex>();
@@ -822,7 +824,7 @@ public class OntologyGraph implements Serializable {
 		return graph.toString();
 	}
 
-	public boolean hasOrderedEdges(VertexTreeNode v, Type type) {
+	public boolean hasOrderedEdges(Vertex v, Type type) {
 		return orderedEdges.containsKey(v) && orderedEdges.get(v).containsKey(type);
 	}
 }
