@@ -8,6 +8,8 @@ import com.google.gwt.cell.client.Cell.Context;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.logical.shared.ResizeEvent;
 import com.google.gwt.event.logical.shared.ResizeHandler;
+import com.google.gwt.event.logical.shared.SelectionEvent;
+import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
@@ -25,6 +27,8 @@ import com.sencha.gxt.data.shared.Store;
 import com.sencha.gxt.state.client.GridStateHandler;
 import com.sencha.gxt.widget.core.client.Composite;
 import com.sencha.gxt.widget.core.client.box.AutoProgressMessageBox;
+import com.sencha.gxt.widget.core.client.event.BeforeShowEvent;
+import com.sencha.gxt.widget.core.client.event.BeforeShowEvent.BeforeShowHandler;
 import com.sencha.gxt.widget.core.client.event.ShowEvent;
 import com.sencha.gxt.widget.core.client.event.ShowEvent.ShowHandler;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
@@ -35,17 +39,22 @@ import com.sencha.gxt.widget.core.client.grid.RowNumberer;
 import com.sencha.gxt.widget.core.client.grid.filters.GridFilters;
 import com.sencha.gxt.widget.core.client.grid.filters.ListFilter;
 import com.sencha.gxt.widget.core.client.grid.filters.StringFilter;
+import com.sencha.gxt.widget.core.client.menu.Item;
+import com.sencha.gxt.widget.core.client.menu.Menu;
+import com.sencha.gxt.widget.core.client.menu.MenuItem;
 import com.sencha.gxt.widget.core.client.tips.QuickTip;
 
 import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.SelectTermEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.IContextService;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.IContextServiceAsync;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.ExtractContext;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Type;
 
 public class ContextView extends Composite {
 
@@ -120,12 +129,65 @@ public class ContextView extends Composite {
 	    filters.initPlugin(grid);
 	    expander.initPlugin(grid);
 	    numberer.initPlugin(grid);
+	    
+	    grid.setContextMenu(createContextMenu());
 		
 		this.initWidget(grid);
 		
 		bindEvents();
 	}
 	
+    private native String getSelection() /*-{
+	    var text = "";
+	    if ($wnd.getSelection) {
+	        text = $wnd.getSelection().toString();
+	    } else if ($doc.selection && $doc.selection.type != "Control") {
+	        text = $doc.selection.createRange().text;
+	    }
+	    return text;
+	}-*/;
+	
+	private Menu createContextMenu() {
+		final Menu menu = new Menu();
+		menu.addBeforeShowHandler(new BeforeShowHandler() {
+			@Override
+			public void onBeforeShow(BeforeShowEvent event) {
+				final String text = getSelection();
+				if(text != null && !text.trim().isEmpty()) {
+					MenuItem filterItem = new MenuItem("Filter: " + text);
+					Menu filterMenu = new Menu();
+					filterItem.setSubMenu(filterMenu);
+					MenuItem filterGrid = new MenuItem("Grid");
+					filterGrid.addSelectionHandler(new SelectionHandler<Item>() {
+						@Override
+						public void onSelection(SelectionEvent<Item> event) {
+							eventBus.fireEvent(new FilterEvent(text, true, false, Type.values()));
+						}
+					});
+					filterMenu.add(filterGrid);
+					MenuItem filterTree = new MenuItem("Tree");
+					filterTree.addSelectionHandler(new SelectionHandler<Item>() {
+						@Override
+						public void onSelection(SelectionEvent<Item> event) {
+							eventBus.fireEvent(new FilterEvent(text, false, true, Type.values()));
+						}
+					});
+					filterMenu.add(filterTree);
+					MenuItem filterAll = new MenuItem("Grid + Tree");
+					filterAll.addSelectionHandler(new SelectionHandler<Item>() {
+						@Override
+						public void onSelection(SelectionEvent<Item> event) {
+							eventBus.fireEvent(new FilterEvent(text, true, true, Type.values()));
+						}
+					});
+					filterMenu.add(filterAll);
+					menu.add(filterItem);
+				}	
+			}
+		});
+		return menu;
+	}
+
 	public void setContexts(List<ExtractContext> contexts) {
 		store.clear();
 		if(contexts.isEmpty())

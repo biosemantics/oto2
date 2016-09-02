@@ -484,18 +484,20 @@ public class TermsGrid implements IsWidget {
 
 	protected void orderEdges(Vertex src, final List<Edge> edges) {
 		if(leadRowMap.containsKey(src)) {
-			Row row = this.leadRowMap.get(src);
-			Collections.sort(row.attached, new Comparator<Edge>() {
-				@Override
-				public int compare(Edge o1, Edge o2) {
-					if(!edges.contains(o1))
-						return Integer.MAX_VALUE;
-					if(!edges.contains(o2))
-						return Integer.MAX_VALUE;
-					return edges.indexOf(o1) - edges.indexOf(o2);	
-				}
-			});
-			this.updateRow(row);
+			if(!edges.isEmpty()) {
+				Row row = this.leadRowMap.get(src);
+				Collections.sort(row.attached, new Comparator<Edge>() {
+					@Override
+					public int compare(Edge o1, Edge o2) {
+						if(!edges.contains(o1))
+							return Integer.MAX_VALUE;
+						if(!edges.contains(o2))
+							return Integer.MAX_VALUE;
+						return edges.indexOf(o1) - edges.indexOf(o2);	
+					}
+				});
+				this.updateRow(row);
+			}
 		}
 	}
 

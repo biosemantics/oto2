@@ -16,6 +16,7 @@ import java.util.Set;
 
 import edu.uci.ics.jung.graph.DirectedSparseMultigraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
+import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.VertexTreeNode;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Origin;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Type;
@@ -731,19 +732,27 @@ public class OntologyGraph implements Serializable {
 	}
 
 	public void setOrderedEdges(Vertex src, List<Edge> edges, Type type) throws Exception {
-		Set<Edge> existingEdges = new HashSet<Edge>(this.getOutRelations(src, type));
-		for(Edge edge : edges) {
-			if(existingEdges.contains(edge))
-				existingEdges.remove(edge);
-			else
-				throw new Exception("Can not add new edges when ordering");
+		if(!edges.isEmpty()) {
+			Set<Edge> existingEdges = new HashSet<Edge>(this.getOutRelations(src, type));
+			for(Edge edge : edges) {
+				if(existingEdges.contains(edge))
+					existingEdges.remove(edge);
+				else
+					throw new Exception("Can not add new edges when ordering");
+			}
+			if(!existingEdges.isEmpty())
+				throw new Exception("Can not remove edges when ordering");
+			
+			if(!orderedEdges.containsKey(src))
+				orderedEdges.put(src, new HashMap<Type, List<Edge>>());
+			orderedEdges.get(src).put(type, edges);
+		} else {
+			if(orderedEdges.containsKey(src)) {
+				orderedEdges.get(src).remove(type);
+				if(orderedEdges.get(src).isEmpty())
+					orderedEdges.remove(src);
+			}
 		}
-		if(!existingEdges.isEmpty())
-			throw new Exception("Can not remove edges when ordering");
-		
-		if(!orderedEdges.containsKey(src))
-			orderedEdges.put(src, new HashMap<Type, List<Edge>>());
-		orderedEdges.get(src).put(type, edges);
 	}
 	
 	private void setOrderedEdges(Vertex v, Map<Type, List<Edge>> orderedEdges) throws Exception {
@@ -757,7 +766,7 @@ public class OntologyGraph implements Serializable {
 		return orderedEdges.get(v);
 	}
 	
-	private List<Edge> getOrderedEdges(Vertex v, Type type) {
+	public List<Edge> getOrderedEdges(Vertex v, Type type) {
 		if(!orderedEdges.containsKey(v))
 			return new LinkedList<Edge>();
 		if(!orderedEdges.get(v).containsKey(type))
@@ -811,5 +820,9 @@ public class OntologyGraph implements Serializable {
 	@Override
 	public String toString() {
 		return graph.toString();
+	}
+
+	public boolean hasOrderedEdges(VertexTreeNode v, Type type) {
+		return orderedEdges.containsKey(v) && orderedEdges.get(v).containsKey(type);
 	}
 }

@@ -43,16 +43,33 @@ public class AllRowStore implements DataProxy<PagingLoadConfig, PagingLoadResult
 			super(list, totalLength, offset);
 		}
 	}
-	
-	private StoreSortInfo<Row> defaultSortInfo = new StoreSortInfo<Row>(new Comparator<Row>() {
+
+	private RowProperties rowProperties = GWT.create(RowProperties.class);
+	private Comparator<Row> creationComparator = new Comparator<Row>() {
 		@Override
 		public int compare(Row o1, Row o2) {
 			Date d1 = getCreationDate(o1.getLead());
 			Date d2 = getCreationDate(o2.getLead());
 			return d1.compareTo(d2);
 		}
-	}, SortDir.DESC);
-	private RowProperties rowProperties = GWT.create(RowProperties.class);
+		
+		protected Date getCreationDate(Vertex v) {
+			OntologyGraph g = ModelController.getCollection().getGraph();
+			Date result = new Date();
+			for(Edge in : g.getInRelations(v)) {
+				if(in.getCreation().compareTo(result) < 0)
+					result = in.getCreation();
+			}
+			return result;
+		}
+	};
+	private Comparator<Row> leadComparator = new Comparator<Row>() {
+		@Override
+		public int compare(Row o1, Row o2) {
+			return o1.getLead().compareTo(o2.getLead());
+		}
+	};
+	private StoreSortInfo<Row> defaultSortInfo = new StoreSortInfo<Row>(creationComparator, SortDir.DESC);
 	private ListStore<Row> store;
 	
 	public AllRowStore() {
@@ -71,19 +88,10 @@ public class AllRowStore implements DataProxy<PagingLoadConfig, PagingLoadResult
 		}
 	}
 
-	public void applySort(boolean fireEvent) {
-		store.applySort(fireEvent);
+	public void applySort(boolean suppressEvent) {
+		store.applySort(suppressEvent);
 	}
-	
-	protected Date getCreationDate(Vertex v) {
-		OntologyGraph g = ModelController.getCollection().getGraph();
-		Date result = new Date();
-		for(Edge in : g.getInRelations(v)) {
-			if(in.getCreation().compareTo(result) < 0)
-				result = in.getCreation();
-		}
-		return result;
-	}
+
 
 	@Override
 	public void load(PagingLoadConfig loadConfig, Callback<PagingLoadResult<Row>, Throwable> callback) {
@@ -100,13 +108,10 @@ public class AllRowStore implements DataProxy<PagingLoadConfig, PagingLoadResult
 			for(SortInfo sortInfo : sortInfos) {
 				switch(sortInfo.getSortField()) {
 					case "lead":
-						store.clearSortInfo();
-						store.addSortInfo(new StoreSortInfo<Row>(new Comparator<Row>() {
-							@Override
-							public int compare(Row o1, Row o2) {
-								return o1.getLead().getValue().compareTo(o2.getLead().getValue());
-							}
-						}, sortInfo.getSortDir()));
+						store.addSortInfo(new StoreSortInfo<Row>(leadComparator, sortInfo.getSortDir()));
+						break;
+					case "creation":
+						store.addSortInfo(new StoreSortInfo<Row>(creationComparator, sortInfo.getSortDir()));
 						break;
 					default:
 						this.setDefaultSortInfo();	

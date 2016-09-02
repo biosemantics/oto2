@@ -2,17 +2,24 @@ package edu.arizona.biosemantics.oto2.ontologize2.client.relations;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
 import com.google.gwt.event.dom.client.KeyCodes;
+import com.google.gwt.event.logical.shared.SelectionEvent;
+import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.core.client.Style.HideMode;
 import com.sencha.gxt.core.client.util.DelayedTask;
+import com.sencha.gxt.data.shared.SortDir;
+import com.sencha.gxt.data.shared.SortInfo;
+import com.sencha.gxt.data.shared.SortInfoBean;
 import com.sencha.gxt.data.shared.Store;
 import com.sencha.gxt.data.shared.Store.StoreFilter;
+import com.sencha.gxt.data.shared.loader.PagingLoadConfig;
 import com.sencha.gxt.messages.client.DefaultMessages;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
 import com.sencha.gxt.widget.core.client.box.MessageBox;
@@ -31,7 +38,9 @@ import com.sencha.gxt.widget.core.client.form.TextField;
 import com.sencha.gxt.widget.core.client.grid.filters.AbstractGridFilters;
 import com.sencha.gxt.widget.core.client.grid.filters.StringFilter;
 import com.sencha.gxt.widget.core.client.menu.CheckMenuItem;
+import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.Menu;
+import com.sencha.gxt.widget.core.client.menu.MenuItem;
 import com.sencha.gxt.widget.core.client.toolbar.ToolBar;
 
 import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
@@ -39,8 +48,10 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize2.client.common.TextAreaMessageBox;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ClearEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ImportEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.tree.TreeView;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Origin;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Type;
@@ -55,10 +66,7 @@ public class MenuTermsGrid extends TermsGrid {
 	private DelayedTask updateTask = new DelayedTask() {		
 		@Override
 		public void onExecute() {
-			if(filterField.getText() == null)
-				setFilter(false);
-			else
-				setFilter(!filterField.getText().isEmpty());
+			fire(new FilterEvent(filterField.getText(), true, false, type));
 		}
 	};
 	private VerticalLayoutContainer vlc;
@@ -83,7 +91,7 @@ public class MenuTermsGrid extends TermsGrid {
 					event.stopPropagation();
 					event.preventDefault();
 					filterMenu.hide(true);
-						setFilter(!filterField.getText().isEmpty());
+					fire(new FilterEvent(filterField.getText(), true, false, type));
 				}
 				updateTask.delay(500);
 			}
@@ -93,15 +101,75 @@ public class MenuTermsGrid extends TermsGrid {
 		checkFilterItem.addCheckChangeHandler(new CheckChangeHandler<CheckMenuItem>() {
 	        @Override
 	        public void onCheckChange(CheckChangeEvent<CheckMenuItem> event) {
-	        	if(event.getItem().isChecked())
-	        		setFilter(true);
+	        	if(!event.getItem().isChecked())
+	        		fire(new FilterEvent("", true, false, type));
 	        	else
-	        		setFilter(false);
+	        		fire(new FilterEvent(filterField.getText(), true, false, type));
 	        }
 	    });
 		filterButton.setMenu(menu);
 		buttonBar.add(filterButton);
 		
+		TextButton sortButton =new TextButton("Sort");
+		final Menu sortMenu = new Menu();
+		MenuItem creationButton = new MenuItem("By Creation Time");
+		MenuItem nameButton = new MenuItem("By Name");
+		sortButton.setMenu(sortMenu);
+		sortMenu.add(creationButton);
+		sortMenu.add(nameButton);
+		final Menu creationMenu = new Menu();
+		creationButton.setSubMenu(creationMenu);
+		final Menu nameMenu = new Menu();
+		nameButton.setSubMenu(nameMenu);
+		MenuItem creationAscButton = new MenuItem("Ascending");
+		MenuItem creationDescButton = new MenuItem("Descending");
+		creationMenu.add(creationAscButton);
+		creationMenu.add(creationDescButton);
+		MenuItem nameAscButton = new MenuItem("Ascending");
+		MenuItem nameDescButton = new MenuItem("Descending");
+		nameMenu.add(nameAscButton);
+		nameMenu.add(nameDescButton);
+		creationAscButton.addSelectionHandler(new SelectionHandler<Item>() {
+			@Override
+			public void onSelection(SelectionEvent<Item> event) {
+				PagingLoadConfig config = loader.getLastLoadConfig();
+				List<SortInfo> sortInfo = new LinkedList<SortInfo>();
+				sortInfo.add(new SortInfoBean("creation", SortDir.ASC));
+				config.setSortInfo(sortInfo);
+				loader.load(config);
+			}
+		});
+		creationDescButton.addSelectionHandler(new SelectionHandler<Item>() {
+			@Override
+			public void onSelection(SelectionEvent<Item> event) {
+				PagingLoadConfig config = loader.getLastLoadConfig();
+				List<SortInfo> sortInfo = new LinkedList<SortInfo>();
+				sortInfo.add(new SortInfoBean("creation", SortDir.DESC));
+				config.setSortInfo(sortInfo);
+				loader.load(config);
+			}
+		});
+		nameAscButton.addSelectionHandler(new SelectionHandler<Item>() {
+			@Override
+			public void onSelection(SelectionEvent<Item> event) {
+				PagingLoadConfig config = loader.getLastLoadConfig();
+				List<SortInfo> sortInfo = new LinkedList<SortInfo>();
+				sortInfo.add(new SortInfoBean("lead", SortDir.ASC));
+				config.setSortInfo(sortInfo);
+				loader.load(config);
+			}
+		});
+		nameDescButton.addSelectionHandler(new SelectionHandler<Item>() {
+			@Override
+			public void onSelection(SelectionEvent<Item> event) {
+				PagingLoadConfig config = loader.getLastLoadConfig();
+				List<SortInfo> sortInfo = new LinkedList<SortInfo>();
+				sortInfo.add(new SortInfoBean("lead", SortDir.DESC));
+				config.setSortInfo(sortInfo);
+				loader.load(config);
+			}
+		});
+		buttonBar.add(sortButton);
 		
 		TextButton importButton = new TextButton("Import");
 		importButton.addSelectHandler(new SelectHandler() {
@@ -231,24 +299,40 @@ public class MenuTermsGrid extends TermsGrid {
 	protected String getDefaultImportText() {
 		return "";	
 	}
+	
+	@Override
+	public void bindEvents() {
+		super.bindEvents();
+		eventBus.addHandler(FilterEvent.TYPE, new FilterEvent.Handler() {
+			@Override
+			public void onFilter(FilterEvent event) {
+				if(event.isGrid() && event.containsType(type)) {
+					MenuTermsGrid.this.onFilter(event.getFilter());
+				}
+			}
+		});
+	}
 
-	protected void setFilter(boolean activate) {
+	protected void onFilter(final String filter) {
+		boolean activate = filter != null && !filter.isEmpty();
 		checkFilterItem.setChecked(activate, true);
 		if(!activate) {
 			filterField.setText("");
 			allRowStore.removeFilters();
 			allRowStore.setEnableFilters(false);
 		} else {
+			allRowStore.removeFilters();
 			allRowStore.addFilter(new StoreFilter<Row>() {
 				@Override
 				public boolean select(Store<Row> store, Row parent, Row item) {
 					String all = item.getLead().getValue() + " ";
 					for(Edge r : item.getAttached())
 						all += r.getDest().getValue() + " ";
-					return all.contains(filterField.getText());
+					return all.contains(filter);
 				}
 			});
 			allRowStore.setEnableFilters(true);
+			filterField.setText(filter);
 		}
 		loader.load(loader.getLastLoadConfig());
 	}

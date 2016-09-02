@@ -43,6 +43,7 @@ public class SynonymMenuCreator extends DefaultMenuCreator implements LeadCell.M
 		menu.add(addItem);
 		menu.add(removeRowItem);
 		menu.add(removeAllItem);
+		menu.add(filterItem);
 		menu.add(context);
 		
 		return menu;

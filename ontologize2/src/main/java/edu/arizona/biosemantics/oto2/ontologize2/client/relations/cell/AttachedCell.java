@@ -20,6 +20,7 @@ import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
 import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.SelectTermEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid;
@@ -66,6 +67,33 @@ public class AttachedCell extends MenuExtendedCell<Row> {
 		final Row row = termsGrid.getRow(rowIndex);
 		final Edge r = row.getAttached().get(columnIndex - 1);
 		Menu menu = new Menu();
+		MenuItem filterItem = new MenuItem("Filter: " + r.getDest());
+		Menu filterMenu = new Menu();
+		filterItem.setSubMenu(filterMenu);
+		MenuItem filterGrid = new MenuItem("Grid");
+		filterGrid.addSelectionHandler(new SelectionHandler<Item>() {
+			@Override
+			public void onSelection(SelectionEvent<Item> event) {
+				termsGrid.fire(new FilterEvent(r.getDest().getValue(), true, false, termsGrid.getType()));
+			}
+		});
+		filterMenu.add(filterGrid);
+		MenuItem filterTree = new MenuItem("Tree");
+		filterTree.addSelectionHandler(new SelectionHandler<Item>() {
+			@Override
+			public void onSelection(SelectionEvent<Item> event) {
+				termsGrid.fire(new FilterEvent(r.getDest().getValue(), false, true, termsGrid.getType()));
+			}
+		});
+		filterMenu.add(filterTree);
+		MenuItem filterAll = new MenuItem("Grid + Tree");
+		filterAll.addSelectionHandler(new SelectionHandler<Item>() {
+			@Override
+			public void onSelection(SelectionEvent<Item> event) {
+				termsGrid.fire(new FilterEvent(r.getDest().getValue(), true, true, termsGrid.getType()));
+			}
+		});
+		filterMenu.add(filterAll);
 		MenuItem removeItem = new MenuItem("Remove this " + termsGrid.getType().getTargetLabel());
 		removeItem.addSelectionHandler(new SelectionHandler<Item>() {
 			@Override
@@ -95,6 +123,7 @@ public class AttachedCell extends MenuExtendedCell<Row> {
 			}
 		});
 		menu.add(removeItem);
+		menu.add(filterItem);
 		menu.add(context);
 		return menu;
 	}

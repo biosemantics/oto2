@@ -49,4 +49,9 @@ public class VertexTreeNode extends TextTreeNode {
 			return false;
 		return true;
 	}
+	
+	@Override
+	public String toString() {
+		return vertex.toString();
+	}
 }

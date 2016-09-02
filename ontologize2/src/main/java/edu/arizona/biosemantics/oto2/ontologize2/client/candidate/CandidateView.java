@@ -29,6 +29,8 @@ import com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.Hor
 import com.sencha.gxt.widget.core.client.container.SimpleContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
+import com.sencha.gxt.widget.core.client.event.BeforeShowEvent;
+import com.sencha.gxt.widget.core.client.event.BeforeShowEvent.BeforeShowHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.form.FieldLabel;
@@ -43,6 +45,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize2.client.common.TextAreaMessageBox;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateCandidateEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveCandidateEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.SelectTermEvent;
@@ -52,6 +55,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.TextTreeNode;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.TextTreeNodeProperties;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Candidate;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Type;
 
 public class CandidateView extends SimpleContainer {
 
@@ -230,15 +234,60 @@ public class CandidateView extends SimpleContainer {
 	}
 	
 	private Menu createContextMenu() {
-		Menu menu = new Menu();
-		MenuItem context = new MenuItem("Show Term Context");
-		context.addSelectionHandler(new SelectionHandler<Item>() {
+		final Menu menu = new Menu();
+		menu.addBeforeShowHandler(new BeforeShowHandler() {
 			@Override
-			public void onSelection(SelectionEvent<Item> event) {
-				eventBus.fireEvent(new SelectTermEvent(tree.getSelectionModel().getSelectedItem().getText()));
+			public void onBeforeShow(BeforeShowEvent event) {
+				menu.clear();
+				
+				if(!tree.getSelectionModel().getSelectedItems().isEmpty()) {
+					final String text = tree.getSelectionModel().getSelectedItem().getText();
+					
+					MenuItem filterItem = new MenuItem("Filter: " + text);
+					Menu filterMenu = new Menu();
+					filterItem.setSubMenu(filterMenu);
+					MenuItem filterGrid = new MenuItem("Grid");
+					filterGrid.addSelectionHandler(new SelectionHandler<Item>() {
+						@Override
+						public void onSelection(SelectionEvent<Item> event) {
+								eventBus.fireEvent(new FilterEvent(text, 
+										true, false, Type.values()));
+						}
+					});
+					filterMenu.add(filterGrid);
+					MenuItem filterTree = new MenuItem("Tree");
+					filterTree.addSelectionHandler(new SelectionHandler<Item>() {
+						@Override
+						public void onSelection(SelectionEvent<Item> event) {
+							if(!tree.getSelectionModel().getSelectedItems().isEmpty())
+								eventBus.fireEvent(new FilterEvent(text, 
+										false, true, Type.values()));
+						}
+					});
+					filterMenu.add(filterTree);
+					MenuItem filterAll = new MenuItem("Grid + Tree");
+					filterAll.addSelectionHandler(new SelectionHandler<Item>() {
+						@Override
+						public void onSelection(SelectionEvent<Item> event) {
+							if(!tree.getSelectionModel().getSelectedItems().isEmpty())
+								eventBus.fireEvent(new FilterEvent(text, 
+										true, true, Type.values()));
+						}
+					});
+					filterMenu.add(filterAll);
+					
+					MenuItem context = new MenuItem("Show Term Context");
+					context.addSelectionHandler(new SelectionHandler<Item>() {
+						@Override
+						public void onSelection(SelectionEvent<Item> event) {
+							eventBus.fireEvent(new SelectTermEvent(text));
+						}
+					});
+					menu.add(filterItem);
+					menu.add(context);
+				}
 			}
-		});
-		menu.add(context);
+		});		
 		return menu;
 	}
 

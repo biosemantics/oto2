@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
+import com.google.gwt.event.logical.shared.SelectionEvent;
+import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.event.shared.GwtEvent;
 import com.sencha.gxt.data.shared.TreeStore.TreeNode;
@@ -16,6 +18,7 @@ import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.menu.Menu;
+import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
 import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
@@ -28,21 +31,22 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Type;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Vertex;
+import com.sencha.gxt.widget.core.client.menu.Item;
 
 public class SubclassTreeView extends TreeView {
 
 	private Stack<Vertex> rootStack = new Stack<Vertex>();
-	private TextButton backButton;
+	private MenuItem backButton;
 	protected Map<GwtEvent<?>, Set<VertexTreeNode>> visiblilityCheckNodes = new HashMap<GwtEvent<?>, Set<VertexTreeNode>>();
 	
 	public SubclassTreeView(EventBus eventBus) {
 		super(eventBus, Type.SUBCLASS_OF);
 		
 		Menu menu = new Menu();
-		TextButton resetButton = new TextButton("Reset");
-		resetButton.addSelectHandler(new SelectHandler() {
+		MenuItem resetButton = new MenuItem("Reset");
+		resetButton.addSelectionHandler(new SelectionHandler<Item>() {
 			@Override
-			public void onSelect(SelectEvent event) {
+			public void onSelection(SelectionEvent<Item> event) {
 				OntologyGraph g = ModelController.getCollection().getGraph();
 				Vertex root = g.getRoot(type);
 				createFromRoot(g, root);
@@ -50,10 +54,10 @@ public class SubclassTreeView extends TreeView {
 				backButton.setEnabled(false);
 			}
 		});
-		backButton = new TextButton("Back");
-		backButton.addSelectHandler(new SelectHandler() {
+		backButton = new MenuItem("Back");
+		backButton.addSelectionHandler(new SelectionHandler<Item>() {
 			@Override
-			public void onSelect(SelectEvent event) {
+			public void onSelection(SelectionEvent<Item> event) {
 				OntologyGraph g = ModelController.getCollection().getGraph();
 				createFromRoot(g, rootStack.pop());
 				if(rootStack.isEmpty())
@@ -175,6 +179,7 @@ public class SubclassTreeView extends TreeView {
 	
 	@Override
 	protected void onCreateRelationEffectiveInModel(Edge r) {
+		super.onCreateRelationEffectiveInModel(r);
 		if(r.getType().equals(type)) {
 			if(!isVisible(r))
 				return;
@@ -229,6 +234,7 @@ public class SubclassTreeView extends TreeView {
 
 	@Override
 	protected void onReplaceRelationEffectiveInModel(GwtEvent<?> event, Edge r, Vertex vertex) {
+		super.onReplaceRelationEffectiveInModel(event, r, vertex);
 		if(r.getType().equals(type)) {
 			OntologyGraph g = ModelController.getCollection().getGraph();
 			if(this.visiblilityCheckNodes.containsKey(event)) {
@@ -243,6 +249,7 @@ public class SubclassTreeView extends TreeView {
 	
 	@Override
 	protected void onRemoveRelationEffectiveInModel(GwtEvent<?> event, Edge r, boolean recursive) {
+		super.onRemoveRelationEffectiveInModel(event, r, recursive);
 		if(r.getType().equals(type)) {
 			if(!isVisible(r))
 				return;
@@ -263,6 +270,7 @@ public class SubclassTreeView extends TreeView {
 	
 	@Override
 	protected void onLoadCollectionEffectiveInModel() {
+		super.onLoadCollectionEffectiveInModel();
 		OntologyGraph g = ModelController.getCollection().getGraph();
 		for(Vertex v : g.getVertices()) {
 			List<Edge> inRelations = g.getInRelations(v, type);
