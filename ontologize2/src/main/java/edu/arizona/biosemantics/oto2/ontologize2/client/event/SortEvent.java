@@ -3,19 +3,20 @@ package edu.arizona.biosemantics.oto2.ontologize2.client.event;
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
 import com.google.gwt.event.shared.GwtEvent.Type;
+import com.sencha.gxt.data.shared.SortDir;
 
-import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent.Handler;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.SortEvent.Handler;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph;
 
-public class FilterEvent extends GwtEvent<Handler> {
+public class SortEvent extends GwtEvent<Handler> {
 
-	public static enum FilterTarget {
+	public static enum SortTarget {
 		GRID("Grid"), TREE("Tree"), GRID_AND_TREE("Grid + Tree");
 		
 		private String displayName;
 
-		private FilterTarget(String displayName) {
+		private SortTarget(String displayName) {
 			this.displayName = displayName;
 		}
 		
@@ -24,19 +25,35 @@ public class FilterEvent extends GwtEvent<Handler> {
 		}
 	}
 	
+	public static enum SortField {
+		name("Name"), creation("Creation Time");
+		
+		private String displayName;
+
+		private SortField(String displayName) {
+			this.displayName = displayName;
+		}
+
+		public String getDisplayName() {
+			return displayName;
+		}
+	}
+	
 	public interface Handler extends EventHandler {
-		void onFilter(FilterEvent event);
+		void onSort(SortEvent event);
 	}
 	
     public static Type<Handler> TYPE = new Type<Handler>();
 
     private OntologyGraph.Edge.Type[] types;
-    private String filter;
-    private FilterTarget filterTarget;
+    private SortField sortField;
+    private SortDir sortDir;
+    private SortTarget sortTarget;
     
-    public FilterEvent(String filter, FilterTarget filterTarget, OntologyGraph.Edge.Type... types) {
-    	this.filter = filter == null ? "" : filter.trim();
-    	this.filterTarget = filterTarget;
+    public SortEvent(SortField sortField, SortDir sortDir, SortTarget sortTarget, OntologyGraph.Edge.Type... types) {
+    	this.sortField = sortField;
+    	this.sortDir = sortDir;
+    	this.sortTarget = sortTarget;
     	this.types = types;
     }
     
@@ -47,27 +64,29 @@ public class FilterEvent extends GwtEvent<Handler> {
 
 	@Override
 	protected void dispatch(Handler handler) {
-		handler.onFilter(this);
+		handler.onSort(this);
 	}
 
 	public OntologyGraph.Edge.Type[] getTypes() {
 		return types;
 	}
 
-	public String getFilter() {
-		return filter;
-	}
-
-	public FilterTarget getFilterTarget() {
-		return filterTarget;
+	public SortField getSortField() {
+		return sortField;
 	}
 	
+	public SortDir getSortDir() {
+		return sortDir;
+	}
+
+	public SortTarget getSortTarget() {
+		return sortTarget;
+	}
+
 	public boolean containsType(OntologyGraph.Edge.Type t) {
 		for(OntologyGraph.Edge.Type type : OntologyGraph.Edge.Type.values()) 
 			if(type.equals(t))
 				return true;
 		return false;
 	}
-	
-	
 }

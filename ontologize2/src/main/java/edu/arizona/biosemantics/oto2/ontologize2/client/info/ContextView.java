@@ -50,6 +50,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.SelectTermEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent.FilterTarget;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.IContextService;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.IContextServiceAsync;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Collection;
@@ -157,30 +158,16 @@ public class ContextView extends Composite {
 					MenuItem filterItem = new MenuItem("Filter: " + text);
 					Menu filterMenu = new Menu();
 					filterItem.setSubMenu(filterMenu);
-					MenuItem filterGrid = new MenuItem("Grid");
-					filterGrid.addSelectionHandler(new SelectionHandler<Item>() {
-						@Override
-						public void onSelection(SelectionEvent<Item> event) {
-							eventBus.fireEvent(new FilterEvent(text, true, false, Type.values()));
-						}
-					});
-					filterMenu.add(filterGrid);
-					MenuItem filterTree = new MenuItem("Tree");
-					filterTree.addSelectionHandler(new SelectionHandler<Item>() {
-						@Override
-						public void onSelection(SelectionEvent<Item> event) {
-							eventBus.fireEvent(new FilterEvent(text, false, true, Type.values()));
-						}
-					});
-					filterMenu.add(filterTree);
-					MenuItem filterAll = new MenuItem("Grid + Tree");
-					filterAll.addSelectionHandler(new SelectionHandler<Item>() {
-						@Override
-						public void onSelection(SelectionEvent<Item> event) {
-							eventBus.fireEvent(new FilterEvent(text, true, true, Type.values()));
-						}
-					});
-					filterMenu.add(filterAll);
+					for(final FilterTarget filterTarget : FilterTarget.values()) {
+						MenuItem menuItem = new MenuItem(filterTarget.getDisplayName());
+						menuItem.addSelectionHandler(new SelectionHandler<Item>() {
+							@Override
+							public void onSelection(SelectionEvent<Item> event) {
+								eventBus.fireEvent(new FilterEvent(text, filterTarget, Type.values()));
+							}
+						});
+						filterMenu.add(menuItem);
+					}
 					menu.add(filterItem);
 				}	
 			}

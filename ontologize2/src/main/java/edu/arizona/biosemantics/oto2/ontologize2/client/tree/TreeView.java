@@ -84,7 +84,11 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveCandidateEve
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.SelectTermEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent.FilterTarget;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.Handler;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.SortEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.SortEvent.SortField;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.SortEvent.SortTarget;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid.Row;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.TextTreeNodeProperties;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.VertexCell;
@@ -114,13 +118,28 @@ public class TreeView extends SimpleContainer {
 	protected ToolBar buttonBar;
 	
 	private CheckMenuItem checkFilterItem;
-	private TextField filterField;
-	private DelayedTask updateTask = new DelayedTask() {		
+	private TextField filterGridField;
+	private TextField filterTreeField;
+	private TextField filterGridAndTreeField;
+	private DelayedTask filterGridTask = new DelayedTask() {		
 		@Override
 		public void onExecute() {
-			eventBus.fireEvent(new FilterEvent(filterField.getText(), false, true, type));
+			eventBus.fireEvent(new FilterEvent(filterGridField.getText(), FilterTarget.GRID, type));
 		}
 	};
+	private DelayedTask filterTreeTask = new DelayedTask() {		
+		@Override
+		public void onExecute() {
+			eventBus.fireEvent(new FilterEvent(filterTreeField.getText(), FilterTarget.TREE, type));
+		}
+	};
+	private DelayedTask filterGridAndTreeTask = new DelayedTask() {		
+		@Override
+		public void onExecute() {
+			eventBus.fireEvent(new FilterEvent(filterGridAndTreeField.getText(), FilterTarget.GRID_AND_TREE, type));
+		}
+	};
+	
 	private Comparator<VertexTreeNode> creationComparator = new Comparator<VertexTreeNode>() {
 		@Override
 		public int compare(VertexTreeNode o1, VertexTreeNode o2) {
@@ -169,7 +188,7 @@ public class TreeView extends SimpleContainer {
 			if(p1 != null && p2 != null && p1.equals(p2)) {
 				if(g.hasOrderedEdges(p1.getVertex(), type)) {
 					List<Edge> orderedEdges = g.getOrderedEdges(p1.getVertex(), type);
-					return orderedEdges.indexOf(o1.getVertex()) - orderedEdges.indexOf(o2.getVertex());
+					return orderedEdges.indexOf(o2.getVertex()) - orderedEdges.indexOf(o1.getVertex());
 				} else {
 					return o1.getVertex().compareTo(o2.getVertex());
 				}
@@ -177,6 +196,7 @@ public class TreeView extends SimpleContainer {
 			return o1.getVertex().compareTo(o2.getVertex());
 		}
 	};
+
 	
 	public TreeView(EventBus eventBus, Type type) {
 		this.eventBus = eventBus;
@@ -242,7 +262,11 @@ public class TreeView extends SimpleContainer {
 		menu.add(checkFilterItem);
 		
 		final Menu filterMenu = new Menu();
-		filterField = new TextField() {
+		
+		MenuItem filterGridItem = new MenuItem("Grid");
+		Menu filterGridMenu = new Menu();
+		filterGridItem.setSubMenu(filterGridMenu);
+		filterGridField = new TextField() {
 			protected void onKeyUp(Event event) {
 				super.onKeyUp(event);
 				int key = event.getKeyCode();
@@ -250,20 +274,61 @@ public class TreeView extends SimpleContainer {
 					event.stopPropagation();
 					event.preventDefault();
 					filterMenu.hide(true);
-					eventBus.fireEvent(new FilterEvent(filterField.getText(), false, true, type));
+					eventBus.fireEvent(new FilterEvent(filterGridField.getText(), FilterTarget.GRID, type));
 				}
-				updateTask.delay(500);
+				filterGridTask.delay(500);
 			}
 		};
-		filterMenu.add(filterField);
+		filterGridMenu.add(filterGridField);
+		filterMenu.add(filterGridItem);
+		
+		MenuItem filterTreeItem = new MenuItem("Tree");
+		Menu filterTreeMenu = new Menu();
+		filterTreeItem.setSubMenu(filterTreeMenu);
+		filterTreeField = new TextField() {
+			protected void onKeyUp(Event event) {
+				super.onKeyUp(event);
+				int key = event.getKeyCode();
+				if (key == KeyCodes.KEY_ENTER) {
+					event.stopPropagation();
+					event.preventDefault();
+					filterMenu.hide(true);
+					eventBus.fireEvent(new FilterEvent(filterTreeField.getText(), FilterTarget.TREE, type));
+				}
+				filterTreeTask.delay(500);
+			}
+		};
+		filterTreeMenu.add(filterTreeField);
+		filterMenu.add(filterTreeItem);
+		
+		MenuItem filterGridAndTreeItem = new MenuItem("Grid and Tree");
+		Menu filterGridAndTreeMenu = new Menu();
+		filterGridAndTreeItem.setSubMenu(filterGridAndTreeMenu);
+		filterGridAndTreeField = new TextField() {
+			protected void onKeyUp(Event event) {
+				super.onKeyUp(event);
+				int key = event.getKeyCode();
+				if (key == KeyCodes.KEY_ENTER) {
+					event.stopPropagation();
+					event.preventDefault();
+					filterMenu.hide(true);
+					eventBus.fireEvent(new FilterEvent(filterGridAndTreeField.getText(), FilterTarget.GRID_AND_TREE, type));
+				}
+				filterGridAndTreeTask.delay(500);
+			}
+		};
+		filterGridAndTreeMenu.add(filterGridAndTreeField);
+		filterMenu.add(filterGridAndTreeItem);
+		
+		
 		checkFilterItem.setSubMenu(filterMenu);
 		checkFilterItem.addCheckChangeHandler(new CheckChangeHandler<CheckMenuItem>() {
 	        @Override
 	        public void onCheckChange(CheckChangeEvent<CheckMenuItem> event) {
 	        	if(event.getItem().isChecked())
-	        		eventBus.fireEvent(new FilterEvent(filterField.getText(), false, true, type));
+	        		eventBus.fireEvent(new FilterEvent(filterTreeField.getText(), FilterTarget.TREE, type));
 	        	else
-	        		eventBus.fireEvent(new FilterEvent("", false, true, type));
+	        		eventBus.fireEvent(new FilterEvent("", FilterTarget.TREE, type));
 	        }
 	    });
 		filterButton.setMenu(menu);
@@ -273,47 +338,38 @@ public class TreeView extends SimpleContainer {
 	private Widget createSortMenu() {
 		TextButton sortButton = new TextButton("Sort");
 		final Menu sortMenu = new Menu();
-		MenuItem creationButton = new MenuItem("By Creation Time");
-		MenuItem nameButton = new MenuItem("By Name");
 		sortButton.setMenu(sortMenu);
-		sortMenu.add(creationButton);
-		sortMenu.add(nameButton);
-		final Menu creationMenu = new Menu();
-		creationButton.setSubMenu(creationMenu);
-		final Menu nameMenu = new Menu();
-		nameButton.setSubMenu(nameMenu);
-		MenuItem creationAscButton = new MenuItem("Ascending");
-		MenuItem creationDescButton = new MenuItem("Descending");
-		creationMenu.add(creationAscButton);
-		creationMenu.add(creationDescButton);
-		MenuItem nameAscButton = new MenuItem("Ascending");
-		MenuItem nameDescButton = new MenuItem("Descending");
-		nameMenu.add(nameAscButton);
-		nameMenu.add(nameDescButton);
-		creationAscButton.addSelectionHandler(new SelectionHandler<Item>() {
-			@Override
-			public void onSelection(SelectionEvent<Item> event) {
-				sort(creationComparator, SortDir.ASC);
-			}
-		});
-		creationDescButton.addSelectionHandler(new SelectionHandler<Item>() {
-			@Override
-			public void onSelection(SelectionEvent<Item> event) {
-				sort(creationComparator, SortDir.DESC);
-			}
-		});
-		nameAscButton.addSelectionHandler(new SelectionHandler<Item>() {
-			@Override
-			public void onSelection(SelectionEvent<Item> event) {
-				sort(nameComparator, SortDir.ASC);
-			}
-		});
-		nameDescButton.addSelectionHandler(new SelectionHandler<Item>() {
-			@Override
-			public void onSelection(SelectionEvent<Item> event) {
-				sort(nameComparator, SortDir.DESC);
-			}
-		});
+		for(final SortTarget sortTarget : SortEvent.SortTarget.values()) {
+			//if(!sortTarget.equals(SortTarget.GRID)) {
+				MenuItem targetItem = new MenuItem(sortTarget.getDisplayName());
+				sortMenu.add(targetItem);
+				Menu targetMenu = new Menu();
+				targetItem.setSubMenu(targetMenu);
+				for(final SortField sortField : SortEvent.SortField.values()) {
+					MenuItem fieldItem = new MenuItem("By " + sortField.getDisplayName());
+					targetMenu.add(fieldItem);
+					Menu fieldMenu = new Menu();
+					fieldItem.setSubMenu(fieldMenu);
+					MenuItem creationAscButton = new MenuItem("Ascending");
+					MenuItem creationDescButton = new MenuItem("Descending");
+					fieldMenu.add(creationAscButton);
+					fieldMenu.add(creationDescButton);
+					
+					creationAscButton.addSelectionHandler(new SelectionHandler<Item>() {
+						@Override
+						public void onSelection(SelectionEvent<Item> event) {
+							eventBus.fireEvent(new SortEvent(sortField, SortDir.ASC, sortTarget, type));
+						}
+					});
+					creationDescButton.addSelectionHandler(new SelectionHandler<Item>() {
+						@Override
+						public void onSelection(SelectionEvent<Item> event) {
+							eventBus.fireEvent(new SortEvent(sortField, SortDir.DESC, sortTarget, type));
+						}
+					});
+				}
+			//}
+		}
 		return sortButton;
 	}
 
@@ -334,7 +390,7 @@ public class TreeView extends SimpleContainer {
 						@Override
 						public void onSelection(SelectionEvent<Item> event) {
 							eventBus.fireEvent(new FilterEvent(treeGrid.getSelectionModel().getSelectedItem().getText(), 
-									true, false, type));
+									FilterTarget.GRID, type));
 						}
 					});
 					filterMenu.add(filterGrid);
@@ -343,7 +399,7 @@ public class TreeView extends SimpleContainer {
 						@Override
 						public void onSelection(SelectionEvent<Item> event) {
 							eventBus.fireEvent(new FilterEvent(treeGrid.getSelectionModel().getSelectedItem().getText(), 
-									false, true, type));
+									FilterTarget.TREE, type));
 						}
 					});
 					filterMenu.add(filterTree);
@@ -352,7 +408,7 @@ public class TreeView extends SimpleContainer {
 						@Override
 						public void onSelection(SelectionEvent<Item> event) {
 							eventBus.fireEvent(new FilterEvent(treeGrid.getSelectionModel().getSelectedItem().getText(), 
-									true, true, type));
+									FilterTarget.GRID_AND_TREE, type));
 						}
 					});
 					filterMenu.add(filterAll);
@@ -451,23 +507,36 @@ public class TreeView extends SimpleContainer {
 				}
 			}
 		});
-		
 		eventBus.addHandler(FilterEvent.TYPE, new FilterEvent.Handler() {
 			@Override
 			public void onFilter(FilterEvent event) {
-				if(event.isTree() && event.containsType(type)) {
+				if((event.getFilterTarget().equals(FilterTarget.TREE) || 
+						event.getFilterTarget().equals(FilterTarget.GRID_AND_TREE)) && event.containsType(type)) {
 					TreeView.this.onFilter(event.getFilter());
+				}
+			}
+		});
+		eventBus.addHandler(SortEvent.TYPE, new SortEvent.Handler() {
+			@Override
+			public void onSort(SortEvent event) {
+				if((event.getSortTarget().equals(SortTarget.TREE) || 
+						event.getSortTarget().equals(SortTarget.GRID_AND_TREE)) && event.containsType(type)) {
+					TreeView.this.onSort(event.getSortField(), event.getSortDir());
 				}
 			}
 		});
 	}
 	
 
+	protected void onSort(SortField sortField, SortDir sortDir) {
+		this.sort(sortField.equals(SortField.name) ? nameComparator : creationComparator, sortDir);
+	}
+
 	protected void onFilter(final String filter) {
 		boolean activate = filter != null && !filter.isEmpty();
 		checkFilterItem.setChecked(activate, true);
 		if(!activate) {
-			filterField.setText("");
+			filterTreeField.setText("");
 			store.removeFilters();
 			store.setEnableFilters(false);
 		} else {
@@ -493,7 +562,7 @@ public class TreeView extends SimpleContainer {
 				}
 			});
 			store.setEnableFilters(true);
-			filterField.setText(filter);
+			filterTreeField.setText(filter);
 		}
 	}
 	

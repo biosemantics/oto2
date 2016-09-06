@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -83,18 +84,67 @@ public class TermsGrid implements IsWidget {
 
 	public static class Row {
 		
+		public class CreationComparator implements Comparator<Vertex> {
+			@Override
+			public int compare(Vertex o1, Vertex o2) {
+				OntologyGraph g = ModelController.getCollection().getGraph();
+				Date d1 = getCreationDate(o1);
+				Date d2 = getCreationDate(o2);
+				if(g.hasOrderedEdges(lead, type)) {
+					List<Edge> orderedEdges = g.getOrderedEdges(lead, type);
+					return getIndex(o1, orderedEdges) - getIndex(o2, orderedEdges);
+				} else {
+					return d1.compareTo(d2);
+				}
+			}
+			
+			private int getIndex(Vertex vertex, List<Edge> orderedEdges) {
+				for(int i=0; i<orderedEdges.size(); i++) {
+					Edge orderedEdge = orderedEdges.get(i);
+					if(orderedEdge.getDest().equals(vertex))
+						return i;
+				}
+				return -1;
+			}
+
+			protected Date getCreationDate(Vertex v) {
+				OntologyGraph g = ModelController.getCollection().getGraph();
+				Date result = new Date();
+				for(Edge in : g.getInRelations(v)) {
+					if(in.getCreation().compareTo(result) < 0)
+						result = in.getCreation();
+				}
+				return result;
+			}
+		};
+		
+		public class NameComparator implements Comparator<Vertex> {		
+			@Override
+			public int compare(Vertex o1, Vertex o2) {
+				OntologyGraph g = ModelController.getCollection().getGraph();			
+				if(g.hasOrderedEdges(lead, type)) {
+					List<Edge> orderedEdges = g.getOrderedEdges(lead, type);
+					return orderedEdges.indexOf(o1) - orderedEdges.indexOf(o2);
+				} else {
+					return o1.compareTo(o2);
+				}
+			}
+		};
+		
 		private static int currentId = 0;
 		
 		private int id = currentId++;
+		private Type type;
 		private Vertex lead;
 		private List<Edge> attached = new ArrayList<Edge>();
 		
-		public Row(Vertex lead) {
+		public Row(Type type, Vertex lead) {
+			this.type = type;
 			this.lead = lead;
 		}
 		
-		public Row(Vertex lead, List<Edge> attached) {
-			this(lead);
+		public Row(Type type, Vertex lead, List<Edge> attached) {
+			this(type, lead);
 			this.attached.addAll(attached);
 		}
 		
@@ -117,13 +167,13 @@ public class TermsGrid implements IsWidget {
 		}
 
 		public void add(Edge relation) throws Exception {
-			int index = attached.size();
-			this.add(index, relation);
+			//int index = attached.size();
+			this.add(0, relation); //index, relation);
 		}
 		
 		public void add(Collection<Edge> relations) throws Exception {
 			for(Edge relation : relations) 
-				this.add(relation);
+				this.add(0, relation);
 		}
 		
 		public void remove(int i) {
@@ -205,6 +255,20 @@ public class TermsGrid implements IsWidget {
 			for(Edge a : attached)
 				result += ", " + a.getDest().getValue();
 			return result;
+		}
+
+		public void sort(final Comparator<Vertex> comparator, final SortDir sortDir) {
+			Collections.sort(attached, new Comparator<Edge>() {
+				@Override
+				public int compare(Edge o1, Edge o2) {
+					Vertex d1 = o1.getDest();
+					Vertex d2 = o2.getDest();
+					int val = comparator.compare(d1, d2);
+					if(sortDir.equals(SortDir.DESC))
+						val = -val;
+					return val;
+				}
+			});
 		}
 	}
 	
@@ -356,7 +420,7 @@ public class TermsGrid implements IsWidget {
 									fire(createRelationEvent);
 								} else {
 									if(!TermsGrid.this.leadRowMap.containsKey(target))
-										TermsGrid.this.addRow(new Row(target), true);
+										TermsGrid.this.addRow(new Row(type, target), true);
 								}
 							}
 							else if(list.get(0) instanceof Edge) {
@@ -548,7 +612,7 @@ public class TermsGrid implements IsWidget {
 	
 	protected void onLoad(OntologyGraph g) {
 		this.reconfigureForAttachedTerms(g.getMaxOutRelations(type, new HashSet<Vertex>(Arrays.asList(g.getRoot(type)))));
-		Row rootRow = new Row(g.getRoot(type));
+		Row rootRow = new Row(type, g.getRoot(type));
 		addRow(rootRow, false);
 		createEdges(g, g.getRoot(type), new HashSet<String>(), false);
 	}
@@ -584,7 +648,7 @@ public class TermsGrid implements IsWidget {
 			if(leadRowMap.containsKey(r.getSrc())) {
 				row = leadRowMap.get(r.getSrc());
 			} else {
-				row = new Row(r.getSrc());
+				row = new Row(type, r.getSrc());
 				this.addRow(row, refresh);
 			}	
 			try {
@@ -624,7 +688,7 @@ public class TermsGrid implements IsWidget {
 			if(inRelations.size() == 1 && inRelations.get(0).getSrc().equals(g.getRoot(type))) {
 				for(Edge e : row.getAttached())
 					if(!leadRowMap.containsKey(e.getDest()))
-						this.addRow(new Row(e.getDest()), refresh);
+						this.addRow(new Row(type, e.getDest()), refresh);
 			} else {
 				for(Edge r : g.getInRelations(lead, type)) {
 					if(leadRowMap.containsKey(r.getSrc())) {
@@ -859,6 +923,5 @@ public class TermsGrid implements IsWidget {
 	public void refreshHeader() {
         grid.getView().refresh(true);
 	}
-
 	
 }

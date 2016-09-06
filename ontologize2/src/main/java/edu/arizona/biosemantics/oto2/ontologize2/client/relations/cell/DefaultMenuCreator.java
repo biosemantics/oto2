@@ -23,12 +23,14 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEven
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.SelectTermEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent.FilterTarget;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid.Row;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Vertex;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Origin;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Type;
 
 public class DefaultMenuCreator implements LeadCell.MenuCreator {
 
@@ -128,30 +130,16 @@ public class DefaultMenuCreator implements LeadCell.MenuCreator {
 		filterItem = new MenuItem("Filter: " + row.getLead());
 		Menu filterMenu = new Menu();
 		filterItem.setSubMenu(filterMenu);
-		MenuItem filterGrid = new MenuItem("Grid");
-		filterGrid.addSelectionHandler(new SelectionHandler<Item>() {
-			@Override
-			public void onSelection(SelectionEvent<Item> event) {
-				termsGrid.fire(new FilterEvent(row.getLead().getValue(), true, false, termsGrid.getType()));
-			}
-		});
-		filterMenu.add(filterGrid);
-		MenuItem filterTree = new MenuItem("Tree");
-		filterTree.addSelectionHandler(new SelectionHandler<Item>() {
-			@Override
-			public void onSelection(SelectionEvent<Item> event) {
-				termsGrid.fire(new FilterEvent(row.getLead().getValue(), false, true, termsGrid.getType()));
-			}
-		});
-		filterMenu.add(filterTree);
-		MenuItem filterAll = new MenuItem("Grid + Tree");
-		filterAll.addSelectionHandler(new SelectionHandler<Item>() {
-			@Override
-			public void onSelection(SelectionEvent<Item> event) {
-				termsGrid.fire(new FilterEvent(row.getLead().getValue(), true, true, termsGrid.getType()));
-			}
-		});
-		filterMenu.add(filterAll);
+		for(final FilterTarget filterTarget : FilterTarget.values()) {
+			MenuItem menuItem = new MenuItem(filterTarget.getDisplayName());
+			menuItem.addSelectionHandler(new SelectionHandler<Item>() {
+				@Override
+				public void onSelection(SelectionEvent<Item> event) {
+					eventBus.fireEvent(new FilterEvent(row.getLead().getValue(), filterTarget, Type.values()));
+				}
+			});
+			filterMenu.add(menuItem);
+		}
 		
 		context = new MenuItem("Show Term Context");
 		context.addSelectionHandler(new SelectionHandler<Item>() {

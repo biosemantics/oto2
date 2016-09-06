@@ -110,7 +110,7 @@ public class SynonymsGrid extends MenuTermsGrid {
 			OntologyGraph g = ModelController.getCollection().getGraph();
 			if(r.getSrc().equals(g.getRoot(type))) {
 				if(!leadRowMap.containsKey(r.getDest()))
-					this.addRow(new Row(r.getDest()), refresh);
+					this.addRow(new Row(type, r.getDest()), refresh);
 			} else {
 				super.createRelation(r, refresh);
 			}
@@ -197,7 +197,7 @@ public class SynonymsGrid extends MenuTermsGrid {
 			}
 			if(newSource.equals(g.getRoot(type))) {
 				if(!leadRowMap.containsKey(oldRelation.getDest())) {
-					Row newRow = new Row(oldRelation.getDest());
+					Row newRow = new Row(type, oldRelation.getDest());
 					this.addRow(newRow, true);
 				}
 			} else if(leadRowMap.containsKey(newSource)) {

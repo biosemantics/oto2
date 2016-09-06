@@ -29,6 +29,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid.RowP
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Vertex;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Type;
 
 public class AllRowStore implements DataProxy<PagingLoadConfig, PagingLoadResult<Row>> {
 
@@ -45,6 +46,7 @@ public class AllRowStore implements DataProxy<PagingLoadConfig, PagingLoadResult
 	}
 
 	private RowProperties rowProperties = GWT.create(RowProperties.class);
+	
 	private Comparator<Row> creationComparator = new Comparator<Row>() {
 		@Override
 		public int compare(Row o1, Row o2) {
@@ -63,13 +65,15 @@ public class AllRowStore implements DataProxy<PagingLoadConfig, PagingLoadResult
 			return result;
 		}
 	};
-	private Comparator<Row> leadComparator = new Comparator<Row>() {
+	private Comparator<Row> nameComparator = new Comparator<Row>() {
 		@Override
 		public int compare(Row o1, Row o2) {
 			return o1.getLead().compareTo(o2.getLead());
 		}
 	};
-	private StoreSortInfo<Row> defaultSortInfo = new StoreSortInfo<Row>(creationComparator, SortDir.DESC);
+	private String defaultSortField = "creation";
+	private SortDir defaultSortDir = SortDir.DESC;
+	private StoreSortInfo<Row> defaultSortInfo = new StoreSortInfo<Row>(creationComparator, defaultSortDir);
 	private ListStore<Row> store;
 	
 	public AllRowStore() {
@@ -101,28 +105,42 @@ public class AllRowStore implements DataProxy<PagingLoadConfig, PagingLoadResult
 		int offset = loadConfig.getOffset();
 		int limit = loadConfig.getLimit();
 		List<? extends SortInfo> sortInfos = loadConfig.getSortInfo();
+
+		String sortField = defaultSortField;
+		SortDir sortDir = SortDir.DESC;
 		if(sortInfos.isEmpty())
 			this.setDefaultSortInfo();
 		else {
 			store.clearSortInfo();
-			for(SortInfo sortInfo : sortInfos) {
-				switch(sortInfo.getSortField()) {
-					case "lead":
-						store.addSortInfo(new StoreSortInfo<Row>(leadComparator, sortInfo.getSortDir()));
-						break;
-					case "creation":
-						store.addSortInfo(new StoreSortInfo<Row>(creationComparator, sortInfo.getSortDir()));
-						break;
-					default:
-						this.setDefaultSortInfo();	
-				}
+			SortInfo sortInfo = sortInfos.get(0);
+			sortField = sortInfo.getSortField();
+			sortDir = sortInfo.getSortDir();
+			switch(sortField) {
+				case "name":
+					store.addSortInfo(new StoreSortInfo<Row>(nameComparator, sortDir));
+					break;
+				case "creation":
+				default:
+					store.addSortInfo(new StoreSortInfo<Row>(creationComparator, sortDir));	
 			}
 		}
 		List<Row> data = new LinkedList<Row>();
 		for(int i=offset; i<offset+limit; i++) {
 			Row row = store.get(i);
-			if(row != null)
+			if(row != null) {
+				Comparator<Vertex> comparator = row.new CreationComparator();	
+				switch(sortField) {
+				case "name":
+					comparator = row.new NameComparator();
+					break;
+				case "creation":
+				default:
+					comparator = row.new CreationComparator();	
+					break;
+				}
+				row.sort(comparator, sortDir);
 				data.add(row);
+			}
 		}
 		MyPagingLoadResult result = new MyPagingLoadResult(data, store.size(), loadConfig.getOffset());
 		callback.onSuccess(result);

@@ -188,14 +188,14 @@ public class PartsGrid extends MenuTermsGrid {
 				r = new Edge(src, new Vertex(newValue), r.getType(), r.getOrigin());
 				if(r.getSrc().equals(g.getRoot(type))) {
 					if(!leadRowMap.containsKey(r.getDest()))
-						this.addRow(new Row(r.getDest()), refresh);
+						this.addRow(new Row(type, r.getDest()), refresh);
 				} else {
 					super.createRelation(r, refresh);
 				}
 			} else {
 				if(r.getSrc().equals(g.getRoot(type))) {
 					if(!leadRowMap.containsKey(r.getDest()))
-						this.addRow(new Row(r.getDest()), refresh);
+						this.addRow(new Row(type, r.getDest()), refresh);
 				} else {
 					super.createRelation(r, refresh);
 				}
@@ -247,6 +247,6 @@ public class PartsGrid extends MenuTermsGrid {
 	@Override
 	protected void createRowFromEdgeDrop(Edge edge) {
 		if(!leadRowMap.containsKey(edge.getDest()))
-			this.addRow(new Row(edge.getDest()), true);
+			this.addRow(new Row(type, edge.getDest()), true);
 	}
 }

@@ -134,7 +134,7 @@ public class SubclassesGrid extends MenuTermsGrid {
 			OntologyGraph g = ModelController.getCollection().getGraph();
 			if(r.getSrc().equals(g.getRoot(type))) {
 				if(!leadRowMap.containsKey(r.getDest()))
-					this.addRow(new Row(r.getDest()), refresh);
+					this.addRow(new Row(type, r.getDest()), refresh);
 			} else {
 				super.createRelation(r, refresh);
 			}
@@ -224,7 +224,7 @@ public class SubclassesGrid extends MenuTermsGrid {
 	@Override
 	protected void createRowFromEdgeDrop(Edge edge) {
 		if(!leadRowMap.containsKey(edge.getDest()))
-			this.addRow(new Row(edge.getDest()), true);
+			this.addRow(new Row(type, edge.getDest()), true);
 	}
 	
 	@Override

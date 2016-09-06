@@ -49,8 +49,12 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.common.TextAreaMessageBo
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ClearEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent.FilterTarget;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ImportEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.SortEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.SortEvent.SortField;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.SortEvent.SortTarget;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.TreeView;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Origin;
@@ -61,12 +65,26 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Vert
 public class MenuTermsGrid extends TermsGrid {
 	
 	protected ToolBar buttonBar;
-	private TextField filterField;
+	private TextField filterGridField;
+	private TextField filterTreeField;
+	private TextField filterGridAndTreeField;
 	private CheckMenuItem checkFilterItem;
-	private DelayedTask updateTask = new DelayedTask() {		
+	private DelayedTask filterGridTask = new DelayedTask() {		
 		@Override
 		public void onExecute() {
-			fire(new FilterEvent(filterField.getText(), true, false, type));
+			fire(new FilterEvent(filterGridField.getText(), FilterTarget.GRID, type));
+		}
+	};
+	private DelayedTask filterTreeTask = new DelayedTask() {		
+		@Override
+		public void onExecute() {
+			fire(new FilterEvent(filterTreeField.getText(), FilterTarget.TREE, type));
+		}
+	};
+	private DelayedTask filterGridAndTreeTask = new DelayedTask() {		
+		@Override
+		public void onExecute() {
+			fire(new FilterEvent(filterGridAndTreeField.getText(), FilterTarget.GRID_AND_TREE, type));
 		}
 	};
 	private VerticalLayoutContainer vlc;
@@ -83,7 +101,10 @@ public class MenuTermsGrid extends TermsGrid {
 		menu.add(checkFilterItem);
 		
 		final Menu filterMenu = new Menu();
-		filterField = new TextField() {
+		MenuItem filterGridItem = new MenuItem("Grid");
+		Menu filterGridMenu = new Menu();
+		filterGridItem.setSubMenu(filterGridMenu);
+		filterGridField = new TextField() {
 			protected void onKeyUp(Event event) {
 				super.onKeyUp(event);
 				int key = event.getKeyCode();
@@ -91,84 +112,99 @@ public class MenuTermsGrid extends TermsGrid {
 					event.stopPropagation();
 					event.preventDefault();
 					filterMenu.hide(true);
-					fire(new FilterEvent(filterField.getText(), true, false, type));
+					fire(new FilterEvent(filterGridField.getText(), FilterTarget.GRID, type));
 				}
-				updateTask.delay(500);
+				filterGridTask.delay(500);
 			}
 		};
-		filterMenu.add(filterField);
+		filterGridMenu.add(filterGridField);
+		filterMenu.add(filterGridItem);
+		
+		MenuItem filterTreeItem = new MenuItem("Tree");
+		Menu filterTreeMenu = new Menu();
+		filterTreeItem.setSubMenu(filterTreeMenu);
+		filterTreeField = new TextField() {
+			protected void onKeyUp(Event event) {
+				super.onKeyUp(event);
+				int key = event.getKeyCode();
+				if (key == KeyCodes.KEY_ENTER) {
+					event.stopPropagation();
+					event.preventDefault();
+					filterMenu.hide(true);
+					fire(new FilterEvent(filterTreeField.getText(), FilterTarget.TREE, type));
+				}
+				filterTreeTask.delay(500);
+			}
+		};
+		filterTreeMenu.add(filterTreeField);
+		filterMenu.add(filterTreeItem);
+		
+		MenuItem filterGridAndTreeItem = new MenuItem("Grid and Tree");
+		Menu filterGridAndTreeMenu = new Menu();
+		filterGridAndTreeItem.setSubMenu(filterGridAndTreeMenu);
+		filterGridAndTreeField = new TextField() {
+			protected void onKeyUp(Event event) {
+				super.onKeyUp(event);
+				int key = event.getKeyCode();
+				if (key == KeyCodes.KEY_ENTER) {
+					event.stopPropagation();
+					event.preventDefault();
+					filterMenu.hide(true);
+					fire(new FilterEvent(filterGridAndTreeField.getText(), FilterTarget.GRID_AND_TREE, type));
+				}
+				filterGridAndTreeTask.delay(500);
+			}
+		};
+		filterGridAndTreeMenu.add(filterGridAndTreeField);
+		filterMenu.add(filterGridAndTreeItem);
+		
 		checkFilterItem.setSubMenu(filterMenu);
 		checkFilterItem.addCheckChangeHandler(new CheckChangeHandler<CheckMenuItem>() {
 	        @Override
 	        public void onCheckChange(CheckChangeEvent<CheckMenuItem> event) {
 	        	if(!event.getItem().isChecked())
-	        		fire(new FilterEvent("", true, false, type));
+	        		fire(new FilterEvent("", getActiveFilterTarget(), type));
 	        	else
-	        		fire(new FilterEvent(filterField.getText(), true, false, type));
+	        		fire(new FilterEvent(getActiveFilterText(), getActiveFilterTarget(), type));
 	        }
 	    });
 		filterButton.setMenu(menu);
 		buttonBar.add(filterButton);
 		
-		TextButton sortButton =new TextButton("Sort");
+		TextButton sortButton = new TextButton("Sort");
 		final Menu sortMenu = new Menu();
-		MenuItem creationButton = new MenuItem("By Creation Time");
-		MenuItem nameButton = new MenuItem("By Name");
 		sortButton.setMenu(sortMenu);
-		sortMenu.add(creationButton);
-		sortMenu.add(nameButton);
-		final Menu creationMenu = new Menu();
-		creationButton.setSubMenu(creationMenu);
-		final Menu nameMenu = new Menu();
-		nameButton.setSubMenu(nameMenu);
-		MenuItem creationAscButton = new MenuItem("Ascending");
-		MenuItem creationDescButton = new MenuItem("Descending");
-		creationMenu.add(creationAscButton);
-		creationMenu.add(creationDescButton);
-		MenuItem nameAscButton = new MenuItem("Ascending");
-		MenuItem nameDescButton = new MenuItem("Descending");
-		nameMenu.add(nameAscButton);
-		nameMenu.add(nameDescButton);
-		creationAscButton.addSelectionHandler(new SelectionHandler<Item>() {
-			@Override
-			public void onSelection(SelectionEvent<Item> event) {
-				PagingLoadConfig config = loader.getLastLoadConfig();
-				List<SortInfo> sortInfo = new LinkedList<SortInfo>();
-				sortInfo.add(new SortInfoBean("creation", SortDir.ASC));
-				config.setSortInfo(sortInfo);
-				loader.load(config);
-			}
-		});
-		creationDescButton.addSelectionHandler(new SelectionHandler<Item>() {
-			@Override
-			public void onSelection(SelectionEvent<Item> event) {
-				PagingLoadConfig config = loader.getLastLoadConfig();
-				List<SortInfo> sortInfo = new LinkedList<SortInfo>();
-				sortInfo.add(new SortInfoBean("creation", SortDir.DESC));
-				config.setSortInfo(sortInfo);
-				loader.load(config);
-			}
-		});
-		nameAscButton.addSelectionHandler(new SelectionHandler<Item>() {
-			@Override
-			public void onSelection(SelectionEvent<Item> event) {
-				PagingLoadConfig config = loader.getLastLoadConfig();
-				List<SortInfo> sortInfo = new LinkedList<SortInfo>();
-				sortInfo.add(new SortInfoBean("lead", SortDir.ASC));
-				config.setSortInfo(sortInfo);
-				loader.load(config);
-			}
-		});
-		nameDescButton.addSelectionHandler(new SelectionHandler<Item>() {
-			@Override
-			public void onSelection(SelectionEvent<Item> event) {
-				PagingLoadConfig config = loader.getLastLoadConfig();
-				List<SortInfo> sortInfo = new LinkedList<SortInfo>();
-				sortInfo.add(new SortInfoBean("lead", SortDir.DESC));
-				config.setSortInfo(sortInfo);
-				loader.load(config);
-			}
-		});
+		for(final SortTarget sortTarget : SortEvent.SortTarget.values()) {
+			//if(!sortTarget.equals(SortTarget.TREE)) {
+				MenuItem targetItem = new MenuItem(sortTarget.getDisplayName());
+				sortMenu.add(targetItem);
+				Menu targetMenu = new Menu();
+				targetItem.setSubMenu(targetMenu);
+				for(final SortField sortField : SortEvent.SortField.values()) {
+					MenuItem fieldItem = new MenuItem("By " + sortField.getDisplayName());
+					targetMenu.add(fieldItem);
+					Menu fieldMenu = new Menu();
+					fieldItem.setSubMenu(fieldMenu);
+					MenuItem creationAscButton = new MenuItem("Ascending");
+					MenuItem creationDescButton = new MenuItem("Descending");
+					fieldMenu.add(creationAscButton);
+					fieldMenu.add(creationDescButton);
+					
+					creationAscButton.addSelectionHandler(new SelectionHandler<Item>() {
+						@Override
+						public void onSelection(SelectionEvent<Item> event) {
+							fire(new SortEvent(sortField, SortDir.ASC, sortTarget, type));
+						}
+					});
+					creationDescButton.addSelectionHandler(new SelectionHandler<Item>() {
+						@Override
+						public void onSelection(SelectionEvent<Item> event) {
+							fire(new SortEvent(sortField, SortDir.DESC, sortTarget, type));
+						}
+					});
+				}
+			//}
+		}
 		buttonBar.add(sortButton);
 		
 		TextButton importButton = new TextButton("Import");
@@ -296,6 +332,18 @@ public class MenuTermsGrid extends TermsGrid {
 		simpleContainer.setHideMode(HideMode.OFFSETS); //bug https://www.sencha.com/forum/showthread.php?285982-Grid-ColumnHeader-Menu-missing
 	}
 	
+	protected String getActiveFilterText() {
+		if(!filterGridField.getText().isEmpty())
+			return filterGridField.getText();
+		return filterGridAndTreeField.getText();
+	}
+
+	protected FilterTarget getActiveFilterTarget() {
+		if(!filterGridField.getText().isEmpty())
+			return FilterTarget.GRID;
+		return FilterTarget.GRID_AND_TREE;
+	}
+
 	protected String getDefaultImportText() {
 		return "";	
 	}
@@ -306,9 +354,21 @@ public class MenuTermsGrid extends TermsGrid {
 		eventBus.addHandler(FilterEvent.TYPE, new FilterEvent.Handler() {
 			@Override
 			public void onFilter(FilterEvent event) {
-				if(event.isGrid() && event.containsType(type)) {
+				if((event.getFilterTarget().equals(FilterTarget.GRID) || 
+						event.getFilterTarget().equals(FilterTarget.GRID_AND_TREE))
+						&& event.containsType(type)) {
 					MenuTermsGrid.this.onFilter(event.getFilter());
 				}
+			}
+		});
+		eventBus.addHandler(SortEvent.TYPE, new SortEvent.Handler() {
+			@Override
+			public void onSort(SortEvent event) {
+				PagingLoadConfig config = loader.getLastLoadConfig();
+				List<SortInfo> sortInfo = new LinkedList<SortInfo>();
+				sortInfo.add(new SortInfoBean(event.getSortField().toString(), event.getSortDir()));
+				config.setSortInfo(sortInfo);
+				loader.load(config);
 			}
 		});
 	}
@@ -317,7 +377,8 @@ public class MenuTermsGrid extends TermsGrid {
 		boolean activate = filter != null && !filter.isEmpty();
 		checkFilterItem.setChecked(activate, true);
 		if(!activate) {
-			filterField.setText("");
+			filterGridField.setText("");
+			filterGridAndTreeField.setText("");
 			allRowStore.removeFilters();
 			allRowStore.setEnableFilters(false);
 		} else {
@@ -332,7 +393,7 @@ public class MenuTermsGrid extends TermsGrid {
 				}
 			});
 			allRowStore.setEnableFilters(true);
-			filterField.setText(filter);
+			filterGridField.setText(filter);
 		}
 		loader.load(loader.getLastLoadConfig());
 	}
