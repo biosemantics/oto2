@@ -63,7 +63,7 @@ public class FilterEvent extends GwtEvent<Handler> {
 	}
 	
 	public boolean containsType(OntologyGraph.Edge.Type t) {
-		for(OntologyGraph.Edge.Type type : OntologyGraph.Edge.Type.values()) 
+		for(OntologyGraph.Edge.Type type : types) 
 			if(type.equals(t))
 				return true;
 		return false;

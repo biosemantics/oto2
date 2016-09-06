@@ -135,7 +135,7 @@ public class DefaultMenuCreator implements LeadCell.MenuCreator {
 			menuItem.addSelectionHandler(new SelectionHandler<Item>() {
 				@Override
 				public void onSelection(SelectionEvent<Item> event) {
-					eventBus.fireEvent(new FilterEvent(row.getLead().getValue(), filterTarget, Type.values()));
+					eventBus.fireEvent(new FilterEvent(row.getLead().getValue(), filterTarget, termsGrid.getType()));
 				}
 			});
 			filterMenu.add(menuItem);

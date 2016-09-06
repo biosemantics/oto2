@@ -335,12 +335,16 @@ public class MenuTermsGrid extends TermsGrid {
 	protected String getActiveFilterText() {
 		if(!filterGridField.getText().isEmpty())
 			return filterGridField.getText();
+		if(!filterTreeField.getText().isEmpty())
+			return filterTreeField.getText();
 		return filterGridAndTreeField.getText();
 	}
 
 	protected FilterTarget getActiveFilterTarget() {
 		if(!filterGridField.getText().isEmpty())
 			return FilterTarget.GRID;
+		if(!filterTreeField.getText().isEmpty())
+			return FilterTarget.TREE;
 		return FilterTarget.GRID_AND_TREE;
 	}
 
@@ -354,31 +358,43 @@ public class MenuTermsGrid extends TermsGrid {
 		eventBus.addHandler(FilterEvent.TYPE, new FilterEvent.Handler() {
 			@Override
 			public void onFilter(FilterEvent event) {
-				if((event.getFilterTarget().equals(FilterTarget.GRID) || 
-						event.getFilterTarget().equals(FilterTarget.GRID_AND_TREE))
-						&& event.containsType(type)) {
-					MenuTermsGrid.this.onFilter(event.getFilter());
+				if(event.containsType(type)) {
+					String filter = event.getFilter();
+					boolean activate = filter != null && !filter.isEmpty();
+					checkFilterItem.setChecked(activate, true);
+					
+					switch(event.getFilterTarget()) {
+						case GRID:
+							filterGridField.setText(filter);
+							MenuTermsGrid.this.onFilter(filter);
+							break;
+						case GRID_AND_TREE:
+							filterGridAndTreeField.setText(filter);
+							MenuTermsGrid.this.onFilter(filter);
+							break;
+						case TREE:
+							filterTreeField.setText(filter);
+							break;
+					}
 				}
 			}
 		});
 		eventBus.addHandler(SortEvent.TYPE, new SortEvent.Handler() {
 			@Override
 			public void onSort(SortEvent event) {
-				PagingLoadConfig config = loader.getLastLoadConfig();
-				List<SortInfo> sortInfo = new LinkedList<SortInfo>();
-				sortInfo.add(new SortInfoBean(event.getSortField().toString(), event.getSortDir()));
-				config.setSortInfo(sortInfo);
-				loader.load(config);
+				if(event.containsType(type)) {
+					PagingLoadConfig config = loader.getLastLoadConfig();
+					List<SortInfo> sortInfo = new LinkedList<SortInfo>();
+					sortInfo.add(new SortInfoBean(event.getSortField().toString(), event.getSortDir()));
+					config.setSortInfo(sortInfo);
+					loader.load(config);
+				}
 			}
 		});
 	}
 
 	protected void onFilter(final String filter) {
-		boolean activate = filter != null && !filter.isEmpty();
-		checkFilterItem.setChecked(activate, true);
-		if(!activate) {
-			filterGridField.setText("");
-			filterGridAndTreeField.setText("");
+		if(!checkFilterItem.isChecked()) {
 			allRowStore.removeFilters();
 			allRowStore.setEnableFilters(false);
 		} else {
@@ -393,7 +409,6 @@ public class MenuTermsGrid extends TermsGrid {
 				}
 			});
 			allRowStore.setEnableFilters(true);
-			filterGridField.setText(filter);
 		}
 		loader.load(loader.getLastLoadConfig());
 	}

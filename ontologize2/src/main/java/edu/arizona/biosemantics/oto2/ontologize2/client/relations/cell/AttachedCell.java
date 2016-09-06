@@ -78,7 +78,7 @@ public class AttachedCell extends MenuExtendedCell<Row> {
 			menuItem.addSelectionHandler(new SelectionHandler<Item>() {
 				@Override
 				public void onSelection(SelectionEvent<Item> event) {
-					eventBus.fireEvent(new FilterEvent(r.getDest().getValue(), filterTarget, Type.values()));
+					eventBus.fireEvent(new FilterEvent(r.getDest().getValue(), filterTarget, termsGrid.getType()));
 				}
 			});
 			filterMenu.add(menuItem);

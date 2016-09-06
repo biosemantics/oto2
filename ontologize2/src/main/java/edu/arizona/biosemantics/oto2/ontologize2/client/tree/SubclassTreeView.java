@@ -33,7 +33,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Vertex;
 import com.sencha.gxt.widget.core.client.menu.Item;
 
-public class SubclassTreeView extends TreeView {
+public class SubclassTreeView extends MenuTreeView {
 
 	private Stack<Vertex> rootStack = new Stack<Vertex>();
 	private MenuItem backButton;
