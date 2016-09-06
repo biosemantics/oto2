@@ -226,6 +226,14 @@ public class MenuTreeView extends TreeView {
 	}
 	
 	@Override
+	protected Vertex getRoot() {
+		store.setEnableFilters(false);
+		Vertex result = store.getRootItems().get(0).getVertex();
+		store.setEnableFilters(true);
+		return result;
+	}
+	
+	@Override
 	protected Menu createContextMenu() {
 		final Menu menu = new Menu();
 		

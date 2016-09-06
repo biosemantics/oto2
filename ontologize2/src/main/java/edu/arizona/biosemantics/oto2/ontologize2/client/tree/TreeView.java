@@ -345,7 +345,7 @@ public class TreeView implements IsWidget {
 	}
 
 	protected Vertex getRoot() {
-		return treeGrid.getTreeStore().getRootItems().get(0).getVertex();
+		return store.getRootItems().get(0).getVertex();
 	}
 
 	@Override
