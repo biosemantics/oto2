@@ -268,6 +268,7 @@ public class CandidateView extends SimpleContainer {
 					menu.add(filterItem);
 					menu.add(context);
 				}
+				event.setCancelled(menu.getWidgetCount() == 0);
 			}
 		});		
 		return menu;

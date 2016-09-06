@@ -284,6 +284,7 @@ public class MenuTreeView extends TreeView {
 					});
 					menu.add(context);
 				}
+				event.setCancelled(menu.getWidgetCount() == 0);
 			}
 		});
 		

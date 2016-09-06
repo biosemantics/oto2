@@ -153,6 +153,7 @@ public class ContextView extends Composite {
 		menu.addBeforeShowHandler(new BeforeShowHandler() {
 			@Override
 			public void onBeforeShow(BeforeShowEvent event) {
+				menu.clear();
 				final String text = getSelection();
 				if(text != null && !text.trim().isEmpty()) {
 					MenuItem filterItem = new MenuItem("Filter: " + text);
@@ -170,6 +171,7 @@ public class ContextView extends Composite {
 					}
 					menu.add(filterItem);
 				}	
+				event.setCancelled(menu.getWidgetCount() == 0);
 			}
 		});
 		return menu;
