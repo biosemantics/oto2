@@ -10,24 +10,20 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.event.logical.shared.SelectionEvent;
-import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.event.shared.GwtEvent;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.core.client.Style.SelectionMode;
+import com.sencha.gxt.data.shared.Store.StoreFilter;
+import com.sencha.gxt.data.shared.Store.StoreSortInfo;
 import com.sencha.gxt.data.shared.TreeStore;
 import com.sencha.gxt.data.shared.TreeStore.TreeNode;
-import com.sencha.gxt.widget.core.client.event.BeforeShowEvent;
-import com.sencha.gxt.widget.core.client.event.BeforeShowEvent.BeforeShowHandler;
 import com.sencha.gxt.widget.core.client.event.CellDoubleClickEvent;
 import com.sencha.gxt.widget.core.client.event.CellDoubleClickEvent.CellDoubleClickHandler;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
-import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.Menu;
-import com.sencha.gxt.widget.core.client.menu.MenuItem;
 import com.sencha.gxt.widget.core.client.tree.Tree;
 import com.sencha.gxt.widget.core.client.treegrid.TreeGrid;
 
@@ -35,13 +31,10 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ClearEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
-import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent;
-import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent.FilterTarget;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.OrderEdgesEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
-import edu.arizona.biosemantics.oto2.ontologize2.client.event.SelectTermEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.VertexCell;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.VertexTreeNode;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.VertexTreeNodeProperties;
@@ -53,22 +46,41 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Vert
 
 public class TreeView implements IsWidget {
 	
-	private static final VertexTreeNodeProperties vertexTreeNodeProperties = GWT.create(VertexTreeNodeProperties.class);
+	protected class SubTree {
+		private TreeStore<VertexTreeNode> store;
+		private Map<Vertex, Set<VertexTreeNode>> vertexNodeMap;
+		public SubTree(TreeStore<VertexTreeNode> store, 
+				Map<Vertex, Set<VertexTreeNode>> vertexNodeMap) {
+			super();
+			this.store = store;
+			this.vertexNodeMap = vertexNodeMap;
+		}
+		public TreeStore<VertexTreeNode> getStore() {
+			return store;
+		}
+		public Map<Vertex, Set<VertexTreeNode>> getVertexNodeMap() {
+			return vertexNodeMap;
+		}
+	}
+	
+	protected static final VertexTreeNodeProperties vertexTreeNodeProperties = GWT.create(VertexTreeNodeProperties.class);
 	
 	protected EventBus eventBus;
 	
 	protected Type type;	
 	
-	protected TreeStore<VertexTreeNode> store;
-	protected Map<Vertex, Set<VertexTreeNode>> vertexNodeMap = new HashMap<Vertex, Set<VertexTreeNode>>();
+	protected SubTree subTree;
+	protected ColumnModel<VertexTreeNode> columnModel;
+	protected ColumnConfig<VertexTreeNode, Vertex> valueCol;
 	protected TreeGrid<VertexTreeNode> treeGrid;
+
 	
 	public TreeView(EventBus eventBus, Type type) {
 		this.eventBus = eventBus;
 		this.type = type;
 				
-		store = new TreeStore<VertexTreeNode>(vertexTreeNodeProperties.key());
-		ColumnConfig<VertexTreeNode, Vertex> valueCol = new ColumnConfig<VertexTreeNode, Vertex>(vertexTreeNodeProperties.vertex(), 300, "");
+		subTree = createNewSubTree();
+		valueCol = new ColumnConfig<VertexTreeNode, Vertex>(vertexTreeNodeProperties.vertex(), 300, "");
 		valueCol.setCell(new VertexCell(eventBus, this, type));
 		valueCol.setSortable(false);
 		valueCol.setMenuDisabled(true);
@@ -76,9 +88,8 @@ public class TreeView implements IsWidget {
 		valueCol.setGroupable(false);
 		List<ColumnConfig<VertexTreeNode, ?>> list = new ArrayList<ColumnConfig<VertexTreeNode, ?>>();
 		list.add(valueCol);
-		ColumnModel<VertexTreeNode> cm = new ColumnModel<VertexTreeNode>(list);
-		treeGrid = new TreeGrid<VertexTreeNode>(store, cm, valueCol);
-		store.setAutoCommit(true);
+		columnModel = new ColumnModel<VertexTreeNode>(list);
+		treeGrid = new TreeGrid<VertexTreeNode>(subTree.getStore(), columnModel, valueCol);
 		//treeGrid.setIconProvider(new TermTreeNodeIconProvider());
 		/*tree.setCell(new AbstractCell<PairTermTreeNode>() {
 			@Override
@@ -129,7 +140,9 @@ public class TreeView implements IsWidget {
 			public void onClear(ClearEvent event) {
 				if(event.isEffectiveInModel()) {
 					OntologyGraph g = ModelController.getCollection().getGraph();
+					subTree = createNewSubTree();
 					createFromRoot(g, g.getRoot(type));
+					setSubTree(subTree, false);
 				}
 			}
 		});
@@ -196,14 +209,14 @@ public class TreeView implements IsWidget {
 	
 	protected void replaceRelation(ReplaceRelationEvent event, Edge oldRelation, Vertex newSource) {
 		if(oldRelation.getType().equals(type)) {
-			if(vertexNodeMap.containsKey(oldRelation.getDest()) && vertexNodeMap.containsKey(newSource)) {
-				VertexTreeNode targetNode = vertexNodeMap.get(oldRelation.getDest()).iterator().next();
-				VertexTreeNode newSourceNode = vertexNodeMap.get(newSource).iterator().next();
+			if(subTree.getVertexNodeMap().containsKey(oldRelation.getDest()) && subTree.getVertexNodeMap().containsKey(newSource)) {
+				VertexTreeNode targetNode = subTree.getVertexNodeMap().get(oldRelation.getDest()).iterator().next();
+				VertexTreeNode newSourceNode = subTree.getVertexNodeMap().get(newSource).iterator().next();
 				
 				List<TreeNode<VertexTreeNode>> targetNodes = new LinkedList<TreeNode<VertexTreeNode>>();
-				targetNodes.add(store.getSubTree(targetNode));
-				store.remove(targetNode);
-				store.addSubTree(newSourceNode, store.getChildCount(newSourceNode), targetNodes);
+				targetNodes.add(subTree.getStore().getSubTree(targetNode));
+				subTree.getStore().remove(targetNode);
+				subTree.getStore().addSubTree(newSourceNode, subTree.getStore().getChildCount(newSourceNode), targetNodes);
 			}
 		}
 	}
@@ -213,7 +226,7 @@ public class TreeView implements IsWidget {
 	}
 
 	protected void onLoadCollectionEffectiveInModel() {
-		
+		this.expandRoot();
 	}
 
 	protected void onRemoveRelationEffectiveInModel(GwtEvent<?> event, Edge r, boolean recursive) {
@@ -226,13 +239,49 @@ public class TreeView implements IsWidget {
 	}
 
 	protected void createFromRoot(OntologyGraph g, Vertex root) {
-		clearTree();
 		VertexTreeNode rootNode = new VertexTreeNode(root);
 		add(null, rootNode);
 		createFromVertex(g, root);
 	}
-	
 
+	protected SubTree createNewSubTree() {
+		//filter and sort info has to be maintained from previous store
+		TreeStore<VertexTreeNode> store = new TreeStore<VertexTreeNode>(vertexTreeNodeProperties.key());
+		store.setAutoCommit(true);
+		
+		if(this.subTree != null) {
+			if(this.subTree.getStore().isFiltered())
+				store.addFilter(this.subTree.getStore().getFilters().iterator().next());
+			if(!this.subTree.getStore().getSortInfo().isEmpty())
+				store.addSortInfo(this.subTree.getStore().getSortInfo().get(0));
+		}
+		
+		Map<Vertex, Set<VertexTreeNode>> vertexNodeMap = new HashMap<Vertex, Set<VertexTreeNode>>();
+		return new SubTree(store, vertexNodeMap);
+	}
+	
+	protected void setSubTree(SubTree subTree, boolean setFilterAndSort) {
+		if(setFilterAndSort) {
+			StoreFilter<VertexTreeNode> filter = null;
+			StoreSortInfo<VertexTreeNode> sortInfo = null;
+			if(this.subTree != null) {
+				if(this.subTree.getStore().isFiltered())
+					filter = this.subTree.getStore().getFilters().iterator().next();
+				if(!this.subTree.getStore().getSortInfo().isEmpty())
+					sortInfo = this.subTree.getStore().getSortInfo().get(0);
+			}
+			this.subTree = subTree;
+			this.subTree.getStore().removeFilters();
+			this.subTree.getStore().clearSortInfo();
+			if(filter != null) {
+				this.subTree.getStore().addFilter(filter);
+			} 
+			if(sortInfo != null) {
+				this.subTree.getStore().addSortInfo(sortInfo);
+			}
+		}
+		this.treeGrid.reconfigure(this.subTree.getStore(), columnModel, valueCol);
+	}
 
 	protected void createFromVertex(OntologyGraph g, Vertex source) {
 		for(Edge r : g.getOutRelations(source, type)) {
@@ -243,8 +292,8 @@ public class TreeView implements IsWidget {
 
 	protected void removeCandidate(Candidate c) {
 		/*Vertex possibleVertex = new Vertex(c.getText());
-		if(vertexNodeMap.containsKey(possibleVertex)) {
-			for(VertexTreeNode node : vertexNodeMap.get(possibleVertex))
+		if(subTree.getVertexNodeMap().containsKey(possibleVertex)) {
+			for(VertexTreeNode node : subTree.getVertexNodeMap().get(possibleVertex))
 				remove(node);
 		}*/
 	}
@@ -252,13 +301,13 @@ public class TreeView implements IsWidget {
 	protected void createRelation(Edge r) {
 		if(r.getType().equals(type)) {
 			VertexTreeNode sourceNode = null;
-	 		if(vertexNodeMap.containsKey(r.getSrc())) {
-				sourceNode = vertexNodeMap.get(r.getSrc()).iterator().next();
+	 		if(subTree.getVertexNodeMap().containsKey(r.getSrc())) {
+				sourceNode = subTree.getVertexNodeMap().get(r.getSrc()).iterator().next();
 			} else {
 				sourceNode = new VertexTreeNode(r.getSrc());
 				add(null, sourceNode);
 			}
-			if(vertexNodeMap.containsKey(r.getDest())) {
+			if(subTree.getVertexNodeMap().containsKey(r.getDest())) {
 				Alerter.showAlert("Failed to create relation", "Failed to create relation");
 				return;
 			}
@@ -272,84 +321,95 @@ public class TreeView implements IsWidget {
 	protected void removeRelation(GwtEvent<?> event, Edge r, boolean recursive) {
 		OntologyGraph g = ModelController.getCollection().getGraph();
 		if(r.getType().equals(type)) {
-			if(vertexNodeMap.containsKey(r.getSrc()) && vertexNodeMap.containsKey(r.getDest())) {
-				VertexTreeNode sourceNode = vertexNodeMap.get(r.getSrc()).iterator().next();
-				VertexTreeNode targetNode = vertexNodeMap.get(r.getDest()).iterator().next();
+			if(subTree.getVertexNodeMap().containsKey(r.getSrc()) && subTree.getVertexNodeMap().containsKey(r.getDest())) {
+				VertexTreeNode sourceNode = subTree.getVertexNodeMap().get(r.getSrc()).iterator().next();
+				VertexTreeNode targetNode = subTree.getVertexNodeMap().get(r.getDest()).iterator().next();
 				if(recursive) {
 					remove(targetNode, true);
 				} else {
 					List<TreeNode<VertexTreeNode>> targetChildNodes = new LinkedList<TreeNode<VertexTreeNode>>();
-					for(VertexTreeNode targetChild : store.getChildren(targetNode)) {
+					for(VertexTreeNode targetChild : subTree.getStore().getChildren(targetNode)) {
 						List<Edge> inRelations = g.getInRelations(targetChild.getVertex(), type);
 						if(inRelations.size() <= 1) 
-							targetChildNodes.add(store.getSubTree(targetChild));
+							targetChildNodes.add(subTree.getStore().getSubTree(targetChild));
 					}
 					remove(targetNode, false);
-					store.addSubTree(sourceNode, store.getChildCount(sourceNode), targetChildNodes);
+					subTree.getStore().addSubTree(sourceNode, subTree.getStore().getChildCount(sourceNode), targetChildNodes);
 				}
 			}
 		}
 	}
 
 	protected void clearTree() {
-		store.clear();
-		vertexNodeMap.clear();
+		subTree.getStore().clear();
+		subTree.getVertexNodeMap().clear();
 	}
 	
 	protected void replaceNode(VertexTreeNode oldNode, VertexTreeNode newNode) {
 		List<TreeNode<VertexTreeNode>> childNodes = new LinkedList<TreeNode<VertexTreeNode>>();
-		for(VertexTreeNode childNode : store.getChildren(oldNode)) {
-			childNodes.add(store.getSubTree(childNode));
+		for(VertexTreeNode childNode : subTree.getStore().getChildren(oldNode)) {
+			childNodes.add(subTree.getStore().getSubTree(childNode));
 		}
 		
-		VertexTreeNode parent = store.getParent(oldNode);
+		VertexTreeNode parent = subTree.getStore().getParent(oldNode);
 		remove(oldNode, false);
 		add(parent, newNode);
-		store.addSubTree(newNode, 0, childNodes);
+		subTree.getStore().addSubTree(newNode, 0, childNodes);
 	}
 	
 	protected void remove(VertexTreeNode node, boolean removeChildren) {
 		if(removeChildren)
 			removeAllChildren(node);
-		store.remove(node);
-		if(vertexNodeMap.containsKey(node.getVertex())) {
-			vertexNodeMap.get(node.getVertex()).remove(node);
-			if(vertexNodeMap.get(node.getVertex()).isEmpty())
-				vertexNodeMap.remove(node.getVertex());
+		subTree.getStore().remove(node);
+		if(subTree.getVertexNodeMap().containsKey(node.getVertex())) {
+			subTree.getVertexNodeMap().get(node.getVertex()).remove(node);
+			if(subTree.getVertexNodeMap().get(node.getVertex()).isEmpty())
+				subTree.getVertexNodeMap().remove(node.getVertex());
 		}
 	}
 	
 	protected void removeAllChildren(VertexTreeNode frommNode) {
-		List<VertexTreeNode> allRemoves = store.getAllChildren(frommNode);
+		List<VertexTreeNode> allRemoves = subTree.getStore().getAllChildren(frommNode);
 		for(VertexTreeNode remove : allRemoves) {
 			Vertex v = remove.getVertex();
-			if(vertexNodeMap.containsKey(v)) {
-				vertexNodeMap.get(v).remove(remove);
-				if(vertexNodeMap.get(v).isEmpty()) 
-					vertexNodeMap.remove(v);
+			if(subTree.getVertexNodeMap().containsKey(v)) {
+				subTree.getVertexNodeMap().get(v).remove(remove);
+				if(subTree.getVertexNodeMap().get(v).isEmpty()) 
+					subTree.getVertexNodeMap().remove(v);
 			}
 		}
-		store.removeChildren(frommNode);
+		subTree.getStore().removeChildren(frommNode);
 	}
 	
 	protected void add(VertexTreeNode parent, VertexTreeNode child) {
 		if(parent == null)
-			store.add(child);
+			subTree.getStore().add(child);
 		else
-			store.add(parent, child);
-		if(!vertexNodeMap.containsKey(child.getVertex()))
-			vertexNodeMap.put(child.getVertex(), new HashSet<VertexTreeNode>(Arrays.asList(child)));
+			subTree.getStore().add(parent, child);
+		if(!subTree.getVertexNodeMap().containsKey(child.getVertex()))
+			subTree.getVertexNodeMap().put(child.getVertex(), new HashSet<VertexTreeNode>(Arrays.asList(child)));
 		else {
-			vertexNodeMap.get(child.getVertex()).add(child);
+			subTree.getVertexNodeMap().get(child.getVertex()).add(child);
 		}
 	}
 
 	protected Vertex getRoot() {
-		return store.getRootItems().get(0).getVertex();
+		return subTree.getStore().getRootItems().get(0).getVertex();
 	}
 
 	@Override
 	public Widget asWidget() {
 		return treeGrid;
 	}
+	
+	protected void expandAll() {
+		/*List<VertexTreeNode> roots = treeGrid.getTreeStore().getRootItems();
+		if(!roots.isEmpty())
+			treeGrid.setExpanded(roots.get(0), true, true);*/
+	}
+	
+	protected void expandRoot() {
+		List<VertexTreeNode> roots = treeGrid.getTreeStore().getRootItems();
+		if(!roots.isEmpty())
+			treeGrid.setExpanded(roots.get(0), true, false);	}
 }

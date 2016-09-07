@@ -79,8 +79,8 @@ public class MenuTreeView extends TreeView {
 			Date d1 = getCreationDate(o1.getVertex());
 			Date d2 = getCreationDate(o2.getVertex());
 			
-			VertexTreeNode p1 = store.getParent(o1);
-			VertexTreeNode p2 = store.getParent(o2);
+			VertexTreeNode p1 = subTree.getStore().getParent(o1);
+			VertexTreeNode p2 = subTree.getStore().getParent(o2);
 			if(p1 != null && p2 != null && p1.equals(p2)) {
 				if(g.hasOrderedEdges(p1.getVertex(), type)) {
 					List<Edge> orderedEdges = g.getOrderedEdges(p1.getVertex(), type);
@@ -115,8 +115,8 @@ public class MenuTreeView extends TreeView {
 		@Override
 		public int compare(VertexTreeNode o1, VertexTreeNode o2) {
 			OntologyGraph g = ModelController.getCollection().getGraph();			
-			VertexTreeNode p1 = store.getParent(o1);
-			VertexTreeNode p2 = store.getParent(o2);
+			VertexTreeNode p1 = subTree.getStore().getParent(o1);
+			VertexTreeNode p2 = subTree.getStore().getParent(o2);
 			if(p1 != null && p2 != null && p1.equals(p2)) {
 				if(g.hasOrderedEdges(p1.getVertex(), type)) {
 					List<Edge> orderedEdges = g.getOrderedEdges(p1.getVertex(), type);
@@ -194,11 +194,11 @@ public class MenuTreeView extends TreeView {
 	
 	protected void onFilter(final String filter) {
 		if(!checkFilterItem.isChecked()) {
-			store.removeFilters();
-			store.setEnableFilters(false);
+			subTree.getStore().removeFilters();
+			subTree.getStore().setEnableFilters(false);
 		} else {
-			store.removeFilters();
-			store.addFilter(new StoreFilter<VertexTreeNode>() {
+			subTree.getStore().removeFilters();
+			subTree.getStore().addFilter(new StoreFilter<VertexTreeNode>() {
 				@Override
 				public boolean select(Store<VertexTreeNode> store, VertexTreeNode parent, VertexTreeNode item) {
 					OntologyGraph g = ModelController.getCollection().getGraph();
@@ -208,8 +208,8 @@ public class MenuTreeView extends TreeView {
 		        		return true;
 					}
 		        	while(parent != null) {
-		        		parent = MenuTreeView.this.store.getParent(parent);
-		        		item = MenuTreeView.this.store.getParent(item);
+		        		parent = MenuTreeView.this.subTree.getStore().getParent(parent);
+		        		item = MenuTreeView.this.subTree.getStore().getParent(item);
 		        		if(!item.getVertex().equals(g.getRoot(type))) {
 			        		value = item.getVertex().getValue().toLowerCase();
 				        	if(value.contains(filter.toLowerCase())) {
@@ -220,16 +220,16 @@ public class MenuTreeView extends TreeView {
 					return false;
 				}
 			});
-			store.setEnableFilters(true);
+			subTree.getStore().setEnableFilters(true);
 		}
-		treeGrid.setExpanded(store.getRootItems().get(0), true);
+		this.expandRoot();
 	}
 	
 	@Override
 	protected Vertex getRoot() {
-		store.setEnableFilters(false);
-		Vertex result = store.getRootItems().get(0).getVertex();
-		store.setEnableFilters(true);
+		subTree.getStore().setEnableFilters(false);
+		Vertex result = subTree.getStore().getRootItems().get(0).getVertex();
+		subTree.getStore().setEnableFilters(true);
 		return result;
 	}
 	
@@ -293,6 +293,7 @@ public class MenuTreeView extends TreeView {
 	
 	@Override
 	protected void onLoadCollectionEffectiveInModel() {
+		super.onLoadCollectionEffectiveInModel();
 		this.sort(creationComparator, SortDir.DESC);
 	}
 	
@@ -302,14 +303,14 @@ public class MenuTreeView extends TreeView {
 	}
 	
 	public void sort(final Comparator<VertexTreeNode> comparator, final SortDir sortDir) {
-		store.clearSortInfo();
-		store.addSortInfo(new StoreSortInfo<VertexTreeNode>(comparator, sortDir));
-		treeGrid.setExpanded(store.getRootItems().get(0), true);
+		subTree.getStore().clearSortInfo();
+		subTree.getStore().addSortInfo(new StoreSortInfo<VertexTreeNode>(comparator, sortDir));
+		this.expandRoot();
 	}
 	
 	public void sort() {
-		store.applySort(false);
-		treeGrid.setExpanded(store.getRootItems().get(0), true);
+		subTree.getStore().applySort(false);
+		this.expandRoot();
 	}
 	
 	@Override

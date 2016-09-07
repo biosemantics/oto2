@@ -44,14 +44,14 @@ public class PartsTreeView extends MenuTreeView {
 	}
 
 	private void replace(Vertex parent, Vertex vertex, Vertex newVertex) {
-		if(vertexNodeMap.containsKey(vertex)) {
-			VertexTreeNode destNode = vertexNodeMap.get(vertex).iterator().next();
+		if(subTree.getVertexNodeMap().containsKey(vertex)) {
+			VertexTreeNode destNode = subTree.getVertexNodeMap().get(vertex).iterator().next();
 			VertexTreeNode newDestNode = new VertexTreeNode(newVertex);
 			
 			replaceNode(destNode, newDestNode);
 			
-			vertexNodeMap.put(newVertex, new HashSet<VertexTreeNode>(Arrays.asList(newDestNode)));
-			vertexNodeMap.remove(vertex);
+			subTree.getVertexNodeMap().put(newVertex, new HashSet<VertexTreeNode>(Arrays.asList(newDestNode)));
+			subTree.getVertexNodeMap().remove(vertex);
 			
 			for(Edge r : ModelController.getCollection().getGraph().getOutRelations(vertex, Type.PART_OF)) {
 				if(r.getDest().getValue().startsWith(vertex.getValue())) {
