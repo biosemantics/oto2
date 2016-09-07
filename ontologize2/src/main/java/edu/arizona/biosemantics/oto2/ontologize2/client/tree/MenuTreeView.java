@@ -167,7 +167,7 @@ public class MenuTreeView extends TreeView {
 			public void onSelection(SelectionEvent<Item> event) {
 				MessageBox box = Alerter.startLoading();
 				OntologyGraph g = ModelController.getCollection().getGraph();
-				setSubTree(resetSubTree, true);
+				bindSubTree(resetSubTree, true);
 				navigationStack.removeAllElements();
 				backButton.setEnabled(false);
 				MenuTreeView.this.expandRoot();
@@ -181,7 +181,7 @@ public class MenuTreeView extends TreeView {
 				MessageBox box = Alerter.startLoading();
 				OntologyGraph g = ModelController.getCollection().getGraph();
 				SubTree subTree = navigationStack.pop();
-				setSubTree(subTree, true);
+				bindSubTree(subTree, true);
 				System.out.println();
 				if(navigationStack.isEmpty())
 					backButton.setEnabled(false);
@@ -372,10 +372,10 @@ public class MenuTreeView extends TreeView {
 		OntologyGraph g = ModelController.getCollection().getGraph();
 		Vertex v = node.getVertex();
 		navigationStack.push(subTree);
-		SubTree subTree = createNewSubTree(true);
+		subTree = createNewSubTree(true);
 		backButton.setEnabled(true);
 		createFromRoot(subTree, g, v);
-		setSubTree(subTree, false);
+		bindSubTree(subTree, false);
 	}
 	
 	private Widget createFilterMenu() {

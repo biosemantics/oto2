@@ -126,11 +126,11 @@ public class TreeView implements IsWidget {
 			@Override
 			public void onLoad(LoadCollectionEvent event) {
 				if(!event.isEffectiveInModel()) {
-					SubTree subTree = createNewSubTree(false);
+					subTree = createNewSubTree(false);
 					OntologyGraph g = event.getCollection().getGraph();
 					Vertex root = g.getRoot(type);
 					createFromRoot(subTree, g, root);
-					setSubTree(subTree, false);
+					bindSubTree(subTree, false);
 				} else {
 					onLoadCollectionEffectiveInModel();
 				}
@@ -141,9 +141,9 @@ public class TreeView implements IsWidget {
 			public void onClear(ClearEvent event) {
 				if(event.isEffectiveInModel()) {
 					OntologyGraph g = ModelController.getCollection().getGraph();
-					SubTree subTree = createNewSubTree(true);
+					subTree = createNewSubTree(true);
 					createFromRoot(subTree, g, g.getRoot(type));
-					setSubTree(subTree, false);
+					bindSubTree(subTree, false);
 				}
 			}
 		});
@@ -262,7 +262,7 @@ public class TreeView implements IsWidget {
 		return new SubTree(store, vertexNodeMap);
 	}
 	
-	protected void setSubTree(SubTree subTree, boolean setFilterAndSort) {
+	protected void bindSubTree(SubTree subTree, boolean setFilterAndSort) {
 		if(setFilterAndSort) {
 			StoreFilter<VertexTreeNode> filter = null;
 			StoreSortInfo<VertexTreeNode> sortInfo = null;
