@@ -86,9 +86,9 @@ public class SubclassTreeView extends MenuTreeView {
 	}
 
 	@Override
-	protected void createRelation(Edge r) {
+	protected void createRelation(SubTree subTree, Edge r) {
 		if(r.getType().equals(type)) {
-			if(!isVisible(r))
+			if(!isVisible(subTree, r))
 				return;
 			
 			VertexTreeNode sourceNode = null;
@@ -96,11 +96,11 @@ public class SubclassTreeView extends MenuTreeView {
 				sourceNode = subTree.getVertexNodeMap().get(r.getSrc()).iterator().next();
 			} else {
 				sourceNode = new VertexTreeNode(r.getSrc());
-				add(null, sourceNode);
+				add(subTree, null, sourceNode);
 			}
 	 		//create either way, to get a new id
 	 		VertexTreeNode destinationNode = new VertexTreeNode(r.getDest());
-	 		add(sourceNode, destinationNode);
+	 		add(subTree, sourceNode, destinationNode);
 	 		//treeGrid.setExpanded(sourceNode, true);
 			
 	 		if(subTree.getVertexNodeMap().get(r.getDest()).size() > 1) {
@@ -119,28 +119,29 @@ public class SubclassTreeView extends MenuTreeView {
 			
 			List<Edge> parentRelations = g.getInRelations(dest, Type.PART_OF);
 			if(!parentRelations.isEmpty()) {			
-				createRelation(new Edge(g.getRoot(Type.SUBCLASS_OF), dest, Type.SUBCLASS_OF, Origin.USER));
+				createRelation(subTree, new Edge(g.getRoot(Type.SUBCLASS_OF), dest, Type.SUBCLASS_OF, Origin.USER));
 				for(Edge parentRelation : parentRelations) {
 					Vertex parentSrc = parentRelation.getSrc();
 					Vertex disambiguatedDest = new Vertex(parentSrc + " " + dest);
 					
-					createRelation(new Edge(dest, disambiguatedDest, Type.SUBCLASS_OF, Origin.USER));
+					createRelation(subTree, new Edge(dest, disambiguatedDest, Type.SUBCLASS_OF, Origin.USER));
 				}
-				createRelation(new Edge(dest, new Vertex(newValue), Type.SUBCLASS_OF, Origin.USER));
+				createRelation(subTree, new Edge(dest, new Vertex(newValue), Type.SUBCLASS_OF, Origin.USER));
 			}
 		}
+
 	}
 
-	private boolean isVisible(Edge r) {
+	private boolean isVisible(SubTree subTree, Edge r) {
 		OntologyGraph g = ModelController.getCollection().getGraph();
-		Vertex currentRoot = getRoot();
+		Vertex currentRoot = getRoot(subTree);
 		Vertex source = r.getSrc();
 		if(currentRoot.equals(source))
 			return true;
 		if(g.getInRelations(source, type).size() > 1) 
 			return false;
 		for(Edge in : g.getInRelations(r.getSrc(), type)) {
-			if(!isVisible(in))
+			if(!isVisible(subTree, in))
 				return false;
 		}
 		return true;
@@ -150,7 +151,7 @@ public class SubclassTreeView extends MenuTreeView {
 	protected void replaceRelation(ReplaceRelationEvent event, Edge oldRelation, Vertex newSource) {
 		if(oldRelation.getType().equals(type)) {
 			Edge newRelation = new Edge(newSource, oldRelation.getDest(), oldRelation.getType(), oldRelation.getOrigin());
-			if(!isVisible(newRelation)) {
+			if(!isVisible(subTree, newRelation)) {
 				removeRelation(event, oldRelation, true);
 				return;
 			}else
@@ -166,14 +167,14 @@ public class SubclassTreeView extends MenuTreeView {
 	}
 
 	@Override
-	protected void createFromVertex(OntologyGraph g, Vertex source) {
-		Vertex currentRoot = getRoot();
+	protected void createFromVertex(SubTree subTree, OntologyGraph g, Vertex source) {
+		Vertex currentRoot = getRoot(subTree);
 		if(!currentRoot.equals(source) && g.getInRelations(source, Type.SUBCLASS_OF).size() > 1) {
 			return;
 		} else {
 			for(Edge r : g.getOutRelations(source, type)) {
-				createRelation(r);
-				createFromVertex(g, r.getDest());
+				createRelation(subTree, r);
+				createFromVertex(subTree, g, r.getDest());
 			}
 		}
 	}
@@ -184,10 +185,10 @@ public class SubclassTreeView extends MenuTreeView {
 		Vertex v = node.getVertex();
 		if(g.getInRelations(v, Type.SUBCLASS_OF).size() > 1) {
 			navigationStack.push(subTree);
-			subTree = createNewSubTree();
+			SubTree subTree = createNewSubTree(true);
 			backButton.setEnabled(true);
-			this.createFromRoot(g, v);
-			this.setSubTree(subTree, false);
+			createFromRoot(subTree, g, v);
+			setSubTree(subTree, false);
 		}
 	}
 	
@@ -195,11 +196,12 @@ public class SubclassTreeView extends MenuTreeView {
 	protected void onCreateRelationEffectiveInModel(Edge r) {
 		super.onCreateRelationEffectiveInModel(r);
 		if(r.getType().equals(type)) {
-			if(!isVisible(r))
+			if(!isVisible(subTree, r))
 				return;
 			if(subTree.getVertexNodeMap().containsKey(r.getDest()))
 				refreshNodes(subTree.getVertexNodeMap().get(r.getDest()));
 		}
+		expandRoot();
 	}
 	
 	@Override
@@ -253,19 +255,20 @@ public class SubclassTreeView extends MenuTreeView {
 			OntologyGraph g = ModelController.getCollection().getGraph();
 			if(this.visiblilityCheckNodes.containsKey(event)) {
 				for(VertexTreeNode visibleNode : visiblilityCheckNodes.get(event)) {
-					createFromVertex(g, visibleNode.getVertex());
+					createFromVertex(subTree, g, visibleNode.getVertex());
 					refreshNodes(subTree.getVertexNodeMap().get(visibleNode.getVertex()));
 				}
 				visiblilityCheckNodes.remove(event);
 			}
 		}
+		expandRoot();
 	}
 	
 	@Override
 	protected void onRemoveRelationEffectiveInModel(GwtEvent<?> event, Edge r, boolean recursive) {
 		super.onRemoveRelationEffectiveInModel(event, r, recursive);
 		if(r.getType().equals(type)) {
-			if(!isVisible(r))
+			if(!isVisible(subTree, r))
 				return;
 			if(subTree.getVertexNodeMap().containsKey(r.getDest()))
 				refreshNodes(subTree.getVertexNodeMap().get(r.getDest()));
@@ -273,13 +276,14 @@ public class SubclassTreeView extends MenuTreeView {
 			OntologyGraph g = ModelController.getCollection().getGraph();
 			if(this.visiblilityCheckNodes.containsKey(event)) {
 				for(VertexTreeNode visibleNode : visiblilityCheckNodes.get(event)) {
-					createFromVertex(g, visibleNode.getVertex());
+					createFromVertex(subTree, g, visibleNode.getVertex());
 					if(subTree.getVertexNodeMap().containsKey(visibleNode.getVertex()))
 						refreshNodes(subTree.getVertexNodeMap().get(visibleNode.getVertex()));
 				}
 				visiblilityCheckNodes.remove(event);
 			}
-		}		
+		}	
+		expandRoot();	
 	}
 	
 	@Override
@@ -294,5 +298,6 @@ public class SubclassTreeView extends MenuTreeView {
 		}
 
 		resetSubTree = subTree;
+		expandRoot();
 	}
 }

@@ -419,12 +419,12 @@ public class MenuTermsGrid extends TermsGrid {
 		return getRelationsAsString(g, root);*/
 		StringBuilder sb = new StringBuilder();
 		for(Row row : this.getAll()) {
-			if(row.hasAttacheds()) {
+			//if(row.hasAttacheds()) {
 				sb.append(row.getLead());
 				for(Edge a : row.getAttached())
 					sb.append(", " + a.getDest().getValue());
 				sb.append("\n");
-			}
+			//}
 		}
 		return sb.toString();
 	}

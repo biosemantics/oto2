@@ -36,9 +36,9 @@ public class PartsTreeView extends MenuTreeView {
 					replace(parentSrc, dest, disambiguatedDest);
 				}
 				
-				super.createRelation(new Edge(src, new Vertex(newValue), r.getType(), r.getOrigin()));
+				super.createRelation(subTree, new Edge(src, new Vertex(newValue), r.getType(), r.getOrigin()));
 			} else {
-				super.createRelation(r);
+				super.createRelation(subTree, r);
 			}
 		}
 	}

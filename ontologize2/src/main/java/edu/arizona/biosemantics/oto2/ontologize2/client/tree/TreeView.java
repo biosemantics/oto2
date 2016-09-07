@@ -79,7 +79,7 @@ public class TreeView implements IsWidget {
 		this.eventBus = eventBus;
 		this.type = type;
 				
-		subTree = createNewSubTree();
+		subTree = createNewSubTree(false);
 		valueCol = new ColumnConfig<VertexTreeNode, Vertex>(vertexTreeNodeProperties.vertex(), 300, "");
 		valueCol.setCell(new VertexCell(eventBus, this, type));
 		valueCol.setSortable(false);
@@ -127,9 +127,11 @@ public class TreeView implements IsWidget {
 			@Override
 			public void onLoad(LoadCollectionEvent event) {
 				if(!event.isEffectiveInModel()) {
+					SubTree subTree = createNewSubTree(false);
 					OntologyGraph g = event.getCollection().getGraph();
 					Vertex root = g.getRoot(type);
-					createFromRoot(g, root);
+					createFromRoot(subTree, g, root);
+					setSubTree(subTree, false);
 				} else {
 					onLoadCollectionEffectiveInModel();
 				}
@@ -140,8 +142,8 @@ public class TreeView implements IsWidget {
 			public void onClear(ClearEvent event) {
 				if(event.isEffectiveInModel()) {
 					OntologyGraph g = ModelController.getCollection().getGraph();
-					subTree = createNewSubTree();
-					createFromRoot(g, g.getRoot(type));
+					SubTree subTree = createNewSubTree(true);
+					createFromRoot(subTree, g, g.getRoot(type));
 					setSubTree(subTree, false);
 				}
 			}
@@ -151,7 +153,7 @@ public class TreeView implements IsWidget {
 			public void onCreate(CreateRelationEvent event) {
 				if(!event.isEffectiveInModel())
 					for(Edge r : event.getRelations()) {
-						createRelation(r);
+						createRelation(subTree, r);
 					}
 				else
 					for(Edge r : event.getRelations())
@@ -200,7 +202,7 @@ public class TreeView implements IsWidget {
 	}
 	
 	protected void onOrderEffectiveInModel(OrderEdgesEvent event, Vertex src, List<Edge> edges, Type type) {
-		
+		expandRoot();
 	}
 
 	protected void onOrder(OrderEdgesEvent event, Vertex src, List<Edge> edges, Type type) {
@@ -222,7 +224,7 @@ public class TreeView implements IsWidget {
 	}
 
 	protected void onReplaceRelationEffectiveInModel(GwtEvent<?> event, Edge relation, Vertex vertex) {
-		
+		expandRoot();
 	}
 
 	protected void onLoadCollectionEffectiveInModel() {
@@ -230,30 +232,31 @@ public class TreeView implements IsWidget {
 	}
 
 	protected void onRemoveRelationEffectiveInModel(GwtEvent<?> event, Edge r, boolean recursive) {
-		
+		expandRoot();
 	}
 
 	protected void onCreateRelationEffectiveInModel(Edge r) {
-		// TODO Auto-generated method stub
-		
+		expandRoot();
 	}
 
-	protected void createFromRoot(OntologyGraph g, Vertex root) {
+	protected void createFromRoot(SubTree subTree, OntologyGraph g, Vertex root) {
 		VertexTreeNode rootNode = new VertexTreeNode(root);
-		add(null, rootNode);
-		createFromVertex(g, root);
+		add(subTree, null, rootNode);
+		createFromVertex(subTree, g, root);
 	}
 
-	protected SubTree createNewSubTree() {
+	protected SubTree createNewSubTree(boolean setFilterAndSort) {
 		//filter and sort info has to be maintained from previous store
 		TreeStore<VertexTreeNode> store = new TreeStore<VertexTreeNode>(vertexTreeNodeProperties.key());
 		store.setAutoCommit(true);
 		
-		if(this.subTree != null) {
-			if(this.subTree.getStore().isFiltered())
-				store.addFilter(this.subTree.getStore().getFilters().iterator().next());
-			if(!this.subTree.getStore().getSortInfo().isEmpty())
-				store.addSortInfo(this.subTree.getStore().getSortInfo().get(0));
+		if(setFilterAndSort) {
+			if(this.subTree != null) {
+				if(this.subTree.getStore().isFiltered())
+					store.addFilter(this.subTree.getStore().getFilters().iterator().next());
+				if(!this.subTree.getStore().getSortInfo().isEmpty())
+					store.addSortInfo(this.subTree.getStore().getSortInfo().get(0));
+			}
 		}
 		
 		Map<Vertex, Set<VertexTreeNode>> vertexNodeMap = new HashMap<Vertex, Set<VertexTreeNode>>();
@@ -279,14 +282,16 @@ public class TreeView implements IsWidget {
 			if(sortInfo != null) {
 				this.subTree.getStore().addSortInfo(sortInfo);
 			}
+		} else {
+			this.subTree = subTree;
 		}
 		this.treeGrid.reconfigure(this.subTree.getStore(), columnModel, valueCol);
 	}
 
-	protected void createFromVertex(OntologyGraph g, Vertex source) {
+	protected void createFromVertex(SubTree subTree, OntologyGraph g, Vertex source) {
 		for(Edge r : g.getOutRelations(source, type)) {
-			createRelation(r);
-			createFromVertex(g, r.getDest());
+			createRelation(subTree, r);
+			createFromVertex(subTree, g, r.getDest());
 		}
 	}
 
@@ -298,21 +303,21 @@ public class TreeView implements IsWidget {
 		}*/
 	}
 
-	protected void createRelation(Edge r) {
+	protected void createRelation(SubTree subTree, Edge r) {
 		if(r.getType().equals(type)) {
 			VertexTreeNode sourceNode = null;
 	 		if(subTree.getVertexNodeMap().containsKey(r.getSrc())) {
 				sourceNode = subTree.getVertexNodeMap().get(r.getSrc()).iterator().next();
 			} else {
 				sourceNode = new VertexTreeNode(r.getSrc());
-				add(null, sourceNode);
+				add(subTree, null, sourceNode);
 			}
 			if(subTree.getVertexNodeMap().containsKey(r.getDest())) {
 				Alerter.showAlert("Failed to create relation", "Failed to create relation");
 				return;
 			}
 			VertexTreeNode destinationNode = new VertexTreeNode(r.getDest());
-			add(sourceNode, destinationNode);
+			add(subTree, sourceNode, destinationNode);
 			//if(treeGrid.isRendered())
 			//	treeGrid.setExpanded(sourceNode, true);
 		}
@@ -353,7 +358,7 @@ public class TreeView implements IsWidget {
 		
 		VertexTreeNode parent = subTree.getStore().getParent(oldNode);
 		remove(oldNode, false);
-		add(parent, newNode);
+		add(subTree, parent, newNode);
 		subTree.getStore().addSubTree(newNode, 0, childNodes);
 	}
 	
@@ -381,7 +386,7 @@ public class TreeView implements IsWidget {
 		subTree.getStore().removeChildren(frommNode);
 	}
 	
-	protected void add(VertexTreeNode parent, VertexTreeNode child) {
+	protected void add(SubTree subTree, VertexTreeNode parent, VertexTreeNode child) {
 		if(parent == null)
 			subTree.getStore().add(child);
 		else
@@ -393,7 +398,7 @@ public class TreeView implements IsWidget {
 		}
 	}
 
-	protected Vertex getRoot() {
+	protected Vertex getRoot(SubTree subTree) {
 		return subTree.getStore().getRootItems().get(0).getVertex();
 	}
 

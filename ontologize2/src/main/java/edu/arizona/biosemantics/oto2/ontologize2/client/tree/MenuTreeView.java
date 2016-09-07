@@ -226,7 +226,7 @@ public class MenuTreeView extends TreeView {
 	}
 	
 	@Override
-	protected Vertex getRoot() {
+	protected Vertex getRoot(SubTree subTree) {
 		subTree.getStore().setEnableFilters(false);
 		Vertex result = subTree.getStore().getRootItems().get(0).getVertex();
 		subTree.getStore().setEnableFilters(true);
@@ -299,6 +299,7 @@ public class MenuTreeView extends TreeView {
 	
 	@Override
 	protected void onOrderEffectiveInModel(OrderEdgesEvent event, Vertex src, List<Edge> edges, Type type) {
+		super.onOrderEffectiveInModel(event, src, edges, type);
 		this.sort();
 	}
 	
