@@ -37,52 +37,11 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Vert
 import com.sencha.gxt.widget.core.client.menu.Item;
 
 public class SubclassTreeView extends MenuTreeView {
-
 	
-	private SubTree resetSubTree;
-	private Stack<SubTree> navigationStack = new Stack<SubTree>();
-	private MenuItem backButton;
 	protected Map<GwtEvent<?>, Set<VertexTreeNode>> visiblilityCheckNodes = new HashMap<GwtEvent<?>, Set<VertexTreeNode>>();
 	
 	public SubclassTreeView(EventBus eventBus) {
 		super(eventBus, Type.SUBCLASS_OF);
-		
-		Menu menu = new Menu();
-		MenuItem resetButton = new MenuItem("Reset");
-		resetButton.addSelectionHandler(new SelectionHandler<Item>() {
-			@Override
-			public void onSelection(SelectionEvent<Item> event) {
-				MessageBox box = Alerter.startLoading();
-				OntologyGraph g = ModelController.getCollection().getGraph();
-				setSubTree(resetSubTree, true);
-				navigationStack.removeAllElements();
-				backButton.setEnabled(false);
-				SubclassTreeView.this.expandRoot();
-				Alerter.stopLoading(box);
-			}
-		});
-		backButton = new MenuItem("Back");
-		backButton.addSelectionHandler(new SelectionHandler<Item>() {
-			@Override
-			public void onSelection(SelectionEvent<Item> event) {
-				MessageBox box = Alerter.startLoading();
-				OntologyGraph g = ModelController.getCollection().getGraph();
-				SubTree subTree = navigationStack.pop();
-				setSubTree(subTree, true);
-				System.out.println();
-				if(navigationStack.isEmpty())
-					backButton.setEnabled(false);
-				SubclassTreeView.this.expandRoot();
-				Alerter.stopLoading(box);
-			}
-		});
-		menu.add(backButton);
-		menu.add(resetButton);
-		
-		TextButton menuButton = new TextButton("Navigate");
-		menuButton.setMenu(menu);
-		
-		buttonBar.add(menuButton);
 	}
 
 	@Override
@@ -106,7 +65,7 @@ public class SubclassTreeView extends MenuTreeView {
 	 		if(subTree.getVertexNodeMap().get(r.getDest()).size() > 1) {
 				//remove child nodes below already existings
 				for(VertexTreeNode n : subTree.getVertexNodeMap().get(r.getDest())) {
-					removeAllChildren(n);
+					removeAllChildren(subTree, n);
 				}
 			}
 		}
@@ -148,18 +107,18 @@ public class SubclassTreeView extends MenuTreeView {
 	}
 	
 	@Override
-	protected void replaceRelation(ReplaceRelationEvent event, Edge oldRelation, Vertex newSource) {
+	protected void replaceRelation(SubTree subTree, ReplaceRelationEvent event, Edge oldRelation, Vertex newSource) {
 		if(oldRelation.getType().equals(type)) {
 			Edge newRelation = new Edge(newSource, oldRelation.getDest(), oldRelation.getType(), oldRelation.getOrigin());
 			if(!isVisible(subTree, newRelation)) {
-				removeRelation(event, oldRelation, true);
+				removeRelation(subTree, event, oldRelation, true);
 				return;
 			}else
-				super.replaceRelation(event, oldRelation, newSource);
+				super.replaceRelation(subTree, event, oldRelation, newSource);
 		}
 	}
 
-	private void refreshNodes(Set<VertexTreeNode> nodes) {
+	private void refreshNodes(SubTree subTree, Set<VertexTreeNode> nodes) {
 		for(VertexTreeNode n : nodes) {
 			if(subTree.getStore().findModel(n) != null)
 				subTree.getStore().update(n);
@@ -179,18 +138,18 @@ public class SubclassTreeView extends MenuTreeView {
 		}
 	}
 
-	@Override
+	/*@Override
 	protected void onDoubleClick(VertexTreeNode node) {
 		OntologyGraph g = ModelController.getCollection().getGraph();
 		Vertex v = node.getVertex();
-		if(g.getInRelations(v, Type.SUBCLASS_OF).size() > 1) {
+		//if(g.getInRelations(v, Type.SUBCLASS_OF).size() > 1) {
 			navigationStack.push(subTree);
 			SubTree subTree = createNewSubTree(true);
 			backButton.setEnabled(true);
 			createFromRoot(subTree, g, v);
 			setSubTree(subTree, false);
-		}
-	}
+		//}
+	}*/
 	
 	@Override
 	protected void onCreateRelationEffectiveInModel(Edge r) {
@@ -199,13 +158,13 @@ public class SubclassTreeView extends MenuTreeView {
 			if(!isVisible(subTree, r))
 				return;
 			if(subTree.getVertexNodeMap().containsKey(r.getDest()))
-				refreshNodes(subTree.getVertexNodeMap().get(r.getDest()));
+				refreshNodes(subTree, subTree.getVertexNodeMap().get(r.getDest()));
 		}
 		expandRoot();
 	}
 	
 	@Override
-	protected void removeRelation(GwtEvent<?> event, Edge r, boolean recursive) {
+	protected void removeRelation(SubTree subTree, GwtEvent<?> event, Edge r, boolean recursive) {
 		if(!this.visiblilityCheckNodes.containsKey(event))
 			this.visiblilityCheckNodes.put(event, new HashSet<VertexTreeNode>());
 		OntologyGraph g = ModelController.getCollection().getGraph();
@@ -227,7 +186,7 @@ public class SubclassTreeView extends MenuTreeView {
 								visibleNodes.add(child);
 						visiblilityCheckNodes.get(event).addAll(visibleNodes);
 						
-						remove(targetNode, true);
+						remove(subTree, targetNode, true);
 					} else {
 						List<TreeNode<VertexTreeNode>> targetChildNodes = new LinkedList<TreeNode<VertexTreeNode>>();
 						List<VertexTreeNode> visibleNodes = new LinkedList<VertexTreeNode>();
@@ -240,7 +199,7 @@ public class SubclassTreeView extends MenuTreeView {
 						}
 						visiblilityCheckNodes.get(event).addAll(visibleNodes);
 						
-						remove(targetNode, false);
+						remove(subTree, targetNode, false);
 						subTree.getStore().addSubTree(sourceNode, subTree.getStore().getChildCount(sourceNode), targetChildNodes);
 					}
 				}
@@ -256,7 +215,7 @@ public class SubclassTreeView extends MenuTreeView {
 			if(this.visiblilityCheckNodes.containsKey(event)) {
 				for(VertexTreeNode visibleNode : visiblilityCheckNodes.get(event)) {
 					createFromVertex(subTree, g, visibleNode.getVertex());
-					refreshNodes(subTree.getVertexNodeMap().get(visibleNode.getVertex()));
+					refreshNodes(subTree, subTree.getVertexNodeMap().get(visibleNode.getVertex()));
 				}
 				visiblilityCheckNodes.remove(event);
 			}
@@ -271,14 +230,14 @@ public class SubclassTreeView extends MenuTreeView {
 			if(!isVisible(subTree, r))
 				return;
 			if(subTree.getVertexNodeMap().containsKey(r.getDest()))
-				refreshNodes(subTree.getVertexNodeMap().get(r.getDest()));
+				refreshNodes(subTree, subTree.getVertexNodeMap().get(r.getDest()));
 			
 			OntologyGraph g = ModelController.getCollection().getGraph();
 			if(this.visiblilityCheckNodes.containsKey(event)) {
 				for(VertexTreeNode visibleNode : visiblilityCheckNodes.get(event)) {
 					createFromVertex(subTree, g, visibleNode.getVertex());
 					if(subTree.getVertexNodeMap().containsKey(visibleNode.getVertex()))
-						refreshNodes(subTree.getVertexNodeMap().get(visibleNode.getVertex()));
+						refreshNodes(subTree, subTree.getVertexNodeMap().get(visibleNode.getVertex()));
 				}
 				visiblilityCheckNodes.remove(event);
 			}
@@ -293,11 +252,10 @@ public class SubclassTreeView extends MenuTreeView {
 		for(Vertex v : g.getVertices()) {
 			List<Edge> inRelations = g.getInRelations(v, type);
 			if(inRelations.size() > 1) {
-				refreshNodes(subTree.getVertexNodeMap().get(v));
+				refreshNodes(subTree, subTree.getVertexNodeMap().get(v));
 			}
 		}
-
-		resetSubTree = subTree;
+		
 		expandRoot();
 	}
 }

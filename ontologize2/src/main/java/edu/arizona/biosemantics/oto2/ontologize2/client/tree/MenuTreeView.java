@@ -3,6 +3,7 @@ package edu.arizona.biosemantics.oto2.ontologize2.client.tree;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Stack;
 
 import com.google.gwt.event.dom.client.KeyCodes;
 import com.google.gwt.event.logical.shared.SelectionEvent;
@@ -16,6 +17,7 @@ import com.sencha.gxt.data.shared.Store;
 import com.sencha.gxt.data.shared.Store.StoreFilter;
 import com.sencha.gxt.data.shared.Store.StoreSortInfo;
 import com.sencha.gxt.messages.client.DefaultMessages;
+import com.sencha.gxt.widget.core.client.box.MessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
@@ -30,6 +32,7 @@ import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 import com.sencha.gxt.widget.core.client.toolbar.ToolBar;
 
+import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.OrderEdgesEvent;
@@ -39,6 +42,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent.Filter
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.SortEvent.SortField;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.SortEvent.SortTarget;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.MenuTermsGrid;
+import edu.arizona.biosemantics.oto2.ontologize2.client.tree.TreeView.SubTree;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.VertexTreeNode;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge;
@@ -48,6 +52,10 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge
 public class MenuTreeView extends TreeView {
 	
 	protected ToolBar buttonBar;
+	
+	private SubTree resetSubTree;
+	private Stack<SubTree> navigationStack = new Stack<SubTree>();
+	private MenuItem backButton;
 	
 	private CheckMenuItem checkFilterItem;
 	private TextField filterGridField;
@@ -144,12 +152,51 @@ public class MenuTreeView extends TreeView {
 		*/
 		buttonBar.add(createFilterMenu());
 		buttonBar.add(createSortMenu());
+		buttonBar.add(createNavigationMenu());
 		
 		vlc = new VerticalLayoutContainer();
 		vlc.add(buttonBar, new VerticalLayoutData(1, -1));
 		vlc.add(super.asWidget(), new VerticalLayoutData(1, 1));
 	}
 	
+	private Widget createNavigationMenu() {
+		Menu menu = new Menu();
+		MenuItem resetButton = new MenuItem("Reset");
+		resetButton.addSelectionHandler(new SelectionHandler<Item>() {
+			@Override
+			public void onSelection(SelectionEvent<Item> event) {
+				MessageBox box = Alerter.startLoading();
+				OntologyGraph g = ModelController.getCollection().getGraph();
+				setSubTree(resetSubTree, true);
+				navigationStack.removeAllElements();
+				backButton.setEnabled(false);
+				MenuTreeView.this.expandRoot();
+				Alerter.stopLoading(box);
+			}
+		});
+		backButton = new MenuItem("Back");
+		backButton.addSelectionHandler(new SelectionHandler<Item>() {
+			@Override
+			public void onSelection(SelectionEvent<Item> event) {
+				MessageBox box = Alerter.startLoading();
+				OntologyGraph g = ModelController.getCollection().getGraph();
+				SubTree subTree = navigationStack.pop();
+				setSubTree(subTree, true);
+				System.out.println();
+				if(navigationStack.isEmpty())
+					backButton.setEnabled(false);
+				MenuTreeView.this.expandRoot();
+				Alerter.stopLoading(box);
+			}
+		});
+		menu.add(backButton);
+		menu.add(resetButton);
+		
+		TextButton menuButton = new TextButton("Navigate");
+		menuButton.setMenu(menu);
+		return menuButton;
+	}
+
 	@Override
 	public void bindEvents() {
 		super.bindEvents();
@@ -164,11 +211,11 @@ public class MenuTreeView extends TreeView {
 					switch(event.getFilterTarget()) {
 						case TREE:
 							filterTreeField.setText(filter);
-							MenuTreeView.this.onFilter(filter);
+							MenuTreeView.this.onFilter(subTree, filter);
 							break;
 						case GRID_AND_TREE:
 							filterGridAndTreeField.setText(filter);
-							MenuTreeView.this.onFilter(filter);
+							MenuTreeView.this.onFilter(subTree, filter);
 							break;
 						case GRID:
 							filterGridField.setText(filter);
@@ -189,10 +236,10 @@ public class MenuTreeView extends TreeView {
 	}
 
 	protected void onSort(SortField sortField, SortDir sortDir) {
-		this.sort(sortField.equals(SortField.name) ? nameComparator : creationComparator, sortDir);
+		this.sort(subTree, sortField.equals(SortField.name) ? nameComparator : creationComparator, sortDir);
 	}
 	
-	protected void onFilter(final String filter) {
+	protected void onFilter(final SubTree subTree, final String filter) {
 		if(!checkFilterItem.isChecked()) {
 			subTree.getStore().removeFilters();
 			subTree.getStore().setEnableFilters(false);
@@ -208,8 +255,8 @@ public class MenuTreeView extends TreeView {
 		        		return true;
 					}
 		        	while(parent != null) {
-		        		parent = MenuTreeView.this.subTree.getStore().getParent(parent);
-		        		item = MenuTreeView.this.subTree.getStore().getParent(item);
+		        		parent = subTree.getStore().getParent(parent);
+		        		item = subTree.getStore().getParent(item);
 		        		if(!item.getVertex().equals(g.getRoot(type))) {
 			        		value = item.getVertex().getValue().toLowerCase();
 				        	if(value.contains(filter.toLowerCase())) {
@@ -294,22 +341,23 @@ public class MenuTreeView extends TreeView {
 	@Override
 	protected void onLoadCollectionEffectiveInModel() {
 		super.onLoadCollectionEffectiveInModel();
-		this.sort(creationComparator, SortDir.DESC);
+		this.sort(subTree, creationComparator, SortDir.DESC);
+		resetSubTree = subTree;
 	}
 	
 	@Override
 	protected void onOrderEffectiveInModel(OrderEdgesEvent event, Vertex src, List<Edge> edges, Type type) {
 		super.onOrderEffectiveInModel(event, src, edges, type);
-		this.sort();
+		this.sort(subTree);
 	}
 	
-	public void sort(final Comparator<VertexTreeNode> comparator, final SortDir sortDir) {
+	public void sort(SubTree subTree, final Comparator<VertexTreeNode> comparator, final SortDir sortDir) {
 		subTree.getStore().clearSortInfo();
 		subTree.getStore().addSortInfo(new StoreSortInfo<VertexTreeNode>(comparator, sortDir));
 		this.expandRoot();
 	}
 	
-	public void sort() {
+	public void sort(SubTree subTree) {
 		subTree.getStore().applySort(false);
 		this.expandRoot();
 	}
@@ -317,6 +365,17 @@ public class MenuTreeView extends TreeView {
 	@Override
 	public Widget asWidget() {
 		return vlc;
+	}
+	
+	@Override
+	protected void onDoubleClick(VertexTreeNode node) {
+		OntologyGraph g = ModelController.getCollection().getGraph();
+		Vertex v = node.getVertex();
+		navigationStack.push(subTree);
+		SubTree subTree = createNewSubTree(true);
+		backButton.setEnabled(true);
+		createFromRoot(subTree, g, v);
+		setSubTree(subTree, false);
 	}
 	
 	private Widget createFilterMenu() {

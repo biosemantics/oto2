@@ -117,9 +117,8 @@ public class TreeView implements IsWidget {
 		return new Menu();
 	}
 
-	protected void onDoubleClick(VertexTreeNode vertexNode) {
-		// TODO Auto-generated method stub
-		
+	protected void onDoubleClick(VertexTreeNode node) {
+
 	}
 
 	protected void bindEvents() {
@@ -165,7 +164,7 @@ public class TreeView implements IsWidget {
 			public void onRemove(RemoveRelationEvent event) {
 				if(!event.isEffectiveInModel())
 					for(Edge r : event.getRelations())
-						removeRelation(event, r, event.isRecursive());
+						removeRelation(subTree, event, r, event.isRecursive());
 				else
 					for(Edge r : event.getRelations()) 
 						onRemoveRelationEffectiveInModel(event, r, event.isRecursive());
@@ -175,7 +174,7 @@ public class TreeView implements IsWidget {
 			@Override
 			public void onReplace(ReplaceRelationEvent event) {
 				if(!event.isEffectiveInModel()) {
-					replaceRelation(event, event.getOldRelation(), event.getNewSource());
+					replaceRelation(subTree, event, event.getOldRelation(), event.getNewSource());
 				} else {
 					onReplaceRelationEffectiveInModel(event, event.getOldRelation(), event.getNewSource());
 				}
@@ -209,7 +208,7 @@ public class TreeView implements IsWidget {
 		
 	}
 	
-	protected void replaceRelation(ReplaceRelationEvent event, Edge oldRelation, Vertex newSource) {
+	protected void replaceRelation(SubTree subTree, ReplaceRelationEvent event, Edge oldRelation, Vertex newSource) {
 		if(oldRelation.getType().equals(type)) {
 			if(subTree.getVertexNodeMap().containsKey(oldRelation.getDest()) && subTree.getVertexNodeMap().containsKey(newSource)) {
 				VertexTreeNode targetNode = subTree.getVertexNodeMap().get(oldRelation.getDest()).iterator().next();
@@ -323,14 +322,14 @@ public class TreeView implements IsWidget {
 		}
 	}
 	
-	protected void removeRelation(GwtEvent<?> event, Edge r, boolean recursive) {
+	protected void removeRelation(SubTree subTree, GwtEvent<?> event, Edge r, boolean recursive) {
 		OntologyGraph g = ModelController.getCollection().getGraph();
 		if(r.getType().equals(type)) {
 			if(subTree.getVertexNodeMap().containsKey(r.getSrc()) && subTree.getVertexNodeMap().containsKey(r.getDest())) {
 				VertexTreeNode sourceNode = subTree.getVertexNodeMap().get(r.getSrc()).iterator().next();
 				VertexTreeNode targetNode = subTree.getVertexNodeMap().get(r.getDest()).iterator().next();
 				if(recursive) {
-					remove(targetNode, true);
+					remove(subTree, targetNode, true);
 				} else {
 					List<TreeNode<VertexTreeNode>> targetChildNodes = new LinkedList<TreeNode<VertexTreeNode>>();
 					for(VertexTreeNode targetChild : subTree.getStore().getChildren(targetNode)) {
@@ -338,33 +337,33 @@ public class TreeView implements IsWidget {
 						if(inRelations.size() <= 1) 
 							targetChildNodes.add(subTree.getStore().getSubTree(targetChild));
 					}
-					remove(targetNode, false);
+					remove(subTree, targetNode, false);
 					subTree.getStore().addSubTree(sourceNode, subTree.getStore().getChildCount(sourceNode), targetChildNodes);
 				}
 			}
 		}
 	}
 
-	protected void clearTree() {
+	protected void clearTree(SubTree subTree) {
 		subTree.getStore().clear();
 		subTree.getVertexNodeMap().clear();
 	}
 	
-	protected void replaceNode(VertexTreeNode oldNode, VertexTreeNode newNode) {
+	protected void replaceNode(SubTree subTree, VertexTreeNode oldNode, VertexTreeNode newNode) {
 		List<TreeNode<VertexTreeNode>> childNodes = new LinkedList<TreeNode<VertexTreeNode>>();
 		for(VertexTreeNode childNode : subTree.getStore().getChildren(oldNode)) {
 			childNodes.add(subTree.getStore().getSubTree(childNode));
 		}
 		
 		VertexTreeNode parent = subTree.getStore().getParent(oldNode);
-		remove(oldNode, false);
+		remove(subTree, oldNode, false);
 		add(subTree, parent, newNode);
 		subTree.getStore().addSubTree(newNode, 0, childNodes);
 	}
 	
-	protected void remove(VertexTreeNode node, boolean removeChildren) {
+	protected void remove(SubTree subTree, VertexTreeNode node, boolean removeChildren) {
 		if(removeChildren)
-			removeAllChildren(node);
+			removeAllChildren(subTree, node);
 		subTree.getStore().remove(node);
 		if(subTree.getVertexNodeMap().containsKey(node.getVertex())) {
 			subTree.getVertexNodeMap().get(node.getVertex()).remove(node);
@@ -373,7 +372,7 @@ public class TreeView implements IsWidget {
 		}
 	}
 	
-	protected void removeAllChildren(VertexTreeNode frommNode) {
+	protected void removeAllChildren(SubTree subTree, VertexTreeNode frommNode) {
 		List<VertexTreeNode> allRemoves = subTree.getStore().getAllChildren(frommNode);
 		for(VertexTreeNode remove : allRemoves) {
 			Vertex v = remove.getVertex();

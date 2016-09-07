@@ -20,7 +20,7 @@ public class PartsTreeView extends MenuTreeView {
 		super(eventBus, Type.PART_OF);
 	}
 	
-	protected void createRelation(Edge r) {		
+	protected void createRelation(SubTree subTree, Edge r) {		
 		if(r.getType().equals(Type.PART_OF)) {
 			OntologyGraph g = ModelController.getCollection().getGraph();
 			Vertex dest = r.getDest();
@@ -28,34 +28,40 @@ public class PartsTreeView extends MenuTreeView {
 			String newValue = src + " " + dest;
 			
 			List<Edge> parentRelations = g.getInRelations(dest, Type.PART_OF);
-			if(!parentRelations.isEmpty()) {			
+			if(!parentRelations.isEmpty()) {
+				boolean disambiguate = false;
 				for(Edge parentRelation : parentRelations) {
 					Vertex parentSrc = parentRelation.getSrc();
-					Vertex disambiguatedDest = new Vertex(parentSrc + " " + dest);
-					
-					replace(parentSrc, dest, disambiguatedDest);
+					if(!parentSrc.equals(r.getSrc())) {
+						Vertex disambiguatedDest = new Vertex(parentSrc + " " + dest);
+						replace(subTree, parentSrc, dest, disambiguatedDest);
+						disambiguate = true;
+					}
 				}
 				
-				super.createRelation(subTree, new Edge(src, new Vertex(newValue), r.getType(), r.getOrigin()));
+				if(disambiguate)
+					super.createRelation(subTree, new Edge(src, new Vertex(newValue), r.getType(), r.getOrigin()));
+				else
+					super.createRelation(subTree, r);
 			} else {
 				super.createRelation(subTree, r);
 			}
 		}
 	}
 
-	private void replace(Vertex parent, Vertex vertex, Vertex newVertex) {
+	private void replace(SubTree subTree, Vertex parent, Vertex vertex, Vertex newVertex) {
 		if(subTree.getVertexNodeMap().containsKey(vertex)) {
 			VertexTreeNode destNode = subTree.getVertexNodeMap().get(vertex).iterator().next();
 			VertexTreeNode newDestNode = new VertexTreeNode(newVertex);
 			
-			replaceNode(destNode, newDestNode);
+			replaceNode(subTree, destNode, newDestNode);
 			
 			subTree.getVertexNodeMap().put(newVertex, new HashSet<VertexTreeNode>(Arrays.asList(newDestNode)));
 			subTree.getVertexNodeMap().remove(vertex);
 			
 			for(Edge r : ModelController.getCollection().getGraph().getOutRelations(vertex, Type.PART_OF)) {
 				if(r.getDest().getValue().startsWith(vertex.getValue())) {
-					replace(vertex, r.getDest(), new Vertex(newVertex.getValue() + " " + r.getDest().getValue()));
+					replace(subTree, vertex, r.getDest(), new Vertex(newVertex.getValue() + " " + r.getDest().getValue()));
 				}
 			}
 		}
