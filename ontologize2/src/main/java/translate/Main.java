@@ -7,16 +7,21 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 
 import edu.arizona.biosemantics.common.biology.TaxonGroup;
+import edu.arizona.biosemantics.common.context.shared.Context;
 import edu.arizona.biosemantics.oto2.ontologize2.server.Configuration;
+import edu.arizona.biosemantics.oto2.ontologize2.server.ContextDAO;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Candidate;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Origin;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Type;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Vertex;
@@ -235,13 +240,14 @@ public class Main {
 			}
 		}
 		
+		removeRedundantRelations(g);
+		
 		Collection c = new Collection();
 		c.setGraph(g);
-		c.setId(0);
-		c.setSecret("secret");
+		c.setId(26);
+		c.setSecret("");
 		c.setTaxonGroup(TaxonGroup.SPIDER);
-		c.setName("steven");
-		
+		c.setName("steven");		
 		
 		stmt = conn.createStatement();
 		rs = stmt.executeQuery("SELECT * FROM ontologize_term");
@@ -251,9 +257,53 @@ public class Main {
 		rs.close();
 		stmt.close();
 		
+		List<Context> contexts = new ArrayList<Context>();
+		stmt = conn.createStatement();
+		rs = stmt.executeQuery("SELECT * FROM ontologize_context");
+		while(rs.next()) {
+			contexts.add(new Context(rs.getInt(1), rs.getString(3), rs.getString(4)));
+		}
+		rs.close();
+		stmt.close();
+		
+		ContextDAO contextDAO = new ContextDAO();
+		contextDAO.insert(c.getId(), contexts);
+		
+		
 		conn.close();
 		
 		serializeCollection(c);
+	}
+
+	private void removeRedundantRelations(OntologyGraph g) {
+		for(Vertex v : g.getVertices()) {
+			List<Edge> in = g.getInRelations(v, Type.SUBCLASS_OF);
+			if(in.size() > 1) {
+				boolean  inComingIsMaterialEntity = false;
+				Edge directMaeEdge = null;
+				for(Edge e : in) {
+					if(e.getSrc().equals(new Vertex("material anatomical entity"))) {
+						directMaeEdge = e;
+					} else if(isMaterialEntity(g, e.getSrc())) {
+						inComingIsMaterialEntity = true;
+					}
+				}
+				if(inComingIsMaterialEntity)
+					g.removeEdge(directMaeEdge);
+			}
+		}
+	}
+	
+	private boolean isMaterialEntity(OntologyGraph g, Vertex v) {
+		Vertex mae = new Vertex("material anatomical entity");
+		if(v.equals(mae))
+			return true;
+		for(Edge e : g.getInRelations(v)) {
+			boolean isMaterialEntity = isMaterialEntity(g, e.getSrc());
+			if(isMaterialEntity)
+				return true;
+		}
+		return false;
 	}
 
 	private ClassSub createClassSub(ResultSet rs) throws SQLException {

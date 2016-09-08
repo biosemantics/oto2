@@ -177,6 +177,7 @@ public class PartsGrid extends MenuTermsGrid {
 			String newValue = src + " " + dest;
 			
 			List<Edge> parentRelations = g.getInRelations(dest, Type.PART_OF);
+			parentRelations.remove(r);
 			if(!parentRelations.isEmpty()) {			
 				for(Edge parentRelation : parentRelations) {
 					Vertex parentSrc = parentRelation.getSrc();

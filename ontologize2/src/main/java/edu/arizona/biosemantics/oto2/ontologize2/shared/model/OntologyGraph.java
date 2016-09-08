@@ -684,7 +684,7 @@ public class OntologyGraph implements Serializable {
 		}
 	}
 	
-	private void removeEdge(Edge e) {
+	public void removeEdge(Edge e) {
 		graph.removeEdge(e);
 		if(orderedEdges.containsKey(e.getSrc()) && orderedEdges.get(e.getSrc()).containsKey(e.getType()))
 			orderedEdges.get(e.getSrc()).get(e.getType()).remove(e);

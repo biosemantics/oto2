@@ -28,21 +28,17 @@ public class PartsTreeView extends MenuTreeView {
 			String newValue = src + " " + dest;
 			
 			List<Edge> parentRelations = g.getInRelations(dest, Type.PART_OF);
+			parentRelations.remove(r);
 			if(!parentRelations.isEmpty()) {
-				boolean disambiguate = false;
 				for(Edge parentRelation : parentRelations) {
 					Vertex parentSrc = parentRelation.getSrc();
 					if(!parentSrc.equals(r.getSrc())) {
 						Vertex disambiguatedDest = new Vertex(parentSrc + " " + dest);
 						replace(subTree, parentSrc, dest, disambiguatedDest);
-						disambiguate = true;
 					}
 				}
 				
-				if(disambiguate)
-					super.createRelation(subTree, new Edge(src, new Vertex(newValue), r.getType(), r.getOrigin()));
-				else
-					super.createRelation(subTree, r);
+				super.createRelation(subTree, new Edge(src, new Vertex(newValue), r.getType(), r.getOrigin()));
 			} else {
 				super.createRelation(subTree, r);
 			}
