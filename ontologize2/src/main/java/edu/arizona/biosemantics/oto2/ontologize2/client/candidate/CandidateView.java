@@ -9,18 +9,24 @@ import java.util.Map;
 
 import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.KeyCodes;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
+import com.google.gwt.user.client.Event;
 import com.google.web.bindery.event.shared.EventBus;
 import com.sencha.gxt.core.client.IdentityValueProvider;
 import com.sencha.gxt.core.client.Style.SelectionMode;
+import com.sencha.gxt.core.client.util.DelayedTask;
 import com.sencha.gxt.data.shared.SortDir;
+import com.sencha.gxt.data.shared.Store;
+import com.sencha.gxt.data.shared.Store.StoreFilter;
 import com.sencha.gxt.data.shared.Store.StoreSortInfo;
 import com.sencha.gxt.data.shared.TreeStore;
 import com.sencha.gxt.dnd.core.client.DndDragStartEvent;
 import com.sencha.gxt.dnd.core.client.TreeDragSource;
+import com.sencha.gxt.messages.client.DefaultMessages;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
 import com.sencha.gxt.widget.core.client.box.MultiLinePromptMessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
@@ -30,11 +36,14 @@ import com.sencha.gxt.widget.core.client.container.SimpleContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
 import com.sencha.gxt.widget.core.client.event.BeforeShowEvent;
+import com.sencha.gxt.widget.core.client.event.CheckChangeEvent;
 import com.sencha.gxt.widget.core.client.event.BeforeShowEvent.BeforeShowHandler;
+import com.sencha.gxt.widget.core.client.event.CheckChangeEvent.CheckChangeHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.form.FieldLabel;
 import com.sencha.gxt.widget.core.client.form.TextField;
+import com.sencha.gxt.widget.core.client.menu.CheckMenuItem;
 import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
@@ -47,15 +56,22 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.common.TextAreaMessageBo
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateCandidateEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent.FilterTarget;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.ClearEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveCandidateEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.SelectTermEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.relations.MenuTermsGrid;
+import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid.Row;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.BucketTreeNode;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.CandidateTreeNode;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.TextTreeNode;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.TextTreeNodeProperties;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Candidate;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Type;
 
 public class CandidateView extends SimpleContainer {
@@ -63,13 +79,29 @@ public class CandidateView extends SimpleContainer {
 	private static final TextTreeNodeProperties textTreeNodeProperties = GWT.create(TextTreeNodeProperties.class);
 	
 	private Tree<TextTreeNode, TextTreeNode> tree;
+	private TreeStore<TextTreeNode> treeStore;
 	private Map<String, CandidateTreeNode> candidateNodeMap = new HashMap<String, CandidateTreeNode>();
 	private Map<String, BucketTreeNode> bucketNodesMap = new HashMap<String, BucketTreeNode>();	
 	private EventBus eventBus;
 	private ToolBar buttonBar;
+
+	private CheckMenuItem checkFilterItem;
+	private TextField filterField;
+	
+	private DelayedTask filterTask = new DelayedTask() {		
+		@Override
+		public void onExecute() {
+			String filter = filterField.getText().trim();
+			if(filter.isEmpty())
+				checkFilterItem.setChecked(false);
+			else
+				checkFilterItem.setChecked(true);
+			onFilter(filter);
+		}
+	};
 	
 	private CandidateView() {
-		TreeStore<TextTreeNode> treeStore = new TreeStore<TextTreeNode>(textTreeNodeProperties.key());
+		treeStore = new TreeStore<TextTreeNode>(textTreeNodeProperties.key());
 		treeStore.setAutoCommit(true);
 		treeStore.addSortInfo(new StoreSortInfo<TextTreeNode>(new Comparator<TextTreeNode>() {
 			@Override
@@ -82,7 +114,11 @@ public class CandidateView extends SimpleContainer {
 		tree.setCell(new AbstractCell<TextTreeNode>() {
 			@Override
 			public void render(com.google.gwt.cell.client.Cell.Context context,	TextTreeNode value, SafeHtmlBuilder sb) {
-				sb.append(SafeHtmlUtils.fromTrustedString("<div>" + value.getText() +  "</div>"));
+				OntologyGraph g = ModelController.getCollection().getGraph();
+				if(g.getVertex(value.getText()) != null)
+					sb.append(SafeHtmlUtils.fromTrustedString("<div style=\"color:gray;\">" + value.getText() +  "</div>"));
+				else
+					sb.append(SafeHtmlUtils.fromTrustedString("<div >" + value.getText() +  "</div>"));
 			}
 		});
 		tree.getElement().setAttribute("source", "termsview");
@@ -109,6 +145,39 @@ public class CandidateView extends SimpleContainer {
 		};
 		
 		buttonBar = new ToolBar();
+		
+		TextButton filterButton = new TextButton("Filter");
+		final Menu menu = new Menu();
+		checkFilterItem = new CheckMenuItem(DefaultMessages.getMessages().gridFilters_filterText());
+		menu.add(checkFilterItem);
+		
+		final Menu filterMenu = new Menu();
+		filterField = new TextField() {
+			protected void onKeyUp(Event event) {
+				super.onKeyUp(event);
+				int key = event.getKeyCode();
+				if (key == KeyCodes.KEY_ENTER) {
+					event.stopPropagation();
+					event.preventDefault();
+					filterMenu.hide(true);
+				}
+				
+				filterTask.delay(500);
+			}
+		};
+		checkFilterItem.setSubMenu(filterMenu);
+		checkFilterItem.addCheckChangeHandler(new CheckChangeHandler<CheckMenuItem>() {
+	        @Override
+	        public void onCheckChange(CheckChangeEvent<CheckMenuItem> event) {
+	        	if(!checkFilterItem.isChecked())
+	        		filterField.setText("");
+	        	onFilter(filterField.getText());
+	        }
+	    });
+		filterMenu.add(filterField);
+		filterButton.setMenu(menu);
+		buttonBar.add(filterButton);
+		
 //		TextButton importButton = new TextButton("Import");
 //		importButton.addSelectHandler(new SelectHandler() {
 //			@Override
@@ -234,6 +303,22 @@ public class CandidateView extends SimpleContainer {
 		this.add(vlc);
 	}
 	
+	protected void onFilter(final String text) {
+		if(checkFilterItem.isChecked()) {
+			treeStore.removeFilters();
+			treeStore.addFilter(new StoreFilter<TextTreeNode>() {
+				@Override
+				public boolean select(Store<TextTreeNode> store, TextTreeNode parent, TextTreeNode item) {
+					return item.getText().contains(text);
+				}
+			});
+			treeStore.setEnableFilters(true);
+		} else {
+			treeStore.removeFilters();
+			treeStore.setEnableFilters(false);
+		}
+	}
+
 	private Menu createContextMenu() {
 		final Menu menu = new Menu();
 		menu.addBeforeShowHandler(new BeforeShowHandler() {
@@ -349,6 +434,47 @@ public class CandidateView extends SimpleContainer {
 			@Override
 			public void onRemove(RemoveCandidateEvent event) {
 				remove(Arrays.asList(event.getCandidates()));
+			}
+		});
+		eventBus.addHandler(CreateRelationEvent.TYPE, new CreateRelationEvent.Handler() {
+			@Override
+			public void onCreate(CreateRelationEvent event) {
+				if(event.isEffectiveInModel()) {
+					for(Edge e : event.getRelations()) {
+						String[] nodes = new String[] { e.getSrc().getValue(), e.getDest().getValue() };
+						for(String node : nodes) {
+							if(candidateNodeMap.containsKey(node)) {
+								treeStore.update(candidateNodeMap.get(node));
+							}
+						}
+					}
+				}
+			}
+		});
+		eventBus.addHandler(RemoveRelationEvent.TYPE, new RemoveRelationEvent.Handler() {
+			@Override
+			public void onRemove(RemoveRelationEvent event) {
+				if(event.isEffectiveInModel()) {
+					OntologyGraph g = ModelController.getCollection().getGraph();
+					for(Edge e : event.getRelations()) {
+						String[] nodes = new String[] { e.getSrc().getValue(), e.getDest().getValue() };
+						for(String node : nodes) {
+							if(candidateNodeMap.containsKey(node)) {
+								if(g.getVertex(node) == null)
+									treeStore.update(candidateNodeMap.get(node));
+							}
+						}
+					}
+				}
+			}
+		});
+		eventBus.addHandler(ClearEvent.TYPE, new ClearEvent.Handler() {
+			@Override
+			public void onClear(ClearEvent event) {
+				if(event.isEffectiveInModel()) {
+					for(TextTreeNode node : treeStore.getAll())
+						treeStore.update(node);
+				}
 			}
 		});
 	}

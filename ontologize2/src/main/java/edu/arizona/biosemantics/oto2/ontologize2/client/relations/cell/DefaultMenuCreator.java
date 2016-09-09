@@ -70,8 +70,12 @@ public class DefaultMenuCreator implements LeadCell.MenuCreator {
 				box.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
 					@Override
 					public void onSelect(SelectEvent event) {
-						termsGrid.fire(new CreateRelationEvent(
-								new Edge(row.getLead(), new Vertex(box.getTextField().getText()), termsGrid.getType(), Origin.USER)));
+						String text = box.getTextField().getText().trim();
+						if(text.isEmpty())
+							Alerter.showAlert("Add " + termsGrid.getType().getTargetLabel(), "Cannot create empty " + termsGrid.getType().getTargetLabel());
+						else
+							termsGrid.fire(new CreateRelationEvent(
+									new Edge(row.getLead(), new Vertex(box.getTextField().getText()), termsGrid.getType(), Origin.USER)));
 					}
 				});
 			}
@@ -135,7 +139,7 @@ public class DefaultMenuCreator implements LeadCell.MenuCreator {
 			menuItem.addSelectionHandler(new SelectionHandler<Item>() {
 				@Override
 				public void onSelection(SelectionEvent<Item> event) {
-					eventBus.fireEvent(new FilterEvent(row.getLead().getValue(), filterTarget, termsGrid.getType()));
+					eventBus.fireEvent(new FilterEvent(row.getLead().getValue(), filterTarget, Type.values()));
 				}
 			});
 			filterMenu.add(menuItem);

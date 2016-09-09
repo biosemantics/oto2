@@ -48,6 +48,7 @@ import com.sencha.gxt.dnd.core.client.GridDragSource;
 import com.sencha.gxt.dnd.core.client.DndDropEvent.DndDropHandler;
 import com.sencha.gxt.dnd.core.client.DropTarget;
 import com.sencha.gxt.state.client.GridFilterStateHandler;
+import com.sencha.gxt.widget.core.client.container.CssFloatLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.SimpleContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
@@ -295,7 +296,7 @@ public class TermsGrid implements IsWidget {
 	private final int colWidth = 100;
 	protected Type type;
 	private VerticalLayoutContainer vlc;
-	private SimpleContainer simpleContainer;
+	//private SimpleContainer simpleContainer;
 	protected PagingLoader<PagingLoadConfig, PagingLoadResult<Row>> loader;
 	protected ListStore<Row> store;
 	protected AllRowStore allRowStore;
@@ -446,9 +447,9 @@ public class TermsGrid implements IsWidget {
 		vlc.add(toolBar, new VerticalLayoutData(1, -1));
 	    
 		vlc.getScrollSupport().setScrollMode(ScrollMode.AUTO);
-		simpleContainer = new SimpleContainer();
-		simpleContainer.add(vlc);
-		
+		//simpleContainer = new SimpleContainer();
+		//simpleContainer.getScrollSupport().setScrollMode(ScrollMode.NONE);
+		//simpleContainer.add(vlc);
 		bindEvents();
 	}
 
@@ -913,7 +914,7 @@ public class TermsGrid implements IsWidget {
 
 	@Override
 	public Widget asWidget() {
-		return simpleContainer;
+		return vlc;
 	}
 
 	public Type getType() {

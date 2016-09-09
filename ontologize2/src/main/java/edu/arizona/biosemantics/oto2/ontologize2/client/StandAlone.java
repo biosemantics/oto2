@@ -63,7 +63,7 @@ public class StandAlone implements EntryPoint {
 		
 		
 //		
-		final Collection c = new Collection("my collection", TaxonGroup.PLANT, "secret");
+		final Collection c = new Collection("my collection", TaxonGroup.PLANT, "");
 		
 		List<String> terms = Arrays.asList(new String[] { "leaf", "stem", "plant anatomical entity", "plant structure", 
 			"plant anatomical space", "portion of plant substance", "flower", "tip", "surface", "leaflet", 
@@ -116,7 +116,7 @@ public class StandAlone implements EntryPoint {
 					contexts.add(new Context(1, "some source 2", "plant anatomical entity are described as either "
 							+ "plant structure, plant anatomical space or portion of plant substance"));
 					contexts.add(new Context(2, "some source 3", "flowers are green and yellow"));
-					contextService.insert(0, "secret", contexts, new AsyncCallback<List<Context>>() {
+					contextService.insert(0, "", contexts, new AsyncCallback<List<Context>>() {
 						@Override
 						public void onFailure(Throwable caught) {
 							caught.printStackTrace();
@@ -153,7 +153,7 @@ public class StandAlone implements EntryPoint {
 			Timer timer = new Timer() {
 				@Override
 				public void run() {
-					collectionService.get(0, "secret", new AsyncCallback<Collection>() {
+					collectionService.get(0, "", new AsyncCallback<Collection>() {
 						@Override
 						public void onFailure(Throwable caught) {
 							caught.printStackTrace();

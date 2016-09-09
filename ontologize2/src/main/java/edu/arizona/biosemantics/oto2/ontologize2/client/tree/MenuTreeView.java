@@ -64,19 +64,19 @@ public class MenuTreeView extends TreeView {
 	private DelayedTask filterGridTask = new DelayedTask() {		
 		@Override
 		public void onExecute() {
-			eventBus.fireEvent(new FilterEvent(filterGridField.getText(), FilterTarget.GRID, type));
+			eventBus.fireEvent(new FilterEvent(filterGridField.getText(), FilterTarget.GRID, Type.values()));
 		}
 	};
 	private DelayedTask filterTreeTask = new DelayedTask() {		
 		@Override
 		public void onExecute() {
-			eventBus.fireEvent(new FilterEvent(filterTreeField.getText(), FilterTarget.TREE, type));
+			eventBus.fireEvent(new FilterEvent(filterTreeField.getText(), FilterTarget.TREE, Type.values()));
 		}
 	};
 	private DelayedTask filterGridAndTreeTask = new DelayedTask() {		
 		@Override
 		public void onExecute() {
-			eventBus.fireEvent(new FilterEvent(filterGridAndTreeField.getText(), FilterTarget.GRID_AND_TREE, type));
+			eventBus.fireEvent(new FilterEvent(filterGridAndTreeField.getText(), FilterTarget.GRID_AND_TREE, Type.values()));
 		}
 	};
 	
@@ -138,6 +138,8 @@ public class MenuTreeView extends TreeView {
 	};
 
 	private VerticalLayoutContainer vlc;
+
+	private MenuItem resetButton;
 	
 	public MenuTreeView(EventBus eventBus, Type type) {
 		super(eventBus, type);
@@ -161,7 +163,7 @@ public class MenuTreeView extends TreeView {
 	
 	private Widget createNavigationMenu() {
 		Menu menu = new Menu();
-		MenuItem resetButton = new MenuItem("Reset");
+		resetButton = new MenuItem("Reset");
 		resetButton.addSelectionHandler(new SelectionHandler<Item>() {
 			@Override
 			public void onSelection(SelectionEvent<Item> event) {
@@ -170,6 +172,7 @@ public class MenuTreeView extends TreeView {
 				bindSubTree(resetSubTree, true);
 				navigationStack.removeAllElements();
 				backButton.setEnabled(false);
+				resetButton.setEnabled(false);
 				MenuTreeView.this.expandRoot();
 				Alerter.stopLoading(box);
 			}
@@ -182,13 +185,16 @@ public class MenuTreeView extends TreeView {
 				OntologyGraph g = ModelController.getCollection().getGraph();
 				SubTree subTree = navigationStack.pop();
 				bindSubTree(subTree, true);
-				System.out.println();
-				if(navigationStack.isEmpty())
+				if(navigationStack.isEmpty()) {
 					backButton.setEnabled(false);
+					resetButton.setEnabled(false);
+				}
 				MenuTreeView.this.expandRoot();
 				Alerter.stopLoading(box);
 			}
 		});
+		backButton.setEnabled(false);
+		resetButton.setEnabled(false);
 		menu.add(backButton);
 		menu.add(resetButton);
 		
@@ -298,7 +304,7 @@ public class MenuTreeView extends TreeView {
 						@Override
 						public void onSelection(SelectionEvent<Item> event) {
 							eventBus.fireEvent(new FilterEvent(treeGrid.getSelectionModel().getSelectedItem().getText(), 
-									FilterTarget.GRID, type));
+									FilterTarget.GRID, Type.values()));
 						}
 					});
 					filterMenu.add(filterGrid);
@@ -307,7 +313,7 @@ public class MenuTreeView extends TreeView {
 						@Override
 						public void onSelection(SelectionEvent<Item> event) {
 							eventBus.fireEvent(new FilterEvent(treeGrid.getSelectionModel().getSelectedItem().getText(), 
-									FilterTarget.TREE, type));
+									FilterTarget.TREE, Type.values()));
 						}
 					});
 					filterMenu.add(filterTree);
@@ -316,7 +322,7 @@ public class MenuTreeView extends TreeView {
 						@Override
 						public void onSelection(SelectionEvent<Item> event) {
 							eventBus.fireEvent(new FilterEvent(treeGrid.getSelectionModel().getSelectedItem().getText(), 
-									FilterTarget.GRID_AND_TREE, type));
+									FilterTarget.GRID_AND_TREE, Type.values()));
 						}
 					});
 					filterMenu.add(filterAll);
@@ -369,13 +375,16 @@ public class MenuTreeView extends TreeView {
 	
 	@Override
 	protected void onDoubleClick(VertexTreeNode node) {
-		OntologyGraph g = ModelController.getCollection().getGraph();
-		Vertex v = node.getVertex();
-		navigationStack.push(subTree);
-		subTree = createNewSubTree(true);
-		backButton.setEnabled(true);
-		createFromRoot(subTree, g, v);
-		bindSubTree(subTree, false);
+		if(!node.getVertex().equals(this.getRoot(subTree))) {
+			OntologyGraph g = ModelController.getCollection().getGraph();
+			Vertex v = node.getVertex();
+			navigationStack.push(subTree);
+			subTree = createNewSubTree(true);
+			backButton.setEnabled(true);
+			resetButton.setEnabled(true);
+			createFromRoot(subTree, g, v);
+			bindSubTree(subTree, false);
+		}
 	}
 	
 	private Widget createFilterMenu() {
@@ -397,7 +406,7 @@ public class MenuTreeView extends TreeView {
 					event.stopPropagation();
 					event.preventDefault();
 					filterMenu.hide(true);
-					eventBus.fireEvent(new FilterEvent(filterGridField.getText(), FilterTarget.GRID, type));
+					eventBus.fireEvent(new FilterEvent(filterGridField.getText(), FilterTarget.GRID, Type.values()));
 				}
 				filterGridTask.delay(500);
 			}
@@ -416,7 +425,7 @@ public class MenuTreeView extends TreeView {
 					event.stopPropagation();
 					event.preventDefault();
 					filterMenu.hide(true);
-					eventBus.fireEvent(new FilterEvent(filterTreeField.getText(), FilterTarget.TREE, type));
+					eventBus.fireEvent(new FilterEvent(filterTreeField.getText(), FilterTarget.TREE, Type.values()));
 				}
 				filterTreeTask.delay(500);
 			}
@@ -435,7 +444,7 @@ public class MenuTreeView extends TreeView {
 					event.stopPropagation();
 					event.preventDefault();
 					filterMenu.hide(true);
-					eventBus.fireEvent(new FilterEvent(filterGridAndTreeField.getText(), FilterTarget.GRID_AND_TREE, type));
+					eventBus.fireEvent(new FilterEvent(filterGridAndTreeField.getText(), FilterTarget.GRID_AND_TREE, Type.values()));
 				}
 				filterGridAndTreeTask.delay(500);
 			}
@@ -449,9 +458,9 @@ public class MenuTreeView extends TreeView {
 	        @Override
 	        public void onCheckChange(CheckChangeEvent<CheckMenuItem> event) {
 	        	if(!event.getItem().isChecked())
-	        		eventBus.fireEvent(new FilterEvent("", getActiveFilterTarget(), type));
+	        		eventBus.fireEvent(new FilterEvent("", getActiveFilterTarget(), Type.values()));
 	        	else
-	        		eventBus.fireEvent(new FilterEvent(getActiveFilterText(), getActiveFilterTarget(), type));
+	        		eventBus.fireEvent(new FilterEvent(getActiveFilterText(), getActiveFilterTarget(), Type.values()));
 	        }
 	    });
 		filterButton.setMenu(menu);

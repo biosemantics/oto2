@@ -72,19 +72,19 @@ public class MenuTermsGrid extends TermsGrid {
 	private DelayedTask filterGridTask = new DelayedTask() {		
 		@Override
 		public void onExecute() {
-			fire(new FilterEvent(filterGridField.getText(), FilterTarget.GRID, type));
+			fire(new FilterEvent(filterGridField.getText(), FilterTarget.GRID, Type.values()));
 		}
 	};
 	private DelayedTask filterTreeTask = new DelayedTask() {		
 		@Override
 		public void onExecute() {
-			fire(new FilterEvent(filterTreeField.getText(), FilterTarget.TREE, type));
+			fire(new FilterEvent(filterTreeField.getText(), FilterTarget.TREE, Type.values()));
 		}
 	};
 	private DelayedTask filterGridAndTreeTask = new DelayedTask() {		
 		@Override
 		public void onExecute() {
-			fire(new FilterEvent(filterGridAndTreeField.getText(), FilterTarget.GRID_AND_TREE, type));
+			fire(new FilterEvent(filterGridAndTreeField.getText(), FilterTarget.GRID_AND_TREE, Type.values()));
 		}
 	};
 	private VerticalLayoutContainer vlc;
@@ -112,7 +112,7 @@ public class MenuTermsGrid extends TermsGrid {
 					event.stopPropagation();
 					event.preventDefault();
 					filterMenu.hide(true);
-					fire(new FilterEvent(filterGridField.getText(), FilterTarget.GRID, type));
+					fire(new FilterEvent(filterGridField.getText(), FilterTarget.GRID, Type.values()));
 				}
 				filterGridTask.delay(500);
 			}
@@ -131,7 +131,7 @@ public class MenuTermsGrid extends TermsGrid {
 					event.stopPropagation();
 					event.preventDefault();
 					filterMenu.hide(true);
-					fire(new FilterEvent(filterTreeField.getText(), FilterTarget.TREE, type));
+					fire(new FilterEvent(filterTreeField.getText(), FilterTarget.TREE, Type.values()));
 				}
 				filterTreeTask.delay(500);
 			}
@@ -150,7 +150,7 @@ public class MenuTermsGrid extends TermsGrid {
 					event.stopPropagation();
 					event.preventDefault();
 					filterMenu.hide(true);
-					fire(new FilterEvent(filterGridAndTreeField.getText(), FilterTarget.GRID_AND_TREE, type));
+					fire(new FilterEvent(filterGridAndTreeField.getText(), FilterTarget.GRID_AND_TREE, Type.values()));
 				}
 				filterGridAndTreeTask.delay(500);
 			}
@@ -163,9 +163,9 @@ public class MenuTermsGrid extends TermsGrid {
 	        @Override
 	        public void onCheckChange(CheckChangeEvent<CheckMenuItem> event) {
 	        	if(!event.getItem().isChecked())
-	        		fire(new FilterEvent("", getActiveFilterTarget(), type));
+	        		fire(new FilterEvent("", getActiveFilterTarget(), Type.values()));
 	        	else
-	        		fire(new FilterEvent(getActiveFilterText(), getActiveFilterTarget(), type));
+	        		fire(new FilterEvent(getActiveFilterText(), getActiveFilterTarget(), Type.values()));
 	        }
 	    });
 		filterButton.setMenu(menu);
