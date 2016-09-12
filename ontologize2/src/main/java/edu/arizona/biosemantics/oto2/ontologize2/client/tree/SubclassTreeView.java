@@ -99,7 +99,7 @@ public class SubclassTreeView extends MenuTreeView {
 			return true;
 		if(g.getInRelations(source, type).size() > 1) 
 			return false;
-		for(Edge in : g.getInRelations(r.getSrc(), type)) {
+		for(Edge in : g.getInRelations(source, type)) {
 			if(!isVisible(subTree, in))
 				return false;
 		}
@@ -252,7 +252,13 @@ public class SubclassTreeView extends MenuTreeView {
 		for(Vertex v : g.getVertices()) {
 			List<Edge> inRelations = g.getInRelations(v, type);
 			if(inRelations.size() > 1) {
-				refreshNodes(subTree, subTree.getVertexNodeMap().get(v));
+				for(Edge inRelation : inRelations)
+					if(isVisible(subTree, inRelation)) {
+						if(subTree.getVertexNodeMap().containsKey(v)) {
+							refreshNodes(subTree, subTree.getVertexNodeMap().get(v));
+							continue;
+						}
+					}
 			}
 		}
 		
