@@ -37,6 +37,7 @@ import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeMoveTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelModifyEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelRemoveEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelsMergeEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.ShowTermInfoEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermCategorizeEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermRenameEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermSelectEvent;
@@ -134,9 +135,9 @@ public class LocationsView extends Composite {
 	}
 	
 	private void bindEvents() {
-		eventBus.addHandler(TermSelectEvent.TYPE, new TermSelectEvent.TermSelectHandler() {
+		eventBus.addHandler(ShowTermInfoEvent.TYPE, new ShowTermInfoEvent.Handler() {
 			@Override
-			public void onSelect(TermSelectEvent event) {
+			public void onShow(ShowTermInfoEvent event) {
 				currentTerm = event.getTerm();
 				refresh();
 			}

@@ -43,6 +43,7 @@ import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeMoveTermEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.CommentEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelCreateEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.SetUserEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.ShowTermInfoEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.SynonymCreationEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.SynonymRemovalEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermUncategorizeEvent;
@@ -102,7 +103,22 @@ public abstract class TermMenu extends Menu implements BeforeShowHandler {
 		this.add(new HeaderMenuItem("Term"));
 		createRename(explicitSelection, selectedTerms);
 		createComment(explicitSelection, selectedTerms);
-
+		createShowInfo(explicitSelection, selectedTerms);
+	}
+	
+	private void createShowInfo(List<Term> explicitSelection,
+			SelectedTerms selectedTerms) {
+		if(explicitSelection.size() == 1) {
+			MenuItem showInfo = new MenuItem("Show Information");
+			final Term term = explicitSelection.get(0);
+			showInfo.addSelectionHandler(new SelectionHandler<Item>() {
+				@Override
+				public void onSelection(SelectionEvent<Item> event) {
+					eventBus.fireEvent(new ShowTermInfoEvent(term));
+				}
+			});
+			this.add(showInfo);
+		}
 	}
 
 	protected void createComment(final List<Term> explicitSelection, SelectedTerms selectedTerms) {

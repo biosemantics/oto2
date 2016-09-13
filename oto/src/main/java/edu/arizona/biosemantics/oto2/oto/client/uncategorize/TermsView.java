@@ -72,6 +72,7 @@ import edu.arizona.biosemantics.oto2.oto.client.common.dnd.TermLabelDnd;
 import edu.arizona.biosemantics.oto2.oto.client.event.CommentEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.LabelRemoveEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.LoadEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.ShowTermInfoEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermCategorizeEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermMarkUselessEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermRenameEvent;
@@ -284,6 +285,15 @@ public class TermsView extends TabPanel {
 					}
 				});
 				this.add(comment);
+				
+				MenuItem showInfo = new MenuItem("Show Information");
+				showInfo.addSelectionHandler(new SelectionHandler<Item>() {
+					@Override
+					public void onSelection(SelectionEvent<Item> event) {
+						eventBus.fireEvent(new ShowTermInfoEvent(term));
+					}
+				});
+				this.add(showInfo);
 			}
 			
 			if(this.getWidgetCount() == 0)

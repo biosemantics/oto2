@@ -39,6 +39,7 @@ import com.sencha.gxt.widget.core.client.tips.QuickTip;
 
 import edu.arizona.biosemantics.oto2.oto.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.oto.client.event.OntologiesSelectEvent;
+import edu.arizona.biosemantics.oto2.oto.client.event.ShowTermInfoEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermRenameEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.TermSelectEvent;
 import edu.arizona.biosemantics.common.log.LogLevel;
@@ -181,9 +182,9 @@ public class OntologiesView extends Composite {
 				refresh();
 			}
 		});
-		eventBus.addHandler(TermSelectEvent.TYPE, new TermSelectEvent.TermSelectHandler() {
+		eventBus.addHandler(ShowTermInfoEvent.TYPE, new ShowTermInfoEvent.Handler() {
 			@Override
-			public void onSelect(TermSelectEvent event) {
+			public void onShow(ShowTermInfoEvent event) {
 				OntologiesView.this.currentTerm = event.getTerm();
 				refresh();
 			}
