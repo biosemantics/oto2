@@ -26,8 +26,11 @@ import com.sencha.gxt.widget.core.client.container.SimpleContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.BorderLayoutContainer.BorderLayoutData;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
+import com.sencha.gxt.widget.core.client.event.CheckChangeEvent;
+import com.sencha.gxt.widget.core.client.event.CheckChangeEvent.CheckChangeHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
+import com.sencha.gxt.widget.core.client.menu.CheckMenuItem;
 import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuBar;
@@ -40,6 +43,9 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.common.TabPanelMessageBo
 import edu.arizona.biosemantics.oto2.ontologize2.client.common.TextAreaMessageBox;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.DownloadEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.LoadCollectionEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReduceGraphEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.VisualizationConfigurationEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.VisualizationRefreshEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.info.ContextView;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.TreeView;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.VisualizationView;
@@ -55,6 +61,15 @@ public class Ontologize extends SimpleContainer {
 		public MenuView() {
 			Menu sub = new Menu();
 			MenuBarItem item = new MenuBarItem("File", sub);
+			MenuItem reduceItem = new MenuItem("Remove Redundant Relationships");
+			reduceItem.addSelectionHandler(new SelectionHandler<Item>() {
+				@Override
+				public void onSelection(SelectionEvent<Item> event) {
+					eventBus.fireEvent(new ReduceGraphEvent());
+					eventBus.fireEvent(new LoadCollectionEvent(ModelController.getCollection()));
+				}
+			});
+			sub.add(reduceItem);
 			MenuItem generateItem = new MenuItem("Generate OWL");
 			generateItem.addSelectionHandler(new SelectionHandler<Item>() {
 				@Override
@@ -93,6 +108,19 @@ public class Ontologize extends SimpleContainer {
 				}
 			});
 			sub.add(downloadItem);
+			add(item);
+			
+			sub = new Menu();
+			item = new MenuBarItem("View", sub);
+			CheckMenuItem highlightMultipleSuperclassesItem = new CheckMenuItem("Highlight Multiple Superclasses (Yellow)");
+			highlightMultipleSuperclassesItem.addCheckChangeHandler(new CheckChangeHandler<CheckMenuItem>() {
+				@Override
+				public void onCheckChange(CheckChangeEvent<CheckMenuItem> event) {
+					eventBus.fireEvent(new VisualizationConfigurationEvent(event.getItem().isChecked()));
+					eventBus.fireEvent(new VisualizationRefreshEvent());
+				}
+			});
+			sub.add(highlightMultipleSuperclassesItem);
 			add(item);
 		}
 	}

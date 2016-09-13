@@ -10,6 +10,7 @@ import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.VisualizationConfigurationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.TreeView;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge;
@@ -29,19 +30,31 @@ public class VertexCell extends AbstractCell<Vertex> {
 	private Type type;
 	private EventBus eventBus;
 	private TreeView treeView;
+	private boolean highlightMultipleIncomingEdges = false;
 	
 	public VertexCell(EventBus eventBus, TreeView treeView, Type type) {
 		this.type = type;
 		this.treeView = treeView;
 		this.eventBus = eventBus;
+		
+		bindEvents();
 	}
 	
+	private void bindEvents() {
+		eventBus.addHandler(VisualizationConfigurationEvent.TYPE, new VisualizationConfigurationEvent.Handler() {
+			@Override
+			public void onConfig(VisualizationConfigurationEvent event) {
+				highlightMultipleIncomingEdges = event.isHighlightMultipleIncomingEdges();
+			}
+		});
+	}
+
 	@Override
 	public void render(com.google.gwt.cell.client.Cell.Context context, Vertex value, SafeHtmlBuilder sb) {
 		String background = "";
 		OntologyGraph g = ModelController.getCollection().getGraph();
 		List<Edge> inRelations = g.getInRelations(value, type);
-		if(inRelations.size() > 1)
+		if(highlightMultipleIncomingEdges && inRelations.size() > 1)
 			background = "#ffff00";
 		SafeHtml rendered = templates.cell(value.getValue(), background, "");
 		sb.append(rendered);

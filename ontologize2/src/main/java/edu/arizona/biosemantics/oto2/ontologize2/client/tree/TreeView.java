@@ -35,6 +35,8 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.event.LoadCollectionEven
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.OrderEdgesEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.VisualizationConfigurationEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.VisualizationRefreshEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.VertexCell;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.VertexTreeNode;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.VertexTreeNodeProperties;
@@ -136,6 +138,13 @@ public class TreeView implements IsWidget {
 				}
 			}
 		}); 
+		eventBus.addHandler(VisualizationRefreshEvent.TYPE, new VisualizationRefreshEvent.Handler() {
+			@Override
+			public void onRefresh(VisualizationRefreshEvent event) {
+				treeGrid.getTreeView().refresh(false);
+				treeGrid.getView().refresh(false);
+			}
+		});
 		eventBus.addHandler(ClearEvent.TYPE, new ClearEvent.Handler() {
 			@Override
 			public void onClear(ClearEvent event) {

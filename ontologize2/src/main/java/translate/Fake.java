@@ -35,7 +35,7 @@ public class Fake {
 		Collection c = new Collection();
 		c.setGraph(g);
 		c.setId(0);
-		c.setSecret("secret");
+		c.setSecret("");
 		c.setTaxonGroup(TaxonGroup.SPIDER);
 		c.setName("steven");		
 		c.add(new Candidate("a"));

@@ -26,7 +26,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Type;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Vertex;
 
-public class Main {
+public class RubusMain {
 	
 	private class ClassSub {
 
@@ -84,7 +84,7 @@ public class Main {
 
 	public static void main(String[] args) throws Exception {
 		System.out.println("==========start==========");
-		Main main = new Main();
+		RubusMain main = new RubusMain();
 		main.run();
 	}
 
@@ -99,11 +99,11 @@ public class Main {
 		dataSource.setUser("termsuser");
 		dataSource.setPassword("termspassword");
 		dataSource.setServerName("localhost");
-		dataSource.setDatabaseName("steven_temp");
+		dataSource.setDatabaseName("etcsite_ontologize_from_etc");
 		
 		Connection conn = dataSource.getConnection();
 		Statement stmt = conn.createStatement();
-		ResultSet rs = stmt.executeQuery("SELECT * FROM ontologize_ontologyclasssubmission");
+		ResultSet rs = stmt.executeQuery("SELECT * FROM ontologize_ontologyclasssubmission WHERE collection = 2");
 		while(rs.next()) {
 			ClassSub cs = createClassSub(rs);
 			csMap.put(cs.getId(), cs);
@@ -113,7 +113,7 @@ public class Main {
 		stmt.close();		
 		
 		stmt = conn.createStatement();
-		rs = stmt.executeQuery("SELECT * FROM ontologize_ontologysynonymsubmission");
+		rs = stmt.executeQuery("SELECT * FROM ontologize_ontologysynonymsubmission WHERE collection = 2");
 		while(rs.next()) {
 			SynSub ss = createSynSub(rs);
 			ssMap.put(ss.getId(), ss);
@@ -136,7 +136,8 @@ public class Main {
 		
 		
 		stmt = conn.createStatement();
-		rs = stmt.executeQuery("SELECT * FROM ontologize_ontologyclasssubmission_superclass");
+		rs = stmt.executeQuery("SELECT * FROM ontologize_ontologyclasssubmission_superclass sup, ontologize_ontologyclasssubmission s WHERE s.id = sup.ontologyclasssubmission "
+				+ "AND s.collection = 2");
 		while(rs.next()) {
 			int csId = rs.getInt(2);
 			String superclassIRI = rs.getString(3);
@@ -154,7 +155,8 @@ public class Main {
 		stmt.close();
 		
 		stmt = conn.createStatement();
-		rs = stmt.executeQuery("SELECT * FROM ontologize_ontologyclasssubmission_partof");
+		rs = stmt.executeQuery("SELECT * FROM ontologize_ontologyclasssubmission_partof p, ontologize_ontologyclasssubmission s WHERE s.id = p.ontologyclasssubmission "
+				+ "AND s.collection = 2");
 		while(rs.next()) {
 			int csId = rs.getInt(2);
 			String partofIRI = rs.getString(3);
@@ -169,7 +171,8 @@ public class Main {
 		stmt.close();
 		
 		stmt = conn.createStatement();
-		rs = stmt.executeQuery("SELECT * FROM ontologize_ontologyclasssubmission_synonym");
+		rs = stmt.executeQuery("SELECT * FROM ontologize_ontologyclasssubmission_synonym syn, ontologize_ontologyclasssubmission s WHERE s.id = syn.ontologyclasssubmission "
+				+ "AND s.collection = 2");
 		while(rs.next()) {
 			int csId = rs.getInt(2);
 			String synonym = rs.getString(3);
@@ -188,7 +191,8 @@ public class Main {
 		stmt.close();
 		
 		stmt = conn.createStatement();
-		rs = stmt.executeQuery("SELECT * FROM ontologize_ontologysynonymsubmission_synonym");
+		rs = stmt.executeQuery("SELECT * FROM ontologize_ontologysynonymsubmission_synonym syn, ontologize_ontologysynonymsubmission s WHERE s.id = syn.ontologysynonymsubmission "
+				+ "AND s.collection = 2");
 		while(rs.next()) {
 			int ssId = rs.getInt(2);
 			String synonym = rs.getString(3);
@@ -242,54 +246,111 @@ public class Main {
 		
 		removeRedundantRelations(g);
 		
+		System.out.println("create relation done");
+		
 		Collection c = new Collection();
 		c.setGraph(g);
-		c.setId(26);
+		c.setId(27);
 		c.setSecret("");
-		c.setTaxonGroup(TaxonGroup.SPIDER);
+		c.setTaxonGroup(TaxonGroup.PLANT);
 		c.setName("steven");		
 		
 		stmt = conn.createStatement();
-		rs = stmt.executeQuery("SELECT * FROM ontologize_term");
+		rs = stmt.executeQuery("SELECT * FROM ontologize_term WHERE collection = 2");
 		while(rs.next()) {
 			c.add(new Candidate(rs.getString(2), rs.getString(5)));
 		}
 		rs.close();
 		stmt.close();
+		System.out.println("create terms done");
 		
 		List<Context> contexts = new ArrayList<Context>();
 		stmt = conn.createStatement();
-		rs = stmt.executeQuery("SELECT * FROM ontologize_context");
+		rs = stmt.executeQuery("SELECT * FROM ontologize_context WHERE collection = 2");
 		while(rs.next()) {
 			contexts.add(new Context(rs.getInt(1), rs.getString(3), rs.getString(4)));
 		}
 		rs.close();
 		stmt.close();
+		System.out.println("create contexts done");
+		///
+		//ContextDAO contextDAO = new ContextDAO();
+		//contextDAO.insert(c.getId(), contexts);
+		System.out.println("create contexts done2");
 		
-		ContextDAO contextDAO = new ContextDAO();
-		contextDAO.insert(c.getId(), contexts);
-		
+
+		stmt = conn.createStatement();
+		rs = stmt.executeQuery("SELECT * FROM ontologize_ontologyclasssubmission_superclass sup, ontologize_ontologyclasssubmission s WHERE s.id = sup.ontologyclasssubmission "
+				+ "AND s.collection = 2");
+		while(rs.next()) {
+			String superclass = rs.getString(3);
+			System.out.println(superclass);
+			
+			Connection conn2 = dataSource.getConnection();
+			Statement stmt2 = conn2.createStatement();
+			ResultSet rs2 = stmt2.executeQuery("SELECT * FROM ontologize_term WHERE iri = \"" + superclass + "\"");
+			if(rs2.next()) {
+				System.out.println("found one: " + rs2.getString(2));
+			} else {
+				if(!superclass.startsWith("http://www.etc-project.org/owl/ontologies/1/") && 
+						!superclass.startsWith("http://purl.obolibrary.org/obo/CARO_0000006"))
+					System.out.println("Found one that does not exist in terms " + superclass);
+			}
+			rs2.close();
+			stmt2.close();
+			conn2.close();
+		}
+		rs.close();
+		stmt.close();
+		System.out.println("check for foreign iris done");
 		
 		conn.close();
 		
 		serializeCollection(c);
+		
+		Vertex v = g.getVertex("serrate-dentate");
+		while(g.getInRelations(v).size() > 0) {
+			int id = 0;
+			if(v.getValue().equals("serrate-dentate"))
+				id = 1;
+			if(v.getValue().equals("serrate"))
+				id = 1;
+			v = g.getInRelations(v).get(id).getSrc();
+			System.out.println(v);
+		}
 	}
 
 	private void removeRedundantRelations(OntologyGraph g) {
 		for(Vertex v : g.getVertices()) {
+			System.out.println(v);
+			if(v.getValue().equals("serrate-dentate"))
+				System.out.println();
+			if(v.getValue().equals("serrate"))
+				System.out.println();
+			if(v.getValue().equals("dentate"))
+				System.out.println();
 			List<Edge> in = g.getInRelations(v, Type.SUBCLASS_OF);
 			if(in.size() > 1) {
 				boolean  inComingIsMaterialEntity = false;
+				boolean  inComingIsQuality = false;
 				Edge directMaeEdge = null;
+				Edge directQualityEdge = null;
 				for(Edge e : in) {
 					if(e.getSrc().equals(new Vertex("material anatomical entity"))) {
 						directMaeEdge = e;
 					} else if(isMaterialEntity(g, e.getSrc())) {
 						inComingIsMaterialEntity = true;
 					}
+					if(e.getSrc().equals(new Vertex("quality"))) {
+						directQualityEdge = e;
+					} else if(isQuality(g, e.getSrc())) {
+						inComingIsQuality = true;
+					}
 				}
-				if(inComingIsMaterialEntity)
+				if(inComingIsMaterialEntity && directMaeEdge != null)
 					g.removeEdge(directMaeEdge);
+				if(inComingIsQuality && directQualityEdge != null)
+					g.removeEdge(directQualityEdge);
 			}
 		}
 	}
@@ -301,6 +362,19 @@ public class Main {
 		for(Edge e : g.getInRelations(v)) {
 			boolean isMaterialEntity = isMaterialEntity(g, e.getSrc());
 			if(isMaterialEntity)
+				return true;
+		}
+		return false;
+	}
+	
+	
+	private boolean isQuality(OntologyGraph g, Vertex v) {
+		Vertex q = new Vertex("quality");
+		if(v.equals(q))
+			return true;
+		for(Edge e : g.getInRelations(v)) {
+			boolean isQuality = isQuality(g, e.getSrc());
+			if(isQuality)
 				return true;
 		}
 		return false;

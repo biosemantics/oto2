@@ -41,5 +41,7 @@ public interface ICollectionService extends RemoteService {
 	public List<GwtEvent<?>> importRelations(int collectionId, String secret, Type type, String text) throws Exception;
 	
 	public void clear(int id, String secret) throws Exception;
+	
+	public void reduceGraph(int id, String secret) throws Exception;
 
 }

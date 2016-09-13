@@ -23,6 +23,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.SelectTermEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.VisualizationConfigurationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent.FilterTarget;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid.Row;
@@ -54,13 +55,26 @@ public class AttachedCell extends MenuExtendedCell<Row> {
 	private int i;
 	private TermsGrid termsGrid;
 	protected static Templates templates = GWT.create(Templates.class);
-	
+	private boolean highlightMultipleIncomingEdges = false;
+
 	public AttachedCell(EventBus eventBus, TermsGrid termsGrid, int i) {
 		this.eventBus = eventBus;
 		this.termsGrid = termsGrid;
 		this.i = i;
+		
+		bindEvents();
 	}
 	
+	private void bindEvents() {
+		eventBus.addHandler(VisualizationConfigurationEvent.TYPE, new VisualizationConfigurationEvent.Handler() {
+
+			@Override
+			public void onConfig(VisualizationConfigurationEvent event) {
+				highlightMultipleIncomingEdges = event.isHighlightMultipleIncomingEdges();
+			}
+		});
+	}
+
 	/**
 	 * create context menu items for cells such as Remove items
 	 */
@@ -195,7 +209,8 @@ public class AttachedCell extends MenuExtendedCell<Row> {
 		String textColor = "#000000";
 		String backgroundColor = "";// "#FFFFFF";
 		OntologyGraph g = ModelController.getCollection().getGraph();
-		if(g.getInRelations(r.getDest(), r.getType()).size() > 1) {
+		if(this.highlightMultipleIncomingEdges && 
+				g.getInRelations(r.getDest(), r.getType()).size() > 1) {
 			backgroundColor = "#ffff00";
 		}
 		switch(r.getOrigin()) {

@@ -827,4 +827,25 @@ public class OntologyGraph implements Serializable {
 	public boolean hasOrderedEdges(Vertex v, Type type) {
 		return orderedEdges.containsKey(v) && orderedEdges.get(v).containsKey(type);
 	}
+
+	public List<Vertex> getVerticesBFS(Type type) {
+		List<Vertex> result = new LinkedList<Vertex>();
+		Set<Vertex> collected = new HashSet<Vertex>();
+		
+		Vertex root = this.getRoot(type);
+		List<Vertex> srcQueue = new LinkedList<Vertex>();
+		srcQueue.add(root);
+		while(!srcQueue.isEmpty()) {
+			Vertex src = srcQueue.remove(0);
+			result.add(src);
+			for(Vertex dest : this.getDestinations(src, type)) {
+				if(!collected.contains(dest)) {
+					srcQueue.add(dest);
+					collected.add(dest);
+				}
+			}
+		}
+		return result;
+	}
+
 }

@@ -1,7 +1,10 @@
 package edu.arizona.biosemantics.oto2.ontologize2.client;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -18,6 +21,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEven
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.HasIsRemoteEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ImportEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.LoadCollectionEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReduceGraphEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveCandidateEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
@@ -32,6 +36,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Type;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Vertex;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Origin;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraphReducer;
 
 public class ModelController {
 
@@ -105,8 +110,33 @@ public class ModelController {
 				orderEdges(event);
 			}
 		});
+		eventBus.addHandler(ReduceGraphEvent.TYPE, new ReduceGraphEvent.Handler() {
+			@Override
+			public void onReduce(ReduceGraphEvent event) {
+				reduceGraph();
+			}
+		});
 	}
 	
+	protected void reduceGraph() {
+		final MessageBox box = Alerter.startLoading();
+		final MessageBox box2 = Alerter.startLoading();
+		collectionService.reduceGraph(collection.getId(), collection.getSecret(), new AsyncCallback<Void>() {
+			@Override
+			public void onFailure(Throwable caught) {
+				Alerter.showAlert("Data out of sync", "The data became out of sync with the server. Please reload the window.", caught);
+				Alerter.stopLoading(box);
+			}
+			@Override
+			public void onSuccess(Void result) {
+				Alerter.stopLoading(box);
+			}
+		});
+		OntologyGraphReducer reducer = new OntologyGraphReducer();
+		reducer.reduce(collection.getGraph());
+		Alerter.stopLoading(box2);
+	}
+
 	protected void clearRelations(ClearEvent event) {
 		if(!event.isEffectiveInModel()) {
 			final MessageBox box = Alerter.startLoading();

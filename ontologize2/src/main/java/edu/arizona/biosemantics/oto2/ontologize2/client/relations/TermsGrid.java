@@ -68,6 +68,8 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.event.OrderEdgesEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveCandidateEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.VisualizationConfigurationEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.VisualizationRefreshEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.cell.AttachedCell;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.cell.DefaultMenuCreator;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.cell.LeadCell;
@@ -488,6 +490,12 @@ public class TermsGrid implements IsWidget {
 				}
 			}
 		}); 
+		eventBus.addHandler(VisualizationRefreshEvent.TYPE, new VisualizationRefreshEvent.Handler() {
+			@Override
+			public void onRefresh(VisualizationRefreshEvent event) {
+				grid.getView().refresh(false);
+			}
+		});
 		eventBus.addHandler(ClearEvent.TYPE, new ClearEvent.Handler() {
 			@Override
 			public void onClear(ClearEvent event) {

@@ -9,6 +9,8 @@ import java.util.Set;
 import com.google.gwt.event.dom.client.KeyCodes;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
+import com.google.gwt.event.logical.shared.ValueChangeEvent;
+import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.ui.Widget;
@@ -34,6 +36,7 @@ import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.BeforeHideEvent.BeforeHideHandler;
 import com.sencha.gxt.widget.core.client.event.CheckChangeEvent.CheckChangeHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
+import com.sencha.gxt.widget.core.client.form.CheckBox;
 import com.sencha.gxt.widget.core.client.form.TextField;
 import com.sencha.gxt.widget.core.client.grid.filters.AbstractGridFilters;
 import com.sencha.gxt.widget.core.client.grid.filters.StringFilter;
@@ -55,6 +58,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEve
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.SortEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.SortEvent.SortField;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.SortEvent.SortTarget;
+import edu.arizona.biosemantics.oto2.ontologize2.client.tree.MenuTreeView;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.TreeView;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Origin;
@@ -64,11 +68,18 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Vert
 
 public class MenuTermsGrid extends TermsGrid {
 	
+	private class FilterState {
+		public String filter = "";
+		public FilterTarget target = FilterTarget.GRID;
+	}
+	
 	protected ToolBar buttonBar;
 	private TextField filterGridField;
 	private TextField filterTreeField;
 	private TextField filterGridAndTreeField;
-	private CheckMenuItem checkFilterItem;
+	private CheckBox filterCheckBox;
+	private FilterState lastActiveFilterState = new FilterState();
+	private FilterState filterState = new FilterState();
 	private DelayedTask filterGridTask = new DelayedTask() {		
 		@Override
 		public void onExecute() {
@@ -94,82 +105,6 @@ public class MenuTermsGrid extends TermsGrid {
 		super(eventBus, type);
 		
 		buttonBar = new ToolBar();
-		
-		TextButton filterButton = new TextButton("Filter");
-		final Menu menu = new Menu();
-		checkFilterItem = new CheckMenuItem(DefaultMessages.getMessages().gridFilters_filterText());
-		menu.add(checkFilterItem);
-		
-		final Menu filterMenu = new Menu();
-		MenuItem filterGridItem = new MenuItem("Grid");
-		Menu filterGridMenu = new Menu();
-		filterGridItem.setSubMenu(filterGridMenu);
-		filterGridField = new TextField() {
-			protected void onKeyUp(Event event) {
-				super.onKeyUp(event);
-				int key = event.getKeyCode();
-				if (key == KeyCodes.KEY_ENTER) {
-					event.stopPropagation();
-					event.preventDefault();
-					filterMenu.hide(true);
-					fire(new FilterEvent(filterGridField.getText(), FilterTarget.GRID, Type.values()));
-				}
-				filterGridTask.delay(500);
-			}
-		};
-		filterGridMenu.add(filterGridField);
-		filterMenu.add(filterGridItem);
-		
-		MenuItem filterTreeItem = new MenuItem("Tree");
-		Menu filterTreeMenu = new Menu();
-		filterTreeItem.setSubMenu(filterTreeMenu);
-		filterTreeField = new TextField() {
-			protected void onKeyUp(Event event) {
-				super.onKeyUp(event);
-				int key = event.getKeyCode();
-				if (key == KeyCodes.KEY_ENTER) {
-					event.stopPropagation();
-					event.preventDefault();
-					filterMenu.hide(true);
-					fire(new FilterEvent(filterTreeField.getText(), FilterTarget.TREE, Type.values()));
-				}
-				filterTreeTask.delay(500);
-			}
-		};
-		filterTreeMenu.add(filterTreeField);
-		filterMenu.add(filterTreeItem);
-		
-		MenuItem filterGridAndTreeItem = new MenuItem("Grid and Tree");
-		Menu filterGridAndTreeMenu = new Menu();
-		filterGridAndTreeItem.setSubMenu(filterGridAndTreeMenu);
-		filterGridAndTreeField = new TextField() {
-			protected void onKeyUp(Event event) {
-				super.onKeyUp(event);
-				int key = event.getKeyCode();
-				if (key == KeyCodes.KEY_ENTER) {
-					event.stopPropagation();
-					event.preventDefault();
-					filterMenu.hide(true);
-					fire(new FilterEvent(filterGridAndTreeField.getText(), FilterTarget.GRID_AND_TREE, Type.values()));
-				}
-				filterGridAndTreeTask.delay(500);
-			}
-		};
-		filterGridAndTreeMenu.add(filterGridAndTreeField);
-		filterMenu.add(filterGridAndTreeItem);
-		
-		checkFilterItem.setSubMenu(filterMenu);
-		checkFilterItem.addCheckChangeHandler(new CheckChangeHandler<CheckMenuItem>() {
-	        @Override
-	        public void onCheckChange(CheckChangeEvent<CheckMenuItem> event) {
-	        	if(!event.getItem().isChecked())
-	        		fire(new FilterEvent("", getActiveFilterTarget(), Type.values()));
-	        	else
-	        		fire(new FilterEvent(getActiveFilterText(), getActiveFilterTarget(), Type.values()));
-	        }
-	    });
-		filterButton.setMenu(menu);
-		buttonBar.add(filterButton);
 		
 		TextButton sortButton = new TextButton("Sort");
 		final Menu sortMenu = new Menu();
@@ -205,7 +140,6 @@ public class MenuTermsGrid extends TermsGrid {
 				}
 			//}
 		}
-		buttonBar.add(sortButton);
 		
 		TextButton importButton = new TextButton("Import");
 		importButton.addSelectHandler(new SelectHandler() {
@@ -318,11 +252,92 @@ public class MenuTermsGrid extends TermsGrid {
 		removeMenu.add(allRemove);
 		removeButton.setMenu(removeMenu);*/
 		
+		filterCheckBox = new CheckBox();
+		filterCheckBox.setBoxLabel("Filter: ");
+		filterCheckBox.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
+			@Override
+			public void onValueChange(ValueChangeEvent<Boolean> event) {
+				if(!event.getValue())
+	        		fire(new FilterEvent("", filterState.target, Type.values()));
+	        	else {
+	        		if(lastActiveFilterState.filter != null && !lastActiveFilterState.filter.isEmpty() && lastActiveFilterState.target != null)
+	        			eventBus.fireEvent(new FilterEvent(lastActiveFilterState.filter, lastActiveFilterState.target, Type.values()));
+	        		else
+	        			Alerter.showAlert("Filter", "No filter selected");
+	        	}
+			}
+	    });
+		
+		TextButton filterButton = new TextButton("Set Filter");		
+		final Menu filterMenu = new Menu();
+		MenuItem filterGridItem = new MenuItem("Grid");
+		Menu filterGridMenu = new Menu();
+		filterGridItem.setSubMenu(filterGridMenu);
+		filterGridField = new TextField() {
+			protected void onKeyUp(Event event) {
+				super.onKeyUp(event);
+				int key = event.getKeyCode();
+				if (key == KeyCodes.KEY_ENTER) {
+					event.stopPropagation();
+					event.preventDefault();
+					filterMenu.hide(true);
+					fire(new FilterEvent(filterGridField.getText(), FilterTarget.GRID, Type.values()));
+				}
+				filterGridTask.delay(500);
+			}
+		};
+		filterGridMenu.add(filterGridField);
+		filterMenu.add(filterGridItem);
+		
+		MenuItem filterTreeItem = new MenuItem("Tree");
+		Menu filterTreeMenu = new Menu();
+		filterTreeItem.setSubMenu(filterTreeMenu);
+		filterTreeField = new TextField() {
+			protected void onKeyUp(Event event) {
+				super.onKeyUp(event);
+				int key = event.getKeyCode();
+				if (key == KeyCodes.KEY_ENTER) {
+					event.stopPropagation();
+					event.preventDefault();
+					filterMenu.hide(true);
+					fire(new FilterEvent(filterTreeField.getText(), FilterTarget.TREE, Type.values()));
+				}
+				filterTreeTask.delay(500);
+			}
+		};
+		filterTreeMenu.add(filterTreeField);
+		filterMenu.add(filterTreeItem);
+		
+		MenuItem filterGridAndTreeItem = new MenuItem("Grid and Tree");
+		Menu filterGridAndTreeMenu = new Menu();
+		filterGridAndTreeItem.setSubMenu(filterGridAndTreeMenu);
+		filterGridAndTreeField = new TextField() {
+			protected void onKeyUp(Event event) {
+				super.onKeyUp(event);
+				int key = event.getKeyCode();
+				if (key == KeyCodes.KEY_ENTER) {
+					event.stopPropagation();
+					event.preventDefault();
+					filterMenu.hide(true);
+					fire(new FilterEvent(filterGridAndTreeField.getText(), FilterTarget.GRID_AND_TREE, Type.values()));
+				}
+				filterGridAndTreeTask.delay(500);
+			}
+		};
+		filterGridAndTreeMenu.add(filterGridAndTreeField);
+		filterMenu.add(filterGridAndTreeItem);
+		
+		filterButton.setMenu(filterMenu);
+
+		buttonBar.add(sortButton);
 		buttonBar.add(importButton);
 		buttonBar.add(exportButton);
 		buttonBar.add(clearButton);
 		//buttonBar.add(consolidateButton);
 		//buttonBar.add(removeButton);
+		buttonBar.add(filterButton);
+		buttonBar.add(filterCheckBox);
+		
 		
 		vlc = new VerticalLayoutContainer();
 		vlc.add(buttonBar, new VerticalLayoutData(1, -1));
@@ -332,21 +347,21 @@ public class MenuTermsGrid extends TermsGrid {
 		simpleContainer.setHideMode(HideMode.OFFSETS); //bug https://www.sencha.com/forum/showthread.php?285982-Grid-ColumnHeader-Menu-missing
 	}
 	
-	protected String getActiveFilterText() {
+	/*protected String getActiveFilterText() {
 		if(!filterGridField.getText().isEmpty())
 			return filterGridField.getText();
-		if(!filterTreeField.getText().isEmpty())
-			return filterTreeField.getText();
-		return filterGridAndTreeField.getText();
+		if(!filterGridAndTreeField.getText().isEmpty())
+			return filterGridAndTreeField.getText();
+		return lastFilterText;
 	}
 
 	protected FilterTarget getActiveFilterTarget() {
 		if(!filterGridField.getText().isEmpty())
 			return FilterTarget.GRID;
-		if(!filterTreeField.getText().isEmpty())
-			return FilterTarget.TREE;
-		return FilterTarget.GRID_AND_TREE;
-	}
+		if(!filterGridAndTreeField.getText().isEmpty())
+			return FilterTarget.GRID_AND_TREE;
+		return lastFilterTarget;
+	}*/
 
 	protected String getDefaultImportText() {
 		return "";	
@@ -355,30 +370,55 @@ public class MenuTermsGrid extends TermsGrid {
 	@Override
 	public void bindEvents() {
 		super.bindEvents();
+
 		eventBus.addHandler(FilterEvent.TYPE, new FilterEvent.Handler() {
 			@Override
 			public void onFilter(FilterEvent event) {
 				if(event.containsType(type)) {
 					String filter = event.getFilter();
-					boolean activate = filter != null && !filter.isEmpty();
-					checkFilterItem.setChecked(activate, true);
-					
-					switch(event.getFilterTarget()) {
+					FilterTarget target = event.getFilterTarget();
+					boolean activate = filterCheckBox.getValue();	
+					switch(target) {
 						case GRID:
+							filterState.filter = filter;
+							filterState.target = target;
+							activate = filter != null && !filter.isEmpty();
 							filterGridField.setText(filter);
-							MenuTermsGrid.this.onFilter(filter);
+							filterTreeField.setText("");
+							filterGridAndTreeField.setText("");
+							MenuTermsGrid.this.onFilter(filterState.filter);
 							break;
 						case GRID_AND_TREE:
-							filterGridAndTreeField.setText(filter);
-							MenuTermsGrid.this.onFilter(filter);
+							filterState.filter = filter;
+							filterState.target = target;
+							activate = filter != null && !filter.isEmpty();
+							filterGridAndTreeField.setText(filterState.filter);
+							filterGridField.setText("");
+							filterTreeField.setText("");
+							MenuTermsGrid.this.onFilter(filterState.filter);
 							break;
 						case TREE:
-							filterTreeField.setText(filter);
+							if(filterState.target.equals(FilterTarget.GRID_AND_TREE)) {
+								filterState.target = FilterTarget.GRID;
+								filterGridField.setText(filterState.filter);
+								filterTreeField.setText("");
+								filterGridAndTreeField.setText("");
+							}
 							break;
 					}
+
+					if(activate) {
+						filterCheckBox.setBoxLabel("Filter: " + filterState.filter + " (" + 
+								filterState.target.getDisplayName() + ")");
+						lastActiveFilterState.filter = filterState.filter;
+						lastActiveFilterState.target = filterState.target;
+					} else
+						filterCheckBox.setBoxLabel("Filter: ");
+					filterCheckBox.setValue(activate, false);
 				}
 			}
 		});
+		
 		eventBus.addHandler(SortEvent.TYPE, new SortEvent.Handler() {
 			@Override
 			public void onSort(SortEvent event) {
@@ -394,7 +434,7 @@ public class MenuTermsGrid extends TermsGrid {
 	}
 
 	protected void onFilter(final String filter) {
-		if(!checkFilterItem.isChecked()) {
+		if(filter == null || filter.isEmpty()) {
 			allRowStore.removeFilters();
 			allRowStore.setEnableFilters(false);
 		} else {

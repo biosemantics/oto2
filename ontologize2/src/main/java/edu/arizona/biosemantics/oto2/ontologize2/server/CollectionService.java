@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.google.gwt.event.shared.GwtEvent;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
 import edu.arizona.biosemantics.common.log.LogLevel;
@@ -33,6 +34,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Type;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Vertex;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Origin;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraphReducer;
 import edu.uci.ics.jung.graph.util.EdgeType;
 
 public class CollectionService extends RemoteServiceServlet implements ICollectionService {
@@ -256,6 +258,12 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 		return result;
 	}
 
-
+	@Override
+	public void reduceGraph(int collectionId, String secret) throws Exception {
+		Collection collection = this.get(collectionId, secret);
+		OntologyGraphReducer reducer = new OntologyGraphReducer();
+		reducer.reduce(collection.getGraph());
+		update(collection);
+	}
 
 }

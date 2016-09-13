@@ -8,6 +8,8 @@ import java.util.Stack;
 import com.google.gwt.event.dom.client.KeyCodes;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
+import com.google.gwt.event.logical.shared.ValueChangeEvent;
+import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.ui.Widget;
@@ -25,6 +27,7 @@ import com.sencha.gxt.widget.core.client.event.BeforeShowEvent;
 import com.sencha.gxt.widget.core.client.event.CheckChangeEvent;
 import com.sencha.gxt.widget.core.client.event.BeforeShowEvent.BeforeShowHandler;
 import com.sencha.gxt.widget.core.client.event.CheckChangeEvent.CheckChangeHandler;
+import com.sencha.gxt.widget.core.client.form.CheckBox;
 import com.sencha.gxt.widget.core.client.form.TextField;
 import com.sencha.gxt.widget.core.client.menu.CheckMenuItem;
 import com.sencha.gxt.widget.core.client.menu.Item;
@@ -51,16 +54,23 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge
 
 public class MenuTreeView extends TreeView {
 	
+	private class FilterState {
+		public String filter = "";
+		public FilterTarget target = FilterTarget.TREE;
+	}
+	
 	protected ToolBar buttonBar;
 	
 	private SubTree resetSubTree;
 	private Stack<SubTree> navigationStack = new Stack<SubTree>();
 	private MenuItem backButton;
 	
-	private CheckMenuItem checkFilterItem;
 	private TextField filterGridField;
 	private TextField filterTreeField;
 	private TextField filterGridAndTreeField;
+	private CheckBox filterCheckBox;
+	private FilterState lastActiveFilterState = new FilterState();
+	private FilterState filterState = new FilterState();
 	private DelayedTask filterGridTask = new DelayedTask() {		
 		@Override
 		public void onExecute() {
@@ -141,7 +151,7 @@ public class MenuTreeView extends TreeView {
 
 	private MenuItem resetButton;
 	
-	public MenuTreeView(EventBus eventBus, Type type) {
+	public MenuTreeView(final EventBus eventBus, Type type) {
 		super(eventBus, type);
 
 		buttonBar = new ToolBar();
@@ -152,9 +162,27 @@ public class MenuTreeView extends TreeView {
 		titleLabel.getElement().getStyle().setPaddingLeft(3, Unit.PX);
 		titleLabel.getElement().getStyle().setColor("#15428b");
 		*/
-		buttonBar.add(createFilterMenu());
+		
+		filterCheckBox = new CheckBox();
+		filterCheckBox.setBoxLabel("Filter: ");
+		filterCheckBox.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
+			@Override
+			public void onValueChange(ValueChangeEvent<Boolean> event) {
+				if(!event.getValue())
+					eventBus.fireEvent(new FilterEvent("", filterState.target, Type.values()));
+	        	else {
+	        		if(lastActiveFilterState.filter != null && !lastActiveFilterState.filter.isEmpty() && lastActiveFilterState.target != null)
+	        			eventBus.fireEvent(new FilterEvent(lastActiveFilterState.filter, lastActiveFilterState.target, Type.values()));
+	        		else
+	        			Alerter.showAlert("Filter", "No filter selected");
+	        	}
+			}
+	    });
+		
 		buttonBar.add(createSortMenu());
 		buttonBar.add(createNavigationMenu());
+		buttonBar.add(createFilterMenu());
+		buttonBar.add(filterCheckBox);
 		
 		vlc = new VerticalLayoutContainer();
 		vlc.add(buttonBar, new VerticalLayoutData(1, -1));
@@ -206,27 +234,52 @@ public class MenuTreeView extends TreeView {
 	@Override
 	public void bindEvents() {
 		super.bindEvents();
+		
 		eventBus.addHandler(FilterEvent.TYPE, new FilterEvent.Handler() {
 			@Override
 			public void onFilter(FilterEvent event) {
 				if(event.containsType(type)) {
 					String filter = event.getFilter();
-					boolean activate = filter != null && !filter.isEmpty();
-					checkFilterItem.setChecked(activate, true);
-					
-					switch(event.getFilterTarget()) {
-						case TREE:
-							filterTreeField.setText(filter);
-							MenuTreeView.this.onFilter(subTree, filter);
+					FilterTarget target = event.getFilterTarget();
+					boolean activate = filterCheckBox.getValue();	
+					switch(target) {
+						case GRID:
+							if(filterState.target.equals(FilterTarget.GRID_AND_TREE)) {
+								filterState.target = FilterTarget.TREE;
+								filterTreeField.setText(filterState.filter);
+								filterGridField.setText("");
+								filterGridAndTreeField.setText("");
+							}
 							break;
 						case GRID_AND_TREE:
-							filterGridAndTreeField.setText(filter);
-							MenuTreeView.this.onFilter(subTree, filter);
+							filterState.filter = filter;
+							filterState.target = target;
+							activate = filter != null && !filter.isEmpty();
+							filterGridAndTreeField.setText(filterState.filter);
+							filterGridField.setText("");
+							filterTreeField.setText("");
+							MenuTreeView.this.onFilter(subTree, filterState.filter);
 							break;
-						case GRID:
-							filterGridField.setText(filter);
+						case TREE:
+							filterState.filter = filter;
+							filterState.target = target;
+							activate = filter != null && !filter.isEmpty();
+							filterTreeField.setText(filter);
+							filterGridField.setText("");
+							filterGridAndTreeField.setText("");
+							MenuTreeView.this.onFilter(subTree, filterState.filter);
 							break;
 					}
+					
+
+					if(activate) {
+						filterCheckBox.setBoxLabel("Filter: " + filterState.filter + " (" + 
+								filterState.target.getDisplayName() + ")");
+						lastActiveFilterState.filter = filterState.filter;
+						lastActiveFilterState.target = filterState.target;
+					} else
+						filterCheckBox.setBoxLabel("Filter: ");
+					filterCheckBox.setValue(activate, false);
 				}
 			}
 		});
@@ -246,7 +299,7 @@ public class MenuTreeView extends TreeView {
 	}
 	
 	protected void onFilter(final SubTree subTree, final String filter) {
-		if(!checkFilterItem.isChecked()) {
+		if(filter == null || filter.isEmpty()) {
 			subTree.getStore().removeFilters();
 			subTree.getStore().setEnableFilters(false);
 		} else {
@@ -388,11 +441,7 @@ public class MenuTreeView extends TreeView {
 	}
 	
 	private Widget createFilterMenu() {
-		TextButton filterButton = new TextButton("Filter");
-		final Menu menu = new Menu();
-		checkFilterItem = new CheckMenuItem(DefaultMessages.getMessages().gridFilters_filterText());
-		menu.add(checkFilterItem);
-		
+		TextButton filterButton = new TextButton("Set Filter");		
 		final Menu filterMenu = new Menu();
 		
 		MenuItem filterGridItem = new MenuItem("Grid");
@@ -452,36 +501,25 @@ public class MenuTreeView extends TreeView {
 		filterGridAndTreeMenu.add(filterGridAndTreeField);
 		filterMenu.add(filterGridAndTreeItem);
 		
-		
-		checkFilterItem.setSubMenu(filterMenu);
-		checkFilterItem.addCheckChangeHandler(new CheckChangeHandler<CheckMenuItem>() {
-	        @Override
-	        public void onCheckChange(CheckChangeEvent<CheckMenuItem> event) {
-	        	if(!event.getItem().isChecked())
-	        		eventBus.fireEvent(new FilterEvent("", getActiveFilterTarget(), Type.values()));
-	        	else
-	        		eventBus.fireEvent(new FilterEvent(getActiveFilterText(), getActiveFilterTarget(), Type.values()));
-	        }
-	    });
-		filterButton.setMenu(menu);
+		filterButton.setMenu(filterMenu);
 		return filterButton;
 	}
 	
-	private String getActiveFilterText() {
+	/*private String getActiveFilterText() {
 		if(!filterGridField.getText().isEmpty())
 			return filterGridField.getText();
-		if(!filterTreeField.getText().isEmpty())
-			return filterTreeField.getText();
-		return filterGridAndTreeField.getText();
+		if(!filterGridAndTreeField.getText().isEmpty())
+			return filterGridAndTreeField.getText();
+		return lastFilterText;
 	}
 
 	private FilterTarget getActiveFilterTarget() {
 		if(!filterGridField.getText().isEmpty())
 			return FilterTarget.GRID;
-		if(!filterTreeField.getText().isEmpty())
-			return FilterTarget.TREE;
-		return FilterTarget.GRID_AND_TREE;
-	}
+		if(!filterGridAndTreeField.getText().isEmpty())
+			return FilterTarget.GRID_AND_TREE;
+		return lastFilterTarget;
+	}*/
 	
 	private Widget createSortMenu() {
 		TextButton sortButton = new TextButton("Sort");
