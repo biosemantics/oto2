@@ -63,9 +63,9 @@ public class LeadCell extends MenuExtendedCell<Vertex> {
 				+ "<div id=\"narrow\"  style=\"float: left; width: 10px;\">"
 				+ ""
 				+ ""
-				+ "<div style=\"right:0px; top:0px; width:5px; height:5px; background-image: {7}\" ></div>"
-				+ "<div style=\"right:0px; top:5px; width:5px; height:5px; background-image: {8}\" ></div>"
-				+ "<div style=\"right:0px; top:10px; width:5px; height:5px; background-image: {9}\" ></div>"
+				+ "<div style=\"right:0px; top:0px; width:4px; height:4px; background-image: {7}\" ></div>"
+				+ "<div style=\"right:0px; top:4px; width:4px; height:4px; background-image: {8}\" ></div>"
+				+ "<div style=\"right:0px; top:8px; width:4px; height:4px; background-image: {9}\" ></div>"
 				+ ""
 				+ ""
 				+ "</div>"
@@ -118,8 +118,6 @@ public class LeadCell extends MenuExtendedCell<Vertex> {
 						termsGrid.getType()).size() > 1;
 				
 		String icon1 = "", icon2 = "", icon3 = "";
-		if(value.getValue().equals("m0"))
-			System.out.println();
 		if(closed)
 			icon1 = "url(" + cellImages.blue().getSafeUri().asString() + ")";
 		if(ordered)

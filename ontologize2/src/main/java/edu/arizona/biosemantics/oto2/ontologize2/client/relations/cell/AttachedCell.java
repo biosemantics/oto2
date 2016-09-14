@@ -62,9 +62,9 @@ public class AttachedCell extends MenuExtendedCell<Row> {
 				+ ""
 				+ ""
 				+ "<div style=\"right:0px; top:0px; width:4px; height:4px; background-image: {7}\" ></div>"
-				+ "<div style=\"right:0px; top:5px; width:4px; height:4px; background-image: {8}\" ></div>"
-				+ "<div style=\"right:0px; top:10px; width:4px; height:4px; background-image: {9}\" ></div>"
-				+ "<div style=\"right:0px; top:15px; width:4px; height:4px; background-image: {10}\" ></div>"
+				+ "<div style=\"right:0px; top:4px; width:4px; height:4px; background-image: {8}\" ></div>"
+				+ "<div style=\"right:0px; top:8px; width:4px; height:4px; background-image: {9}\" ></div>"
+				+ "<div style=\"right:0px; top:12px; width:4px; height:4px; background-image: {10}\" ></div>"
 				+ ""
 				+ ""
 				+ "</div>"
@@ -231,18 +231,12 @@ public class AttachedCell extends MenuExtendedCell<Row> {
 			return;
 		final Edge r = value.getAttached().get(i);
 		String backgroundColor = "";// "#FFFFFF";
-		OntologyGraph g = ModelController.getCollection().getGraph();
-		
-		if(r.getDest().getValue().equals("f"))
-			System.out.println();
-		
+		OntologyGraph g = ModelController.getCollection().getGraph();		
 		
 		boolean closed = highlight && ModelController.getCollection().getGraph().isClosedRelations(r.getDest(), termsGrid.getType());
 		boolean ordered = highlight && ModelController.getCollection().getGraph().hasOrderedEdges(r.getDest(), termsGrid.getType());
 		boolean multipleInComing = highlight && ModelController.getCollection().getGraph().getInRelations(r.getDest(), 
 				termsGrid.getType()).size() > 1;
-		
-		
 				
 		String icon1 = "", icon2 = "", icon3 = "", icon4 = "";
 		if(closed)

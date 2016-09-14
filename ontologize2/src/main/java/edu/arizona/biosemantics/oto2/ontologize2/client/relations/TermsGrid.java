@@ -578,12 +578,14 @@ public class TermsGrid implements IsWidget {
 	}
 
 	protected void onOrderEdgesEffectiveInModel(Vertex v, List<Edge> edges, Type type) {
-
+		if(type.equals(this.type)) 
+			for(Row row : this.getRowsWhereIncluded(v))
+				this.updateRow(row);
 	}
 
 	protected void orderEdges(Vertex src, final List<Edge> edges) {
 		if(leadRowMap.containsKey(src)) {
-			if(edges == null || !edges.isEmpty()) {
+			if(edges != null && !edges.isEmpty()) {
 				Row row = this.leadRowMap.get(src);
 				Collections.sort(row.attached, new Comparator<Edge>() {
 					@Override
@@ -595,12 +597,10 @@ public class TermsGrid implements IsWidget {
 						return edges.indexOf(o1) - edges.indexOf(o2);	
 					}
 				});
-				this.updateRow(row);
 			} else {
 				Row row = this.leadRowMap.get(src);
 				row.sort(allRowStore.getLastlastVertexComparator(), 
 						allRowStore.getLastVertexSortDir());
-				this.updateRow(row);
 			}
 		}
 	}

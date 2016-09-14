@@ -30,8 +30,8 @@ public class VertexCell extends AbstractCell<Vertex> {
 				+ ""
 				+ "<div id=\"narrow\" style=\"float: left; width: 10px;\">"
 				+ "<div style=\"right:0px; top:0px; width:4px; height:4px; background-image: {3}\" ></div>"
-				+ "<div style=\"right:0px; top:5px; width:4px; height:4px; background-image: {4}\" ></div>"
-				+ "<div style=\"right:0px; top:10px; width:4px; height:4px; background-image: {5}\" ></div>"
+				+ "<div style=\"right:0px; top:4px; width:4px; height:4px; background-image: {4}\" ></div>"
+				+ "<div style=\"right:0px; top:8px; width:4px; height:4px; background-image: {5}\" ></div>"
 				+ "</div>")
 		SafeHtml cell(String value, String background, String quickTipText, String icon1, String icon2,
 				String icon3);
@@ -63,9 +63,6 @@ public class VertexCell extends AbstractCell<Vertex> {
 	@Override
 	public void render(com.google.gwt.cell.client.Cell.Context context, Vertex value, SafeHtmlBuilder sb) {
 		String background = "";
-		if(value.getValue().equals("f"))
-			System.out.println();
-		
 		boolean closed = highlight && ModelController.getCollection().getGraph().isClosedRelations(value, type);
 		boolean ordered = highlight && ModelController.getCollection().getGraph().hasOrderedEdges(value, type);
 		boolean multipleInComing = highlight && ModelController.getCollection().getGraph().getInRelations(value, 
