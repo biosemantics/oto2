@@ -30,6 +30,7 @@ import com.sencha.gxt.widget.core.client.treegrid.TreeGrid;
 import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ClearEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.CloseRelationsEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.OrderEdgesEvent;
@@ -206,16 +207,41 @@ public class TreeView implements IsWidget {
 				}
 			}
 		});
+		eventBus.addHandler(CloseRelationsEvent.TYPE, new CloseRelationsEvent.Handler() {
+			@Override
+			public void onClose(CloseRelationsEvent event) {
+				if(!event.isEffectiveInModel()) {
+				} else {
+					onCloseRelationsEffectiveInModel(event.getVertex(), event.getType());
+				}
+			}
+		});
 		
 	}
 	
-	protected void onOrderEffectiveInModel(OrderEdgesEvent event, Vertex src, List<Edge> edges, Type type) {
+	protected void onCloseRelationsEffectiveInModel(Vertex v, Type type) {
+		if(this.type.equals(type)) {
+			if(subTree.getVertexNodeMap().containsKey(v)) {
+				refreshNodes(subTree, subTree.getVertexNodeMap().get(v));
+			}
+		}
+	}
+
+	protected void onOrderEffectiveInModel(OrderEdgesEvent event, Vertex v, List<Edge> edges, Type type) {
+		if(this.type.equals(type)) {
+			if(subTree.getVertexNodeMap().containsKey(v)) {
+				refreshNodes(subTree, subTree.getVertexNodeMap().get(v));
+			}
+		}
+		
 		expandRoot();
 	}
 
 	protected void onOrder(OrderEdgesEvent event, Vertex src, List<Edge> edges, Type type) {
 		
 	}
+	
+
 	
 	protected void replaceRelation(SubTree subTree, ReplaceRelationEvent event, Edge oldRelation, Vertex newSource) {
 		if(oldRelation.getType().equals(type)) {
@@ -424,5 +450,13 @@ public class TreeView implements IsWidget {
 	protected void expandRoot() {
 		List<VertexTreeNode> roots = treeGrid.getTreeStore().getRootItems();
 		if(!roots.isEmpty())
-			treeGrid.setExpanded(roots.get(0), true, false);	}
+			treeGrid.setExpanded(roots.get(0), true, false);		
+	}
+	
+	protected void refreshNodes(SubTree subTree, Set<VertexTreeNode> nodes) {
+		for(VertexTreeNode n : nodes) {
+			if(subTree.getStore().findModel(n) != null)
+				subTree.getStore().update(n);
+		}
+	}
 }

@@ -78,6 +78,8 @@ public class CandidateView extends SimpleContainer {
 
 	private static final TextTreeNodeProperties textTreeNodeProperties = GWT.create(TextTreeNodeProperties.class);
 	
+	
+	
 	private Tree<TextTreeNode, TextTreeNode> tree;
 	private TreeStore<TextTreeNode> treeStore;
 	private Map<String, CandidateTreeNode> candidateNodeMap = new HashMap<String, CandidateTreeNode>();
@@ -87,6 +89,55 @@ public class CandidateView extends SimpleContainer {
 
 	private CheckMenuItem checkFilterItem;
 	private TextField filterField;
+	
+	private DelayedTask addCandidatesTask = new DelayedTask() {
+		@Override
+		public void onExecute() {
+			final String newTerms = addTermsField.getValue().trim();
+			if(newTerms.isEmpty()) {
+				Alerter.showAlert("Add Term", "Term field is empty");
+				return;
+			}
+			
+			String[] newTermsArray = newTerms.split(",");
+			List<Candidate> candidates = new LinkedList<Candidate>();
+			for(String newTerm : newTermsArray) {
+				int lastSeparatorIndex = newTerm.lastIndexOf("/");
+				if(newTerm.length() == lastSeparatorIndex + 1) {
+					Alerter.showAlert("Add term", "Malformed input to add term");
+					return;
+				}
+				
+				String term = newTerm.trim();
+				String path = ""; 
+				if(lastSeparatorIndex != -1) {
+					term = newTerm.substring(lastSeparatorIndex + 1).trim();
+					path = newTerm.substring(0, lastSeparatorIndex).trim();	
+				}
+				
+				if(ModelController.getCollection().contains(term)) {
+					String termPath = ModelController.getCollection().getCandidates().getPath(term);
+					if(termPath == null)
+						termPath = "/";
+					Alerter.showAlert("Candidate exists", "Candidate <i>" + term + "</i> already exists at <i>" +
+							termPath + "</i>");
+					return;
+				} else {
+					if(path.isEmpty()) {
+						/*BucketTreeNode bucketNode = getSelectedBucket();
+						if(bucketNode != null)
+							path = bucketNode.getPath();*/
+					} else {
+						if(!path.startsWith("/"))
+							path = "/" + path;
+					}
+					candidates.add(new Candidate(term, path));
+				}
+			}
+			addTermsField.setText("");
+			eventBus.fireEvent(new CreateCandidateEvent(candidates));
+		}
+	};
 	
 	private DelayedTask filterTask = new DelayedTask() {		
 		@Override
@@ -99,6 +150,10 @@ public class CandidateView extends SimpleContainer {
 			onFilter(filter);
 		}
 	};
+
+
+
+	private TextField addTermsField;
 	
 	private CandidateView() {
 		treeStore = new TreeStore<TextTreeNode>(textTreeNodeProperties.key());
@@ -244,54 +299,25 @@ public class CandidateView extends SimpleContainer {
 		buttonBar.add(removeButton);
 		
 		HorizontalLayoutContainer hlc = new HorizontalLayoutContainer();
-		final TextField termField = new TextField();
+		addTermsField = new TextField() {
+			protected void onKeyUp(Event event) {
+				super.onKeyUp(event);
+				int key = event.getKeyCode();
+				if (key == KeyCodes.KEY_ENTER) {
+					event.stopPropagation();
+					event.preventDefault();
+					addCandidatesTask.delay(200);
+				}
+			}
+		};	
 		TextButton addButton = new TextButton("Add");
 		addButton.addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
-				final String newTerms = termField.getValue().trim();
-				if(newTerms.isEmpty()) {
-					Alerter.showAlert("Add Term", "Term field is empty");
-					return;
-				}
-				
-				String[] newTermsArray = newTerms.split(",");
-				List<Candidate> candidates = new LinkedList<Candidate>();
-				for(String newTerm : newTermsArray) {
-					int lastSeparatorIndex = newTerm.lastIndexOf("/");
-					if(newTerm.length() == lastSeparatorIndex + 1) {
-						Alerter.showAlert("Add term", "Malformed input to add term");
-						return;
-					}
-					
-					String term = newTerm.trim();
-					String path = ""; 
-					if(lastSeparatorIndex != -1) {
-						term = newTerm.substring(lastSeparatorIndex + 1).trim();
-						path = newTerm.substring(0, lastSeparatorIndex).trim();	
-					}
-					
-					if(ModelController.getCollection().contains(term)) {
-						Alerter.showAlert("Candidate exists", "Candidate + <i>" + term + "</i> already exists at <i>" +
-								ModelController.getCollection().getCandidates().getPath(term) + "</i>");
-						return;
-					} else {
-						if(path.isEmpty()) {
-							BucketTreeNode bucketNode = getSelectedBucket();
-							if(bucketNode != null)
-								path = bucketNode.getPath();
-						} else {
-							if(!path.startsWith("/"))
-								path = "/" + path;
-						}
-						candidates.add(new Candidate(term, path));
-					}
-				}
-				termField.setValue("");
-				eventBus.fireEvent(new CreateCandidateEvent(candidates));
+				addCandidatesTask.delay(200);
 			}
 		});
-		hlc.add(termField, new HorizontalLayoutData(1, -1));
+		hlc.add(addTermsField, new HorizontalLayoutData(1, -1));
 		hlc.add(addButton);
 		
 		FieldLabel field = new FieldLabel(hlc, "Add Term");

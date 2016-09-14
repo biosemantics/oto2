@@ -140,10 +140,10 @@ public class MenuTreeView extends TreeView {
 					List<Edge> orderedEdges = g.getOrderedEdges(p1.getVertex(), type);
 					return orderedEdges.indexOf(o2.getVertex()) - orderedEdges.indexOf(o1.getVertex());
 				} else {
-					return o1.getVertex().compareTo(o2.getVertex());
+					return o1.getVertex().getValue().toLowerCase().compareTo(o2.getVertex().getValue().toLowerCase());
 				}
 			}			
-			return o1.getVertex().compareTo(o2.getVertex());
+			return o1.getVertex().getValue().toLowerCase().compareTo(o2.getVertex().getValue().toLowerCase());
 		}
 	};
 

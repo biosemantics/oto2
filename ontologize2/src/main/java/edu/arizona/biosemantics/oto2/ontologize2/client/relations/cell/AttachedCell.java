@@ -20,6 +20,7 @@ import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
 import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
+import edu.arizona.biosemantics.oto2.ontologize2.client.common.cell.CellImages;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.SelectTermEvent;
@@ -34,28 +35,51 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge
 
 public class AttachedCell extends MenuExtendedCell<Row> {
 
+	private static CellImages cellImages = GWT.create(CellImages.class);
+	
 	public interface Templates extends SafeHtmlTemplates {
-		@SafeHtmlTemplates.Template("<div class=\"{0}\" qtip=\"{4}\">" +
-				"<div class=\"{1}\" " +
-				"style=\"" +
-				"width: calc(100% - 9px); " +
-				"height:14px; " +
-				"background: no-repeat 0 0;" +
-				"background-image:{6};" +
-				"background-color:{5};" +
-				"color: {7};" +
-				"\">{3}<a class=\"{2}\" style=\"height: 22px;\"></a>" +
-				"</div>" +
-				"</div>")
+		@SafeHtmlTemplates.Template(""
+				+ "<div style=\"height: 17px; padding: 2px 2px 0px 2px;\">"
+				+ "<div id=\"wide\" style=\"float: right; width: calc(100% - 10px);\">"
+				+ ""
+				+ ""
+				+ "<div class=\"{0}\" qtip=\"{4}\">" 
+				+ "<div class=\"{1}\" " 
+				+ "style=\"" 
+				+ "width: calc(100% - 9px); " 
+				+ "height:14px; " 
+				+ "background: no-repeat 0 0;" 
+				+ "background-image:{6};" 
+				+ "background-color:{5};" 
+				+ "\">"
+				+ "<b>{3}</b><a class=\"{2}\" style=\"height: 15px;\"></a>" 
+				+ "</div>" 				
+				+ "</div>"
+				+ ""
+				+ ""
+				+ "</div>"
+				+ "<div id=\"narrow\"  style=\"float: left; width: 10px;\">"
+				+ ""
+				+ ""
+				+ "<div style=\"right:0px; top:0px; width:4px; height:4px; background-image: {7}\" ></div>"
+				+ "<div style=\"right:0px; top:5px; width:4px; height:4px; background-image: {8}\" ></div>"
+				+ "<div style=\"right:0px; top:10px; width:4px; height:4px; background-image: {9}\" ></div>"
+				+ "<div style=\"right:0px; top:15px; width:4px; height:4px; background-image: {10}\" ></div>"
+				+ ""
+				+ ""
+				+ "</div>"
+				+ "</div>"
+				)
 		SafeHtml cell(String grandParentStyleClass, String parentStyleClass,
-				String aStyleClass, String value, String quickTipText, String colorHex, String backgroundImage, String color);
+				String aStyleClass, String value, String quickTipText, String colorHex, String backgroundImage,
+				String icon1, String icon2, String icon3, String icon4);
 	}
 	
 	protected EventBus eventBus;
 	private int i;
 	private TermsGrid termsGrid;
 	protected static Templates templates = GWT.create(Templates.class);
-	private boolean highlightMultipleIncomingEdges = false;
+	private boolean highlight = false;
 
 	public AttachedCell(EventBus eventBus, TermsGrid termsGrid, int i) {
 		this.eventBus = eventBus;
@@ -70,7 +94,7 @@ public class AttachedCell extends MenuExtendedCell<Row> {
 
 			@Override
 			public void onConfig(VisualizationConfigurationEvent event) {
-				highlightMultipleIncomingEdges = event.isHighlightMultipleIncomingEdges();
+				highlight = event.isHighlightMultipleIncomingEdges();
 			}
 		});
 	}
@@ -206,16 +230,30 @@ public class AttachedCell extends MenuExtendedCell<Row> {
 		if(value.getAttached().isEmpty() || value.getAttached().size() <= i)
 			return;
 		final Edge r = value.getAttached().get(i);
-		String textColor = "#000000";
 		String backgroundColor = "";// "#FFFFFF";
 		OntologyGraph g = ModelController.getCollection().getGraph();
-		if(this.highlightMultipleIncomingEdges && 
-				g.getInRelations(r.getDest(), r.getType()).size() > 1) {
-			backgroundColor = "#ffff00";
-		}
+		
+		if(r.getDest().getValue().equals("f"))
+			System.out.println();
+		
+		
+		boolean closed = highlight && ModelController.getCollection().getGraph().isClosedRelations(r.getDest(), termsGrid.getType());
+		boolean ordered = highlight && ModelController.getCollection().getGraph().hasOrderedEdges(r.getDest(), termsGrid.getType());
+		boolean multipleInComing = highlight && ModelController.getCollection().getGraph().getInRelations(r.getDest(), 
+				termsGrid.getType()).size() > 1;
+		
+		
+				
+		String icon1 = "", icon2 = "", icon3 = "", icon4 = "";
+		if(closed)
+			icon1 = "url(" + cellImages.blue().getSafeUri().asString() + ")";
+		if(ordered)
+			icon2 = "url(" + cellImages.red().getSafeUri().asString() + ")";
+		if(multipleInComing)
+			icon3 = "url(" + cellImages.green().getSafeUri().asString() + ")";
 		switch(r.getOrigin()) {
 			case IMPORT:
-				//backgroundColor = "#0033cc"; //blue
+				icon4 =  "url(" + cellImages.black().getSafeUri().asString() + ")";
 				break;
 			case USER:
 				break;
@@ -223,8 +261,8 @@ public class AttachedCell extends MenuExtendedCell<Row> {
 				break;
 		}
 		SafeHtml rendered = templates.cell("", columnHeaderStyles.headInner(),
-				columnHeaderStyles.headButton(), r.getDest().getValue(), "", backgroundColor, 
-				"", textColor);
+				columnHeaderStyles.headButton(), r.getDest().getValue(), "", "", backgroundColor, 
+				icon1, icon2, icon3, icon4);
 		sb.append(rendered);
 	}
 }

@@ -149,7 +149,7 @@ public class SynonymsGrid extends MenuTermsGrid {
 	
 	@Override
 	protected LeadCell createLeadCell() {
-		LeadCell leadCell = new LeadCell(new ValueProvider<Vertex, String>() {
+		LeadCell leadCell = new LeadCell(eventBus, this, new ValueProvider<Vertex, String>() {
 			@Override
 			public String getValue(Vertex object) {
 				return object.getValue();

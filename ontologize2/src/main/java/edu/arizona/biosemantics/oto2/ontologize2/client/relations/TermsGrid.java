@@ -62,6 +62,7 @@ import com.sencha.gxt.widget.core.client.toolbar.PagingToolBar;
 import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ClearEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.CloseRelationsEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.OrderEdgesEvent;
@@ -129,7 +130,7 @@ public class TermsGrid implements IsWidget {
 					List<Edge> orderedEdges = g.getOrderedEdges(lead, type);
 					return orderedEdges.indexOf(o1) - orderedEdges.indexOf(o2);
 				} else {
-					return o1.compareTo(o2);
+					return o1.getValue().toLowerCase().compareTo(o2.getValue().toLowerCase());
 				}
 			}
 		};
@@ -407,27 +408,29 @@ public class TermsGrid implements IsWidget {
 					if(event.getData() instanceof List<?>) {						
 						List<?> list = (List<?>)event.getData();
 						if(!list.isEmpty()) {
-							if(list.get(0) instanceof Candidate) {
-								Object item = list.get(0);
-								Vertex source = new Vertex(type.getRootLabel());
-								Vertex target = new Vertex(((Candidate)item).getText());
-								List<Row> attachedRows = TermsGrid.this.getRowsWhereIncluded(target);
-								if(attachedRows.isEmpty()) {
-									Edge relation = new Edge(source, target, type, Origin.USER);
-									
-									if(ModelController.getCollection().getGraph().isClosedRelations(source, type)) {
-										Alerter.showAlert("Create Relation", "Can not create relation for a closed row.");
-										return;
+							for(Object obj : list) {
+								if(obj instanceof Candidate) {
+									Candidate candidate = (Candidate)obj;
+									Vertex source = new Vertex(type.getRootLabel());
+									Vertex target = new Vertex(candidate.getText());
+									Set<Row> attachedRows = TermsGrid.this.getRowsWhereIncluded(target);
+									if(attachedRows.isEmpty()) {
+										Edge relation = new Edge(source, target, type, Origin.USER);
+										
+										if(ModelController.getCollection().getGraph().isClosedRelations(source, type)) {
+											Alerter.showAlert("Create Relation", "Can not create relation for a closed row.");
+											return;
+										}
+										CreateRelationEvent createRelationEvent = new CreateRelationEvent(relation);
+										fire(createRelationEvent);
+									} else {
+										if(!TermsGrid.this.leadRowMap.containsKey(target))
+											TermsGrid.this.addRow(new Row(type, target), true);
 									}
-									CreateRelationEvent createRelationEvent = new CreateRelationEvent(relation);
-									fire(createRelationEvent);
-								} else {
-									if(!TermsGrid.this.leadRowMap.containsKey(target))
-										TermsGrid.this.addRow(new Row(type, target), true);
 								}
-							}
-							else if(list.get(0) instanceof Edge) {
-								createRowFromEdgeDrop((Edge)list.get(0));
+								else if(obj instanceof Edge) {
+									createRowFromEdgeDrop((Edge)obj);
+								}
 							}
 						}
 					}
@@ -547,17 +550,40 @@ public class TermsGrid implements IsWidget {
 		eventBus.addHandler(OrderEdgesEvent.TYPE, new OrderEdgesEvent.Handler() {
 			@Override
 			public void onOrder(OrderEdgesEvent event) {
-				if(event.isEffectiveInModel()) {
+				if(!event.isEffectiveInModel()) {
 					if(event.getType().equals(type))
 						orderEdges(event.getSrc(), event.getEdges());
+				} else {
+					onOrderEdgesEffectiveInModel(event.getSrc(), event.getEdges(), event.getType());
 				}
 			}
 		});
+		eventBus.addHandler(CloseRelationsEvent.TYPE, new CloseRelationsEvent.Handler() {
+			@Override
+			public void onClose(CloseRelationsEvent event) {
+				if(!event.isEffectiveInModel()) {
+				} else {
+					onCloseRelationsEffectiveInModel(event.getVertex(), event.getType());
+				}
+			}
+		});
+		
+	}
+
+	protected void onCloseRelationsEffectiveInModel(Vertex vertex, Type type) {
+		if(type.equals(this.type)) {
+			for(Row row : getRowsWhereIncluded(vertex)) 
+				updateRow(row);
+		}
+	}
+
+	protected void onOrderEdgesEffectiveInModel(Vertex v, List<Edge> edges, Type type) {
+
 	}
 
 	protected void orderEdges(Vertex src, final List<Edge> edges) {
 		if(leadRowMap.containsKey(src)) {
-			if(!edges.isEmpty()) {
+			if(edges == null || !edges.isEmpty()) {
 				Row row = this.leadRowMap.get(src);
 				Collections.sort(row.attached, new Comparator<Edge>() {
 					@Override
@@ -569,6 +595,11 @@ public class TermsGrid implements IsWidget {
 						return edges.indexOf(o1) - edges.indexOf(o2);	
 					}
 				});
+				this.updateRow(row);
+			} else {
+				Row row = this.leadRowMap.get(src);
+				row.sort(allRowStore.getLastlastVertexComparator(), 
+						allRowStore.getLastVertexSortDir());
 				this.updateRow(row);
 			}
 		}
@@ -769,8 +800,8 @@ public class TermsGrid implements IsWidget {
 				store.update(row);
 	}
 	
-	public List<Row> getRowsWhereIncluded(Vertex v) {
-		List<Row> result = new LinkedList<Row>();
+	public Set<Row> getRowsWhereIncluded(Vertex v) {
+		Set<Row> result = new HashSet<Row>();
 		if(leadRowMap.containsKey(v))
 			result.add(leadRowMap.get(v));
 		OntologyGraph g = ModelController.getCollection().getGraph();
@@ -827,6 +858,7 @@ public class TermsGrid implements IsWidget {
 				return "lead";
 			}
 		}, colWidth, SafeHtmlUtils.fromTrustedString("<b>" + type.getSourceLabel() + "</b>"));
+		column1.setCellPadding(false);
 		column1.setSortable(true);
 		column1.setHideable(false);
 		column1.setGroupable(false);
@@ -840,7 +872,7 @@ public class TermsGrid implements IsWidget {
 	}
 	
 	protected LeadCell createLeadCell() {
-		LeadCell leadCell = new LeadCell(new ValueProvider<Vertex, String>() {
+		LeadCell leadCell = new LeadCell(eventBus, this, new ValueProvider<Vertex, String>() {
 			@Override
 			public String getValue(Vertex object) {
 				return object.getValue();
@@ -877,6 +909,7 @@ public class TermsGrid implements IsWidget {
 				return "attached-" + i;
 			}
 		}, colWidth, SafeHtmlUtils.fromTrustedString("<b>" + type.getTargetLabel() + "-" + i + "</b>"));
+		config.setCellPadding(false);
 		AttachedCell cell = createAttachedCell(i - 1);
 		config.setCell(cell);
 		config.setSortable(false);

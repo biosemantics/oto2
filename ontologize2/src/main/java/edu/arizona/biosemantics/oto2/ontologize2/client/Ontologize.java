@@ -112,7 +112,7 @@ public class Ontologize extends SimpleContainer {
 			
 			sub = new Menu();
 			item = new MenuBarItem("View", sub);
-			CheckMenuItem highlightMultipleSuperclassesItem = new CheckMenuItem("Highlight Multiple Superclasses (Yellow)");
+			CheckMenuItem highlightMultipleSuperclassesItem = new CheckMenuItem("Highlighting");
 			highlightMultipleSuperclassesItem.addCheckChangeHandler(new CheckChangeHandler<CheckMenuItem>() {
 				@Override
 				public void onCheckChange(CheckChangeEvent<CheckMenuItem> event) {

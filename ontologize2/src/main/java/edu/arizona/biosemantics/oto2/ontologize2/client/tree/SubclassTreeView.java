@@ -118,13 +118,6 @@ public class SubclassTreeView extends MenuTreeView {
 		}
 	}
 
-	private void refreshNodes(SubTree subTree, Set<VertexTreeNode> nodes) {
-		for(VertexTreeNode n : nodes) {
-			if(subTree.getStore().findModel(n) != null)
-				subTree.getStore().update(n);
-		}
-	}
-
 	@Override
 	protected void createFromVertex(SubTree subTree, OntologyGraph g, Vertex source) {
 		Vertex currentRoot = getRoot(subTree);

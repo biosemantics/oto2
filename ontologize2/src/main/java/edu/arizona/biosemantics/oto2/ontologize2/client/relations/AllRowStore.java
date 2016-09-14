@@ -68,13 +68,15 @@ public class AllRowStore implements DataProxy<PagingLoadConfig, PagingLoadResult
 	private Comparator<Row> nameComparator = new Comparator<Row>() {
 		@Override
 		public int compare(Row o1, Row o2) {
-			return o1.getLead().compareTo(o2.getLead());
+			return o1.getLead().getValue().toLowerCase().compareTo(o2.getLead().getValue().toLowerCase());
 		}
 	};
 	private String defaultSortField = "creation";
 	private SortDir defaultSortDir = SortDir.DESC;
 	private StoreSortInfo<Row> defaultSortInfo = new StoreSortInfo<Row>(creationComparator, defaultSortDir);
 	private ListStore<Row> store;
+	private Comparator<Vertex> lastVertexComparator = null;
+	private SortDir lastVertexSortDir = defaultSortDir;
 	
 	public AllRowStore() {
 		store = new ListStore<Row>(rowProperties.key());
@@ -139,6 +141,8 @@ public class AllRowStore implements DataProxy<PagingLoadConfig, PagingLoadResult
 					break;
 				}
 				row.sort(comparator, sortDir);
+				lastVertexComparator = comparator;
+				lastVertexSortDir = sortDir;
 				data.add(row);
 			}
 		}
@@ -172,6 +176,14 @@ public class AllRowStore implements DataProxy<PagingLoadConfig, PagingLoadResult
 
 	public List<Row> getAll() {
 		return new ArrayList<Row>(store.getAll());
+	}
+
+	public Comparator<Vertex> getLastlastVertexComparator() {
+		return lastVertexComparator;
+	}
+
+	public SortDir getLastVertexSortDir() {
+		return lastVertexSortDir;
 	}
 
 }
