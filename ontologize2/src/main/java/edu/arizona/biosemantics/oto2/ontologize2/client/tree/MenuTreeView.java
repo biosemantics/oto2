@@ -47,6 +47,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.event.SortEvent.SortTarg
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.MenuTermsGrid;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.TreeView.SubTree;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.VertexTreeNode;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Vertex;
@@ -398,8 +399,8 @@ public class MenuTreeView extends TreeView {
 	}
 	
 	@Override
-	protected void onLoadCollectionEffectiveInModel() {
-		super.onLoadCollectionEffectiveInModel();
+	protected void onLoad(Collection collection) {
+		super.onLoad(collection);
 		this.sort(subTree, creationComparator, SortDir.DESC);
 		resetSubTree = subTree;
 	}

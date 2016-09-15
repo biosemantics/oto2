@@ -192,7 +192,7 @@ public class ContextView extends Composite {
 		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
 			@Override
 			public void onLoad(LoadCollectionEvent event) {
-				if(!event.isEffectiveInModel())
+				if(event.isEffectiveInModel())
 					setCollection(event.getCollection());
 			}
 		});

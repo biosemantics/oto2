@@ -5,6 +5,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.core.client.Scheduler;
+import com.google.gwt.core.client.Scheduler.ScheduledCommand;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.shared.EventBus;
@@ -51,6 +53,9 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.tree.TreeView;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.VisualizationView;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.ICollectionService;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.ICollectionServiceAsync;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Vertex;
 
 public class Ontologize extends SimpleContainer {
 
@@ -61,6 +66,78 @@ public class Ontologize extends SimpleContainer {
 		public MenuView() {
 			Menu sub = new Menu();
 			MenuBarItem item = new MenuBarItem("File", sub);
+			
+			/*MenuItem a1 = new MenuItem("O1");
+			a1.addSelectionHandler(new SelectionHandler<Item>() {
+				@Override
+				public void onSelection(SelectionEvent<Item> event) {
+					collectionService.get(21, "", new AsyncCallback<Collection>() {
+						@Override
+						public void onFailure(Throwable caught) {
+							caught.printStackTrace();
+						}
+						@Override
+						public void onSuccess(Collection result) {
+							MessageBox box = Alerter.startLoading();
+							eventBus.fireEvent(new LoadCollectionEvent(result));
+							Alerter.stopLoading(box);
+						}
+						
+					});
+				}
+			});
+			MenuItem a2 = new MenuItem("O2");
+			a2.addSelectionHandler(new SelectionHandler<Item>() {
+				@Override
+				public void onSelection(SelectionEvent<Item> event) {
+					collectionService.get(22, "", new AsyncCallback<Collection>() {
+						@Override
+						public void onFailure(Throwable caught) {
+							caught.printStackTrace();
+						}
+						@Override
+						public void onSuccess(final Collection result) {
+							final MessageBox box = Alerter.startLoading();
+							Scheduler scheduler = Scheduler.get();
+							scheduler.scheduleDeferred(new ScheduledCommand() {
+								@Override
+								public void execute() {
+									eventBus.fireEvent(new LoadCollectionEvent(result));
+									Alerter.stopLoading(box);
+								}
+							});
+						}
+						
+					});
+				}
+			});
+			MenuItem a3 = new MenuItem("O3");
+			a3.addSelectionHandler(new SelectionHandler<Item>() {
+				@Override
+				public void onSelection(SelectionEvent<Item> event) {
+					collectionService.get(27, "", new AsyncCallback<Collection>() {
+						@Override
+						public void onFailure(Throwable caught) {
+							caught.printStackTrace();
+						}
+						@Override
+						public void onSuccess(Collection result) {
+							MessageBox box = Alerter.startLoading();
+							OntologyGraph g= result.getGraph();
+							System.out.println(g.getInRelations(new Vertex("seed")));
+							eventBus.fireEvent(new LoadCollectionEvent(result));
+							Alerter.stopLoading(box);
+						}
+						
+					});
+				}
+			});
+			sub.add(a1);
+			sub.add(a2);
+			sub.add(a3);*/
+			
+			
+			
 			MenuItem reduceItem = new MenuItem("Remove Redundant Relationships");
 			reduceItem.addSelectionHandler(new SelectionHandler<Item>() {
 				@Override

@@ -3,9 +3,11 @@ package edu.arizona.biosemantics.oto2.ontologize2.client.candidate;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.core.client.GWT;
@@ -193,9 +195,19 @@ public class CandidateView extends SimpleContainer {
 				super.onDragStart(event);
 				List<Candidate> data = new LinkedList<Candidate>();
 				for(TextTreeNode node : tree.getSelectionModel().getSelectedItems()) {
-					addTermTreeNodes(node, data);
+					addBucketTermsToList(node, data);
 				}
 				event.setData(data);
+			}
+			protected void addBucketTermsToList(TextTreeNode node, List<Candidate> data) {
+				if(node instanceof BucketTreeNode) {
+					for(TextTreeNode child : tree.getStore().getChildren(node)) {
+						this.addBucketTermsToList(child, data);
+					}
+				} else if(node instanceof CandidateTreeNode) {
+					Candidate candidate = ((CandidateTreeNode)node).getCandidate();
+					data.add(candidate);
+				}
 			}
 		};
 		
@@ -288,7 +300,7 @@ public class CandidateView extends SimpleContainer {
 		allRemove.addSelectionHandler(new SelectionHandler<Item>() {
 			@Override
 			public void onSelection(SelectionEvent<Item> event) {
-				removeNodes(tree.getStore().getAll());
+				removeNodes(tree.getStore().getRootItems());
 			}
 		});
 		removeMenu.add(selectedRemove);
@@ -402,36 +414,26 @@ public class CandidateView extends SimpleContainer {
 	}
 	
 	protected void removeNodes(List<TextTreeNode> nodes) {
-		final List<Candidate> remove = new LinkedList<Candidate>();
+		final Set<Candidate> remove = new HashSet<Candidate>();
 		for(TextTreeNode node : nodes) {
 			if(node instanceof BucketTreeNode) {
-				addTerms((BucketTreeNode)node, remove);
+				addBucketTermsToRemoveList((BucketTreeNode)node, remove);
 			}
 			if(node instanceof CandidateTreeNode) {
-				remove.add(((CandidateTreeNode)node).getCandidate());
+				CandidateTreeNode candidateTreeNode = (CandidateTreeNode)node;
+				remove.add(candidateTreeNode.getCandidate());
 			}
 		}
 		eventBus.fireEvent(new RemoveCandidateEvent(remove));
 	}
 
-	private void addTerms(BucketTreeNode node, List<Candidate> list) {
+	private void addBucketTermsToRemoveList(BucketTreeNode node, Set<Candidate> remove) {
 		for(TextTreeNode childNode : tree.getStore().getChildren(node)) {
 			if(childNode instanceof CandidateTreeNode) {
-				list.add(((CandidateTreeNode)childNode).getCandidate());
+				remove.add(((CandidateTreeNode)childNode).getCandidate());
 			} else if(childNode instanceof BucketTreeNode) {
-				this.addTerms((BucketTreeNode)childNode, list);
+				this.addBucketTermsToRemoveList((BucketTreeNode)childNode, remove);
 			}
-		}
-	}
-
-	protected void addTermTreeNodes(TextTreeNode node, List<Candidate> data) {
-		if(node instanceof BucketTreeNode) {
-			for(TextTreeNode child : tree.getStore().getChildren(node)) {
-				this.addTermTreeNodes(child, data);
-			}
-		} else if(node instanceof CandidateTreeNode) {
-			Candidate candidate = ((CandidateTreeNode)node).getCandidate();
-			data.add(candidate);
 		}
 	}
 
@@ -446,7 +448,7 @@ public class CandidateView extends SimpleContainer {
 		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
 			@Override
 			public void onLoad(LoadCollectionEvent event) {
-				if(!event.isEffectiveInModel())
+				if(event.isEffectiveInModel())
 					setCollection(event.getCollection());
 			}
 		}); 
@@ -515,19 +517,37 @@ public class CandidateView extends SimpleContainer {
 	protected void remove(Iterable<Candidate> candidates) {
 		for(Candidate candidate : candidates)
 			if(candidateNodeMap.containsKey(candidate.getText())) {
-				tree.getStore().remove(candidateNodeMap.get(candidate.getText()));
+				CandidateTreeNode candidateNode = candidateNodeMap.get(candidate.getText());
+				TextTreeNode bucket = treeStore.getParent(candidateNode);
+				treeStore.remove(candidateNode);
 				candidateNodeMap.remove(candidate.getText());
+				if(bucket != null && treeStore.getChildCount(bucket) == 0)
+					remove(bucket);
 			}
+	}
+
+	private void remove(TextTreeNode bucket) {
+		TextTreeNode parent = treeStore.getParent(bucket);
+		treeStore.remove(bucket);
+		if(parent != null && treeStore.getChildCount(parent) == 0) {
+			this.remove(parent);
+		}
 	}
 
 	private void add(Iterable<Candidate> candidates) {
 		for(Candidate candidate : candidates) {
-			createBucketNodes(bucketNodesMap, candidate.getPath());
-			addTermTreeNode(bucketNodesMap.get(candidate.getPath()), new CandidateTreeNode(candidate));
+			if(!contains(candidate)) {
+				createBucketNodes(candidate.getPath());
+				addTermTreeNode(bucketNodesMap.get(candidate.getPath()), new CandidateTreeNode(candidate));
+			}
 		}
 	}
 
-	protected void createBucketNodes(Map<String, BucketTreeNode> bucketsMap, String path) {
+	private boolean contains(Candidate candidate) {
+		return candidateNodeMap.containsKey(candidate.getText());
+	}
+
+	protected void createBucketNodes(String path) {
 		if(path == null) 
 			return;
 		String[] buckets = path.split("/");
@@ -536,13 +556,13 @@ public class CandidateView extends SimpleContainer {
 		for(String bucket : buckets) {
 			if(!bucket.isEmpty()) {
 				cumulativePath += "/" + bucket;
-				if(!bucketsMap.containsKey(cumulativePath)) {
+				if(!bucketNodesMap.containsKey(cumulativePath)) {
 					BucketTreeNode bucketTreeNode = new BucketTreeNode(cumulativePath);
 					if(parentPath.isEmpty())
 						tree.getStore().add(bucketTreeNode);
 					else
-						tree.getStore().add(bucketsMap.get(parentPath), bucketTreeNode);
-					bucketsMap.put(cumulativePath, bucketTreeNode);
+						tree.getStore().add(bucketNodesMap.get(parentPath), bucketTreeNode);
+					bucketNodesMap.put(cumulativePath, bucketTreeNode);
 				}
 				parentPath = cumulativePath;
 			}

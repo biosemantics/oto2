@@ -28,6 +28,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEve
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.Handler;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid.Row;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.VertexTreeNode;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Origin;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Type;
@@ -239,8 +240,8 @@ public class SubclassTreeView extends MenuTreeView {
 	}
 	
 	@Override
-	protected void onLoadCollectionEffectiveInModel() {
-		super.onLoadCollectionEffectiveInModel();
+	protected void onLoad(Collection collection) {
+		super.onLoad(collection);
 		OntologyGraph g = ModelController.getCollection().getGraph();
 		for(Vertex v : g.getVertices()) {
 			List<Edge> inRelations = g.getInRelations(v, type);

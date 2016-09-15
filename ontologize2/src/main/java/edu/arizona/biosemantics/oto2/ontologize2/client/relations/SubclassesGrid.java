@@ -124,8 +124,18 @@ public class SubclassesGrid extends MenuTermsGrid {
 	
 	@Override
 	protected void onLoad(OntologyGraph g) {
+		clearGrid();
 		this.reconfigureForAttachedTerms(g.getMaxOutRelations(type, new HashSet<Vertex>(Arrays.asList(g.getRoot(type)))));
 		createEdges(g, g.getRoot(type), new HashSet<String>(), false);
+		allRowStore.applySort(true);
+		loader.load();
+		for(Vertex v : g.getVertices()) {
+			List<Edge> inRelations = g.getInRelations(v, type);
+			if(inRelations.size() > 1) {
+				for(Row row : getRowsWhereIncluded(v)) 
+					updateRow(row);
+			}
+		}
 	}
 		
 	@Override
@@ -201,19 +211,6 @@ public class SubclassesGrid extends MenuTermsGrid {
 		createRowContainer.getElement().getStyle().setProperty("borderRadius", "7px");
 		createRowContainer.getElement().getStyle().setBackgroundColor("#ffffcc");
 		return createRowContainer;
-	}
-	
-	@Override
-	protected void onLoadCollectionEffectiveInModel() {
-		super.onLoadCollectionEffectiveInModel();
-		OntologyGraph g = ModelController.getCollection().getGraph();
-		for(Vertex v : g.getVertices()) {
-			List<Edge> inRelations = g.getInRelations(v, type);
-			if(inRelations.size() > 1) {
-				for(Row row : getRowsWhereIncluded(v)) 
-					updateRow(row);
-			}
-		}
 	}
 	
 	@Override

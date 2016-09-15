@@ -485,12 +485,9 @@ public class TermsGrid implements IsWidget {
 		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {			
 			@Override
 			public void onLoad(LoadCollectionEvent event) {
-				if(!event.isEffectiveInModel()) {
-					clearGrid();
+				if(event.isEffectiveInModel()) {
 					OntologyGraph g = event.getCollection().getGraph();
 					TermsGrid.this.onLoad(g);
-				} else {
-					onLoadCollectionEffectiveInModel();
 				}
 			}
 		}); 
@@ -641,11 +638,6 @@ public class TermsGrid implements IsWidget {
 		
 	}
 
-	protected void onLoadCollectionEffectiveInModel() {
-		this.allRowStore.applySort(true);
-		this.loader.load();
-	}
-
 	protected void onCreateRelationEffectiveInModel(Edge r) {
 		// TODO Auto-generated method stub
 		
@@ -658,10 +650,13 @@ public class TermsGrid implements IsWidget {
 	}
 	
 	protected void onLoad(OntologyGraph g) {
+		clearGrid();
 		this.reconfigureForAttachedTerms(g.getMaxOutRelations(type, new HashSet<Vertex>(Arrays.asList(g.getRoot(type)))));
 		Row rootRow = new Row(type, g.getRoot(type));
 		addRow(rootRow, false);
 		createEdges(g, g.getRoot(type), new HashSet<String>(), false);
+		allRowStore.applySort(true);
+		loader.load();
 	}
 	
 	protected void createEdges(OntologyGraph g, Vertex source, Set<String> createdRelations, boolean refresh) {

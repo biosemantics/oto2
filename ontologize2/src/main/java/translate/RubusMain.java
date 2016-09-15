@@ -244,7 +244,7 @@ public class RubusMain {
 			}
 		}
 		
-		removeRedundantRelations(g);
+		//removeRedundantRelations(g);
 		
 		System.out.println("create relation done");
 		
@@ -273,9 +273,9 @@ public class RubusMain {
 		rs.close();
 		stmt.close();
 		System.out.println("create contexts done");
-		///
-		//ContextDAO contextDAO = new ContextDAO();
-		//contextDAO.insert(c.getId(), contexts);
+		
+		ContextDAO contextDAO = new ContextDAO();
+		contextDAO.insert(c.getId(), contexts);
 		System.out.println("create contexts done2");
 		
 

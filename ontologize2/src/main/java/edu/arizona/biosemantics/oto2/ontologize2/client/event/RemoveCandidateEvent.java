@@ -2,6 +2,7 @@ package edu.arizona.biosemantics.oto2.ontologize2.client.event;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Set;
 
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
@@ -24,7 +25,7 @@ public class RemoveCandidateEvent extends GwtEvent<Handler> implements Serializa
     	this.candidates = candidates;
     }
 	
-	public RemoveCandidateEvent(List<Candidate> terms) {
+	public RemoveCandidateEvent(Set<Candidate> terms) {
 		this.candidates = terms.toArray(this.candidates);
 	}
 

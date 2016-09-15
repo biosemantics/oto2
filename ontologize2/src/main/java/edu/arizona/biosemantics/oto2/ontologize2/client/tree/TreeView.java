@@ -42,6 +42,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.VertexCell;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.VertexTreeNode;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.VertexTreeNodeProperties;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Candidate;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Type;
@@ -128,14 +129,8 @@ public class TreeView implements IsWidget {
 		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
 			@Override
 			public void onLoad(LoadCollectionEvent event) {
-				if(!event.isEffectiveInModel()) {
-					subTree = createNewSubTree(false);
-					OntologyGraph g = event.getCollection().getGraph();
-					Vertex root = g.getRoot(type);
-					createFromRoot(subTree, g, root);
-					bindSubTree(subTree, false);
-				} else {
-					onLoadCollectionEffectiveInModel();
+				if(event.isEffectiveInModel()) {
+					TreeView.this.onLoad(event.getCollection());
 				}
 			}
 		}); 
@@ -219,6 +214,15 @@ public class TreeView implements IsWidget {
 		
 	}
 	
+	protected void onLoad(Collection collection) {
+		subTree = createNewSubTree(false);
+		OntologyGraph g = collection.getGraph();
+		Vertex root = g.getRoot(type);
+		createFromRoot(subTree, g, root);
+		bindSubTree(subTree, false);
+		TreeView.this.expandRoot();
+	}
+	
 	protected void onCloseRelationsEffectiveInModel(Vertex v, Type type) {
 		if(this.type.equals(type)) {
 			if(subTree.getVertexNodeMap().containsKey(v)) {
@@ -259,10 +263,6 @@ public class TreeView implements IsWidget {
 
 	protected void onReplaceRelationEffectiveInModel(GwtEvent<?> event, Edge relation, Vertex vertex) {
 		expandRoot();
-	}
-
-	protected void onLoadCollectionEffectiveInModel() {
-		this.expandRoot();
 	}
 
 	protected void onRemoveRelationEffectiveInModel(GwtEvent<?> event, Edge r, boolean recursive) {

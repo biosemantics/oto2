@@ -100,8 +100,11 @@ public class SynonymsGrid extends MenuTermsGrid {
 	
 	@Override
 	protected void onLoad(OntologyGraph g) {
+		clearGrid();
 		this.reconfigureForAttachedTerms(g.getMaxOutRelations(type, new HashSet<Vertex>(Arrays.asList(g.getRoot(type)))));
 		createEdges(g, g.getRoot(type), new HashSet<String>(), false);
+		allRowStore.applySort(true);
+		loader.load();
 	}
 	
 	@Override
