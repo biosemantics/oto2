@@ -296,7 +296,8 @@ public class TermsGrid implements IsWidget {
 	protected Map<Vertex, Row> leadRowMap = new HashMap<Vertex, Row>();
 	protected Grid<Row> grid;
 	protected SimpleContainer createRowContainer;
-	private final int colWidth = 100;
+	private final int colWidth = 100;	
+	protected boolean highlight;
 	protected Type type;
 	private VerticalLayoutContainer vlc;
 	//private SimpleContainer simpleContainer;
@@ -493,6 +494,12 @@ public class TermsGrid implements IsWidget {
 				}
 			}
 		}); 
+		eventBus.addHandler(VisualizationConfigurationEvent.TYPE, new VisualizationConfigurationEvent.Handler() {
+			@Override
+			public void onConfig(VisualizationConfigurationEvent event) {
+				highlight = event.isHighlightMultipleIncomingEdges();
+			}
+		});
 		eventBus.addHandler(VisualizationRefreshEvent.TYPE, new VisualizationRefreshEvent.Handler() {
 			@Override
 			public void onRefresh(VisualizationRefreshEvent event) {
@@ -883,7 +890,7 @@ public class TermsGrid implements IsWidget {
 			public String getPath() {
 				return "lead";
 			}
-		}, new DefaultMenuCreator(eventBus, this));
+		}, new DefaultMenuCreator(eventBus, this), highlight);
 		return leadCell;
 	}
 
@@ -920,7 +927,7 @@ public class TermsGrid implements IsWidget {
 	}
 	
 	protected AttachedCell createAttachedCell(int i) {
-		AttachedCell attachedCell = new AttachedCell(eventBus, this, i);
+		AttachedCell attachedCell = new AttachedCell(eventBus, this, i, highlight);
 		return attachedCell;
 	}
 		

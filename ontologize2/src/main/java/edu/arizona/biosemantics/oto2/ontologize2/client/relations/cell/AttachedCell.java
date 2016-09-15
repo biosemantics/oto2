@@ -81,10 +81,11 @@ public class AttachedCell extends MenuExtendedCell<Row> {
 	protected static Templates templates = GWT.create(Templates.class);
 	private boolean highlight = false;
 
-	public AttachedCell(EventBus eventBus, TermsGrid termsGrid, int i) {
+	public AttachedCell(EventBus eventBus, TermsGrid termsGrid, int i, boolean highlight) {
 		this.eventBus = eventBus;
 		this.termsGrid = termsGrid;
 		this.i = i;
+		this.highlight = highlight;
 		
 		bindEvents();
 	}

@@ -160,7 +160,7 @@ public class SynonymsGrid extends MenuTermsGrid {
 			public String getPath() {
 				return "lead";
 			}
-		}, new SynonymMenuCreator(eventBus, this));
+		}, new SynonymMenuCreator(eventBus, this), highlight);
 		return leadCell;
 	}
 	

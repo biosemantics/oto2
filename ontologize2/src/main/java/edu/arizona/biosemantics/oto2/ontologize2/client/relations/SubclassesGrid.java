@@ -64,7 +64,7 @@ public class SubclassesGrid extends MenuTermsGrid {
 			public String getPath() {
 				return "lead";
 			}
-		}, new SubclassMenuCreator(eventBus, this));
+		}, new SubclassMenuCreator(eventBus, this), highlight);
 		return leadCell;
 	}
 	

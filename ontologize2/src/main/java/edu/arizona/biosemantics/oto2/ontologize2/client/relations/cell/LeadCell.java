@@ -87,11 +87,13 @@ public class LeadCell extends MenuExtendedCell<Vertex> {
 	private boolean highlight;
 	private EventBus eventBus;
 	
-	public LeadCell(EventBus eventBus, TermsGrid termsGrid, ValueProvider<Vertex, String> valueProvider, MenuCreator menuCreator) {
+	public LeadCell(EventBus eventBus, TermsGrid termsGrid, ValueProvider<Vertex, String> valueProvider, 
+			MenuCreator menuCreator, boolean highlight) {
 		this.eventBus = eventBus;
 		this.termsGrid = termsGrid;
 		this.valueProvider = valueProvider;
 		this.menuCreator = menuCreator;
+		this.highlight = highlight;
 		
 		bindEvents();
 	}
