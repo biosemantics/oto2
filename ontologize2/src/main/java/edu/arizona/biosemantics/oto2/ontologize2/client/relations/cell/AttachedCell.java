@@ -4,15 +4,20 @@ import java.util.LinkedList;
 import java.util.List;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.Element;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.safehtml.client.SafeHtmlTemplates;
 import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
+import com.sencha.gxt.core.client.Style.Anchor;
+import com.sencha.gxt.core.client.Style.AnchorAlignment;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
 import com.sencha.gxt.widget.core.client.box.MessageBox;
+import com.sencha.gxt.widget.core.client.event.HideEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
+import com.sencha.gxt.widget.core.client.event.HideEvent.HideHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.Menu;
@@ -154,6 +159,30 @@ public class AttachedCell extends MenuExtendedCell<Row> {
 		menu.add(filterItem);
 		menu.add(context);
 		return menu;
+	}
+	
+	@Override
+	public void showMenu(final Element parent, final int column, final int row) {
+		Menu menu = createContextMenu(column, row);
+		if (menu != null) {
+			//menu.setId("cell" + column + "." + row + "-menu");
+			//menu.setStateful(false);
+			menu.addHideHandler(new HideHandler() {
+				@Override
+				public void onHide(HideEvent event) {
+					Element a = parent;
+					Element aGrandGrandGrandParent = a.getParentElement().getParentElement().getParentElement().getParentElement();
+					aGrandGrandGrandParent.removeClassName(columnHeaderStyles.headMenuOpen());
+					aGrandGrandGrandParent.removeClassName(columnHeaderStyles.headOver());
+					//h.activateTrigger(false);
+					//if (container instanceof Component) {
+					//	((Component) container).focus();
+					//}
+				}
+			});
+			menu.show(parent, new AnchorAlignment(Anchor.TOP_LEFT,
+					Anchor.BOTTOM_LEFT, true));
+		}
 	}
 	
 	protected void doAskForRecursiveRemoval(final Edge relation) {
