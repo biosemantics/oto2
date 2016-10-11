@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.cell.client.TextCell;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.editor.client.Editor;
@@ -16,6 +17,8 @@ import com.google.gwt.editor.client.Editor.Path;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
+import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
@@ -26,6 +29,15 @@ import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.PropertyAccess;
 import com.sencha.gxt.data.shared.SortDir;
 import com.sencha.gxt.data.shared.Store.StoreSortInfo;
+import com.sencha.gxt.data.shared.event.StoreAddEvent;
+import com.sencha.gxt.data.shared.event.StoreClearEvent;
+import com.sencha.gxt.data.shared.event.StoreDataChangeEvent;
+import com.sencha.gxt.data.shared.event.StoreFilterEvent;
+import com.sencha.gxt.data.shared.event.StoreHandlers;
+import com.sencha.gxt.data.shared.event.StoreRecordChangeEvent;
+import com.sencha.gxt.data.shared.event.StoreRemoveEvent;
+import com.sencha.gxt.data.shared.event.StoreSortEvent;
+import com.sencha.gxt.data.shared.event.StoreUpdateEvent;
 import com.sencha.gxt.widget.core.client.Dialog;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
 import com.sencha.gxt.widget.core.client.box.MessageBox;
@@ -33,6 +45,8 @@ import com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.HorizontalLayoutData;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
+import com.sencha.gxt.widget.core.client.event.MoveEvent;
+import com.sencha.gxt.widget.core.client.event.MoveEvent.MoveHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.form.DualListField;
@@ -46,6 +60,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEven
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.RemoveMode;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.ShowRelationsEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid.Row;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.TextTreeNode;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.TextTreeNodeProperties;
@@ -56,33 +71,6 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Type;
 
 public class CreateSynonymsDialog extends Dialog {
-
-	/*public static class SynonymCluster {
-		
-		private Vertex preferredTerm;
-		private List<Edge> synonymEdges;
-
-		public SynonymCluster(Vertex preferredTerm, List<Edge> synonymEdges) {
-			this.preferredTerm = preferredTerm;
-			this.synonymEdges = synonymEdges;
-		}
-
-		public Vertex getPreferredTerm() {
-			return preferredTerm;
-		}
-
-		public void setPreferredTerm(Vertex preferredTerm) {
-			this.preferredTerm = preferredTerm;
-		}
-
-		public List<Edge> getSynonymEdges() {
-			return synonymEdges;
-		}
-
-		public void setSynonymEdges(List<Edge> synonymEdges) {
-			this.synonymEdges = synonymEdges;
-		}		
-	}*/
 	
 	public interface VertexProperties extends PropertyAccess<Vertex> {
 		  @Path("value")
@@ -95,26 +83,6 @@ public class CreateSynonymsDialog extends Dialog {
 	}
 	
 	private static final VertexProperties vertexProperties = GWT.create(VertexProperties.class);
-	
-	/*static ModelKeyProvider<SynonymCluster> keyProvider = new ModelKeyProvider<SynonymCluster>() {
-		@Override
-		public String getKey(SynonymCluster item) {
-			return item.getPreferredTerm().getValue();
-		}
-	};
-	static ValueProvider<SynonymCluster, String> textProvider = new ValueProvider<SynonymCluster, String>() {
-		@Override
-		public String getValue(SynonymCluster object) {
-			return object.getPreferredTerm().getValue();
-		}
-		@Override
-		public void setValue(SynonymCluster object, String value) { }
-
-		@Override
-		public String getPath() {
-			return "value";
-		}
-	};*/
 	
 	public static class CreateSynonymsView implements IsWidget {
 
@@ -132,21 +100,70 @@ public class CreateSynonymsDialog extends Dialog {
 			this.type = type;
 			
 			List<Vertex> candidates = new ArrayList<Vertex>(row.getAll());
-			candidates.remove(row.getLead());
+			candidates.remove(preselectedPreferred);
 			this.setCandidates(candidates);
-			this.setPreferredTerm(row.getLead());
+			this.setPreferredTerm(preselectedPreferred);
 			
 			unselectedListStore.addSortInfo(new StoreSortInfo<Vertex>(vertexProperties.value(), SortDir.ASC));
 			
 			vlc = new VerticalLayoutContainer();
 			HorizontalLayoutContainer hlc = new HorizontalLayoutContainer();
-			hlc.add(new Label("Available users"), new HorizontalLayoutData(0.5, 20));
+			hlc.add(new Label("Available terms"), new HorizontalLayoutData(0.5, 20));
 			hlc.add(new Label(""), new HorizontalLayoutData(40, 20));
-			hlc.add(new Label("Shared with"), new HorizontalLayoutData(0.5, 20));
+			hlc.add(new Label("Synonyms"), new HorizontalLayoutData(0.5, 20));
 			vlc.add(hlc, new VerticalLayoutData(1, 20));
 			final DualListField<Vertex, String> dualListField = new DualListField<Vertex, String>(
 					unselectedListStore, selectedListStore,
 					vertexProperties.value(), new TextCell());
+			dualListField.getToView().setCell(new AbstractCell<String>() {
+				@Override
+				public void render(com.google.gwt.cell.client.Cell.Context context,	String value, SafeHtmlBuilder sb) {
+					if(selectedListStore.getAll().get(0).getValue().equals(value)) {
+						sb.append(SafeHtmlUtils.fromTrustedString("<div style=\"color:#3d4486\"><b>" + value + " (preferred term) </b></div>"));
+					} else {
+						sb.append(SafeHtmlUtils.fromTrustedString(value));
+					}
+					/*if(context.getIndex() == 0) {
+						sb.append(SafeHtmlUtils.fromTrustedString(value + " (preferred term)"));
+					} else {
+						sb.append(SafeHtmlUtils.fromTrustedString(value));
+					}*/
+				}
+			});
+			dualListField.getToStore().addStoreHandlers(new StoreHandlers<Vertex>() {
+				@Override
+				public void onAdd(StoreAddEvent<Vertex> event) {
+					dualListField.getToView().refresh();
+				}
+				@Override
+				public void onRemove(StoreRemoveEvent<Vertex> event) {
+					dualListField.getToView().refresh();
+				}
+				@Override
+				public void onFilter(StoreFilterEvent<Vertex> event) {
+					dualListField.getToView().refresh();
+				}
+				@Override
+				public void onClear(StoreClearEvent<Vertex> event) {
+					dualListField.getToView().refresh();
+				}
+				@Override
+				public void onUpdate(StoreUpdateEvent<Vertex> event) {
+					dualListField.getToView().refresh();
+				}
+				@Override
+				public void onDataChange(StoreDataChangeEvent<Vertex> event) {
+					dualListField.getToView().refresh();
+				}
+				@Override
+				public void onRecordChange(StoreRecordChangeEvent<Vertex> event) {
+					dualListField.getToView().refresh();
+				}
+				@Override
+				public void onSort(StoreSortEvent<Vertex> event) {
+					dualListField.getToView().refresh();
+				}
+			});
 			dualListField.setMode(Mode.INSERT);
 			/*dualListField.addValidator(new Validator<List<Vertex>>() {
 				@Override
@@ -207,9 +224,6 @@ public class CreateSynonymsDialog extends Dialog {
 			List<GwtEvent<?>> result = new LinkedList<GwtEvent<?>>();
 			OntologyGraph g = ModelController.getCollection().getGraph();
 			
-			//result.addAll(createDisambiguatedTerm(preferredTerm, preferredTerm));
-			//result.addAll(createDisambiguatedTerm(preferredTerm, synonym));
-			
 			Vertex disambiguatedPreferred = new Vertex(this.getNonRootParent(preferredTerm).getValue() + " " + preferredTerm.getValue());
 			Edge disambiguatePreferredEdge = new Edge(preferredTerm, 
 					disambiguatedPreferred, 
@@ -250,7 +264,6 @@ public class CreateSynonymsDialog extends Dialog {
 				}
 			}
 			
-			
 			//synonm
 			//synonym subclass
 			for(Edge e : g.getOutRelations(synonym, Type.SUBCLASS_OF)) {
@@ -279,7 +292,6 @@ public class CreateSynonymsDialog extends Dialog {
 				result.add(new RemoveRelationEvent(RemoveMode.NONE, e));
 			}
 			
-			
 			//synonym parts
 			for(Edge e : g.getOutRelations(synonym, Type.PART_OF)) {
 				if(reattach) {
@@ -291,23 +303,13 @@ public class CreateSynonymsDialog extends Dialog {
 				}
 			}
 			exceptionsIn = new HashSet<Vertex>();
-			//exceptionsIn.add(this.getNonRootParent(synonym));
 			exceptionsIn.add(preferredTerm);
 			for(Edge e : g.getInRelations(synonym, Type.PART_OF)) {
 				if(reattach) {
-					//Edge newEdge = new Edge(e.getSrc(), disambiguatedSynonym, Type.PART_OF, Origin.USER);
-					//if(!g.existsRelation(newEdge)) {// && !exceptionsIn.contains(e.getSrc())) {
-						//List<Edge> in = g.getInRelations(disambiguatedSynonym);
-						//if(in.size() == 1 && in.get(0).getSrc().equals(g.getRoot(Type.PART_OF))) {
-						result.add(new ReplaceRelationEvent(disambiguatedSynonymPartOfRootEdge, e.getSrc()));
-						//} else {
-						//	result.add(new CreateRelationEvent(new Edge(e.getSrc(), disambiguatedSynonym, Type.PART_OF, Origin.USER)));
-						//}
-					//}
+					result.add(new ReplaceRelationEvent(disambiguatedSynonymPartOfRootEdge, e.getSrc()));
 				}
 				result.add(new RemoveRelationEvent(RemoveMode.NONE, e));
 			}
-			
 			
 			//preferred term
 			//preferred term subclass
@@ -352,19 +354,9 @@ public class CreateSynonymsDialog extends Dialog {
 					result.add(new RemoveRelationEvent(RemoveMode.NONE, e));
 				}
 			}
-			//exceptionsIn = new HashSet<Vertex>();
-			//exceptionsIn.add(this.getNonRootParent(synonym));
 			for(Edge e : g.getInRelations(preferredTerm, Type.PART_OF)) {
 				if(reattach) {
-					//Edge newEdge = new Edge(e.getSrc(), disambiguatedPreferred, Type.PART_OF, Origin.USER);
-					//if(!g.existsRelation(newEdge)) {// && !exceptionsIn.contains(e.getSrc())) {
-					//	List<Edge> in = g.getInRelations(disambiguatedPreferred);
-					//	if(in.size() == 1 && in.get(0).getSrc().equals(g.getRoot(Type.PART_OF))) {
-							result.add(new ReplaceRelationEvent(disambiguatedPreferredPartOfRootEdge, e.getSrc()));
-					//	} else {
-					//		result.add(new CreateRelationEvent(new Edge(e.getSrc(), disambiguatedPreferred, Type.PART_OF, Origin.USER)));
-					//	}
-					//}
+					result.add(new ReplaceRelationEvent(disambiguatedPreferredPartOfRootEdge, e.getSrc()));
 				}
 				result.add(new ReplaceRelationEvent(e, g.getRoot(Type.PART_OF))); //RemoveMode.NONE, e));
 			}
@@ -373,86 +365,10 @@ public class CreateSynonymsDialog extends Dialog {
 			Edge synonymPartOfRootEdge = new Edge(g.getRoot(Type.PART_OF), synonym, Type.PART_OF, Origin.USER);
 			result.add(new RemoveRelationEvent(RemoveMode.RECURSIVE, synonymSubclassOfRootEdge));
 			result.add(new RemoveRelationEvent(RemoveMode.RECURSIVE, synonymPartOfRootEdge));
-			
-			
-			/*Set<Edge> exceptionsIn = new HashSet<Edge>();
-			Set<Vertex> excpetionVerticesIn = new HashSet<Vertex>(Arrays.asList(new Vertex[] { preferredTerm, this.getNonRootParent(synonym) }));
-			Set<Edge>exceptionsOut = new HashSet<Edge>(); 
-			Set<Vertex> excpetionVerticesOut = new HashSet<Vertex>();
-			result.addAll(reattachRelations(reattach, synonym, disambiguatedSynonym, exceptionsIn, excpetionVerticesIn, exceptionsOut, excpetionVerticesOut));
-			
-			exceptionsIn = new HashSet<Edge>();
-			excpetionVerticesIn = new HashSet<Vertex>();
-			exceptionsOut = new HashSet<Edge>(Arrays.asList(new Edge[] { disambiguatePreferredEdge })); 
-			excpetionVerticesOut = new HashSet<Vertex>(Arrays.asList(new Vertex[] { synonym }));
-			result.addAll(reattachRelations(reattach, preferredTerm, disambiguatedPreferred, exceptionsIn, excpetionVerticesIn, exceptionsOut, excpetionVerticesOut));
-			*/
-			
 			return result;
 		}
 
-		/*private Collection<? extends GwtEvent<?>> createDisambiguatedTerm(Vertex useToDisambiguate, Vertex toDisambiguate) {
-			List<GwtEvent<?>> result = new LinkedList<GwtEvent<?>>();
-			OntologyGraph g = ModelController.getCollection().getGraph();
-			Vertex disambiguated = new Vertex(this.getNonRootParent(useToDisambiguate).getValue() + " " + toDisambiguate.getValue());
-			Edge disambiguatedEdge = new Edge(useToDisambiguate, 
-					disambiguated, 
-					Type.SUBCLASS_OF, 
-					Origin.USER);
-			List<Edge> in = g.getInRelations(disambiguated);
-			if(in.size() == 1 && in.get(0).getSrc().equals(g.getRoot(Type.SUBCLASS_OF))) {
-				result.add(new ReplaceRelationEvent(in.get(0), useToDisambiguate));
-			} else {
-				if(!g.existsRelation(disambiguatedEdge))
-					result.add(new CreateRelationEvent(disambiguatedEdge));
-			}
-			return result;
-		}*/
-
-		/*private List<GwtEvent<?>> reattachRelations(boolean reattach, Vertex oldTarget, Vertex newTarget, Set<Edge> exceptionEdgesIn, Set<Vertex> exceptionVerticesIn, Set<Edge> exceptionEdgesOut, 
-				Set<Vertex> exceptionVerticesOut) {
-			List<GwtEvent<?>> result = new LinkedList<GwtEvent<?>>();
-			OntologyGraph g = ModelController.getCollection().getGraph();
-			for(Type type : new Type[] {Type.SUBCLASS_OF, Type.PART_OF}) {
-				for(Edge e : g.getOutRelations(oldTarget, type)) {
-					if(!exceptionEdgesOut.contains(e)) {
-						if(reattach) {
-							Edge newEdge = new Edge(newTarget, e.getDest(), type, Origin.USER);
-							if(!exceptionVerticesOut.contains(e.getDest())) {
-								if(!g.existsRelation(newEdge) && !e.getDest().equals(newTarget))
-									result.add(new ReplaceRelationEvent(e, newTarget));
-							} else {
-								result.add(new RemoveRelationEvent(RemoveMode.RECURSIVE, e));
-							}
-						} else {
-							result.add(new RemoveRelationEvent(RemoveMode.RECURSIVE, e));
-						}
-					}
-				}
-				for(Edge e : g.getInRelations(oldTarget, type)) {
-					if(!exceptionEdgesIn.contains(e)) {
-						if(reattach) {
-							Edge newEdge = new Edge(e.getSrc(), newTarget, type, Origin.USER);
-							if(!g.existsRelation(newEdge) && !exceptionVerticesIn.contains(e.getSrc())) {
-								List<Edge> in = g.getInRelations(newTarget);
-								if(in.size() == 1 && in.get(0).getSrc().equals(g.getRoot(type))) {
-									result.add(new ReplaceRelationEvent(in.get(0), e.getSrc()));
-								} else {
-									if(!e.getDest().equals(newTarget))
-										result.add(new CreateRelationEvent(new Edge(e.getSrc(), newTarget, type, Origin.USER)));
-								}
-							}
-						}
-						result.add(new RemoveRelationEvent(RemoveMode.RECURSIVE, e));
-					}
-				}
-			}
-			return result;
-		}*/
-
 		private Collection<? extends GwtEvent<?>> createEventsSynonymReduction(Vertex preferredTerm, Vertex synonym, boolean reattach) {
-			//return reattachRelations(reattach, synonym, preferredTerm, new HashSet<Edge>(), new HashSet<Vertex>(Arrays.asList(new Vertex[] { preferredTerm })), 
-			//		new HashSet<Edge>(), new HashSet<Vertex>());
 			List<GwtEvent<?>> result = new LinkedList<GwtEvent<?>>();
 			OntologyGraph g = ModelController.getCollection().getGraph();
 			for(Type type : new Type[] {Type.SUBCLASS_OF, Type.PART_OF}) {
@@ -511,6 +427,8 @@ public class CreateSynonymsDialog extends Dialog {
 	public CreateSynonymsDialog(final TermsGrid termsGrid, Row row, Vertex preselectedPreferred, Type type) {
 		super();
 		final CreateSynonymsView createSynonymsView = new CreateSynonymsView(row, preselectedPreferred, type);
+		this.setTitle("Make synonyms");
+		this.setHeadingText("Make Synonyms");
 		this.setWidget(createSynonymsView);
 		this.setSize("600", "400");
 		this.setMaximizable(true);
@@ -528,6 +446,7 @@ public class CreateSynonymsDialog extends Dialog {
 							CompositeModifyEvent compositeModifyEvent = createSynonymsView.getModifyEvent(true);
 							termsGrid.fire(compositeModifyEvent);
 							CreateSynonymsDialog.this.hide();
+							termsGrid.fire(new ShowRelationsEvent(Type.SYNONYM_OF));
 						}
 					});
 					box.getButton(PredefinedButton.NO).addSelectHandler(new SelectHandler() {
@@ -536,6 +455,7 @@ public class CreateSynonymsDialog extends Dialog {
 							CompositeModifyEvent compositeModifyEvent = createSynonymsView.getModifyEvent(false);
 							termsGrid.fire(compositeModifyEvent);
 							CreateSynonymsDialog.this.hide();
+							termsGrid.fire(new ShowRelationsEvent(Type.SYNONYM_OF));
 						}
 					});
 					box.getButton(PredefinedButton.CANCEL).addSelectHandler(new SelectHandler() {

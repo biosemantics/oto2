@@ -266,21 +266,7 @@ public class TreeView implements IsWidget {
 				targetNode = new VertexTreeNode(oldRelation.getDest());
 				this.add(subTree, null, targetNode);
 			}
-			
-			/*if(!subTree.getVertexNodeMap().containsKey(oldRelation.getDest())) {
-				Set<VertexTreeNode> nodes = new HashSet<VertexTreeNode>();
-				nodes.add(new VertexTreeNode(oldRelation.getDest()));
-				subTree.getVertexNodeMap().put(oldRelation.getDest(), nodes);
-			}
-			if(!subTree.getVertexNodeMap().containsKey(newSource)) {
-				Set<VertexTreeNode> nodes = new HashSet<VertexTreeNode>();
-				nodes.add(new VertexTreeNode(newSource));
-				subTree.getVertexNodeMap().put(newSource, nodes);
-			}*/	
-				
-			//VertexTreeNode targetNode = subTree.getVertexNodeMap().get(oldRelation.getDest()).iterator().next();
-			//VertexTreeNode newSourceNode = subTree.getVertexNodeMap().get(newSource).iterator().next();
-			
+						
 			if(subTree.getStore().findModel(newSourceNode) == null) {
 				subTree.getStore().add(newSourceNode);
 			}
@@ -288,9 +274,6 @@ public class TreeView implements IsWidget {
 			if(subTree.getStore().findModel(targetNode) != null) {
 				targetNodes.add(subTree.getStore().getSubTree(targetNode));
 				subTree.getStore().remove(targetNode);
-				System.out.println("replace " + oldRelation + " " + newSource);
-				System.out.println(newSourceNode.getVertex());
-				System.out.println(targetNodes);
 				subTree.getStore().addSubTree(newSourceNode, subTree.getStore().getChildCount(newSourceNode), targetNodes);
 			} else {
 				subTree.getStore().add(newSourceNode, targetNode);

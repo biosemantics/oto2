@@ -137,7 +137,6 @@ public class ModelController {
 			for(GwtEvent<?> e : event.getEvents()) {
 				if(e instanceof HasIsRemote) {
 					((HasIsRemote)e).setIsRemote(false);
-					System.out.println("fire from composite: " +  e);
 					eventBus.fireEvent(e);
 				}
 			}

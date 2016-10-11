@@ -11,18 +11,23 @@ import com.sencha.gxt.widget.core.client.container.SimpleContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
 
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.ShowRelationsEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Type;
 
 public class RelationsView extends SimpleContainer {
 
 	private EventBus eventBus;
+	private TabPanel tabPanel;
+	private PartsGrid partsGrid;
+	private SubclassesGrid subclassGrid;
+	private SynonymsGrid synonymGrid;
 
 	public RelationsView(final EventBus eventBus) {
 		this.eventBus = eventBus;
 		
-		final PartsGrid partsGrid = new PartsGrid(eventBus);
-		final SubclassesGrid subclassGrid = new SubclassesGrid(eventBus);
-		final SynonymsGrid synonymGrid = new SynonymsGrid(eventBus);
+		partsGrid = new PartsGrid(eventBus);
+		subclassGrid = new SubclassesGrid(eventBus);
+		synonymGrid = new SynonymsGrid(eventBus);
 		
 		/*VerticalLayoutContainer vlc = new VerticalLayoutContainer();
 		vlc.add(subclassGrid.asWidget(), new VerticalLayoutData(1, 0.33));
@@ -30,7 +35,7 @@ public class RelationsView extends SimpleContainer {
 		vlc.add(synonymGrid.asWidget(), new VerticalLayoutData(1, 0.33));
 		this.add(vlc);*/
 		
-		TabPanel tabPanel = new TabPanel();
+		tabPanel = new TabPanel();
 		/*tabPanel.addSelectionHandler(new SelectionHandler<Widget>() { //bug https://www.sencha.com/forum/showthread.php?285982-Grid-ColumnHeader-Menu-missing
 	            @Override
 	            public void onSelection(SelectionEvent<Widget> event) {
@@ -48,6 +53,29 @@ public class RelationsView extends SimpleContainer {
 		tabPanel.add(partsGrid, new TabItemConfig("Parts", false));
 		tabPanel.add(synonymGrid, new TabItemConfig("Synonyms", false));
 		this.add(tabPanel);
+		
+		bindEvents();
+	}
+
+	private void bindEvents() {
+		eventBus.addHandler(ShowRelationsEvent.TYPE, new ShowRelationsEvent.Handler() {
+			@Override
+			public void onShow(ShowRelationsEvent event) {
+				switch(event.getType()) {
+				case PART_OF:
+					tabPanel.setActiveWidget(partsGrid);
+					break;
+				case SUBCLASS_OF:
+					tabPanel.setActiveWidget(subclassGrid);
+					break;
+				case SYNONYM_OF:
+					tabPanel.setActiveWidget(synonymGrid);
+					break;
+				default:
+					break;
+				}
+			}
+		});
 	}
 
 }
