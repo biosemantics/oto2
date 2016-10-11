@@ -16,27 +16,29 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge
  * else: remove only edge + destination node. Add edges from source to all of destinations child nodes.
  *  * @author rodenhausen
  */
-public class RemoveRelationEvent extends GwtEvent<Handler> implements Serializable {
+public class RemoveRelationEvent extends GwtEvent<Handler> implements Serializable, HasIsRemote {
 
 	public interface Handler extends EventHandler {
 		void onRemove(RemoveRelationEvent event);
 	}
+	public enum RemoveMode { RECURSIVE, REATTACH_TO_AVOID_LOSS, NONE }
 	
     public static Type<Handler> TYPE = new Type<Handler>();
 	private Edge[] relations = new Edge[] { };
 	private boolean isEffectiveInModel = false;
-	private boolean recursive = true;
+	private boolean isRemote = true;
+	private RemoveMode removeMode;
     
 	public RemoveRelationEvent() { }
 	
-    public RemoveRelationEvent(boolean recursive, Edge... relations) { 
+    public RemoveRelationEvent(RemoveMode removeMode, Edge... relations) { 
     	this.relations = relations;
-    	this.recursive = recursive;
+    	this.removeMode = removeMode;
     }
     
-	public RemoveRelationEvent(boolean recursive, List<Edge> relations) {
+	public RemoveRelationEvent(RemoveMode removeMode, List<Edge> relations) {
 		this.relations = relations.toArray(this.relations);
-		this.recursive = recursive;
+		this.removeMode = removeMode;
 	}
 
 	@Override
@@ -53,8 +55,8 @@ public class RemoveRelationEvent extends GwtEvent<Handler> implements Serializab
 		return relations;
 	}
 
-	public boolean isRecursive() {
-		return recursive;
+	public RemoveMode getRemoveMode() {
+		return removeMode;
 	}
 
 	public boolean isEffectiveInModel() {
@@ -63,6 +65,27 @@ public class RemoveRelationEvent extends GwtEvent<Handler> implements Serializab
 
 	public void setEffectiveInModel(boolean isEffectiveInModel) {
 		this.isEffectiveInModel = isEffectiveInModel;
-	}	
+	}
+
+	@Override
+	public void setIsRemote(boolean isRemote) {
+		this.isRemote = isRemote;
+	}
+
+	@Override
+	public boolean isRemote() {
+		return isRemote;
+	}
+
+	/*public boolean isRecursive() {
+		return removeMode.equals(RemoveMode.RECURSIVE);
+	}*/	
 	
+	@Override
+	public String toString() {
+		StringBuilder b = new StringBuilder();
+		for(Edge r : relations)
+			b.append("remove " + r.toString());
+		return b.toString();
+	}
 }

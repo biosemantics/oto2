@@ -16,10 +16,10 @@ import com.sencha.gxt.widget.core.client.box.MessageBox;
 
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ClearEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CloseRelationsEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.CompositeModifyEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateCandidateEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
-import edu.arizona.biosemantics.oto2.ontologize2.client.event.HasIsRemoteEvent;
-import edu.arizona.biosemantics.oto2.ontologize2.client.event.ImportEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.HasIsRemote;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReduceGraphEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveCandidateEvent;
@@ -50,6 +50,12 @@ public class ModelController {
 	}
 	
 	private void bindEvents() {
+		eventBus.addHandler(CompositeModifyEvent.TYPE, new CompositeModifyEvent.Handler() {
+			@Override
+			public void onModify(CompositeModifyEvent event) {
+				compositeModify(event, true);
+			}
+		});
 		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
 			@Override
 			public void onLoad(LoadCollectionEvent event) {
@@ -60,12 +66,6 @@ public class ModelController {
 			@Override
 			public void onClear(ClearEvent event) {
 				clearRelations(event);
-			}
-		});
-		eventBus.addHandler(ImportEvent.TYPE, new ImportEvent.Handler() {
-			@Override
-			public void onImport(ImportEvent event) {
-				importRelations(event.getType(), event.getText());
 			}
 		});
 		eventBus.addHandler(CreateRelationEvent.TYPE, new CreateRelationEvent.Handler() {
@@ -118,6 +118,32 @@ public class ModelController {
 		});
 	}
 	
+	protected void compositeModify(final CompositeModifyEvent event, boolean remote) {
+		if(remote) {
+			final MessageBox box = Alerter.startLoading();
+			collectionService.compositeModify(collection.getId(), collection.getSecret(), event.getEvents(), new AsyncCallback<Void>() {
+				@Override
+				public void onFailure(Throwable caught) {
+					Alerter.showAlert("Data out of sync", "The data became out of sync with the server. Please reload the window.", caught);
+					Alerter.stopLoading(box);
+				}
+				@Override
+				public void onSuccess(Void result) {
+					compositeModify(event, false);
+					Alerter.stopLoading(box);
+				}
+			});
+		} else {
+			for(GwtEvent<?> e : event.getEvents()) {
+				if(e instanceof HasIsRemote) {
+					((HasIsRemote)e).setIsRemote(false);
+					System.out.println("fire from composite: " +  e);
+					eventBus.fireEvent(e);
+				}
+			}
+		}
+	}
+
 	protected void reduceGraph() {
 		final MessageBox box = Alerter.startLoading();
 		final MessageBox box2 = Alerter.startLoading();
@@ -284,20 +310,23 @@ public class ModelController {
 		if(!event.isEffectiveInModel()) {
 			final MessageBox box = Alerter.startLoading();
 			for(Edge relation : event.getRelations()) {
-				final MessageBox box2 = Alerter.startLoading();
-				collectionService.remove(collection.getId(), collection.getSecret(), relation, event.isRecursive(), new AsyncCallback<Void>() {
-					@Override
-					public void onFailure(Throwable caught) {
-						Alerter.showAlert("Data out of sync", "The data became out of sync with the server. Please reload the window.", caught);
-						Alerter.stopLoading(box2);
-					}
-					@Override
-					public void onSuccess(Void result) {	
-						Alerter.stopLoading(box2);
-					}
-				});
+				if(event.isRemote()) {
+					final MessageBox box2 = Alerter.startLoading();
+					collectionService.remove(collection.getId(), collection.getSecret(), relation, 
+							event.getRemoveMode(), new AsyncCallback<Void>() {
+						@Override
+						public void onFailure(Throwable caught) {
+							Alerter.showAlert("Data out of sync", "The data became out of sync with the server. Please reload the window.", caught);
+							Alerter.stopLoading(box2);
+						}
+						@Override
+						public void onSuccess(Void result) {	
+							Alerter.stopLoading(box2);
+						}
+					});
+				}
 				try {
-					collection.getGraph().removeRelation(relation, event.isRecursive());
+					collection.getGraph().removeRelation(relation, event.getRemoveMode());
 				} catch (Exception e) {
 					Alerter.showAlert("Data out of sync", "The data became out of sync with the server. Please reload the window.", e);
 				}
@@ -346,28 +375,7 @@ public class ModelController {
 		}
 	}
 
-	protected void importRelations(final Type type, final String text) {
-		final MessageBox box = Alerter.startLoading();
-		collectionService.importRelations(collection.getId(), 
-				collection.getSecret(), type, text, new AsyncCallback<List<GwtEvent<?>>>() {
-			@Override
-			public void onFailure(Throwable caught) {
-				Alerter.showAlert("Import", "Failed to import.", caught);
-				Alerter.stopLoading(box);
-			}
-			@Override
-			public void onSuccess(List<GwtEvent<?>> result) {
-				for(GwtEvent<?> e : result) {
-					if(e instanceof HasIsRemoteEvent) {
-						HasIsRemoteEvent hasIsRemoteEvent = (HasIsRemoteEvent)e;
-						hasIsRemoteEvent.setIsRemote(false);
-						eventBus.fireEvent(e);
-					}
-				}
-				Alerter.stopLoading(box);
-			}
-		});		
-	}
+
 
 	public static Collection getCollection() {
 		if(collection == null)

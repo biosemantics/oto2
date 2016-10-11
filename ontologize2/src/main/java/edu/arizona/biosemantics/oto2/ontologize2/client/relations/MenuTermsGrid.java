@@ -12,6 +12,7 @@ import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.event.shared.GwtEvent;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.core.client.Style.HideMode;
@@ -50,16 +51,17 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize2.client.common.TextAreaMessageBox;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ClearEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.CompositeModifyEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent.FilterTarget;
-import edu.arizona.biosemantics.oto2.ontologize2.client.event.ImportEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.SortEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.SortEvent.SortField;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.SortEvent.SortTarget;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.MenuTreeView;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.TreeView;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Origin;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Type;
@@ -154,7 +156,12 @@ public class MenuTermsGrid extends TermsGrid {
 				box.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
 					@Override
 					public void onSelect(SelectEvent event) {
-						fire(new ImportEvent(type, box.getValue().trim()));
+						try {
+							List<GwtEvent<?>> importEvents = createImportEvents(box.getValue().trim());
+							fire(new CompositeModifyEvent(importEvents));
+						} catch(Exception e) {
+							Alerter.showAlert("Import failed", e.getMessage());
+						}
 						box.hide();
 					}
 				});
@@ -486,6 +493,54 @@ public class MenuTermsGrid extends TermsGrid {
 	@Override
 	public Widget asWidget() {
 		return simpleContainer;
+	}
+	
+	private List<GwtEvent<?>> createImportEvents(String text) throws Exception {
+		List<GwtEvent<?>> result = new LinkedList<GwtEvent<?>>();
+		
+		OntologyGraph g = ModelController.getCollection().getGraph();
+		Vertex root = new Vertex(type.getRootLabel());
+		String[] lines = text.split("\\n");
+		Set<Vertex> alreadyAttached = new HashSet<Vertex>(g.getVertices());						
+		for(String line : lines) {
+			String[] terms = line.split(",");
+			
+			if(!terms[0].trim().isEmpty()) {
+				Vertex source = new Vertex(terms[0].trim());
+				if(!alreadyAttached.contains(source)) {
+					Edge newEdge = new Edge(root, source, type, Origin.USER);
+					result.add(new CreateRelationEvent(newEdge));
+					alreadyAttached.add(source);
+				}
+				for(int i=1; i<terms.length; i++) {
+					if(terms[i].trim().isEmpty()) 
+						continue;
+					Vertex target = new Vertex(terms[i].trim());
+					
+					if(g.isClosedRelations(source, type)) {
+						throw new Exception("Can not create relation for a closed row.");
+					}
+					
+					if(alreadyAttached.contains(target)) {
+						Edge rootEdge = new Edge(g.getRoot(type), target, type, Origin.USER);
+						if(g.existsRelation(rootEdge)) {
+							result.add(new ReplaceRelationEvent(rootEdge, source));
+						} else {
+							Edge newEdge = new Edge(source, target, type, Origin.USER);
+							result.add(new CreateRelationEvent(newEdge));
+						}
+					} else {
+						Edge newEdge = new Edge(source, target, type, Origin.USER);
+						result.add(new CreateRelationEvent(newEdge));
+						alreadyAttached.add(target);
+					}
+				}
+			} else {
+				throw new Exception("Malformed input");
+			}
+		}
+		
+		return result;
 	}
 
 }

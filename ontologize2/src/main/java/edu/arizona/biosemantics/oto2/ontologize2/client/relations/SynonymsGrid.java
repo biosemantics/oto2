@@ -27,9 +27,11 @@ import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize2.client.common.TextAreaMessageBox;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.CompositeModifyEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.RemoveMode;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid.Row;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.cell.DefaultMenuCreator;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.cell.LeadCell;
@@ -168,15 +170,15 @@ public class SynonymsGrid extends MenuTermsGrid {
 	}
 	
 	@Override
-	protected void removeRelation(GwtEvent<?> event, Edge r, boolean recursive, boolean refresh) {
+	protected void removeRelation(GwtEvent<?> event, Edge r, RemoveMode removeMode, boolean refresh) {
 		OntologyGraph graph = ModelController.getCollection().getGraph();
 		if(r.getSrc().equals(graph.getRoot(type))) {
 			if(leadRowMap.containsKey(r.getDest())) {
 				Row row = leadRowMap.get(r.getDest());
-				this.removeRow(event, row, true, refresh);
+				this.removeRow(event, row, RemoveMode.RECURSIVE, refresh);
 			}
 		} else
-			super.removeRelation(event, r, recursive, refresh);
+			super.removeRelation(event, r, removeMode, refresh);
 	}
 	
 	@Override

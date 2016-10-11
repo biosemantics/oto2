@@ -1,5 +1,6 @@
 package edu.arizona.biosemantics.oto2.ontologize2.client.relations.cell;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -22,8 +23,10 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.event.CloseRelationsEven
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.RemoveMode;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.SelectTermEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent.FilterTarget;
+import edu.arizona.biosemantics.oto2.ontologize2.client.relations.CreateSynonymsDialog;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid.Row;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph;
@@ -42,6 +45,7 @@ public class DefaultMenuCreator implements LeadCell.MenuCreator {
 	protected MenuItem context;
 	protected MenuItem removeItem;
 	protected MenuItem filterItem;
+	protected MenuItem synonymsItem;
 
 	public DefaultMenuCreator(EventBus eventBus, TermsGrid termsGrid) {
 		this.eventBus = eventBus;
@@ -152,12 +156,24 @@ public class DefaultMenuCreator implements LeadCell.MenuCreator {
 				termsGrid.fire(new SelectTermEvent(row.getLead().getValue()));
 			}
 		});
+		
+		synonymsItem = new MenuItem("Make synonyms");
+		synonymsItem.addSelectionHandler(new SelectionHandler<Item>() {
+			@Override
+			public void onSelection(SelectionEvent<Item> event) {
+				OntologyGraph g = ModelController.getCollection().getGraph();
+				CreateSynonymsDialog dialog = new CreateSynonymsDialog(termsGrid, row, row.getLead(), termsGrid.getType());
+				dialog.show();
+			}
+		});
+		
 		//menu.add(removeRowItem);
 		menu.add(addItem);
 		menu.add(removeItem);
 		menu.add(removeAllItem);
 		menu.add(closeItem);
 		menu.add(filterItem);
+		menu.add(synonymsItem);
 		menu.add(context);
 		
 		return menu;
@@ -186,12 +202,12 @@ public class DefaultMenuCreator implements LeadCell.MenuCreator {
 		for(final Edge r : g.getOutRelations(targetVertex, termsGrid.getType())) {
 			if(g.getInRelations(r.getDest(), termsGrid.getType()).size() <= 1) {
 				if(g.getOutRelations(r.getDest(), termsGrid.getType()).isEmpty()) {
-					termsGrid.fire(new RemoveRelationEvent(false, r));
+					termsGrid.fire(new RemoveRelationEvent(RemoveMode.REATTACH_TO_AVOID_LOSS, r));
 				} else {
 					doAskForRecursiveRemoval(r);
 				}
 			} else {
-				termsGrid.fire(new RemoveRelationEvent(false, r));
+				termsGrid.fire(new RemoveRelationEvent(RemoveMode.REATTACH_TO_AVOID_LOSS, r));
 			}
 		}
 	}
@@ -209,7 +225,7 @@ public class DefaultMenuCreator implements LeadCell.MenuCreator {
 		box.getButton(PredefinedButton.YES).addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
-				termsGrid.fire(new RemoveRelationEvent(true, relation));
+				termsGrid.fire(new RemoveRelationEvent(RemoveMode.RECURSIVE, relation));
 				/*for(GwtEvent<Handler> e : createRemoveEvents(true, relation)) {
 					termsGrid.fire(e);
 				}*/
@@ -219,7 +235,7 @@ public class DefaultMenuCreator implements LeadCell.MenuCreator {
 		box.getButton(PredefinedButton.NO).addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
-				termsGrid.fire(new RemoveRelationEvent(false, relation));
+				termsGrid.fire(new RemoveRelationEvent(RemoveMode.REATTACH_TO_AVOID_LOSS, relation));
 				/*for(GwtEvent<Handler> e : createRemoveEvents(false, relation)) {
 					termsGrid.fire(e);
 				}*/

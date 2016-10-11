@@ -16,7 +16,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Vert
  * @author rodenhausen
  *
  */
-public class ReplaceRelationEvent extends GwtEvent<Handler> implements Serializable, HasIsRemoteEvent {
+public class ReplaceRelationEvent extends GwtEvent<Handler> implements Serializable, HasIsRemote {
 
 	public interface Handler extends EventHandler {
 		void onReplace(ReplaceRelationEvent event);
@@ -67,5 +67,10 @@ public class ReplaceRelationEvent extends GwtEvent<Handler> implements Serializa
 
 	public void setEffectiveInModel(boolean isEffectiveInModel) {
 		this.isEffectiveInModel = isEffectiveInModel;
+	}
+	
+	@Override
+	public String toString() {
+		return "replace " + oldRelation + " " + newSource;
 	}
 }

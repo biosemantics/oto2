@@ -21,8 +21,10 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.CompositeModifyEvent.Handler;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.RemoveMode;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.server.owl.OWLWriter;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.AddCandidateResult;
@@ -112,10 +114,10 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	}
 	
 	@Override
-	public synchronized void remove(int collectionId, String secret, Edge relation, boolean recursive) throws Exception {
+	public synchronized void remove(int collectionId, String secret, Edge relation, RemoveMode removeMode) throws Exception {
 		try {
 			Collection collection = this.get(collectionId, secret);
-			collection.getGraph().removeRelation(relation, recursive);
+			collection.getGraph().removeRelation(relation, removeMode);
 			update(collection);
 		} catch(Exception e) {
 			e.printStackTrace();
@@ -202,61 +204,6 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 		collection.getGraph().setOrderedEdges(src, edges, type);
 		update(collection);
 	}
-	
-	@Override
-	public synchronized List<GwtEvent<?>> importRelations(int collectionId, String secret, Type type, String text) throws Exception {
-		List<GwtEvent<?>> result = new LinkedList<GwtEvent<?>>();
-		Collection collection = this.get(collectionId, secret);
-		
-		OntologyGraph g = collection.getGraph();
-		Vertex root = new Vertex(type.getRootLabel());
-		String[] lines = text.split("\\n");
-		Set<Vertex> alreadyAttached = new HashSet<Vertex>(collection.getGraph().getVertices());						
-		for(String line : lines) {
-			String[] terms = line.split(",");
-			
-			if(!terms[0].trim().isEmpty()) {
-				Vertex source = new Vertex(terms[0].trim());
-				if(!alreadyAttached.contains(source)) {
-					Edge newEdge = new Edge(root, source, type, Origin.USER);
-					collection.getGraph().addRelation(newEdge);
-					result.add(new CreateRelationEvent(newEdge));
-					alreadyAttached.add(source);
-				}
-				for(int i=1; i<terms.length; i++) {
-					if(terms[i].trim().isEmpty()) 
-						continue;
-					Vertex target = new Vertex(terms[i].trim());
-					
-					if(collection.getGraph().isClosedRelations(source, type)) {
-						throw new Exception("Can not create relation for a closed row.");
-					}
-					
-					if(alreadyAttached.contains(target)) {
-						Edge rootEdge = new Edge(g.getRoot(type), target, type, Origin.USER);
-						if(g.existsRelation(rootEdge)) {
-							collection.getGraph().replaceRelation(rootEdge, source);
-							result.add(new ReplaceRelationEvent(rootEdge, source));
-						} else {
-							Edge newEdge = new Edge(source, target, type, Origin.USER);
-							collection.getGraph().addRelation(newEdge);
-							result.add(new CreateRelationEvent(newEdge));
-						}
-					} else {
-						Edge newEdge = new Edge(source, target, type, Origin.USER);
-						collection.getGraph().addRelation(newEdge);
-						result.add(new CreateRelationEvent(newEdge));
-						alreadyAttached.add(target);
-					}
-				}
-			} else {
-				throw new Exception("Malformed input");
-			}
-		}
-
-		update(collection);	
-		return result;
-	}
 
 	@Override
 	public void reduceGraph(int collectionId, String secret) throws Exception {
@@ -264,6 +211,26 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 		OntologyGraphReducer reducer = new OntologyGraphReducer();
 		reducer.reduce(collection.getGraph());
 		update(collection);
+	}
+
+	@Override
+	public void compositeModify(int id, String secret, List<GwtEvent<?>> events) throws Exception {
+		for(GwtEvent<?> e : events) {
+			if(e instanceof CreateRelationEvent) {
+				for(Edge r : ((CreateRelationEvent)e).getRelations()) {
+					this.add(id, secret, r);
+				}
+			} else if(e instanceof RemoveRelationEvent) {
+				RemoveMode removeMode = ((RemoveRelationEvent)e).getRemoveMode();
+				for(Edge r : ((RemoveRelationEvent)e).getRelations()) {
+					this.remove(id, secret, r, removeMode);
+				}
+			} else if(e instanceof ReplaceRelationEvent) {
+				Edge oldRelation = ((ReplaceRelationEvent)e).getOldRelation();
+				Vertex newSource = ((ReplaceRelationEvent)e).getNewSource();
+				this.replace(id, secret, oldRelation, newSource);
+			}
+		}
 	}
 
 }

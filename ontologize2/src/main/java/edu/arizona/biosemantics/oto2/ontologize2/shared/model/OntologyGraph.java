@@ -16,6 +16,9 @@ import java.util.Set;
 
 import edu.uci.ics.jung.graph.DirectedSparseMultigraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
+import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
+import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.RemoveMode;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.VertexTreeNode;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Origin;
@@ -365,9 +368,31 @@ public class OntologyGraph implements Serializable {
 			throw new Exception("<i>" + dest + "</i> is already used as preferred term");
 		if(!src.equals(root) && !destIn.isEmpty() && !destIn.contains(root))
 			throw new Exception("<i>" + dest + "</i> is already used as synonym");
+		
+		isSubclassOrPart(e);
 		return true;
 	}
 	
+	private boolean isSubclassOrPart(Edge e) throws Exception {
+		switch(e.getType()) {
+			case SYNONYM_OF:
+				if(!e.getSrc().equals(getRoot(Type.SYNONYM_OF))) {
+					Vertex synonym = e.getDest();
+					List<Edge> subclassPartRelations = new ArrayList<Edge>();
+					subclassPartRelations.addAll(getRelations(synonym, Type.PART_OF));
+					subclassPartRelations.addAll(getRelations(synonym, Type.SUBCLASS_OF));
+					if(!subclassPartRelations.isEmpty()) {
+						throw new Exception("Cannot create synonym term: " + synonym + ". It is already used in "
+								+ "subclass or part relations");
+					}
+				}
+				break;
+			default:
+				break;
+		}
+		return true;
+	}
+
 	private boolean addSynonym(Edge e) throws Exception {
 		if(isValidSynonym(e))
 			return doAddRelation(e);
@@ -382,7 +407,32 @@ public class OntologyGraph implements Serializable {
 			throw new Exception("This relation already exists");
 		if(isCreatesCircular(e))
 			throw new Exception("This relation would create a circular relationship");
-		
+		this.isPreferredTerms(e);
+		return true;
+	}
+
+	private boolean isPreferredTerms(Edge e) throws Exception {
+		switch(e.getType()) {
+			case PART_OF:
+			case SUBCLASS_OF:
+				for(Vertex v : new Vertex[] { e.getSrc(), e.getDest() }) {
+					List<Edge> in = getInRelations(v, Type.SYNONYM_OF);
+					boolean synonymRelation = false;
+					for(Edge edge : in) {
+						if(!edge.getSrc().equals(getRoot(Type.SYNONYM_OF))) {
+							synonymRelation = true;
+							break;
+						}
+					}
+					if(synonymRelation) {
+						throw new Exception("Cannot use synonym term: " + v + ". Use preferred term " + 
+								in.get(0).getSrc().getValue() + " instead");
+					} 
+				}
+				break;
+			default:
+				break;
+		}
 		return true;
 	}
 
@@ -411,6 +461,7 @@ public class OntologyGraph implements Serializable {
 			throw new Exception("This relation already exists");
 		if(isCreatesCircular(e))
 			throw new Exception("This relation would create a circular relationship");
+		isPreferredTerms(e);	
 		return true;
 	}
 	
@@ -646,29 +697,29 @@ public class OntologyGraph implements Serializable {
 		return result;
 	}
 
-	public void removeRelation(Edge e, boolean recursive) throws Exception {
+	public void removeRelation(Edge e, RemoveMode removeMode) throws Exception {
 		if(isClosedRelations(e.getSrc(), e.getType())) {
 			throw new Exception("There are no outgoing relations allowed to be removed from " + e.getSrc());
 		}
-		if(recursive) {
+		Vertex dest = e.getDest();
+		Vertex src = e.getSrc();
+		Type type = e.getType();
+		List<Edge> inRelations = this.getInRelations(dest, type);
+		switch(removeMode) {
+		case NONE:
 			removeEdge(e);
-			for(Edge outRelation : this.getOutRelations(e.getDest(), e.getType())) {
-				if(this.getInRelations(outRelation.getDest()).size() == 1) 
-					this.removeRelation(outRelation, recursive);
-			}
-			if(this.getInRelations(e.getDest(), e.getType()).isEmpty()) {
-				this.removeVertex(e.getDest());
-			}
-		} else {
+			if(this.getInRelations(dest).isEmpty())
+				this.removeVertex(dest);
+			break;
+		case REATTACH_TO_AVOID_LOSS:
 			removeEdge(e);
-			List<Edge> inRelations = this.getInRelations(e.getDest(), e.getType());
 			if(inRelations.size() == 0) {	
-				for(Edge outRelation : this.getOutRelations(e.getDest(), e.getType())) {
-					List<Edge> in = this.getInRelations(outRelation.getDest(), e.getType());
+				for(Edge outRelation : this.getOutRelations(dest, type)) {
+					List<Edge> in = this.getInRelations(outRelation.getDest(), type);
 					in.remove(outRelation);
 					if(in.isEmpty()) {
 						try {
-							Edge newEdge = new Edge(e.getSrc(), outRelation.getDest(), e.getType(), Origin.USER);
+							Edge newEdge = new Edge(src, outRelation.getDest(), type, Origin.USER);
 							this.addRelation(newEdge);
 						} catch(Exception ex) {
 							//This should never happen
@@ -678,9 +729,22 @@ public class OntologyGraph implements Serializable {
 					}
 				}
 			}
-			if(this.getInRelations(e.getDest(), e.getType()).isEmpty()) {
-				this.removeVertex(e.getDest());
+			if(this.getInRelations(dest).isEmpty()) {
+				this.removeVertex(dest);
 			}
+			break;
+		case RECURSIVE:
+			removeEdge(e);
+			for(Edge outRelation : this.getOutRelations(dest, type)) {
+				if(this.getInRelations(outRelation.getDest()).size() == 1) 
+					this.removeRelation(outRelation, removeMode);
+			}
+			if(this.getInRelations(dest).isEmpty()) {
+				this.removeVertex(dest);
+			}
+			break;
+		default:
+			break;
 		}
 	}
 	
@@ -843,6 +907,18 @@ public class OntologyGraph implements Serializable {
 					srcQueue.add(dest);
 					collected.add(dest);
 				}
+			}
+		}
+		return result;
+	}
+
+	public List<Edge> getRelations(Vertex v, Type type) {	
+		List<Edge> result = new LinkedList<Edge>();
+		if(graph.containsVertex(v)) {
+			java.util.Collection<Edge> edges = graph.getIncidentEdges(v);
+			for(Edge edge : edges) {
+				if(edge.getType().equals(type))
+					result.add(edge);
 			}
 		}
 		return result;

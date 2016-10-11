@@ -24,6 +24,7 @@ import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
 import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.RemoveMode;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.Handler;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid.Row;
@@ -58,7 +59,9 @@ public class SubclassTreeView extends MenuTreeView {
 				sourceNode = new VertexTreeNode(r.getSrc());
 				add(subTree, null, sourceNode);
 			}
-	 		//create either way, to get a new id
+	 		//create either way, to get a new id. 
+	 		//In other words if edge adds destination that already exists it is a multiple inheritance
+	 		//and the same term is represented by two different nodes
 	 		VertexTreeNode destinationNode = new VertexTreeNode(r.getDest());
 	 		add(subTree, sourceNode, destinationNode);
 	 		//treeGrid.setExpanded(sourceNode, true);
@@ -112,7 +115,7 @@ public class SubclassTreeView extends MenuTreeView {
 		if(oldRelation.getType().equals(type)) {
 			Edge newRelation = new Edge(newSource, oldRelation.getDest(), oldRelation.getType(), oldRelation.getOrigin());
 			if(!isVisible(subTree, newRelation)) {
-				removeRelation(subTree, event, oldRelation, true);
+				removeRelation(subTree, event, oldRelation, RemoveMode.RECURSIVE);
 				return;
 			}else
 				super.replaceRelation(subTree, event, oldRelation, newSource);
@@ -158,7 +161,7 @@ public class SubclassTreeView extends MenuTreeView {
 	}
 	
 	@Override
-	protected void removeRelation(SubTree subTree, GwtEvent<?> event, Edge r, boolean recursive) {
+	protected void removeRelation(SubTree subTree, GwtEvent<?> event, Edge r, RemoveMode removeMode) {
 		if(!this.visiblilityCheckNodes.containsKey(event))
 			this.visiblilityCheckNodes.put(event, new HashSet<VertexTreeNode>());
 		OntologyGraph g = ModelController.getCollection().getGraph();
@@ -172,8 +175,26 @@ public class SubclassTreeView extends MenuTreeView {
 						targetNode = child;
 				
 				if(targetNode != null) {
-					if(recursive) {
-						List<VertexTreeNode> visibleNodes = new LinkedList<VertexTreeNode>();
+					List<VertexTreeNode> visibleNodes = new LinkedList<VertexTreeNode>();
+					switch(removeMode) {
+					case REATTACH_TO_AVOID_LOSS:
+						List<TreeNode<VertexTreeNode>> targetChildNodes = new LinkedList<TreeNode<VertexTreeNode>>();
+						for(VertexTreeNode targetChild : subTree.getStore().getChildren(targetNode)) {
+							List<Edge> inRelations = g.getInRelations(targetChild.getVertex(), type);
+							if(inRelations.size() <= 1) 
+								targetChildNodes.add(subTree.getStore().getSubTree(targetChild));
+							if(inRelations.size() >= 2) 
+								visibleNodes.add(targetChild);
+						}
+						visiblilityCheckNodes.get(event).addAll(visibleNodes);
+						remove(subTree, targetNode, false);
+						if(!targetChildNodes.isEmpty())
+							subTree.getStore().addSubTree(sourceNode, subTree.getStore().getChildCount(sourceNode), targetChildNodes);
+						break;
+					case NONE:
+						remove(subTree, targetNode, false);
+						break;
+					case RECURSIVE:
 						List<VertexTreeNode> recursiveChildren = subTree.getStore().getAllChildren(targetNode);
 						for(VertexTreeNode child : recursiveChildren) 
 							if(g.getInRelations(child.getVertex(), type).size() == 2)
@@ -181,20 +202,9 @@ public class SubclassTreeView extends MenuTreeView {
 						visiblilityCheckNodes.get(event).addAll(visibleNodes);
 						
 						remove(subTree, targetNode, true);
-					} else {
-						List<TreeNode<VertexTreeNode>> targetChildNodes = new LinkedList<TreeNode<VertexTreeNode>>();
-						List<VertexTreeNode> visibleNodes = new LinkedList<VertexTreeNode>();
-						for(VertexTreeNode targetChild : subTree.getStore().getChildren(targetNode)) {
-							List<Edge> inRelations = g.getInRelations(targetChild.getVertex(), type);
-							if(inRelations.size() <= 1) 
-								targetChildNodes.add(subTree.getStore().getSubTree(targetChild));
-							if(inRelations.size() == 2) 
-								visibleNodes.add(targetChild);
-						}
-						visiblilityCheckNodes.get(event).addAll(visibleNodes);
-						
-						remove(subTree, targetNode, false);
-						subTree.getStore().addSubTree(sourceNode, subTree.getStore().getChildCount(sourceNode), targetChildNodes);
+						break;
+					default:
+						break;
 					}
 				}
 			}
@@ -218,8 +228,8 @@ public class SubclassTreeView extends MenuTreeView {
 	}
 	
 	@Override
-	protected void onRemoveRelationEffectiveInModel(GwtEvent<?> event, Edge r, boolean recursive) {
-		super.onRemoveRelationEffectiveInModel(event, r, recursive);
+	protected void onRemoveRelationEffectiveInModel(GwtEvent<?> event, Edge r, RemoveMode removeMode) {
+		super.onRemoveRelationEffectiveInModel(event, r, removeMode);
 		if(r.getType().equals(type)) {
 			if(!isVisible(subTree, r))
 				return;

@@ -1,5 +1,6 @@
 package edu.arizona.biosemantics.oto2.ontologize2.client.relations.cell;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -31,6 +32,8 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEven
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.SelectTermEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.VisualizationConfigurationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent.FilterTarget;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.RemoveMode;
+import edu.arizona.biosemantics.oto2.ontologize2.client.relations.CreateSynonymsDialog;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid.Row;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph;
@@ -139,12 +142,12 @@ public class AttachedCell extends MenuExtendedCell<Row> {
 				
 				if(g.getInRelations(r.getDest(), termsGrid.getType()).size() <= 1) {
 					if(g.getOutRelations(r.getDest(), termsGrid.getType()).isEmpty()) {
-						termsGrid.fire(new RemoveRelationEvent(false, r));
+						termsGrid.fire(new RemoveRelationEvent(RemoveMode.REATTACH_TO_AVOID_LOSS, r));
 					} else {
 						doAskForRecursiveRemoval(r);
 					}
 				} else {
-					termsGrid.fire(new RemoveRelationEvent(false, r));
+					termsGrid.fire(new RemoveRelationEvent(RemoveMode.REATTACH_TO_AVOID_LOSS, r));
 				}
 			}
 		});
@@ -155,8 +158,20 @@ public class AttachedCell extends MenuExtendedCell<Row> {
 				termsGrid.fire(new SelectTermEvent(r.getDest().getValue()));
 			}
 		});
+		
+		MenuItem synonymsItem = new MenuItem("Make synonyms");
+		synonymsItem.addSelectionHandler(new SelectionHandler<Item>() {
+			@Override
+			public void onSelection(SelectionEvent<Item> event) {
+				OntologyGraph g = ModelController.getCollection().getGraph();
+				CreateSynonymsDialog dialog = new CreateSynonymsDialog(termsGrid, row, r.getDest(), termsGrid.getType());
+				dialog.show();
+			}
+		});
+		
 		menu.add(removeItem);
 		menu.add(filterItem);
+		menu.add(synonymsItem);
 		menu.add(context);
 		return menu;
 	}
@@ -199,7 +214,7 @@ public class AttachedCell extends MenuExtendedCell<Row> {
 		box.getButton(PredefinedButton.YES).addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
-				termsGrid.fire(new RemoveRelationEvent(true, relation));
+				termsGrid.fire(new RemoveRelationEvent(RemoveMode.RECURSIVE, relation));
 				/*for(GwtEvent<Handler> e : createRemoveEvents(true, relation)) {
 					termsGrid.fire(e);
 				}*/
@@ -209,7 +224,7 @@ public class AttachedCell extends MenuExtendedCell<Row> {
 		box.getButton(PredefinedButton.NO).addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
-				termsGrid.fire(new RemoveRelationEvent(false, relation));
+				termsGrid.fire(new RemoveRelationEvent(RemoveMode.REATTACH_TO_AVOID_LOSS, relation));
 				/*for(GwtEvent<Handler> e : createRemoveEvents(false, relation)) {
 					termsGrid.fire(e);
 				}*/

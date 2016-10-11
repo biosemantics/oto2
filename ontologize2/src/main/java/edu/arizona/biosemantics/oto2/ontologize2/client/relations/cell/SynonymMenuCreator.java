@@ -9,6 +9,7 @@ import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.RemoveMode;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid.Row;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph;
@@ -35,7 +36,7 @@ public class SynonymMenuCreator extends DefaultMenuCreator implements LeadCell.M
 			public void onSelection(SelectionEvent<Item> event) {
 				OntologyGraph g = ModelController.getCollection().getGraph();
 				Vertex targetVertex = row.getLead();
-				termsGrid.fire(new RemoveRelationEvent(true, 
+				termsGrid.fire(new RemoveRelationEvent(RemoveMode.RECURSIVE, 
 						g.getInRelations(targetVertex, termsGrid.getType()).iterator().next()));
 			}
 		});
@@ -44,6 +45,7 @@ public class SynonymMenuCreator extends DefaultMenuCreator implements LeadCell.M
 		menu.add(removeRowItem);
 		menu.add(removeAllItem);
 		menu.add(filterItem);
+		menu.add(synonymsItem);
 		menu.add(context);
 		
 		return menu;

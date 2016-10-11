@@ -35,6 +35,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEven
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.OrderEdgesEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.RemoveMode;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.VisualizationConfigurationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.VisualizationRefreshEvent;
@@ -169,10 +170,10 @@ public class TreeView implements IsWidget {
 			public void onRemove(RemoveRelationEvent event) {
 				if(!event.isEffectiveInModel())
 					for(Edge r : event.getRelations())
-						removeRelation(subTree, event, r, event.isRecursive());
+						removeRelation(subTree, event, r, event.getRemoveMode());
 				else
 					for(Edge r : event.getRelations()) 
-						onRemoveRelationEffectiveInModel(event, r, event.isRecursive());
+						onRemoveRelationEffectiveInModel(event, r, event.getRemoveMode());
 			}
 		});
 		eventBus.addHandler(ReplaceRelationEvent.TYPE, new ReplaceRelationEvent.Handler() {
@@ -249,23 +250,60 @@ public class TreeView implements IsWidget {
 	
 	protected void replaceRelation(SubTree subTree, ReplaceRelationEvent event, Edge oldRelation, Vertex newSource) {
 		if(oldRelation.getType().equals(type)) {
-			if(subTree.getVertexNodeMap().containsKey(oldRelation.getDest()) && subTree.getVertexNodeMap().containsKey(newSource)) {
-				VertexTreeNode targetNode = subTree.getVertexNodeMap().get(oldRelation.getDest()).iterator().next();
-				VertexTreeNode newSourceNode = subTree.getVertexNodeMap().get(newSource).iterator().next();
+			OntologyGraph g = ModelController.getCollection().getGraph();
+			VertexTreeNode newSourceNode = null;
+			if(subTree.getVertexNodeMap().containsKey(newSource)) {
+				newSourceNode = subTree.getVertexNodeMap().get(newSource).iterator().next();
+			} else {
+				newSourceNode = new VertexTreeNode(newSource);
+				this.add(subTree, null, newSourceNode);
+			}
+			
+			VertexTreeNode targetNode = null;
+			if(subTree.getVertexNodeMap().containsKey(oldRelation.getDest())) {
+				targetNode = subTree.getVertexNodeMap().get(oldRelation.getDest()).iterator().next();
+			} else {
+				targetNode = new VertexTreeNode(oldRelation.getDest());
+				this.add(subTree, null, targetNode);
+			}
+			
+			/*if(!subTree.getVertexNodeMap().containsKey(oldRelation.getDest())) {
+				Set<VertexTreeNode> nodes = new HashSet<VertexTreeNode>();
+				nodes.add(new VertexTreeNode(oldRelation.getDest()));
+				subTree.getVertexNodeMap().put(oldRelation.getDest(), nodes);
+			}
+			if(!subTree.getVertexNodeMap().containsKey(newSource)) {
+				Set<VertexTreeNode> nodes = new HashSet<VertexTreeNode>();
+				nodes.add(new VertexTreeNode(newSource));
+				subTree.getVertexNodeMap().put(newSource, nodes);
+			}*/	
 				
-				List<TreeNode<VertexTreeNode>> targetNodes = new LinkedList<TreeNode<VertexTreeNode>>();
+			//VertexTreeNode targetNode = subTree.getVertexNodeMap().get(oldRelation.getDest()).iterator().next();
+			//VertexTreeNode newSourceNode = subTree.getVertexNodeMap().get(newSource).iterator().next();
+			
+			if(subTree.getStore().findModel(newSourceNode) == null) {
+				subTree.getStore().add(newSourceNode);
+			}
+			List<TreeNode<VertexTreeNode>> targetNodes = new LinkedList<TreeNode<VertexTreeNode>>();
+			if(subTree.getStore().findModel(targetNode) != null) {
 				targetNodes.add(subTree.getStore().getSubTree(targetNode));
 				subTree.getStore().remove(targetNode);
+				System.out.println("replace " + oldRelation + " " + newSource);
+				System.out.println(newSourceNode.getVertex());
+				System.out.println(targetNodes);
 				subTree.getStore().addSubTree(newSourceNode, subTree.getStore().getChildCount(newSourceNode), targetNodes);
+			} else {
+				subTree.getStore().add(newSourceNode, targetNode);
 			}
 		}
+		
 	}
 
 	protected void onReplaceRelationEffectiveInModel(GwtEvent<?> event, Edge relation, Vertex vertex) {
 		expandRoot();
 	}
 
-	protected void onRemoveRelationEffectiveInModel(GwtEvent<?> event, Edge r, boolean recursive) {
+	protected void onRemoveRelationEffectiveInModel(GwtEvent<?> event, Edge r, RemoveMode removeMode) {
 		expandRoot();
 	}
 
@@ -357,15 +395,14 @@ public class TreeView implements IsWidget {
 		}
 	}
 	
-	protected void removeRelation(SubTree subTree, GwtEvent<?> event, Edge r, boolean recursive) {
+	protected void removeRelation(SubTree subTree, GwtEvent<?> event, Edge r, RemoveMode removeMode) {
 		OntologyGraph g = ModelController.getCollection().getGraph();
 		if(r.getType().equals(type)) {
 			if(subTree.getVertexNodeMap().containsKey(r.getSrc()) && subTree.getVertexNodeMap().containsKey(r.getDest())) {
 				VertexTreeNode sourceNode = subTree.getVertexNodeMap().get(r.getSrc()).iterator().next();
 				VertexTreeNode targetNode = subTree.getVertexNodeMap().get(r.getDest()).iterator().next();
-				if(recursive) {
-					remove(subTree, targetNode, true);
-				} else {
+				switch(removeMode) {
+				case REATTACH_TO_AVOID_LOSS:
 					List<TreeNode<VertexTreeNode>> targetChildNodes = new LinkedList<TreeNode<VertexTreeNode>>();
 					for(VertexTreeNode targetChild : subTree.getStore().getChildren(targetNode)) {
 						List<Edge> inRelations = g.getInRelations(targetChild.getVertex(), type);
@@ -374,6 +411,15 @@ public class TreeView implements IsWidget {
 					}
 					remove(subTree, targetNode, false);
 					subTree.getStore().addSubTree(sourceNode, subTree.getStore().getChildCount(sourceNode), targetChildNodes);
+					break;
+				case NONE:
+					remove(subTree, targetNode, false);
+					break;
+				case RECURSIVE:
+					remove(subTree, targetNode, true);
+					break;
+				default:
+					break;
 				}
 			}
 		}

@@ -28,8 +28,10 @@ import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 
 import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.CompositeModifyEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.RemoveMode;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.Handler;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid.Row;
@@ -74,45 +76,60 @@ public class SubclassesGrid extends MenuTermsGrid {
 			final CreateRelationEvent createRelationEvent = (CreateRelationEvent)e;
 			OntologyGraph g = ModelController.getCollection().getGraph();
 			for(Edge r : createRelationEvent.getRelations()) {
-				try {
-					g.isValidSubclass(r);
-					
-					Vertex source = r.getSrc();
-					Vertex dest = r.getDest();
-					List<Edge> existingRelations = g.getInRelations(dest, type);
-					if(!existingRelations.isEmpty()) {
-						List<Vertex> existSources = new ArrayList<Vertex>(existingRelations.size());
-						for(Edge exist : existingRelations) 
-							existSources.add(exist.getSrc());
-						final MessageBox box = Alerter.showConfirm("Create Subclass", 
-								"<i>" + dest + "</i> is already a subclass of " + existingRelations.size() + " superclasses: <i>" +
-										Alerter.collapseTermsAsString(existSources) + "</i>.</br></br></br>" +
-										"Do you still want to make <i>" + dest + "</i> a subclass of <i>" + source + "</i>?</br></br>" +
-										"If NO, please create a new term then make it a subclass of <i>" + source + "</i>.");
-						box.getButton(PredefinedButton.YES).addSelectHandler(new SelectHandler() {
-							@Override
-							public void onSelect(SelectEvent event) {
-								eventBus.fireEvent(createRelationEvent);
-								box.hide();
-							}
-						});
-						box.getButton(PredefinedButton.NO).addSelectHandler(new SelectHandler() {
-							@Override
-							public void onSelect(SelectEvent event) {
-								box.hide();
-							}
-						});
-					} else {
-						eventBus.fireEvent(createRelationEvent);
-					}
-				} catch(Exception ex) {
-					final MessageBox box = Alerter.showAlert("Create subclass", ex.getMessage());
-					box.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
-						@Override
-						public void onSelect(SelectEvent event) {
-							box.hide();
+				if(r.getType().equals(Type.SUBCLASS_OF)) {
+					try {
+						g.isValidSubclass(r);
+						
+						Vertex source = r.getSrc();
+						Vertex dest = r.getDest();
+						List<Edge> existingRelations = g.getInRelations(dest, type);
+						if(!existingRelations.isEmpty()) {
+							List<Vertex> existSources = new ArrayList<Vertex>(existingRelations.size());
+							for(Edge exist : existingRelations) 
+								existSources.add(exist.getSrc());
+							final MessageBox box = Alerter.showConfirm("Create Subclass", 
+									"<i>" + dest + "</i> is already a subclass of " + existingRelations.size() + " superclasses: <i>" +
+											Alerter.collapseTermsAsString(existSources) + "</i>.</br></br></br>" +
+											"Do you still want to make <i>" + dest + "</i> a subclass of <i>" + source + "</i>?</br></br>" +
+											"If NO, please create a new term then make it a subclass of <i>" + source + "</i>.");
+							box.getButton(PredefinedButton.YES).addSelectHandler(new SelectHandler() {
+								@Override
+								public void onSelect(SelectEvent event) {
+									eventBus.fireEvent(createRelationEvent);
+									box.hide();
+								}
+							});
+							box.getButton(PredefinedButton.NO).addSelectHandler(new SelectHandler() {
+								@Override
+								public void onSelect(SelectEvent event) {
+									box.hide();
+								}
+							});
+						} else {
+							eventBus.fireEvent(createRelationEvent);
 						}
-					});
+					} catch(Exception ex) {
+						final MessageBox box = Alerter.showAlert("Create subclass", ex.getMessage());
+						box.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
+							@Override
+							public void onSelect(SelectEvent event) {
+								box.hide();
+							}
+						});
+					}
+				} else if(r.getType().equals(Type.SYNONYM_OF)) {
+					try {
+						g.isValidSynonym(r);
+						eventBus.fireEvent(createRelationEvent);
+					} catch(Exception ex) {
+						final MessageBox box = Alerter.showAlert("Create synonym", ex.getMessage());
+						box.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
+							@Override
+							public void onSelect(SelectEvent event) {
+								box.hide();
+							}
+						});
+					}
 				}
 			}
 		} else if(e instanceof RemoveRelationEvent) {
@@ -225,7 +242,7 @@ public class SubclassesGrid extends MenuTermsGrid {
 	}
 	
 	@Override
-	protected void removeAttached(GwtEvent<?> event, Row row, Edge r, boolean recursive, boolean refresh) {
+	protected void removeAttached(GwtEvent<?> event, Row row, Edge r, RemoveMode removeMode, boolean refresh) {
 		row.remove(r);
 		updateRow(row);
 		
@@ -233,37 +250,44 @@ public class SubclassesGrid extends MenuTermsGrid {
 		if(leadRowMap.containsKey(r.getDest())) {
 			if(g.getInRelations(r.getDest(), type).size() <= 1) {
 				Row targetRow = leadRowMap.get(r.getDest());
-				removeRow(event, targetRow, recursive, refresh);
+				removeRow(event, targetRow, removeMode, refresh);
 			}
 		}
 	}
 	
 	@Override
-	public void removeRow(GwtEvent<?> event, Row row, boolean recursive, boolean refresh) {
+	public void removeRow(GwtEvent<?> event, Row row, RemoveMode removeMode, boolean refresh) {
 		if(!this.refreshNodes.containsKey(event))
 			this.refreshNodes.put(event, new HashSet<Vertex>());
 		OntologyGraph g = ModelController.getCollection().getGraph();
-		if(recursive) {
-			List<Vertex> refreshNodes = new LinkedList<Vertex>();
-			List<Vertex> recursiveDestinations = g.getAllDestinations(row.getLead(), type);
-			for(Vertex dest : recursiveDestinations) 
-				if(g.getInRelations(dest, type).size() == 2)
-					refreshNodes.add(dest);
-			this.refreshNodes.get(event).addAll(refreshNodes);
-		} else {
-			Vertex lead = row.getLead();
-			List<Edge> inRelations = g.getInRelations(lead, type);
-			if(inRelations.size() == 1 && inRelations.get(0).getSrc().equals(g.getRoot(type))) {
-				List<Vertex> refreshNodes = new LinkedList<Vertex>();
-				for(Edge e : row.getAttached()) {
-					List<Edge> in = g.getInRelations(e.getDest(), type);
-					if(in.size() == 2) 
-						refreshNodes.add(e.getDest());
+		switch(removeMode) {
+			case NONE:
+				break;
+			case REATTACH_TO_AVOID_LOSS:
+				Vertex lead = row.getLead();
+				List<Edge> inRelations = g.getInRelations(lead, type);
+				if(inRelations.size() == 1 && inRelations.get(0).getSrc().equals(g.getRoot(type))) {
+					List<Vertex> refreshNodes = new LinkedList<Vertex>();
+					for(Edge e : row.getAttached()) {
+						List<Edge> in = g.getInRelations(e.getDest(), type);
+						if(in.size() == 2) 
+							refreshNodes.add(e.getDest());
+					}
+					this.refreshNodes.get(event).addAll(refreshNodes);
 				}
+				break;
+			case RECURSIVE:
+				List<Vertex> refreshNodes = new LinkedList<Vertex>();
+				List<Vertex> recursiveDestinations = g.getAllDestinations(row.getLead(), type);
+				for(Vertex dest : recursiveDestinations) 
+					if(g.getInRelations(dest, type).size() == 2)
+						refreshNodes.add(dest);
 				this.refreshNodes.get(event).addAll(refreshNodes);
-			}
-		} 
-		super.removeRow(event, row, recursive, refresh);
+				break;
+			default:
+				break;
+		}
+		super.removeRow(event, row, removeMode, refresh);
 	}
 
 }

@@ -7,6 +7,8 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.CompositeModifyEvent.Handler;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.RemoveMode;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Candidate;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge;
@@ -24,7 +26,7 @@ public interface ICollectionService extends RemoteService {
 	
 	public boolean add(int collectionId, String secret, Edge relation) throws Exception;
 	
-	public void remove(int collectionId, String secret, Edge relation, boolean recursive) throws Exception;
+	public void remove(int collectionId, String secret, Edge relation, RemoveMode removeMode) throws Exception;
 	
 	public void replace(int collectionId, String secret, Edge oldRelation, Vertex newSource) throws Exception;
 		
@@ -38,10 +40,10 @@ public interface ICollectionService extends RemoteService {
 	
 	public void order(int id, String secret, Vertex src, List<Edge> edges, Type type) throws Exception;
 	
-	public List<GwtEvent<?>> importRelations(int collectionId, String secret, Type type, String text) throws Exception;
-	
 	public void clear(int id, String secret) throws Exception;
 	
 	public void reduceGraph(int id, String secret) throws Exception;
+	
+	public void compositeModify(int id, String secret, List<GwtEvent<?>> events) throws Exception;
 
 }

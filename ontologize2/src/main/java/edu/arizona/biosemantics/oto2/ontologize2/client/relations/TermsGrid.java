@@ -63,11 +63,13 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ClearEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CloseRelationsEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.CompositeModifyEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.OrderEdgesEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveCandidateEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.RemoveMode;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.VisualizationConfigurationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.VisualizationRefreshEvent;
@@ -529,7 +531,7 @@ public class TermsGrid implements IsWidget {
 			public void onRemove(RemoveRelationEvent event) {
 				if(!event.isEffectiveInModel())
 					for(Edge r : event.getRelations())
-						removeRelation(event, r, event.isRecursive(), true);
+						removeRelation(event, r, event.getRemoveMode(), true);
 				else 
 					for(Edge r : event.getRelations())
 						onRemoveRelationEffectiveInModel(event, r);
@@ -611,6 +613,10 @@ public class TermsGrid implements IsWidget {
 
 	protected void replaceRelation(Edge oldRelation, Vertex newSource) {
 		if(oldRelation.getType().equals(type)) {
+			OntologyGraph g = ModelController.getCollection().getGraph();
+			
+			if(!leadRowMap.containsKey(newSource) && !newSource.equals(g.getRoot(type))) 
+				this.addRow(new Row(type, newSource), true);
 			if(leadRowMap.containsKey(newSource)) {
 				if(leadRowMap.containsKey(oldRelation.getSrc())) {
 					Row oldRow = leadRowMap.get(oldRelation.getSrc());
@@ -623,6 +629,12 @@ public class TermsGrid implements IsWidget {
 				} catch (Exception e) {
 					Alerter.showAlert("Failed to replace relation", "Failed to replace relation");
 					return;
+				}
+			} else {
+				if(leadRowMap.containsKey(oldRelation.getSrc())) {
+					Row oldRow = leadRowMap.get(oldRelation.getSrc());
+					oldRow.remove(oldRelation);
+					updateRow(oldRow);
 				}
 			}
 		}
@@ -670,14 +682,14 @@ public class TermsGrid implements IsWidget {
 		}
 	}
 
-	protected void removeRelation(GwtEvent<?> event, Edge r, boolean recursive, boolean refresh) {
+	protected void removeRelation(GwtEvent<?> event, Edge r, RemoveMode removeMode, boolean refresh) {
 		OntologyGraph g = ModelController.getCollection().getGraph();
 		if(r.getType().equals(type)) {
 			if(r.getSrc().equals(g.getRoot(type))) {
-				removeRow(event, r.getDest(), recursive, refresh);
+				removeRow(event, r.getDest(), removeMode, refresh);
 			} else if(leadRowMap.containsKey(r.getSrc())) {
 				Row row = leadRowMap.get(r.getSrc());
-				removeAttached(event, row, r, recursive, refresh);
+				removeAttached(event, row, r, removeMode, refresh);
 			} else {
 				Alerter.showAlert("Failed to remove relation", "Failed to remove relation");
 			}
@@ -709,22 +721,18 @@ public class TermsGrid implements IsWidget {
 			loader.load(loader.getLastLoadConfig());
 	}
 	
-	public void removeRow(GwtEvent<?> event,Vertex lead, boolean recursive, boolean refresh) {
+	public void removeRow(GwtEvent<?> event,Vertex lead, RemoveMode removeMode, boolean refresh) {
 		if(leadRowMap.containsKey(lead)) {
-			this.removeRow(event, this.leadRowMap.get(lead), recursive, refresh);
+			this.removeRow(event, this.leadRowMap.get(lead), removeMode, refresh);
 		}
 	}
 	
-	public void removeRow(GwtEvent<?> event, Row row, boolean recursive, boolean refresh) {
+	public void removeRow(GwtEvent<?> event, Row row, RemoveMode removeMode, boolean refresh) {
 		OntologyGraph g = ModelController.getCollection().getGraph();
-		if(recursive) {
-			for(Edge relation : row.getAttached()) {
-				if(g.getInRelations(relation.getDest(), type).size() == 1 && leadRowMap.containsKey(relation.getDest())) {
-					Row attachedRow = leadRowMap.get(relation.getDest());
-					removeRow(event, attachedRow, true, refresh);
-				}
-			}
-		} else {
+		switch(removeMode) {
+		case NONE:
+			break;
+		case REATTACH_TO_AVOID_LOSS:
 			Vertex lead = row.getLead();
 			List<Edge> inRelations = g.getInRelations(lead, type);
 			if(inRelations.size() == 1 && inRelations.get(0).getSrc().equals(g.getRoot(type))) {
@@ -746,8 +754,20 @@ public class TermsGrid implements IsWidget {
 					}
 				}
 			}
+			removeRow(row, refresh);
+			break;
+		case RECURSIVE:
+			for(Edge relation : row.getAttached()) {
+				if(g.getInRelations(relation.getDest(), type).size() == 1 && leadRowMap.containsKey(relation.getDest())) {
+					Row attachedRow = leadRowMap.get(relation.getDest());
+					removeRow(event, attachedRow, removeMode, refresh);
+				}
+			}
+			removeRow(row, refresh);
+			break;
+		default:
+			break;
 		}
-		removeRow(row, refresh);
 	}
 
 	public void removeRow(Vertex lead, boolean refresh) {
@@ -774,14 +794,14 @@ public class TermsGrid implements IsWidget {
 		}*/
 	}
 	
-	protected void removeAttached(GwtEvent<?> event, Row row, Edge r, boolean recursive, boolean refresh) {
+	protected void removeAttached(GwtEvent<?> event, Row row, Edge r, RemoveMode removeMode, boolean refresh) {
 		row.remove(r);
 		if(refresh)
 			updateRow(row);
 		
 		if(leadRowMap.containsKey(r.getDest())) {
 			Row targetRow = leadRowMap.get(r.getDest());
-			removeRow(event, targetRow, recursive, refresh);
+			removeRow(event, targetRow, removeMode, refresh);
 		}
 	}
 	

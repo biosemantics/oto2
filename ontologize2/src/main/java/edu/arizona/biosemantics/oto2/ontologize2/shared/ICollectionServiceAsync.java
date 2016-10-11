@@ -5,6 +5,8 @@ import java.util.List;
 import com.google.gwt.event.shared.GwtEvent;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.CompositeModifyEvent.Handler;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.RemoveMode;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Candidate;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge;
@@ -21,7 +23,7 @@ public interface ICollectionServiceAsync {
 	
 	public void add(int collectionId, String secret, Edge relation, AsyncCallback<Boolean> callback);
 	
-	public void remove(int collectionId, String secret, Edge relation, boolean recursive, AsyncCallback<Void> callback);
+	public void remove(int collectionId, String secret, Edge relation, RemoveMode removeMode, AsyncCallback<Void> callback);
 	
 	public void replace(int collectionId, String secret, Edge oldRelation, Vertex newSource, AsyncCallback<Void> callback);
 
@@ -36,9 +38,9 @@ public interface ICollectionServiceAsync {
 
 	public void order(int id, String secret, Vertex src, List<Edge> edges, Type type, AsyncCallback<Void> callback);
 
-	public void importRelations(int collectionId, String secret, Type type, String text, AsyncCallback<List<GwtEvent<?>>> callback);
-
 	public void clear(int id, String secret, AsyncCallback<Void> callback);
 
 	public void reduceGraph(int id, String secret, AsyncCallback<Void> callback);
+
+	public void compositeModify(int id, String secret, List<GwtEvent<?>> events, AsyncCallback<Void> callback);
 }
