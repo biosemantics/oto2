@@ -53,7 +53,7 @@ public class ModelController {
 		eventBus.addHandler(CompositeModifyEvent.TYPE, new CompositeModifyEvent.Handler() {
 			@Override
 			public void onModify(CompositeModifyEvent event) {
-				compositeModify(event, true);
+				compositeModify(event, event.isRemote());
 			}
 		});
 		eventBus.addHandler(LoadCollectionEvent.TYPE, new LoadCollectionEvent.Handler() {
@@ -121,7 +121,7 @@ public class ModelController {
 	protected void compositeModify(final CompositeModifyEvent event, boolean remote) {
 		if(remote) {
 			final MessageBox box = Alerter.startLoading();
-			collectionService.compositeModify(collection.getId(), collection.getSecret(), event.getEvents(), new AsyncCallback<Void>() {
+			collectionService.compositeModify(collection.getId(), collection.getSecret(), event, new AsyncCallback<Void>() {
 				@Override
 				public void onFailure(Throwable caught) {
 					Alerter.showAlert("Data out of sync", "The data became out of sync with the server. Please reload the window.", caught);

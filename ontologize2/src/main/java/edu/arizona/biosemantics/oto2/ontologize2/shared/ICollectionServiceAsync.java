@@ -5,6 +5,7 @@ import java.util.List;
 import com.google.gwt.event.shared.GwtEvent;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.CompositeModifyEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CompositeModifyEvent.Handler;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.RemoveMode;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Candidate;
@@ -42,5 +43,5 @@ public interface ICollectionServiceAsync {
 
 	public void reduceGraph(int id, String secret, AsyncCallback<Void> callback);
 
-	public void compositeModify(int id, String secret, List<GwtEvent<?>> events, AsyncCallback<Void> callback);
+	public void compositeModify(int id, String secret, CompositeModifyEvent event, AsyncCallback<Void> callback);
 }

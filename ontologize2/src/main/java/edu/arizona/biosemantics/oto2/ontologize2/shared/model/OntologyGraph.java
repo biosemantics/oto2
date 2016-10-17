@@ -369,11 +369,13 @@ public class OntologyGraph implements Serializable {
 		if(!src.equals(root) && !destIn.isEmpty() && !destIn.contains(root))
 			throw new Exception("<i>" + dest + "</i> is already used as synonym");
 		
-		isSubclassOrPart(e);
+		//if(isSubclassOrPart(e))				
+		//	throw new Exception("Cannot create synonym term: " + e.getDest() + ". It is already used in "
+		//			+ "subclass or part relations");
 		return true;
 	}
 	
-	private boolean isSubclassOrPart(Edge e) throws Exception {
+	public boolean isSubclassOrPart(Edge e) {
 		switch(e.getType()) {
 			case SYNONYM_OF:
 				if(!e.getSrc().equals(getRoot(Type.SYNONYM_OF))) {
@@ -381,10 +383,7 @@ public class OntologyGraph implements Serializable {
 					List<Edge> subclassPartRelations = new ArrayList<Edge>();
 					subclassPartRelations.addAll(getRelations(synonym, Type.PART_OF));
 					subclassPartRelations.addAll(getRelations(synonym, Type.SUBCLASS_OF));
-					if(!subclassPartRelations.isEmpty()) {
-						throw new Exception("Cannot create synonym term: " + synonym + ". It is already used in "
-								+ "subclass or part relations");
-					}
+					return !subclassPartRelations.isEmpty();
 				}
 				break;
 			default:
@@ -922,6 +921,17 @@ public class OntologyGraph implements Serializable {
 			}
 		}
 		return result;
+	}
+
+	public boolean isSynonym(Vertex v) {
+		List<Edge> synIn = this.getInRelations(v, Type.SYNONYM_OF);
+		return !synIn.isEmpty() && !synIn.get(0).getSrc().equals(this.getRoot(Type.SYNONYM_OF));
+	}
+
+	public Vertex getPreferredTerm(Vertex v) {
+		if(!isSynonym(v))
+			return v;
+		return this.getInRelations(v, Type.SYNONYM_OF).get(0).getSrc();
 	}
 
 }

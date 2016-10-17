@@ -7,6 +7,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.CompositeModifyEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CompositeModifyEvent.Handler;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.RemoveMode;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Candidate;
@@ -44,6 +45,6 @@ public interface ICollectionService extends RemoteService {
 	
 	public void reduceGraph(int id, String secret) throws Exception;
 	
-	public void compositeModify(int id, String secret, List<GwtEvent<?>> events) throws Exception;
+	public void compositeModify(int id, String secret, CompositeModifyEvent event) throws Exception;
 
 }

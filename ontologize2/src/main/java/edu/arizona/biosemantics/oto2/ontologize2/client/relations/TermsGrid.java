@@ -14,17 +14,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.sencha.gxt.widget.core.client.menu.Item;
 import com.google.gwt.core.shared.GWT;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.Style.BorderStyle;
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.editor.client.Editor.Path;
+import com.google.gwt.event.logical.shared.SelectionEvent;
+import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Widget;
+import com.sencha.gxt.core.client.Style.Anchor;
+import com.sencha.gxt.core.client.Style.AnchorAlignment;
 import com.sencha.gxt.core.client.Style.HideMode;
 import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
@@ -48,19 +53,28 @@ import com.sencha.gxt.dnd.core.client.GridDragSource;
 import com.sencha.gxt.dnd.core.client.DndDropEvent.DndDropHandler;
 import com.sencha.gxt.dnd.core.client.DropTarget;
 import com.sencha.gxt.state.client.GridFilterStateHandler;
+import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
+import com.sencha.gxt.widget.core.client.box.MessageBox;
 import com.sencha.gxt.widget.core.client.container.CssFloatLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.SimpleContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
+import com.sencha.gxt.widget.core.client.event.SelectEvent;
+import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.Grid;
 import com.sencha.gxt.widget.core.client.grid.filters.GridFilters;
 import com.sencha.gxt.widget.core.client.grid.filters.StringFilter;
+import com.sencha.gxt.widget.core.client.menu.Menu;
+import com.sencha.gxt.widget.core.client.menu.MenuItem;
 import com.sencha.gxt.widget.core.client.toolbar.PagingToolBar;
 
 import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
+import edu.arizona.biosemantics.oto2.ontologize2.client.common.CompositeModifyEventForSynonymCreator;
+import edu.arizona.biosemantics.oto2.ontologize2.client.common.CreateRelationValidator;
+import edu.arizona.biosemantics.oto2.ontologize2.client.common.ReplaceRelationValidator;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ClearEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CloseRelationsEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CompositeModifyEvent;
@@ -69,6 +83,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.event.LoadCollectionEven
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.OrderEdgesEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveCandidateEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.ShowRelationsEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.RemoveMode;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.VisualizationConfigurationEvent;
@@ -333,6 +348,7 @@ public class TermsGrid implements IsWidget {
 				int targetRowIndex = grid.getView().findRowIndex(element);
 				int targetColIndex = grid.getView().findCellIndex(element, null);
 				Row row = store.get(targetRowIndex);
+				
 				if(row != null) {
 					Vertex v = row.getLead();
 					if(targetColIndex > 0) {
@@ -341,13 +357,17 @@ public class TermsGrid implements IsWidget {
 					
 					OntologyGraph g = ModelController.getCollection().getGraph();
 					List<Edge> inRelations = g.getInRelations(v, type);
-					if(inRelations.size() > 1) {
+					//if(inRelations.size() > 1) {
 						//Alerter.showAlert("Moving", "Moving of term with more than one " + 
 						//		type.getSourceLabelPlural() + " is not allowed"); // at this time
 						//event.setCancelled(true);
-						event.setData(inRelations);
-					} else if(inRelations.size() == 1)
-						event.setData(inRelations.get(0));
+					//	event.setData(inRelations);
+					//} else if(inRelations.size() == 1)
+					if(!inRelations.isEmpty())
+						if(v.equals(row.getLead()))
+							event.setData(inRelations.get(0));
+						else
+							event.setData(row.getAttached().get(targetColIndex - 1));
 					else {
 						Alerter.showAlert("Moving", "Cannot move the root");
 						event.setCancelled(true);
@@ -364,10 +384,7 @@ public class TermsGrid implements IsWidget {
 				Element element = event.getDragEndEvent().getNativeEvent().getEventTarget().<Element> cast();
 				int targetRowIndex = grid.getView().findRowIndex(element);
 				Row row = store.get(targetRowIndex);
-				if(g.isClosedRelations(row.getLead(), type)) {
-					Alerter.showAlert("Create Relation", "Can not create relation for a closed row.");
-					return;
-				}
+				int targetColIndex = grid.getView().findCellIndex(element, null);
 				
 				if(row != null) {
 					if(event.getData() instanceof List<?>) {
@@ -385,17 +402,11 @@ public class TermsGrid implements IsWidget {
 							}
 						}
 					} else if(event.getData() instanceof Edge) {
-						Edge r = (Edge)event.getData();
-						if(row.getAttached().contains(r)) {
-							Alerter.showAlert("Create Relation", "" + r.getDest() + " is already a " + 
-									type.getTargetLabel() + " of " + row.getLead());
-						} else if(containedInSubtree(row.getLead(), r.getDest())) {
-							Alerter.showAlert("Creat Relation", 
-									"Cannot make " + r.getDest() + " a "+ type.getTargetLabel() + " of " + row.getLead() + ". "
-											+ "This would create a circular relationship.");
-						} else {
-							fire(new ReplaceRelationEvent(r, row.getLead()));
-						}
+						if(targetColIndex >= row.size())
+							return;
+						Vertex targetVertex = row.getAll().get(targetColIndex);
+						Edge dropEdge = (Edge)event.getData();
+						onEdgeOnGridDrop(dropEdge, element, row, targetVertex);
 					}
 				}
 			}
@@ -461,14 +472,47 @@ public class TermsGrid implements IsWidget {
 		bindEvents();
 	}
 
-	protected boolean containedInSubtree(Vertex search, Vertex source) {
+	protected void onEdgeOnGridDrop(final Edge dropEdge, Element element, final Row row, final Vertex targetVertex) {
+		Menu menu = new Menu();
+		
+		MenuItem typeRelation = new MenuItem("Create " + type.getTargetLabel());
+		typeRelation.addSelectionHandler(new SelectionHandler<Item>() {
+			@Override
+			public void onSelection(SelectionEvent<Item> event) {
+				fire(new ReplaceRelationEvent(dropEdge, targetVertex));
+				/*if(row.getAttached().contains(dropEdge)) {
+					Alerter.showAlert("Create Relation", "" + dropEdge.getDest() + " is already a " + 
+							type.getTargetLabel() + " of " + row.getLead());
+				} else if(containedInSubtree(row.getLead(), dropEdge.getDest())) {
+					Alerter.showAlert("Creat Relation", 
+							"Cannot make " + dropEdge.getDest() + " a "+ type.getTargetLabel() + " of " + row.getLead() + ". "
+									+ "This would create a circular relationship.");
+				} else {
+					fire(new ReplaceRelationEvent(dropEdge, row.getLead()));
+				}*/
+			}
+		});
+		menu.add(typeRelation);
+		
+		MenuItem synonym = new MenuItem("Create synonym");
+		synonym.addSelectionHandler(new SelectionHandler<Item>() {
+			@Override
+			public void onSelection(SelectionEvent<Item> event) {
+				fire(new CreateRelationEvent(new Edge(targetVertex, dropEdge.getDest(), Type.SYNONYM_OF, Origin.USER)));
+			}
+		});
+		menu.add(synonym);
+		menu.show(element, new AnchorAlignment(Anchor.TOP_LEFT, Anchor.BOTTOM_LEFT, true));
+	}
+
+	protected boolean containedInSubtree(Vertex search, Vertex source, Type type) {
 		OntologyGraph g = ModelController.getCollection().getGraph();
 		
 		if(search.equals(source))
 			return true;
 		List<Edge> out = g.getOutRelations(source, type);
 		for(Edge e : out) {
-			if(containedInSubtree(search, e.getDest()))
+			if(containedInSubtree(search, e.getDest(), type))
 				return true;
 		}
 		return false;
@@ -480,7 +524,14 @@ public class TermsGrid implements IsWidget {
 	}
 
 	public void fire(GwtEvent<? extends EventHandler> e) {
-		eventBus.fireEvent(e);
+		if(e instanceof CreateRelationEvent) {
+			CreateRelationValidator createRelationValidator = new CreateRelationValidator(eventBus);
+			createRelationValidator.validateAndFire((CreateRelationEvent)e);
+		} else if(e instanceof ReplaceRelationEvent) {
+			ReplaceRelationValidator replaceRelationValidator = new ReplaceRelationValidator(eventBus);
+			replaceRelationValidator.validateAndFire((ReplaceRelationEvent)e);
+		} else 
+			eventBus.fireEvent(e);
 	}
 
 	protected void bindEvents() {

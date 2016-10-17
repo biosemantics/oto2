@@ -12,10 +12,14 @@ import java.util.Set;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.Style.BorderStyle;
 import com.google.gwt.dom.client.Style.Unit;
+import com.google.gwt.event.logical.shared.SelectionEvent;
+import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
 import com.sencha.gxt.core.client.ValueProvider;
+import com.sencha.gxt.core.client.Style.Anchor;
+import com.sencha.gxt.core.client.Style.AnchorAlignment;
 import com.sencha.gxt.dnd.core.client.DndDragStartEvent;
 import com.sencha.gxt.dnd.core.client.DndDropEvent;
 import com.sencha.gxt.dnd.core.client.GridDragSource;
@@ -25,12 +29,17 @@ import com.sencha.gxt.widget.core.client.box.MessageBox;
 import com.sencha.gxt.widget.core.client.container.SimpleContainer;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
+import com.sencha.gxt.widget.core.client.menu.Item;
+import com.sencha.gxt.widget.core.client.menu.Menu;
+import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
 import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
+import edu.arizona.biosemantics.oto2.ontologize2.client.common.CompositeModifyEventForSynonymCreator;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CompositeModifyEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.ShowRelationsEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.RemoveMode;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.Handler;
@@ -68,75 +77,6 @@ public class SubclassesGrid extends MenuTermsGrid {
 			}
 		}, new SubclassMenuCreator(eventBus, this), highlight);
 		return leadCell;
-	}
-	
-	@Override
-	public void fire(GwtEvent<? extends EventHandler> e) {
-		if(e instanceof CreateRelationEvent) {
-			final CreateRelationEvent createRelationEvent = (CreateRelationEvent)e;
-			OntologyGraph g = ModelController.getCollection().getGraph();
-			for(Edge r : createRelationEvent.getRelations()) {
-				if(r.getType().equals(Type.SUBCLASS_OF)) {
-					try {
-						g.isValidSubclass(r);
-						
-						Vertex source = r.getSrc();
-						Vertex dest = r.getDest();
-						List<Edge> existingRelations = g.getInRelations(dest, type);
-						if(!existingRelations.isEmpty()) {
-							List<Vertex> existSources = new ArrayList<Vertex>(existingRelations.size());
-							for(Edge exist : existingRelations) 
-								existSources.add(exist.getSrc());
-							final MessageBox box = Alerter.showConfirm("Create Subclass", 
-									"<i>" + dest + "</i> is already a subclass of " + existingRelations.size() + " superclasses: <i>" +
-											Alerter.collapseTermsAsString(existSources) + "</i>.</br></br></br>" +
-											"Do you still want to make <i>" + dest + "</i> a subclass of <i>" + source + "</i>?</br></br>" +
-											"If NO, please create a new term then make it a subclass of <i>" + source + "</i>.");
-							box.getButton(PredefinedButton.YES).addSelectHandler(new SelectHandler() {
-								@Override
-								public void onSelect(SelectEvent event) {
-									eventBus.fireEvent(createRelationEvent);
-									box.hide();
-								}
-							});
-							box.getButton(PredefinedButton.NO).addSelectHandler(new SelectHandler() {
-								@Override
-								public void onSelect(SelectEvent event) {
-									box.hide();
-								}
-							});
-						} else {
-							eventBus.fireEvent(createRelationEvent);
-						}
-					} catch(Exception ex) {
-						final MessageBox box = Alerter.showAlert("Create subclass", ex.getMessage());
-						box.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
-							@Override
-							public void onSelect(SelectEvent event) {
-								box.hide();
-							}
-						});
-					}
-				} else if(r.getType().equals(Type.SYNONYM_OF)) {
-					try {
-						g.isValidSynonym(r);
-						eventBus.fireEvent(createRelationEvent);
-					} catch(Exception ex) {
-						final MessageBox box = Alerter.showAlert("Create synonym", ex.getMessage());
-						box.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
-							@Override
-							public void onSelect(SelectEvent event) {
-								box.hide();
-							}
-						});
-					}
-				}
-			}
-		} else if(e instanceof RemoveRelationEvent) {
-			eventBus.fireEvent(e);
-		} else {
-			eventBus.fireEvent(e);
-		}
 	}
 	
 	@Override
@@ -288,6 +228,49 @@ public class SubclassesGrid extends MenuTermsGrid {
 				break;
 		}
 		super.removeRow(event, row, removeMode, refresh);
+	}
+	
+	@Override
+	protected void onEdgeOnGridDrop(final Edge dropEdge, Element element, final Row row, final Vertex targetVertex) {
+		final OntologyGraph g = ModelController.getCollection().getGraph();
+		Menu menu = new Menu();
+
+		MenuItem createSubclass = new MenuItem("Create " + type.getTargetLabel());
+		createSubclass.addSelectionHandler(new SelectionHandler<Item>() {
+			@Override
+			public void onSelection(SelectionEvent<Item> event) {
+				fire(new CreateRelationEvent(new Edge(targetVertex, dropEdge.getDest(), Type.SUBCLASS_OF, Origin.USER)));
+			}
+		});
+		menu.add(createSubclass);
+		
+		MenuItem moveSubclass = new MenuItem("Move " + type.getTargetLabel());
+		moveSubclass.addSelectionHandler(new SelectionHandler<Item>() {
+			@Override
+			public void onSelection(SelectionEvent<Item> event) {
+				fire(new ReplaceRelationEvent(dropEdge, targetVertex));
+			}
+		});
+		menu.add(moveSubclass);
+		
+		MenuItem createPart = new MenuItem("Create " + Type.PART_OF.getTargetLabel());
+		createPart.addSelectionHandler(new SelectionHandler<Item>() {
+			@Override
+			public void onSelection(SelectionEvent<Item> event) {
+				fire(new CreateRelationEvent(new Edge(targetVertex, dropEdge.getDest(), Type.PART_OF, Origin.USER)));
+			}
+		});
+		menu.add(createPart);
+		
+		MenuItem synonym = new MenuItem("Create " + Type.SYNONYM_OF.getTargetLabel());
+		synonym.addSelectionHandler(new SelectionHandler<Item>() {
+			@Override
+			public void onSelection(SelectionEvent<Item> event) {
+				fire(new CreateRelationEvent(new Edge(targetVertex, dropEdge.getDest(), Type.SYNONYM_OF, Origin.USER)));
+			}
+		});
+		menu.add(synonym);
+		menu.show(element, new AnchorAlignment(Anchor.TOP_LEFT, Anchor.BOTTOM_LEFT, true));
 	}
 
 }

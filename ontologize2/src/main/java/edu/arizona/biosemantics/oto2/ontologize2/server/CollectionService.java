@@ -21,6 +21,7 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.CompositeModifyEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CompositeModifyEvent.Handler;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
@@ -214,8 +215,8 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	}
 
 	@Override
-	public void compositeModify(int id, String secret, List<GwtEvent<?>> events) throws Exception {
-		for(GwtEvent<?> e : events) {
+	public void compositeModify(int id, String secret, CompositeModifyEvent event) throws Exception {
+		for(GwtEvent<?> e : event.getEvents()) {
 			if(e instanceof CreateRelationEvent) {
 				for(Edge r : ((CreateRelationEvent)e).getRelations()) {
 					this.add(id, secret, r);
@@ -229,6 +230,9 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 				Edge oldRelation = ((ReplaceRelationEvent)e).getOldRelation();
 				Vertex newSource = ((ReplaceRelationEvent)e).getNewSource();
 				this.replace(id, secret, oldRelation, newSource);
+			} else if(e instanceof CompositeModifyEvent) {
+				CompositeModifyEvent c = (CompositeModifyEvent)e;
+				this.compositeModify(id, secret, c);
 			}
 		}
 	}

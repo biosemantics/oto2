@@ -68,7 +68,7 @@ public class SubclassMenuCreator extends DefaultMenuCreator implements LeadCell.
 		menu.add(orderItem);
 		menu.add(closeItem);
 		menu.add(filterItem);
-		menu.add(synonymsItem);
+		//menu.add(synonymsItem);
 		menu.add(context);
 		
 		return menu;

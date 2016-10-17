@@ -45,7 +45,7 @@ public class DefaultMenuCreator implements LeadCell.MenuCreator {
 	protected MenuItem context;
 	protected MenuItem removeItem;
 	protected MenuItem filterItem;
-	protected MenuItem synonymsItem;
+	//protected MenuItem synonymsItem;
 
 	public DefaultMenuCreator(EventBus eventBus, TermsGrid termsGrid) {
 		this.eventBus = eventBus;
@@ -157,7 +157,7 @@ public class DefaultMenuCreator implements LeadCell.MenuCreator {
 			}
 		});
 		
-		synonymsItem = new MenuItem("Make synonyms");
+		/*synonymsItem = new MenuItem("Make synonyms");
 		synonymsItem.addSelectionHandler(new SelectionHandler<Item>() {
 			@Override
 			public void onSelection(SelectionEvent<Item> event) {
@@ -165,7 +165,7 @@ public class DefaultMenuCreator implements LeadCell.MenuCreator {
 				CreateSynonymsDialog dialog = new CreateSynonymsDialog(termsGrid, row, row.getLead(), termsGrid.getType());
 				dialog.show();
 			}
-		});
+		});*/
 		
 		//menu.add(removeRowItem);
 		menu.add(addItem);
@@ -173,7 +173,7 @@ public class DefaultMenuCreator implements LeadCell.MenuCreator {
 		menu.add(removeAllItem);
 		menu.add(closeItem);
 		menu.add(filterItem);
-		menu.add(synonymsItem);
+		//menu.add(synonymsItem);
 		menu.add(context);
 		
 		return menu;

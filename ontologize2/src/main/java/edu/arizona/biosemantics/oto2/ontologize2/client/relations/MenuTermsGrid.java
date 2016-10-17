@@ -517,10 +517,6 @@ public class MenuTermsGrid extends TermsGrid {
 						continue;
 					Vertex target = new Vertex(terms[i].trim());
 					
-					if(g.isClosedRelations(source, type)) {
-						throw new Exception("Can not create relation for a closed row.");
-					}
-					
 					if(alreadyAttached.contains(target)) {
 						Edge rootEdge = new Edge(g.getRoot(type), target, type, Origin.USER);
 						if(g.existsRelation(rootEdge)) {

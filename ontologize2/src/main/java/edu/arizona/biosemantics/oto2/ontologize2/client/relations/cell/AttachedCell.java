@@ -159,7 +159,7 @@ public class AttachedCell extends MenuExtendedCell<Row> {
 			}
 		});
 		
-		MenuItem synonymsItem = new MenuItem("Make synonyms");
+		/*MenuItem synonymsItem = new MenuItem("Make synonyms");
 		synonymsItem.addSelectionHandler(new SelectionHandler<Item>() {
 			@Override
 			public void onSelection(SelectionEvent<Item> event) {
@@ -167,11 +167,11 @@ public class AttachedCell extends MenuExtendedCell<Row> {
 				CreateSynonymsDialog dialog = new CreateSynonymsDialog(termsGrid, row, r.getDest(), termsGrid.getType());
 				dialog.show();
 			}
-		});
+		});*/
 		
 		menu.add(removeItem);
 		menu.add(filterItem);
-		menu.add(synonymsItem);
+		//menu.add(synonymsItem);
 		menu.add(context);
 		return menu;
 	}

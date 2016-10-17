@@ -8,10 +8,14 @@ import java.util.List;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.Style.BorderStyle;
 import com.google.gwt.dom.client.Style.Unit;
+import com.google.gwt.event.logical.shared.SelectionEvent;
+import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
 import com.sencha.gxt.core.client.ValueProvider;
+import com.sencha.gxt.core.client.Style.Anchor;
+import com.sencha.gxt.core.client.Style.AnchorAlignment;
 import com.sencha.gxt.dnd.core.client.DndDragStartEvent;
 import com.sencha.gxt.dnd.core.client.DndDropEvent;
 import com.sencha.gxt.dnd.core.client.GridDragSource;
@@ -23,14 +27,19 @@ import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.SimpleContainer;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
+import com.sencha.gxt.widget.core.client.menu.Item;
+import com.sencha.gxt.widget.core.client.menu.Menu;
+import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
 import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
+import edu.arizona.biosemantics.oto2.ontologize2.client.common.CompositeModifyEventForSynonymCreator;
 import edu.arizona.biosemantics.oto2.ontologize2.client.common.TextAreaMessageBox;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CompositeModifyEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.ShowRelationsEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.RemoveMode;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid.Row;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.cell.DefaultMenuCreator;
@@ -72,32 +81,6 @@ public class SynonymsGrid extends MenuTermsGrid {
 		});
 		
 		buttonBar.insert(addButton, 0);
-	}
-	
-	@Override
-	public void fire(GwtEvent<? extends EventHandler> e) {
-		if(e instanceof CreateRelationEvent) {
-			final CreateRelationEvent createRelationEvent = (CreateRelationEvent)e;
-			OntologyGraph g = ModelController.getCollection().getGraph();
-			for(Edge r : createRelationEvent.getRelations()) {
-				try {
-					g.isValidSynonym(r);
-					eventBus.fireEvent(createRelationEvent);
-				} catch(Exception ex) {
-					final MessageBox box = Alerter.showAlert("Create synonym", ex.getMessage());
-					box.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
-						@Override
-						public void onSelect(SelectEvent event) {
-							box.hide();
-						}
-					});
-				}
-			}
-		} else if(e instanceof RemoveRelationEvent) {
-			eventBus.fireEvent(e);
-		} else {
-			eventBus.fireEvent(e);
-		}
 	}
 	
 	@Override
@@ -226,13 +209,23 @@ public class SynonymsGrid extends MenuTermsGrid {
 		if(oldRelation.getSrc().equals(g.getRoot(type))) {
 			return;
 		} else {
-			if(g.isClosedRelations(oldRelation.getSrc(), type)) {
-				Alerter.showAlert("Create Relation", "Can not create relation for a closed row.");
-				return;
-			}
 			fire(new ReplaceRelationEvent(oldRelation, g.getRoot(type)));
 			//fire(new RemoveRelationEvent(false, oldRelation));
 			//fire(new CreateRelationEvent(new Edge(g.getRoot(type), oldRelation.getDest(), type, Origin.USER)));
 		}	
+	}
+	
+	@Override
+	protected void onEdgeOnGridDrop(final Edge dropEdge, Element element, final Row row, final Vertex targetVertex) {		
+		if(row.getAttached().contains(dropEdge)) {
+			Alerter.showAlert("Create Relation", "" + dropEdge.getDest() + " is already a " + 
+				type.getTargetLabel() + " of " + row.getLead());
+		} else if(containedInSubtree(row.getLead(), dropEdge.getDest(), type)) {
+			Alerter.showAlert("Creat Relation", 
+					"Cannot make " + dropEdge.getDest() + " a "+ type.getTargetLabel() + " of " + row.getLead() + ". "
+							+ "This would create a circular relationship.");
+		} else {
+			fire(new ReplaceRelationEvent(dropEdge, row.getLead()));
+		}
 	}
 }
