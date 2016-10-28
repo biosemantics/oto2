@@ -27,7 +27,7 @@ public class ReplaceRelationValidator {
 	
 	public void validateAndFire(ReplaceRelationEvent event) {
 		OntologyGraph g = ModelController.getCollection().getGraph();
-		if(g.isClosedRelations(event.getOldRelation().getSrc(), event.getOldRelation().getType())) {
+		if(g.isClosedRelations(event.getOldRelation().getSrc(), event.getOldRelation().getType()) || g.isClosedRelations(event.getNewSource(), event.getOldRelation().getType())) {
 			Alerter.showAlert("Create Relation", "Can not create relation for a closed row.");
 			return;
 		}

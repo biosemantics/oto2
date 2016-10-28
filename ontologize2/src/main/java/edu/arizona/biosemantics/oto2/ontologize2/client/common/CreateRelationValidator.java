@@ -54,6 +54,7 @@ public class CreateRelationValidator {
 		for(final Edge r : event.getRelations()) {
 			if(g.isClosedRelations(r.getSrc(), r.getType())) {
 				Alerter.showAlert("Create Relation", "Can not create relation for a closed row.");
+				return;
 			}
 			
 			switch(r.getType()) {

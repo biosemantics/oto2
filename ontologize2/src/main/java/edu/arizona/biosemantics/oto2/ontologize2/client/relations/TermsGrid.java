@@ -386,7 +386,9 @@ public class TermsGrid implements IsWidget {
 				Row row = store.get(targetRowIndex);
 				int targetColIndex = grid.getView().findCellIndex(element, null);
 				
-				if(row != null) {
+				if(row == null) {
+					onCreateRowDrop(event);
+				} else {
 					if(event.getData() instanceof List<?>) {
 						List<?> list = (List<?>)event.getData();
 						for(Object item : list) {
@@ -419,38 +421,7 @@ public class TermsGrid implements IsWidget {
 			dropTargetNewRow.addDropHandler(new DndDropHandler() {
 				@Override
 				public void onDrop(DndDropEvent event) {
-					if(event.getData() instanceof List<?>) {						
-						List<?> list = (List<?>)event.getData();
-						if(!list.isEmpty()) {
-							for(Object obj : list) {
-								if(obj instanceof Candidate) {
-									Candidate candidate = (Candidate)obj;
-									Vertex source = new Vertex(type.getRootLabel());
-									Vertex target = new Vertex(candidate.getText());
-									Set<Row> attachedRows = TermsGrid.this.getRowsWhereIncluded(target);
-									if(attachedRows.isEmpty()) {
-										Edge relation = new Edge(source, target, type, Origin.USER);
-										
-										if(ModelController.getCollection().getGraph().isClosedRelations(source, type)) {
-											Alerter.showAlert("Create Relation", "Can not create relation for a closed row.");
-											return;
-										}
-										CreateRelationEvent createRelationEvent = new CreateRelationEvent(relation);
-										fire(createRelationEvent);
-									} else {
-										if(!TermsGrid.this.leadRowMap.containsKey(target))
-											TermsGrid.this.addRow(new Row(type, target), true);
-									}
-								}
-								else if(obj instanceof Edge) {
-									createRowFromEdgeDrop((Edge)obj);
-								}
-							}
-						}
-					}
-					if(event.getData() instanceof Edge) {
-						createRowFromEdgeDrop((Edge)event.getData());
-					}
+					onCreateRowDrop(event);
 				}
 			});
 			dropTargetNewRow.setOperation(Operation.COPY);
@@ -472,37 +443,43 @@ public class TermsGrid implements IsWidget {
 		bindEvents();
 	}
 
+	protected void onCreateRowDrop(DndDropEvent event) {
+		if(event.getData() instanceof List<?>) {						
+			List<?> list = (List<?>)event.getData();
+			if(!list.isEmpty()) {
+				for(Object obj : list) {
+					if(obj instanceof Candidate) {
+						Candidate candidate = (Candidate)obj;
+						Vertex source = new Vertex(type.getRootLabel());
+						Vertex target = new Vertex(candidate.getText());
+						Set<Row> attachedRows = TermsGrid.this.getRowsWhereIncluded(target);
+						if(attachedRows.isEmpty()) {
+							Edge relation = new Edge(source, target, type, Origin.USER);
+							
+							if(ModelController.getCollection().getGraph().isClosedRelations(source, type)) {
+								Alerter.showAlert("Create Relation", "Can not create relation for a closed row.");
+								return;
+							}
+							CreateRelationEvent createRelationEvent = new CreateRelationEvent(relation);
+							fire(createRelationEvent);
+						} else {
+							if(!TermsGrid.this.leadRowMap.containsKey(target))
+								TermsGrid.this.addRow(new Row(type, target), true);
+						}
+					}
+					else if(obj instanceof Edge) {
+						createRowFromEdgeDrop((Edge)obj);
+					}
+				}
+			}
+		}
+		if(event.getData() instanceof Edge) {
+			createRowFromEdgeDrop((Edge)event.getData());
+		}
+	}
+
 	protected void onEdgeOnGridDrop(final Edge dropEdge, Element element, final Row row, final Vertex targetVertex) {
-		Menu menu = new Menu();
 		
-		MenuItem typeRelation = new MenuItem("Create " + type.getTargetLabel());
-		typeRelation.addSelectionHandler(new SelectionHandler<Item>() {
-			@Override
-			public void onSelection(SelectionEvent<Item> event) {
-				fire(new ReplaceRelationEvent(dropEdge, targetVertex));
-				/*if(row.getAttached().contains(dropEdge)) {
-					Alerter.showAlert("Create Relation", "" + dropEdge.getDest() + " is already a " + 
-							type.getTargetLabel() + " of " + row.getLead());
-				} else if(containedInSubtree(row.getLead(), dropEdge.getDest())) {
-					Alerter.showAlert("Creat Relation", 
-							"Cannot make " + dropEdge.getDest() + " a "+ type.getTargetLabel() + " of " + row.getLead() + ". "
-									+ "This would create a circular relationship.");
-				} else {
-					fire(new ReplaceRelationEvent(dropEdge, row.getLead()));
-				}*/
-			}
-		});
-		menu.add(typeRelation);
-		
-		MenuItem synonym = new MenuItem("Create synonym");
-		synonym.addSelectionHandler(new SelectionHandler<Item>() {
-			@Override
-			public void onSelection(SelectionEvent<Item> event) {
-				fire(new CreateRelationEvent(new Edge(targetVertex, dropEdge.getDest(), Type.SYNONYM_OF, Origin.USER)));
-			}
-		});
-		menu.add(synonym);
-		menu.show(element, new AnchorAlignment(Anchor.TOP_LEFT, Anchor.BOTTOM_LEFT, true));
 	}
 
 	protected boolean containedInSubtree(Vertex search, Vertex source, Type type) {

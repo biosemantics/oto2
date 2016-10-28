@@ -2,6 +2,7 @@ package edu.arizona.biosemantics.oto2.ontologize2.client.tree;
 
 import java.util.Comparator;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
 
@@ -19,14 +20,18 @@ import com.sencha.gxt.data.shared.Store;
 import com.sencha.gxt.data.shared.Store.StoreFilter;
 import com.sencha.gxt.data.shared.Store.StoreSortInfo;
 import com.sencha.gxt.messages.client.DefaultMessages;
+import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
 import com.sencha.gxt.widget.core.client.box.MessageBox;
+import com.sencha.gxt.widget.core.client.box.PromptMessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
 import com.sencha.gxt.widget.core.client.event.BeforeShowEvent;
 import com.sencha.gxt.widget.core.client.event.CheckChangeEvent;
+import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.BeforeShowEvent.BeforeShowHandler;
 import com.sencha.gxt.widget.core.client.event.CheckChangeEvent.CheckChangeHandler;
+import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.form.CheckBox;
 import com.sencha.gxt.widget.core.client.form.TextField;
 import com.sencha.gxt.widget.core.client.menu.CheckMenuItem;
@@ -37,11 +42,15 @@ import com.sencha.gxt.widget.core.client.toolbar.ToolBar;
 
 import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.CloseRelationsEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.OrderEdgesEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.SelectTermEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.SortEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent.FilterTarget;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.RemoveMode;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.SortEvent.SortField;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.SortEvent.SortTarget;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.MenuTermsGrid;
@@ -51,6 +60,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Vertex;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Origin;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Type;
 
 public class MenuTreeView extends TreeView {
@@ -349,6 +359,101 @@ public class MenuTreeView extends TreeView {
 			public void onBeforeShow(BeforeShowEvent event) {
 				menu.clear();
 				if(!treeGrid.getSelectionModel().getSelectedItems().isEmpty()) {
+					final VertexTreeNode targetNode = treeGrid.getSelectionModel().getSelectedItem();
+					final VertexTreeNode parentNode = subTree.getStore().getParent(targetNode);
+					final Vertex parent = parentNode.getVertex();
+					final Vertex target = targetNode.getVertex();
+					final boolean closedTarget = 
+							ModelController.getCollection().getGraph().isClosedRelations(target, type);
+					final boolean closedParent = 
+							ModelController.getCollection().getGraph().isClosedRelations(parent, type);
+					
+					final MenuItem addItem = new MenuItem("Add " + type.getTargetLabel());
+					addItem.addSelectionHandler(new SelectionHandler<Item>() {
+						@Override
+						public void onSelection(SelectionEvent<Item> event) {
+							OntologyGraph g = ModelController.getCollection().getGraph();
+							if(g.isClosedRelations(target, type)) {
+								Alerter.showAlert("Create Relation", "Can not create relation for a closed row.");
+								return;
+							}
+							
+							final PromptMessageBox box = Alerter.showPromptMessageBox("Add " + type.getTargetLabel(), 
+									"Add " + type.getTargetLabel());
+							box.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
+								@Override
+								public void onSelect(SelectEvent event) {
+									String text = box.getTextField().getText().trim();
+									if(text.isEmpty())
+										Alerter.showAlert("Add " + type.getTargetLabel(), "Cannot create empty " + type.getTargetLabel());
+									else
+										fire(new CreateRelationEvent(
+												new Edge(target, new Vertex(box.getTextField().getText()), type, Origin.USER)));
+								}
+							});
+						}
+					});
+					addItem.setEnabled(!closedTarget);
+					menu.add(addItem);
+					
+					final MenuItem removeAllItem = new MenuItem("Remove all " + type.getTargetLabelPlural());
+					removeAllItem.addSelectionHandler(new SelectionHandler<Item>() {
+						@Override
+						public void onSelection(SelectionEvent<Item> event) {
+							OntologyGraph g = ModelController.getCollection().getGraph();
+							for(final Edge r : g.getOutRelations(target, type)) {
+								if(g.getInRelations(r.getDest(), type).size() <= 1) {
+									if(g.getOutRelations(r.getDest(), type).isEmpty()) {
+										fire(new RemoveRelationEvent(RemoveMode.REATTACH_TO_AVOID_LOSS, r));
+									} else {
+										doAskForRecursiveRemoval(r);
+									}
+								} else {
+									fire(new RemoveRelationEvent(RemoveMode.REATTACH_TO_AVOID_LOSS, r));
+								}
+							}
+						}
+					});
+					removeAllItem.setEnabled(!closedTarget);
+					menu.add(removeAllItem);
+					
+					MenuItem removeItem = new MenuItem("Remove this " + type.getTargetLabel());
+					removeItem.addSelectionHandler(new SelectionHandler<Item>() {
+						@Override
+						public void onSelection(SelectionEvent<Item> event) {
+							OntologyGraph g = ModelController.getCollection().getGraph();
+							Edge r = g.getEdge(parentNode.getVertex(), target, type);
+							if(r != null) {
+								if(g.isClosedRelations(r.getDest(), type)) {
+									Alerter.showAlert("Create Relation", "Can not create relation for a closed row.");
+									return;
+								}
+								
+								if(g.getInRelations(r.getDest(), type).size() <= 1) {
+									if(g.getOutRelations(r.getDest(), type).isEmpty()) {
+										fire(new RemoveRelationEvent(RemoveMode.REATTACH_TO_AVOID_LOSS, r));
+									} else {
+										doAskForRecursiveRemoval(r);
+									}
+								} else {
+									fire(new RemoveRelationEvent(RemoveMode.REATTACH_TO_AVOID_LOSS, r));
+								}
+							}
+						}
+					});
+					removeItem.setEnabled(!closedParent);
+					menu.add(removeItem);
+					
+					final CheckMenuItem closeItem = new CheckMenuItem("Close");
+					closeItem.setChecked(closedTarget);
+					closeItem.addSelectionHandler(new SelectionHandler<Item>() {
+						@Override
+						public void onSelection(SelectionEvent<Item> event) {
+							fire(new CloseRelationsEvent(target, type, !closedTarget)); 
+						}
+					});
+					menu.add(closeItem);
+					
 					final MenuItem filterItem = new MenuItem("Filter: " + 
 							treeGrid.getSelectionModel().getSelectedItem().getText());
 					Menu filterMenu = new Menu();
@@ -396,6 +501,44 @@ public class MenuTreeView extends TreeView {
 		});
 		
 		return menu;
+	}
+	
+	protected void doAskForRecursiveRemoval(final Edge relation) {
+		OntologyGraph g = ModelController.getCollection().getGraph();
+		List<Vertex> targets = new LinkedList<Vertex>();
+		for(Edge r : g.getOutRelations(relation.getDest(), type)) 
+			targets.add(r.getDest());
+		final MessageBox box = Alerter.showYesNoCancelConfirm("Remove " + type.getTargetLabel(), 
+				"You are about to remove " + type.getTargetLabel() + "<i>" + relation.getDest() + "</i>"
+				+ " from <i>" + relation.getSrc() + "</i>.\n" +
+				"Do you want to remove all " + type.getTargetLabelPlural() + " of <i>" + relation.getDest() + "</i> (Yes)" +
+				" or make them instead a " + type.getTargetLabel() + " of <i>" + relation.getSrc() + "</i> (No)?");
+		box.getButton(PredefinedButton.YES).addSelectHandler(new SelectHandler() {
+			@Override
+			public void onSelect(SelectEvent event) {
+				fire(new RemoveRelationEvent(RemoveMode.RECURSIVE, relation));
+				/*for(GwtEvent<Handler> e : createRemoveEvents(true, relation)) {
+					termsGrid.fire(e);
+				}*/
+				box.hide();
+			}
+		});
+		box.getButton(PredefinedButton.NO).addSelectHandler(new SelectHandler() {
+			@Override
+			public void onSelect(SelectEvent event) {
+				fire(new RemoveRelationEvent(RemoveMode.REATTACH_TO_AVOID_LOSS, relation));
+				/*for(GwtEvent<Handler> e : createRemoveEvents(false, relation)) {
+					termsGrid.fire(e);
+				}*/
+				box.hide();
+			}
+		});
+		box.getButton(PredefinedButton.CANCEL).addSelectHandler(new SelectHandler() {
+			@Override
+			public void onSelect(SelectEvent event) {
+				box.hide();
+			}
+		});
 	}
 	
 	@Override

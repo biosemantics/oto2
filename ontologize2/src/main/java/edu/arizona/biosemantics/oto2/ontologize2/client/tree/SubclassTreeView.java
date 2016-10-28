@@ -9,23 +9,37 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
+import com.google.gwt.dom.client.Element;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.event.shared.GwtEvent;
+import com.sencha.gxt.core.client.Style.Anchor;
+import com.sencha.gxt.core.client.Style.AnchorAlignment;
 import com.sencha.gxt.data.shared.TreeStore;
 import com.sencha.gxt.data.shared.TreeStore.TreeNode;
+import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
 import com.sencha.gxt.widget.core.client.box.MessageBox;
+import com.sencha.gxt.widget.core.client.box.PromptMessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
+import com.sencha.gxt.widget.core.client.event.BeforeShowEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
+import com.sencha.gxt.widget.core.client.event.BeforeShowEvent.BeforeShowHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
+import com.sencha.gxt.widget.core.client.menu.CheckMenuItem;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
 import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent.FilterTarget;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.RemoveMode;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.CloseRelationsEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.SelectTermEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.Handler;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid.Row;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.VertexTreeNode;
@@ -46,6 +60,8 @@ public class SubclassTreeView extends MenuTreeView {
 		super(eventBus, Type.SUBCLASS_OF);
 	}
 
+
+	
 	@Override
 	protected void createRelation(SubTree subTree, Edge r) {
 		if(r.getType().equals(type)) {
@@ -267,5 +283,48 @@ public class SubclassTreeView extends MenuTreeView {
 		}
 		
 		expandRoot();
+	}
+	
+	@Override
+	protected void onEdgeOnGridDrop(final Edge dropEdge, final Element element, final VertexTreeNode targetNode, final Vertex targetVertex) {
+		final OntologyGraph g = ModelController.getCollection().getGraph();
+		Menu menu = new Menu();
+
+		MenuItem createSubclass = new MenuItem("Create " + type.getTargetLabel());
+		createSubclass.addSelectionHandler(new SelectionHandler<Item>() {
+			@Override
+			public void onSelection(SelectionEvent<Item> event) {
+				fire(new CreateRelationEvent(new Edge(targetVertex, dropEdge.getDest(), Type.SUBCLASS_OF, Origin.USER)));
+			}
+		});
+		menu.add(createSubclass);
+		
+		MenuItem moveSubclass = new MenuItem("Move " + type.getTargetLabel());
+		moveSubclass.addSelectionHandler(new SelectionHandler<Item>() {
+			@Override
+			public void onSelection(SelectionEvent<Item> event) {
+				fire(new ReplaceRelationEvent(dropEdge, targetVertex));
+			}
+		});
+		menu.add(moveSubclass);
+		
+		MenuItem createPart = new MenuItem("Create " + Type.PART_OF.getTargetLabel());
+		createPart.addSelectionHandler(new SelectionHandler<Item>() {
+			@Override
+			public void onSelection(SelectionEvent<Item> event) {
+				fire(new CreateRelationEvent(new Edge(targetVertex, dropEdge.getDest(), Type.PART_OF, Origin.USER)));
+			}
+		});
+		menu.add(createPart);
+		
+		MenuItem synonym = new MenuItem("Create " + Type.SYNONYM_OF.getTargetLabel());
+		synonym.addSelectionHandler(new SelectionHandler<Item>() {
+			@Override
+			public void onSelection(SelectionEvent<Item> event) {
+				fire(new CreateRelationEvent(new Edge(targetVertex, dropEdge.getDest(), Type.SYNONYM_OF, Origin.USER)));
+			}
+		});
+		menu.add(synonym);
+		menu.show(element, new AnchorAlignment(Anchor.TOP_LEFT, Anchor.BOTTOM_LEFT, true));
 	}
 }

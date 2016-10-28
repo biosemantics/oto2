@@ -10,25 +10,42 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.Element;
+import com.google.gwt.event.logical.shared.SelectionEvent;
+import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Widget;
+import com.sencha.gxt.core.client.Style.Anchor;
+import com.sencha.gxt.core.client.Style.AnchorAlignment;
 import com.sencha.gxt.core.client.Style.SelectionMode;
 import com.sencha.gxt.data.shared.Store.StoreFilter;
 import com.sencha.gxt.data.shared.Store.StoreSortInfo;
 import com.sencha.gxt.data.shared.TreeStore;
 import com.sencha.gxt.data.shared.TreeStore.TreeNode;
+import com.sencha.gxt.dnd.core.client.DndDragStartEvent;
+import com.sencha.gxt.dnd.core.client.DndDropEvent;
+import com.sencha.gxt.dnd.core.client.DropTarget;
+import com.sencha.gxt.dnd.core.client.GridDragSource;
+import com.sencha.gxt.dnd.core.client.DND.Operation;
+import com.sencha.gxt.dnd.core.client.DndDropEvent.DndDropHandler;
+import com.sencha.gxt.dnd.core.client.TreeGridDragSource;
 import com.sencha.gxt.widget.core.client.event.CellDoubleClickEvent;
 import com.sencha.gxt.widget.core.client.event.CellDoubleClickEvent.CellDoubleClickHandler;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
+import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.Menu;
+import com.sencha.gxt.widget.core.client.menu.MenuItem;
 import com.sencha.gxt.widget.core.client.tree.Tree;
 import com.sencha.gxt.widget.core.client.treegrid.TreeGrid;
 
 import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
+import edu.arizona.biosemantics.oto2.ontologize2.client.common.CreateRelationValidator;
+import edu.arizona.biosemantics.oto2.ontologize2.client.common.ReplaceRelationValidator;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ClearEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CloseRelationsEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
@@ -39,6 +56,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEven
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.VisualizationConfigurationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.VisualizationRefreshEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid.Row;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.VertexCell;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.VertexTreeNode;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.VertexTreeNodeProperties;
@@ -46,6 +64,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Candidate;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Origin;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Type;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Vertex;
 
@@ -80,7 +99,7 @@ public class TreeView implements IsWidget {
 	protected TreeGrid<VertexTreeNode> treeGrid;
 
 	
-	public TreeView(EventBus eventBus, Type type) {
+	public TreeView(EventBus eventBus, final Type type) {
 		this.eventBus = eventBus;
 		this.type = type;
 				
@@ -103,7 +122,7 @@ public class TreeView implements IsWidget {
 			}
 		}); */
 		treeGrid.getElement().setAttribute("source", "termsview");
-		treeGrid.getSelectionModel().setSelectionMode(SelectionMode.MULTI);
+		treeGrid.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
 		//treeGrid.setAutoExpand(true);
 		treeGrid.addCellDoubleClickHandler(new CellDoubleClickHandler() {
 			@Override
@@ -115,7 +134,88 @@ public class TreeView implements IsWidget {
 		});
 		treeGrid.setContextMenu(createContextMenu());
 		
+		TreeGridDragSource<VertexTreeNode> dndSource = new TreeGridDragSource<VertexTreeNode>(treeGrid) {
+			@Override
+			protected void onDragStart(DndDragStartEvent event) {
+				super.onDragStart(event);
+				OntologyGraph g = ModelController.getCollection().getGraph();
+				Tree.TreeNode<VertexTreeNode> node = treeGrid.findNode(event.getDragStartEvent().getStartElement());
+				if(node != null) {
+					VertexTreeNode parentNode = subTree.getStore().getParent(node.getModel());
+					if(parentNode != null) {
+						Vertex target = node.getModel().getVertex();	
+						Vertex parent = parentNode.getVertex();
+						Edge e = g.getEdge(parent, target, type);
+						
+						//if(inRelations.size() > 1) {
+							//Alerter.showAlert("Moving", "Moving of term with more than one " + 
+							//		type.getSourceLabelPlural() + " is not allowed"); // at this time
+							//event.setCancelled(true);
+						//	event.setData(inRelations);
+						//} else if(inRelations.size() == 1)
+						
+						event.setData(e);
+					} else {
+						Alerter.showAlert("Moving", "Cannot move the root");
+						event.setCancelled(true);
+					}
+				} else {
+					event.setCancelled(true);
+				}
+			}
+		};
+		
+		DropTarget dropTarget = new DropTarget(treeGrid);
+		dropTarget.addDropHandler(new DndDropHandler() {
+			@Override
+			public void onDrop(DndDropEvent event) {
+				OntologyGraph g = ModelController.getCollection().getGraph();
+				Element element = event.getDragEndEvent().getNativeEvent().getEventTarget().<Element> cast();
+				final Tree.TreeNode<VertexTreeNode> item = treeGrid.findNode(element);
+		        if(item != null) {
+		        	VertexTreeNode targetNode = item.getModel();
+			        Vertex target = targetNode.getVertex();
+					
+		        	if(event.getData() instanceof List<?>) {
+						List<?> list = (List<?>)event.getData();
+						for(Object o : list) {
+							if(o instanceof Candidate) {
+								Candidate c = (Candidate)o;
+								Vertex dest = new Vertex(c.getText());
+								Edge rootEdge = new Edge(g.getRoot(type), dest, type, Origin.USER);
+								if(g.existsRelation(rootEdge)) {
+									fire(new ReplaceRelationEvent(rootEdge, target));
+								} else {
+									fire(new CreateRelationEvent(new Edge(target, dest, type, Origin.USER)));
+								}
+							}
+						}
+					} else if(event.getData() instanceof Edge) {
+						Edge dropEdge = (Edge)event.getData();
+						onEdgeOnGridDrop(dropEdge, element, targetNode, target);
+					}
+				}
+			}
+		});
+		dropTarget.setOperation(Operation.COPY);
+		dropTarget.setAllowSelfAsSource(true);
+		
 		bindEvents();
+	}
+	
+	protected void onEdgeOnGridDrop(final Edge dropEdge, final Element element, final VertexTreeNode targetNode, final Vertex targetVertex) {
+		
+	}
+	
+	public void fire(GwtEvent<? extends EventHandler> e) {
+		if(e instanceof CreateRelationEvent) {
+			CreateRelationValidator createRelationValidator = new CreateRelationValidator(eventBus);
+			createRelationValidator.validateAndFire((CreateRelationEvent)e);
+		} else if(e instanceof ReplaceRelationEvent) {
+			ReplaceRelationValidator replaceRelationValidator = new ReplaceRelationValidator(eventBus);
+			replaceRelationValidator.validateAndFire((ReplaceRelationEvent)e);
+		} else 
+			eventBus.fireEvent(e);
 	}
 	
 	protected Menu createContextMenu() {

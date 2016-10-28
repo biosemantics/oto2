@@ -934,4 +934,13 @@ public class OntologyGraph implements Serializable {
 		return this.getInRelations(v, Type.SYNONYM_OF).get(0).getSrc();
 	}
 
+	public Edge getEdge(Vertex source, Vertex target, Type type) {
+		for(Edge e : graph.getOutEdges(source)) {
+			if(graph.getOpposite(source, e).equals(target))
+				if(e.getType().equals(type))
+					return e;
+	        }
+		return null;
+	}
+
 }

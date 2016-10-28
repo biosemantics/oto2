@@ -4,14 +4,25 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
+import com.google.gwt.dom.client.Element;
+import com.google.gwt.event.logical.shared.SelectionEvent;
+import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.shared.EventBus;
+import com.sencha.gxt.core.client.Style.Anchor;
+import com.sencha.gxt.core.client.Style.AnchorAlignment;
+import com.sencha.gxt.widget.core.client.menu.Item;
+import com.sencha.gxt.widget.core.client.menu.Menu;
+import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
 import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.VertexTreeNode;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Vertex;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Origin;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Type;
 
 public class PartsTreeView extends MenuTreeView {
@@ -61,6 +72,49 @@ public class PartsTreeView extends MenuTreeView {
 				}
 			}
 		}
+	}
+	
+	@Override
+	protected void onEdgeOnGridDrop(final Edge dropEdge, final Element element, final VertexTreeNode targetNode, final Vertex targetVertex) {
+		final OntologyGraph g = ModelController.getCollection().getGraph();
+		Menu menu = new Menu();
+
+		MenuItem category = new MenuItem("Create " + Type.SUBCLASS_OF.getTargetLabel());
+		category.addSelectionHandler(new SelectionHandler<Item>() {
+			@Override
+			public void onSelection(SelectionEvent<Item> event) {
+				fire(new CreateRelationEvent(new Edge(targetVertex, dropEdge.getDest(),Type.SUBCLASS_OF, Origin.USER)));
+			}
+		});
+		menu.add(category);
+		
+		MenuItem createPart = new MenuItem("Create " + type.getTargetLabel());
+		createPart.addSelectionHandler(new SelectionHandler<Item>() {
+			@Override
+			public void onSelection(SelectionEvent<Item> event) {
+				fire(new CreateRelationEvent(new Edge(targetVertex, dropEdge.getDest(), type, Origin.USER)));
+			}
+		});
+		menu.add(createPart);
+		
+		MenuItem movePart = new MenuItem("Move " + type.getTargetLabel());
+		movePart.addSelectionHandler(new SelectionHandler<Item>() {
+			@Override
+			public void onSelection(SelectionEvent<Item> event) {
+				fire(new ReplaceRelationEvent(dropEdge, targetVertex));
+			}
+		});
+		menu.add(movePart);
+		
+		MenuItem synonym = new MenuItem("Create " + Type.SYNONYM_OF.getTargetLabel());
+		synonym.addSelectionHandler(new SelectionHandler<Item>() {
+			@Override
+			public void onSelection(SelectionEvent<Item> event) {
+				fire(new CreateRelationEvent(new Edge(targetVertex, dropEdge.getDest(), Type.SYNONYM_OF, Origin.USER)));
+			}
+		});
+		menu.add(synonym);
+		menu.show(element, new AnchorAlignment(Anchor.TOP_LEFT, Anchor.BOTTOM_LEFT, true));
 	}
 
 
