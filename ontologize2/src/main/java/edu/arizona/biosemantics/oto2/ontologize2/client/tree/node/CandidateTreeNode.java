@@ -11,21 +11,11 @@ public class CandidateTreeNode extends TextTreeNode {
 	private Candidate candidate;
 
 	public CandidateTreeNode(Candidate candidate) {
+		super(candidate.getText());
 		this.candidate = candidate;
 	}
 	
-	@Override
-	public String getText() {
-		return candidate.getText();
-	}
-
 	public Candidate getCandidate() {
 		return candidate;
-	}
-	
-	@Override
-	public String getId() {
-		return "candidate-" + candidate.getPath() + "/" + candidate.getText();
-	}
-	
+	}	
 }

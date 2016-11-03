@@ -1,9 +1,12 @@
 package edu.arizona.biosemantics.oto2.ontologize2.client.candidate;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -14,9 +17,14 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.KeyCodes;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
+import com.google.gwt.event.shared.EventHandler;
+import com.google.gwt.event.shared.GwtEvent;
+import com.google.gwt.safehtml.client.SafeHtmlTemplates;
+import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.client.Event;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.web.bindery.event.shared.EventBus;
 import com.sencha.gxt.core.client.IdentityValueProvider;
 import com.sencha.gxt.core.client.Style.SelectionMode;
@@ -30,7 +38,7 @@ import com.sencha.gxt.dnd.core.client.DndDragStartEvent;
 import com.sencha.gxt.dnd.core.client.TreeDragSource;
 import com.sencha.gxt.messages.client.DefaultMessages;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
-import com.sencha.gxt.widget.core.client.box.MultiLinePromptMessageBox;
+import com.sencha.gxt.widget.core.client.box.MessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.HorizontalLayoutData;
@@ -38,8 +46,8 @@ import com.sencha.gxt.widget.core.client.container.SimpleContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
 import com.sencha.gxt.widget.core.client.event.BeforeShowEvent;
-import com.sencha.gxt.widget.core.client.event.CheckChangeEvent;
 import com.sencha.gxt.widget.core.client.event.BeforeShowEvent.BeforeShowHandler;
+import com.sencha.gxt.widget.core.client.event.CheckChangeEvent;
 import com.sencha.gxt.widget.core.client.event.CheckChangeEvent.CheckChangeHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
@@ -54,34 +62,60 @@ import com.sencha.gxt.widget.core.client.tree.Tree;
 
 import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
-import edu.arizona.biosemantics.oto2.ontologize2.client.common.TextAreaMessageBox;
-import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateCandidateEvent;
-import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent;
-import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent.FilterTarget;
+import edu.arizona.biosemantics.oto2.ontologize2.client.common.CreateRelationValidator;
+import edu.arizona.biosemantics.oto2.ontologize2.client.common.ReplaceRelationValidator;
+import edu.arizona.biosemantics.oto2.ontologize2.client.common.cell.CellImages;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ClearEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateCandidateEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent.FilterTarget;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveCandidateEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.SelectTermEvent;
-import edu.arizona.biosemantics.oto2.ontologize2.client.relations.MenuTermsGrid;
-import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid.Row;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.BucketTreeNode;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.CandidateTreeNode;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.TextTreeNode;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.TextTreeNodeProperties;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.ICollectionService;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.ICollectionServiceAsync;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Candidate;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.CandidatePatternResult;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Origin;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Type;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Vertex;
 
 public class CandidateView extends SimpleContainer {
 
+	public interface CellTemplate extends SafeHtmlTemplates {
+		@SafeHtmlTemplates.Template(""
+				+ "<div style=\"height: 17px; padding: 2px 2px 0px 2px;\">"
+				+ "<div id=\"wide\" style=\"float: right; width: calc(100% - 10px); color:{1}\">"
+				+ "{0} {3}"
+				+ "</div>"
+				+ "<div id=\"narrow\"  style=\"float: left; width: 10px;\">"
+				+ ""
+				+ ""
+				+ "<div style=\"right:0px; top:6px; width:4px; height:4px; background-image: {2}\" ></div>"
+				+ ""
+				+ ""
+				+ "</div>"
+				+ "</div>"
+				)
+		SafeHtml cell(String value,	String textColor, String patternIcon, String numberOfPatterns);
+	}
+	
+	
+	private static CellImages cellImages = GWT.create(CellImages.class);
+	protected static CellTemplate cellTemplate = GWT.create(CellTemplate.class);
 	private static final TextTreeNodeProperties textTreeNodeProperties = GWT.create(TextTreeNodeProperties.class);
-	
-	
-	
+
+	private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
 	private Tree<TextTreeNode, TextTreeNode> tree;
 	private TreeStore<TextTreeNode> treeStore;
 	private Map<String, CandidateTreeNode> candidateNodeMap = new HashMap<String, CandidateTreeNode>();
@@ -152,10 +186,11 @@ public class CandidateView extends SimpleContainer {
 			onFilter(filter);
 		}
 	};
-
-
-
+	
 	private TextField addTermsField;
+
+	protected Map<Candidate, List<CandidatePatternResult>> candidatePatterns = 
+			new HashMap<Candidate, List<CandidatePatternResult>>();
 	
 	private CandidateView() {
 		treeStore = new TreeStore<TextTreeNode>(textTreeNodeProperties.key());
@@ -168,14 +203,27 @@ public class CandidateView extends SimpleContainer {
 		}, SortDir.ASC));
 		tree = new Tree<TextTreeNode, TextTreeNode>(treeStore, new IdentityValueProvider<TextTreeNode>());
 		tree.setIconProvider(new TermTreeNodeIconProvider());
+		
 		tree.setCell(new AbstractCell<TextTreeNode>() {
 			@Override
 			public void render(com.google.gwt.cell.client.Cell.Context context,	TextTreeNode value, SafeHtmlBuilder sb) {
+				String patternIcon = "";
+				String numberOfPatterns = "";
+				if(value instanceof CandidateTreeNode) {
+					Candidate candidate = ((CandidateTreeNode) value).getCandidate();
+					if(candidatePatterns.containsKey(candidate)) {
+						List<CandidatePatternResult> patterns = candidatePatterns.get(candidate);
+						if(!patterns.isEmpty()) {
+							patternIcon = "url(" + cellImages.blue().getSafeUri().asString() + ")";
+							numberOfPatterns = "(" + patterns.size() + " Patterns)";
+						}
+					}
+				}
 				OntologyGraph g = ModelController.getCollection().getGraph();
 				if(g.getVertex(value.getText()) != null)
-					sb.append(SafeHtmlUtils.fromTrustedString("<div style=\"color:gray;\">" + value.getText() +  "</div>"));
+					sb.append(cellTemplate.cell(value.getText(), "gray", patternIcon, numberOfPatterns));
 				else
-					sb.append(SafeHtmlUtils.fromTrustedString("<div >" + value.getText() +  "</div>"));
+					sb.append(cellTemplate.cell(value.getText(), "", patternIcon, numberOfPatterns));	
 			}
 		});
 		tree.getElement().setAttribute("source", "termsview");
@@ -341,6 +389,17 @@ public class CandidateView extends SimpleContainer {
 		this.add(vlc);
 	}
 	
+	public void fire(GwtEvent<? extends EventHandler> e) {
+		if(e instanceof CreateRelationEvent) {
+			CreateRelationValidator createRelationValidator = new CreateRelationValidator(eventBus);
+			createRelationValidator.validateAndFire((CreateRelationEvent)e);
+		} else if(e instanceof ReplaceRelationEvent) {
+			ReplaceRelationValidator replaceRelationValidator = new ReplaceRelationValidator(eventBus);
+			replaceRelationValidator.validateAndFire((ReplaceRelationEvent)e);
+		} else 
+			eventBus.fireEvent(e);
+	}
+	
 	protected void onFilter(final String text) {
 		if(checkFilterItem.isChecked()) {
 			treeStore.removeFilters();
@@ -365,7 +424,83 @@ public class CandidateView extends SimpleContainer {
 				menu.clear();
 				
 				if(!tree.getSelectionModel().getSelectedItems().isEmpty()) {
-					final String text = tree.getSelectionModel().getSelectedItem().getText();
+					TextTreeNode node = tree.getSelectionModel().getSelectedItem();
+					Candidate candidate = null;
+					if(node instanceof CandidateTreeNode) 
+						candidate = ((CandidateTreeNode) node).getCandidate();
+					final String text = node.getText();
+					
+					final Candidate c = candidate;
+					if(candidate != null && candidatePatterns != null && candidatePatterns.containsKey(candidate)) {
+						MenuItem showPatterns = new MenuItem("Show patterns");
+						showPatterns.addSelectionHandler(new SelectionHandler<Item>() {
+							@Override
+							public void onSelection(SelectionEvent<Item> event) {
+								final CreateRelationsFromCandidateDialog dialog = new CreateRelationsFromCandidateDialog(c, 
+										candidatePatterns.get(c));
+								dialog.show();
+								dialog.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
+									@Override
+									public void onSelect(SelectEvent event) {
+										OntologyGraph g = ModelController.getCollection().getGraph();
+										Set<Vertex> futureContained = new HashSet<Vertex>();
+										for(Edge e : order(dialog.getSelectedEdges())) {
+											if(!g.containsVertex(e.getSrc()) && !futureContained.contains(e.getSrc()))  {
+												Edge srcEdge = new Edge(g.getRoot(e.getType()), 
+														e.getSrc(), e.getType(), Origin.USER);
+												futureContained.add(e.getSrc());
+												fire(new CreateRelationEvent(srcEdge));
+											}
+											
+											Edge rootEdge = new Edge(g.getRoot(e.getType()), e.getDest(), e.getType(), Origin.USER);
+											if(g.existsRelation(rootEdge)) {
+												fire(new ReplaceRelationEvent(rootEdge, e.getSrc()));
+											} else {
+												futureContained.add(e.getDest());
+												fire(new CreateRelationEvent(e));
+											}
+										}
+									}
+
+									private List<Edge> order(List<Edge> edges) {
+										List<Edge> copy = new ArrayList<Edge>(edges);
+										List<Edge> result = new LinkedList<Edge>(); 
+										Set<Vertex> contained = new HashSet<Vertex>();
+										
+										boolean first = true;
+										while(!copy.isEmpty()) {
+											Iterator<Edge> it = copy.iterator();
+											while(it.hasNext()) {
+												Edge e = it.next();
+												if(contained.contains(e.getSrc())) {
+													it.remove();
+													result.add(e);
+													contained.add(e.getDest());
+												} else if(first) {
+													boolean incomingEdge = false;
+													for(Edge e2 : copy) {
+														if(!e2.equals(e) && e2.getDest().equals(e.getSrc())) {
+															incomingEdge = true;
+															break;
+														}
+													}
+													if(!incomingEdge) {
+														it.remove();
+														result.add(e);
+														contained.add(e.getSrc());
+														contained.add(e.getDest());
+													}
+												}
+											}
+											first = false;
+										}
+										return result;
+									}
+								});
+							}
+						});
+						menu.add(showPatterns);
+					}
 					
 					MenuItem filterItem = new MenuItem("Filter: " + text);
 					Menu filterMenu = new Menu();
@@ -476,6 +611,7 @@ public class CandidateView extends SimpleContainer {
 							}
 						}
 					}
+					updateCandidates();
 				}
 			}
 		});
@@ -493,6 +629,7 @@ public class CandidateView extends SimpleContainer {
 							}
 						}
 					}
+					updateCandidates();
 				}
 			}
 		});
@@ -502,20 +639,71 @@ public class CandidateView extends SimpleContainer {
 				if(event.isEffectiveInModel()) {
 					for(TextTreeNode node : treeStore.getAll())
 						treeStore.update(node);
+					updateCandidates();
 				}
 			}
 		});
 	}
 	
-	public void setCollection(Collection collection) {
+	private void updateCandidate(final Candidate candidate) {
+		final MessageBox box = Alerter.startLoading();
+		if(!candidatePatterns.containsKey(candidate)) {
+			candidatePatterns.put(candidate, new LinkedList<CandidatePatternResult>());
+		}
+		collectionService.getCandidatePatternResults(ModelController.getCollection().getId(), 
+				ModelController.getCollection().getSecret(), candidate, new AsyncCallback<List<CandidatePatternResult>>() {
+					@Override
+					public void onFailure(Throwable caught) {
+						Alerter.showAlert("Update candidate", "Updating candidate failed.", caught);
+						Alerter.stopLoading(box);
+					}
+					@Override
+					public void onSuccess(List<CandidatePatternResult> result) {
+						candidatePatterns.get(candidate).addAll(result);
+						updateNode(candidate);
+						Alerter.stopLoading(box);
+					}
+		});
+	}
+	
+	protected void updateCandidates() {
+		final MessageBox box = Alerter.startLoading();
+		collectionService.getCandidatePatternResults(ModelController.getCollection().getId(), ModelController.getCollection().getSecret(), 
+				new AsyncCallback<Map<Candidate, List<CandidatePatternResult>>>() {
+					@Override
+					public void onFailure(Throwable caught) {
+						Alerter.showAlert("Update candidates", "Updating candidates failed.", caught);
+						Alerter.stopLoading(box);
+					}
+					@Override
+					public void onSuccess(Map<Candidate, List<CandidatePatternResult>> result) {
+						CandidateView.this.candidatePatterns = result;
+						updateNodes();
+						Alerter.stopLoading(box);
+					}
+		});
+	}
+
+	public void setCollection(final Collection collection) {
 		tree.getStore().clear();
 		candidateNodeMap.clear();
 		bucketNodesMap.clear();
 		add(collection.getCandidates());
 	}
 
+	protected void updateNodes() {
+		for(TextTreeNode node : tree.getStore().getAll()) {
+			treeStore.update(node);
+		}
+	}
+	
+	protected void updateNode(Candidate candidate) {
+		treeStore.update(candidateNodeMap.get(candidate.getText()));
+	}
+
 	protected void remove(Iterable<Candidate> candidates) {
-		for(Candidate candidate : candidates)
+		for(Candidate candidate : candidates) {
+			candidatePatterns.remove(candidate);
 			if(candidateNodeMap.containsKey(candidate.getText())) {
 				CandidateTreeNode candidateNode = candidateNodeMap.get(candidate.getText());
 				TextTreeNode bucket = treeStore.getParent(candidateNode);
@@ -524,6 +712,7 @@ public class CandidateView extends SimpleContainer {
 				if(bucket != null && treeStore.getChildCount(bucket) == 0)
 					remove(bucket);
 			}
+		}
 	}
 
 	private void remove(TextTreeNode bucket) {
@@ -535,11 +724,10 @@ public class CandidateView extends SimpleContainer {
 	}
 
 	private void add(Iterable<Candidate> candidates) {
-		for(Candidate candidate : candidates) {
-			if(!contains(candidate)) {
-				createBucketNodes(candidate.getPath());
-				addTermTreeNode(bucketNodesMap.get(candidate.getPath()), new CandidateTreeNode(candidate));
-			}
+		for(final Candidate candidate : candidates) {
+			createBucketNodes(candidate.getPath());
+			addTermTreeNode(bucketNodesMap.get(candidate.getPath()), new CandidateTreeNode(candidate));
+			updateCandidate(candidate);
 		}
 	}
 

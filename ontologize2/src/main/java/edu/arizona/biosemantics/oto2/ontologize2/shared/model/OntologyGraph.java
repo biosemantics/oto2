@@ -943,4 +943,14 @@ public class OntologyGraph implements Serializable {
 		return null;
 	}
 
+	public void addRelations(Edge[] relations) throws Exception {
+		for(Edge r : relations)
+			this.addRelation(r);
+	}
+
+	public void removeRelations(Edge[] relations, RemoveMode removeMode) throws Exception {
+		for(Edge r : relations)
+			this.removeRelation(r, removeMode);
+	}
+
 }

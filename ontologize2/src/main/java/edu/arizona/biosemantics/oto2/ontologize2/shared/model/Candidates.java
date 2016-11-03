@@ -58,7 +58,7 @@ public class Candidates implements Serializable, Iterable<Candidate> {
 	public Iterator<Candidate> iterator() {
 		List<Candidate> list = new LinkedList<Candidate>();
 		for(String term : terms) 
-			list.add(new Candidate(term, termPaths.containsKey(term) ? termPaths.get(term) : null));
+			list.add(new Candidate(term, termPaths.containsKey(term) ? termPaths.get(term) : ""));
 		return list.iterator();
 	}
 
@@ -66,5 +66,9 @@ public class Candidates implements Serializable, Iterable<Candidate> {
 		if(termPaths.containsKey(term))
 			return termPaths.get(term);
 		return "";
+	}
+
+	public Object getCandidate(String term) {
+		return new Candidate(term, termPaths.containsKey(term) ? termPaths.get(term) : "");
 	}
 }

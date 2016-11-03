@@ -15,13 +15,17 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.event.shared.GwtEvent;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.ui.Widget;
+import com.sencha.gxt.core.client.IdentityValueProvider;
 import com.sencha.gxt.core.client.Style.HideMode;
 import com.sencha.gxt.core.client.util.DelayedTask;
+import com.sencha.gxt.data.shared.LabelProvider;
+import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.SortDir;
 import com.sencha.gxt.data.shared.SortInfo;
 import com.sencha.gxt.data.shared.SortInfoBean;
 import com.sencha.gxt.data.shared.Store;
 import com.sencha.gxt.data.shared.Store.StoreFilter;
+import com.sencha.gxt.data.shared.StringLabelProvider;
 import com.sencha.gxt.data.shared.loader.PagingLoadConfig;
 import com.sencha.gxt.messages.client.DefaultMessages;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
@@ -46,6 +50,8 @@ import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 import com.sencha.gxt.widget.core.client.toolbar.ToolBar;
+import com.sencha.gxt.widget.core.client.form.ComboBox;
+import com.sencha.gxt.data.shared.ModelKeyProvider;
 
 import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
@@ -76,9 +82,9 @@ public class MenuTermsGrid extends TermsGrid {
 	}
 	
 	protected ToolBar buttonBar;
-	private TextField filterGridField;
-	private TextField filterTreeField;
-	private TextField filterGridAndTreeField;
+	private ComboBox<String> filterGridField;
+	private ComboBox<String> filterTreeField;
+	private ComboBox<String> filterGridAndTreeField;
 	private CheckBox filterCheckBox;
 	private FilterState lastActiveFilterState = new FilterState();
 	private FilterState filterState = new FilterState();
@@ -102,6 +108,7 @@ public class MenuTermsGrid extends TermsGrid {
 	};
 	private VerticalLayoutContainer vlc;
 	private SimpleContainer simpleContainer;
+	private ListStore<String> filterStore;
 	
 	public MenuTermsGrid(final EventBus eventBus, final Type type) {
 		super(eventBus, type);
@@ -279,8 +286,15 @@ public class MenuTermsGrid extends TermsGrid {
 		final Menu filterMenu = new Menu();
 		MenuItem filterGridItem = new MenuItem("Grid");
 		Menu filterGridMenu = new Menu();
-		filterGridItem.setSubMenu(filterGridMenu);
-		filterGridField = new TextField() {
+		filterGridItem.setSubMenu(filterGridMenu);		
+		filterStore = new ListStore<String>(new ModelKeyProvider<String>() {
+			@Override
+			public String getKey(String item) {
+				return item;
+			}
+		});
+		filterStore.add("modifier");
+		filterGridField = new ComboBox<String>(filterStore, new StringLabelProvider<String>()) {
 			protected void onKeyUp(Event event) {
 				super.onKeyUp(event);
 				int key = event.getKeyCode();
@@ -289,17 +303,24 @@ public class MenuTermsGrid extends TermsGrid {
 					event.preventDefault();
 					filterMenu.hide(true);
 					fire(new FilterEvent(filterGridField.getText(), FilterTarget.GRID, Type.values()));
-				}
-				filterGridTask.delay(500);
+				} else 
+					filterGridTask.delay(500);
 			}
 		};
+		filterGridField.addSelectionHandler(new SelectionHandler<String>() {
+			@Override
+			public void onSelection(SelectionEvent<String> event) {
+				filterMenu.hide(true);
+				fire(new FilterEvent(filterGridField.getText(), FilterTarget.GRID, Type.values()));
+			}
+		});
 		filterGridMenu.add(filterGridField);
 		filterMenu.add(filterGridItem);
 		
 		MenuItem filterTreeItem = new MenuItem("Tree");
 		Menu filterTreeMenu = new Menu();
 		filterTreeItem.setSubMenu(filterTreeMenu);
-		filterTreeField = new TextField() {
+		filterTreeField = new ComboBox<String>(filterStore, new StringLabelProvider<String>()) {
 			protected void onKeyUp(Event event) {
 				super.onKeyUp(event);
 				int key = event.getKeyCode();
@@ -308,17 +329,24 @@ public class MenuTermsGrid extends TermsGrid {
 					event.preventDefault();
 					filterMenu.hide(true);
 					fire(new FilterEvent(filterTreeField.getText(), FilterTarget.TREE, Type.values()));
-				}
-				filterTreeTask.delay(500);
+				} else
+					filterTreeTask.delay(500);
 			}
 		};
+		filterTreeField.addSelectionHandler(new SelectionHandler<String>() {
+			@Override
+			public void onSelection(SelectionEvent<String> event) {
+				filterMenu.hide(true);
+				fire(new FilterEvent(filterTreeField.getText(), FilterTarget.TREE, Type.values()));
+			}
+		});
 		filterTreeMenu.add(filterTreeField);
 		filterMenu.add(filterTreeItem);
 		
 		MenuItem filterGridAndTreeItem = new MenuItem("Grid and Tree");
 		Menu filterGridAndTreeMenu = new Menu();
 		filterGridAndTreeItem.setSubMenu(filterGridAndTreeMenu);
-		filterGridAndTreeField = new TextField() {
+		filterGridAndTreeField = new ComboBox<String>(filterStore, new StringLabelProvider<String>()) {
 			protected void onKeyUp(Event event) {
 				super.onKeyUp(event);
 				int key = event.getKeyCode();
@@ -327,10 +355,17 @@ public class MenuTermsGrid extends TermsGrid {
 					event.preventDefault();
 					filterMenu.hide(true);
 					fire(new FilterEvent(filterGridAndTreeField.getText(), FilterTarget.GRID_AND_TREE, Type.values()));
-				}
-				filterGridAndTreeTask.delay(500);
+				} else
+					filterGridAndTreeTask.delay(500);
 			}
 		};
+		filterGridAndTreeField.addSelectionHandler(new SelectionHandler<String>() {
+			@Override
+			public void onSelection(SelectionEvent<String> event) {
+				filterMenu.hide(true);
+				fire(new FilterEvent(filterGridAndTreeField.getText(), FilterTarget.GRID_AND_TREE, Type.values()));
+			}
+		});
 		filterGridAndTreeMenu.add(filterGridAndTreeField);
 		filterMenu.add(filterGridAndTreeItem);
 		
@@ -383,6 +418,8 @@ public class MenuTermsGrid extends TermsGrid {
 			public void onFilter(FilterEvent event) {
 				if(event.containsType(type)) {
 					String filter = event.getFilter();
+					if(filterStore.findModel(filter) == null && !filter.trim().isEmpty())
+						filterStore.add(filter);
 					FilterTarget target = event.getFilterTarget();
 					boolean activate = filterCheckBox.getValue();	
 					switch(target) {

@@ -3,9 +3,11 @@ package edu.arizona.biosemantics.oto2.ontologize2.client;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.google.gwt.core.shared.GWT;
@@ -14,6 +16,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.web.bindery.event.shared.EventBus;
 import com.sencha.gxt.widget.core.client.box.MessageBox;
 
+import edu.arizona.biosemantics.oto2.ontologize2.client.candidate.CreateRelationsFromCandidateDialog;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ClearEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CloseRelationsEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CompositeModifyEvent;
@@ -117,7 +120,7 @@ public class ModelController {
 			}
 		});
 	}
-	
+
 	protected void compositeModify(final CompositeModifyEvent event, boolean remote) {
 		if(remote) {
 			final MessageBox box = Alerter.startLoading();
@@ -129,23 +132,26 @@ public class ModelController {
 				}
 				@Override
 				public void onSuccess(Void result) {
-					compositeModify(event, false);
+					compositeModifyLocally(event);
 					Alerter.stopLoading(box);
 				}
 			});
 		} else {
-			for(GwtEvent<?> e : event.getEvents()) {
-				if(e instanceof HasIsRemote) {
-					((HasIsRemote)e).setIsRemote(false);
-					eventBus.fireEvent(e);
-				}
+			compositeModifyLocally(event);
+		}
+	}
+
+	private void compositeModifyLocally(CompositeModifyEvent event) {
+		for(GwtEvent<?> e : event.getEvents()) {
+			if(e instanceof HasIsRemote) {
+				((HasIsRemote)e).setIsRemote(false);
+				eventBus.fireEvent(e);
 			}
 		}
 	}
 
 	protected void reduceGraph() {
 		final MessageBox box = Alerter.startLoading();
-		final MessageBox box2 = Alerter.startLoading();
 		collectionService.reduceGraph(collection.getId(), collection.getSecret(), new AsyncCallback<Void>() {
 			@Override
 			public void onFailure(Throwable caught) {
@@ -154,18 +160,16 @@ public class ModelController {
 			}
 			@Override
 			public void onSuccess(Void result) {
+				OntologyGraphReducer reducer = new OntologyGraphReducer();
+				reducer.reduce(collection.getGraph());
 				Alerter.stopLoading(box);
 			}
 		});
-		OntologyGraphReducer reducer = new OntologyGraphReducer();
-		reducer.reduce(collection.getGraph());
-		Alerter.stopLoading(box2);
 	}
 
-	protected void clearRelations(ClearEvent event) {
+	protected void clearRelations(final ClearEvent event) {
 		if(!event.isEffectiveInModel()) {
 			final MessageBox box = Alerter.startLoading();
-			final MessageBox box2 = Alerter.startLoading();
 			collectionService.clear(collection.getId(), collection.getSecret(), new AsyncCallback<Void>() {
 				@Override
 				public void onFailure(Throwable caught) {
@@ -174,20 +178,18 @@ public class ModelController {
 				}
 				@Override
 				public void onSuccess(Void result) {
+					collection.getGraph().init();
+					event.setIsEffectiveInModel(true);
+					eventBus.fireEvent(event);
 					Alerter.stopLoading(box);
 				}
 			});
-			collection.getGraph().init();
-			event.setIsEffectiveInModel(true);
-			eventBus.fireEvent(event);
-			Alerter.stopLoading(box2);
 		}
 	}
 
-	protected void orderEdges(OrderEdgesEvent event) {
+	protected void orderEdges(final OrderEdgesEvent event) {
 		if(!event.isEffectiveInModel()) {
 			final MessageBox box = Alerter.startLoading();
-			final MessageBox box2 = Alerter.startLoading();
 			collectionService.order(collection.getId(), collection.getSecret(), 
 					event.getSrc(), event.getEdges(), event.getType(), new AsyncCallback<Void>() {
 				@Override
@@ -197,24 +199,23 @@ public class ModelController {
 				}
 				@Override
 				public void onSuccess(Void result) {
+					try {
+						collection.getGraph().setOrderedEdges(event.getSrc(), event.getEdges(), event.getType());
+					} catch (Exception e) {
+						Alerter.showAlert("Data out of sync", "The data became out of sync with the server. Please reload the window.", e);
+					}
+					event.setEffectiveInModel(true);
+					eventBus.fireEvent(event);
 					Alerter.stopLoading(box);
 				}
 			});
-			try {
-				collection.getGraph().setOrderedEdges(event.getSrc(), event.getEdges(), event.getType());
-			} catch (Exception e) {
-				Alerter.showAlert("Data out of sync", "The data became out of sync with the server. Please reload the window.", e);
-			}
-			event.setEffectiveInModel(true);
-			eventBus.fireEvent(event);
-			Alerter.stopLoading(box2);
+			
 		} 
 	}
 
-	protected void closeRelation(CloseRelationsEvent event) {
+	protected void closeRelation(final CloseRelationsEvent event) {
 		if(!event.isEffectiveInModel()) {
 			final MessageBox box = Alerter.startLoading();
-			final MessageBox box2 = Alerter.startLoading();
 			collectionService.close(collection.getId(), collection.getSecret(), 
 					event.getVertex(), event.getType(), event.isClose(), new AsyncCallback<Void>() {
 				@Override
@@ -224,116 +225,116 @@ public class ModelController {
 				}
 				@Override
 				public void onSuccess(Void result) {
+					collection.getGraph().setClosedRelation(event.getVertex(), event.getType(), event.isClose());
+					event.setEffectiveInModel(true);
+					eventBus.fireEvent(event);
 					Alerter.stopLoading(box);
 				}
 			});
-			
-			collection.getGraph().setClosedRelation(event.getVertex(), event.getType(), event.isClose());
-			event.setEffectiveInModel(true);
-			eventBus.fireEvent(event);
-			Alerter.stopLoading(box2);
 		} 
 	}
 
-	protected void removeCandidate(RemoveCandidateEvent event) {
+	protected void removeCandidate(final RemoveCandidateEvent event) {
 		final MessageBox box = Alerter.startLoading();
-		final MessageBox box2 = Alerter.startLoading();
 		collectionService.remove(collection.getId(), collection.getSecret(), Arrays.asList(event.getCandidates()), 
 				new AsyncCallback<Void>() {
 			@Override
 			public void onFailure(Throwable caught) {
 				Alerter.showAlert("Data out of sync", "The data became out of sync with the server. Please reload the window.", caught);
-				Alerter.stopLoading(box2);
+				Alerter.stopLoading(box);
 			}
 			@Override
 			public void onSuccess(Void result) {
-				Alerter.stopLoading(box2);
+				for(Candidate candidate : event.getCandidates())
+					collection.remove(candidate.getText());
+				Alerter.stopLoading(box);
 			}
 		});
-		for(Candidate candidate : event.getCandidates())
-			collection.remove(candidate.getText());
-		Alerter.stopLoading(box);
 	}
 
-	protected void createCandidate(CreateCandidateEvent event) {
+	protected void createCandidate(final CreateCandidateEvent event) {
 		final MessageBox box = Alerter.startLoading();
-		final MessageBox box2 = Alerter.startLoading();
 		collectionService.add(collection.getId(), collection.getSecret(), Arrays.asList(event.getCandidates()), 
 				new AsyncCallback<AddCandidateResult>() {
 			@Override
 			public void onFailure(Throwable caught) {
 				Alerter.showAlert("Data out of sync", "The data became out of sync with the server. Please reload the window.", caught);
-				Alerter.stopLoading(box2);
+				Alerter.stopLoading(box);
 			}
 			@Override
 			public void onSuccess(AddCandidateResult result) {	
-				Alerter.stopLoading(box2);
+				for(Candidate candidate : event.getCandidates()) {
+					collection.add(candidate);
+				}
+				Alerter.stopLoading(box);
 			}
 		});
-		for(Candidate candidate : event.getCandidates()) {
-			collection.add(candidate);
-		}
-		Alerter.stopLoading(box);
 	}
 
-	protected void replaceRelation(ReplaceRelationEvent event) {
+	protected void replaceRelation(final ReplaceRelationEvent event) {
 		if(!event.isEffectiveInModel()) {
 			final MessageBox box = Alerter.startLoading();
 			if(event.isRemote()) {
-				final MessageBox box2 = Alerter.startLoading();
 				collectionService.replace(collection.getId(), collection.getSecret(), event.getOldRelation(), event.getNewSource(), 
 						new AsyncCallback<Void>() {
 					@Override
 					public void onFailure(Throwable caught) {
 						Alerter.showAlert("Data out of sync", "The data became out of sync with the server. Please reload the window.", caught);
-						Alerter.stopLoading(box2);
+						Alerter.stopLoading(box);
 					}
 					@Override
-					public void onSuccess(Void result) {	
-						Alerter.stopLoading(box2);
+					public void onSuccess(Void result) {
+						replaceRelationLocally(event);
+						Alerter.stopLoading(box);
 					}
 				});
+			} else {
+				replaceRelationLocally(event);
 			}
-			try {
-				collection.getGraph().replaceRelation(event.getOldRelation(), event.getNewSource());
-			} catch(Exception e) {
-				Alerter.showAlert("Data out of sync", "The data became out of sync with the server. Please reload the window.", e);
-			}
-			event.setEffectiveInModel(true);
-			eventBus.fireEvent(event);
-			Alerter.stopLoading(box);
 		}
 	}
 
-	protected void removeRelation(RemoveRelationEvent event) {
+	private void replaceRelationLocally(ReplaceRelationEvent event) {
+		try {
+			collection.getGraph().replaceRelation(event.getOldRelation(), event.getNewSource());
+		} catch(Exception e) {
+			Alerter.showAlert("Data out of sync", "The data became out of sync with the server. Please reload the window.", e);
+		}
+		event.setEffectiveInModel(true);
+		eventBus.fireEvent(event);
+	}
+
+	protected void removeRelation(final RemoveRelationEvent event) {
 		if(!event.isEffectiveInModel()) {
 			final MessageBox box = Alerter.startLoading();
-			for(Edge relation : event.getRelations()) {
-				if(event.isRemote()) {
-					final MessageBox box2 = Alerter.startLoading();
-					collectionService.remove(collection.getId(), collection.getSecret(), relation, 
-							event.getRemoveMode(), new AsyncCallback<Void>() {
-						@Override
-						public void onFailure(Throwable caught) {
-							Alerter.showAlert("Data out of sync", "The data became out of sync with the server. Please reload the window.", caught);
-							Alerter.stopLoading(box2);
-						}
-						@Override
-						public void onSuccess(Void result) {	
-							Alerter.stopLoading(box2);
-						}
-					});
-				}
-				try {
-					collection.getGraph().removeRelation(relation, event.getRemoveMode());
-				} catch (Exception e) {
-					Alerter.showAlert("Data out of sync", "The data became out of sync with the server. Please reload the window.", e);
-				}
+			if(event.isRemote()) {
+				collectionService.remove(collection.getId(), collection.getSecret(), event.getRelations(), 
+						event.getRemoveMode(), new AsyncCallback<Void>() {
+					@Override
+					public void onFailure(Throwable caught) {
+						Alerter.showAlert("Data out of sync", "The data became out of sync with the server. Please reload the window.", caught);
+						Alerter.stopLoading(box);
+					}
+					@Override
+					public void onSuccess(Void result) {	
+						removeRelationLocally(event);
+						Alerter.stopLoading(box);
+					}
+				});
+			} else {
+				removeRelationLocally(event);
 			}
-			event.setEffectiveInModel(true);
-			eventBus.fireEvent(event);
-			Alerter.stopLoading(box);
 		}
+	}
+
+	private void removeRelationLocally(RemoveRelationEvent event) {
+		try {
+			collection.getGraph().removeRelations(event.getRelations(), event.getRemoveMode());
+		} catch (Exception e) {
+			Alerter.showAlert("Data out of sync", "The data became out of sync with the server. Please reload the window.", e);
+		}
+		event.setEffectiveInModel(true);
+		eventBus.fireEvent(event);
 	}
 
 	protected void loadCollection(LoadCollectionEvent event) {
@@ -344,41 +345,43 @@ public class ModelController {
 		}
 	}
 
-	protected void createRelation(CreateRelationEvent event) {
+	protected void createRelation(final CreateRelationEvent event) {
 		if(!event.isEffectiveInModel()) {
 			final MessageBox box = Alerter.startLoading();
-			for(Edge relation : event.getRelations()) {
-				if(event.isRemote()) {
-					final MessageBox box2 = Alerter.startLoading();
-					collectionService.add(collection.getId(), collection.getSecret(), relation, new AsyncCallback<Boolean>() {
-						@Override
-						public void onFailure(Throwable caught) {
-							Alerter.showAlert("Data out of sync", "The data became out of sync with the server. Please reload the window.", caught);
-							Alerter.stopLoading(box2);
-						}
-						@Override
-						public void onSuccess(Boolean result) {
-							Alerter.stopLoading(box2);
-						}
-					});
-				}
-				try {
-					collection.getGraph().addRelation(relation);
-				} catch (Exception e) {
-					Alerter.showAlert("Data out of sync", "The data became out of sync with the server. Please reload the window.", e);
-				}
+			if(event.isRemote()) {
+				collectionService.add(collection.getId(), collection.getSecret(), event.getRelations(), new AsyncCallback<Boolean>() {
+					@Override
+					public void onFailure(Throwable caught) {
+						Alerter.showAlert("Data out of sync", "The data became out of sync with the server. Please reload the window.", caught);
+						Alerter.stopLoading(box);
+					}
+					@Override
+					public void onSuccess(Boolean result) {
+						createRelationLocally(event);
+						Alerter.stopLoading(box);
+					}
+				});
+			} else {
+				createRelationLocally(event);
+				Alerter.stopLoading(box);
 			}
-			event.setEffectiveInModel(true);
-			eventBus.fireEvent(event);
-			Alerter.stopLoading(box);
 		}
 	}
 
-
+	private void createRelationLocally(CreateRelationEvent event) {
+		try {
+			collection.getGraph().addRelations(event.getRelations());
+		} catch (Exception e) {
+			Alerter.showAlert("Data out of sync", "The data became out of sync with the server. Please reload the window.", e);
+		}
+		event.setEffectiveInModel(true);
+		eventBus.fireEvent(event);
+	}
 
 	public static Collection getCollection() {
-		if(collection == null)
+		if(collection == null) {
 			return new Collection();
+		}
 		return collection;
 	}
 }

@@ -1,0 +1,119 @@
+{
+  "Thing" : [ {
+    "value" : "material anatomical entity",
+    "requiresCandidate" : false
+  }, {
+    "value" : "quality",
+    "requiresCandidate" : false
+  }, {
+    "value" : "modifier",
+    "requiresCandidate" : false
+  } ],
+  "quality" : [ {
+    "value" : "coloration",
+    "requiresCandidate" : false
+  }, {
+    "value" : "reflection",
+    "requiresCandidate" : false
+  } ],
+  "material anatomical entity" : [ {
+    "value" : "non-specific material anatomical entity",
+    "requiresCandidate" : false
+  } ],
+  "modifier" : [ {
+    "value" : "frequency modifier",
+    "requiresCandidate" : false
+  }, {
+    "value" : "certainty modifier",
+    "requiresCandidate" : false
+  }, {
+    "value" : "approximation modifier",
+    "requiresCandidate" : false
+  } ],
+  "frequency modifier" : [ {
+    "value" : "0% frequency modifier",
+    "requiresCandidate" : false
+  }, {
+    "value" : "25% frequency modifier",
+    "requiresCandidate" : false
+  }, {
+    "value" : "50% frequency modifier",
+    "requiresCandidate" : false
+  }, {
+    "value" : "75% frequency modifier",
+    "requiresCandidate" : false
+  }, {
+    "value" : "100% frequency modifier",
+    "requiresCandidate" : false
+  } ],
+  "certainty modifier" : [ {
+    "value" : "0% certainty modifier",
+    "requiresCandidate" : false
+  }, {
+    "value" : "25% certainty modifier",
+    "requiresCandidate" : false
+  }, {
+    "value" : "50% certainty modifier",
+    "requiresCandidate" : false
+  }, {
+    "value" : "75% certainty modifier",
+    "requiresCandidate" : false
+  }, {
+    "value" : "100% certainty modifier",
+    "requiresCandidate" : false
+  } ],
+  "approximation modifier" : [ {
+    "value" : "0% approximation modifier",
+    "requiresCandidate" : false
+  }, {
+    "value" : "25% approximation modifier",
+    "requiresCandidate" : false
+  }, {
+    "value" : "50% approximation modifier",
+    "requiresCandidate" : false
+  }, {
+    "value" : "75% approximation modifier",
+    "requiresCandidate" : false
+  }, {
+    "value" : "100% approximation modifier",
+    "requiresCandidate" : false
+  } ],
+  "coloration" : [ {
+    "value" : "red",
+    "requiresCandidate" : true
+  }, {
+    "value" : "blue",
+    "requiresCandidate" : true
+  }, {
+    "value" : "green",
+    "requiresCandidate" : true
+  }, {
+    "value" : "yellow",
+    "requiresCandidate" : true
+  }, {
+    "value" : "white",
+    "requiresCandidate" : true
+  }, {
+    "value" : "black",
+    "requiresCandidate" : true
+  }, {
+    "value" : "brown",
+    "requiresCandidate" : true
+  }, {
+    "value" : "gray",
+    "requiresCandidate" : true
+  }, {
+    "value" : "pink",
+    "requiresCandidate" : true
+  }, {
+    "value" : "orange",
+    "requiresCandidate" : true
+  }, {
+    "value" : "purple",
+    "requiresCandidate" : true
+  } ],
+  "reflection" : [ {
+    "value" : "bright",
+    "requiresCandidate" : true
+  } ]
+}

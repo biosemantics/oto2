@@ -5,7 +5,7 @@ import java.io.Serializable;
 public class Candidate implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
-	private String path;
+	private String path = "";
 	private String text;
 	
 	public Candidate() { }
@@ -16,6 +16,8 @@ public class Candidate implements Serializable {
 	
 	public Candidate(String text, String path) {
 		this.text = text;
+		if(path == null)
+			path = "";
 		this.path = path;
 	}
 

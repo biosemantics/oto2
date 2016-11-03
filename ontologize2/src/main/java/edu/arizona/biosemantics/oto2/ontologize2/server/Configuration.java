@@ -24,7 +24,10 @@ public class Configuration {
 	public static String context;
 	public static int contextMaxHits;
 	public static String wordNetSource;
-
+	
+	public static String existingClassesFile;
+	public static String existingPartsFile;
+	public static String existingSynonymsFile;
 
 	static {
 		try {
@@ -41,6 +44,10 @@ public class Configuration {
 			context = properties.getProperty("context");
 			contextMaxHits = Integer.valueOf(properties.getProperty("contextMaxHits"));
 			wordNetSource = properties.getProperty("wordNetSource");
+			
+			existingClassesFile = properties.getProperty("existing_classes_file");
+			existingPartsFile = properties.getProperty("existing_parts_file");
+			existingSynonymsFile = properties.getProperty("existing_synonyms_file");
 		} catch(Exception e) {
 			logger.error("Couldn't read configuration", e);
 		}

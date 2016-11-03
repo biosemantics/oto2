@@ -9,11 +9,17 @@ import java.io.ObjectOutputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.MapType;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.google.gwt.event.shared.GwtEvent;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
@@ -28,9 +34,12 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEven
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.RemoveMode;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.server.owl.OWLWriter;
+import edu.arizona.biosemantics.oto2.ontologize2.server.pattern.CandidatePattern;
+import edu.arizona.biosemantics.oto2.ontologize2.server.pattern.CandidatePatternDeducer;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.AddCandidateResult;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.ICollectionService;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Candidate;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.CandidatePatternResult;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge;
@@ -38,6 +47,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Vertex;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Origin;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraphReducer;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.PredefinedVertex;
 import edu.uci.ics.jung.graph.util.EdgeType;
 
 public class CollectionService extends RemoteServiceServlet implements ICollectionService {
@@ -63,8 +73,38 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	@Override
 	public synchronized Collection insert(Collection collection) throws Exception {
 		collection.setId(currentCollectionId++);
+		initializeGraph(collection);
 		serializeCollection(collection);
 		return collection;
+	}
+
+	private void initializeGraph(Collection collection) {
+		HashMap<Type, LinkedHashMap<String, List<PredefinedVertex>>> existingRelations = 
+				new HashMap<Type, LinkedHashMap<String, List<PredefinedVertex>>>();
+		ObjectMapper mapper = new ObjectMapper();
+		TypeFactory typeFactory = mapper.getTypeFactory();
+		MapType mapType = typeFactory.constructMapType(LinkedHashMap.class, typeFactory.constructType(String.class), 
+				typeFactory.constructCollectionType(List.class, PredefinedVertex.class));
+		try {
+			existingRelations.put(Type.SUBCLASS_OF, (LinkedHashMap<String, List<PredefinedVertex>>)mapper.readValue(new File(Configuration.existingClassesFile), mapType));
+			existingRelations.put(Type.PART_OF, (LinkedHashMap<String, List<PredefinedVertex>>)mapper.readValue(new File(Configuration.existingPartsFile), mapType));
+			existingRelations.put(Type.SYNONYM_OF, (LinkedHashMap<String, List<PredefinedVertex>>)mapper.readValue(new File(Configuration.existingSynonymsFile), mapType));
+			for(Type type : Type.values()) {
+				if(existingRelations.containsKey(type)) {
+					for(String superclass : existingRelations.get(type).keySet())  {
+						for(PredefinedVertex subclass : existingRelations.get(type).get(superclass)) {
+							Edge e = new Edge(new Vertex(superclass), new Vertex(subclass.getValue()), 
+									type, Origin.USER);
+							if(!subclass.isRequiresCandidate()) {
+								collection.getGraph().addRelation(e);
+							}
+						}
+					}
+				}
+			}
+		} catch(Exception e) {
+			log(LogLevel.ERROR, "Could not read json", e);
+		}
 	}
 
 	private synchronized void serializeCollection(Collection collection) {
@@ -116,13 +156,9 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	
 	@Override
 	public synchronized void remove(int collectionId, String secret, Edge relation, RemoveMode removeMode) throws Exception {
-		try {
-			Collection collection = this.get(collectionId, secret);
-			collection.getGraph().removeRelation(relation, removeMode);
-			update(collection);
-		} catch(Exception e) {
-			e.printStackTrace();
-		}
+		Collection collection = this.get(collectionId, secret);
+		collection.getGraph().removeRelation(relation, removeMode);
+		update(collection);
 	}
 	
 	@Override
@@ -235,6 +271,39 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 				this.compositeModify(id, secret, c);
 			}
 		}
+	}
+	
+	@Override
+	public Map<Candidate, List<CandidatePatternResult>> getCandidatePatternResults(int collectionId, String secret) throws Exception {
+		Collection collection = this.get(collectionId, secret);
+		CandidatePatternDeducer cpd = new CandidatePatternDeducer(collection);
+		return cpd.deduce(collection);
+	}
+	
+	@Override
+	public List<CandidatePatternResult> getCandidatePatternResults(int collectionId, String secret, Candidate candidate) throws Exception {
+		Collection collection = this.get(collectionId, secret);
+		CandidatePatternDeducer cpd = new CandidatePatternDeducer(collection);
+		return cpd.deduce(collection, candidate);
+	}
+
+	@Override
+	public boolean add(int collectionId, String secret, Edge[] relations) throws Exception {
+		boolean result = true;
+		Collection collection = this.get(collectionId, secret);
+		for(Edge r : relations)
+			result &= collection.getGraph().addRelation(r);
+		update(collection);
+		return result;
+	}
+
+	@Override
+	public void remove(int collectionId, String secret, Edge[] relations, RemoveMode removeMode) throws Exception {
+		Collection collection = this.get(collectionId, secret);
+		for(Edge r : relations)	{
+			collection.getGraph().removeRelation(r, removeMode);
+		}
+		update(collection);
 	}
 
 }

@@ -1,6 +1,7 @@
 package edu.arizona.biosemantics.oto2.ontologize2.shared;
 
 import java.util.List;
+import java.util.Map;
 
 import com.google.gwt.event.shared.GwtEvent;
 import com.google.gwt.user.client.rpc.AsyncCallback;
@@ -9,6 +10,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.event.CompositeModifyEve
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CompositeModifyEvent.Handler;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.RemoveMode;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Candidate;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.CandidatePatternResult;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Type;
@@ -44,4 +46,13 @@ public interface ICollectionServiceAsync {
 	public void reduceGraph(int id, String secret, AsyncCallback<Void> callback);
 
 	public void compositeModify(int id, String secret, CompositeModifyEvent event, AsyncCallback<Void> callback);
+
+	public void getCandidatePatternResults(int id, String secret, AsyncCallback<Map<Candidate, List<CandidatePatternResult>>> callback);
+	
+	public void getCandidatePatternResults(int id, String secret, Candidate candidate, AsyncCallback<List<CandidatePatternResult>> callback);
+
+	public void add(int id, String secret, Edge[] relations, AsyncCallback<Boolean> callback);
+
+	public void remove(int id, String secret, Edge[] relations, RemoveMode removeMode, AsyncCallback<Void> callback);
+
 }

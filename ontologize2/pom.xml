@@ -41,7 +41,7 @@
 	</repositories>
 
 	<dependencies>
-			<dependency>
+		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
 			<version>5.1.35</version>
@@ -103,6 +103,16 @@
 			<artifactId>validation-api</artifactId>
 			<version>1.0.0.GA</version>
 			<classifier>sources</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.codehaus.jackson</groupId>
+			<artifactId>jackson-core-asl</artifactId>
+			<version>1.9.13</version>
+		</dependency>
+		<dependency>
+			<groupId>org.codehaus.jackson</groupId>
+			<artifactId>jackson-mapper-asl</artifactId>
+			<version>1.9.13</version>
 		</dependency>
 		
 		<dependency>

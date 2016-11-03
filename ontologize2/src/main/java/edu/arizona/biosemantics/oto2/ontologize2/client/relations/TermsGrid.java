@@ -313,7 +313,7 @@ public class TermsGrid implements IsWidget {
 	protected Map<Vertex, Row> leadRowMap = new HashMap<Vertex, Row>();
 	protected Grid<Row> grid;
 	protected SimpleContainer createRowContainer;
-	private final int colWidth = 100;	
+	private final int colWidth = 200;	
 	protected boolean highlight;
 	protected Type type;
 	private VerticalLayoutContainer vlc;

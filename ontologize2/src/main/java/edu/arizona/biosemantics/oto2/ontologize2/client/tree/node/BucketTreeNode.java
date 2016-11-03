@@ -6,6 +6,7 @@ public class BucketTreeNode extends TextTreeNode {
 	private String path;
 
 	public BucketTreeNode(String path) {
+		super(path);
 		this.path = path;
 	}
 
@@ -17,14 +18,7 @@ public class BucketTreeNode extends TextTreeNode {
 		return path;
 	}
 	
-	@Override
-	public String getId() {
-		return "bucket-" + path;
-	}
-	
 	public String getPath() {
 		return path;
-	}
-	
-	
+	}	
 }
