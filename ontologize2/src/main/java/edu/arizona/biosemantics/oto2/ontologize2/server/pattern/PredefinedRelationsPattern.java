@@ -89,7 +89,7 @@ public class PredefinedRelationsPattern implements CandidatePattern {
 
 	@Override
 	public String getName() {
-		return this.getClass().getSimpleName();
+		return "Predefined Relations Pattern";
 	}
 
 }

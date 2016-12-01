@@ -1,5 +1,6 @@
 package edu.arizona.biosemantics.oto2.ontologize2.server.pattern;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -48,6 +49,7 @@ public class CandidatePatternDeducer {
 			types.remove(Type.SUBCLASS_OF);
 		}*/
 			
+		Map<String, List<Edge>> patternNameEdgesMap = new HashMap<String, List<Edge>>();
 		for(CandidatePattern p : patterns) {
 			if(p.matches(collection, c)) {
 				List<Edge> edges = p.getRelations(collection, c);
@@ -57,9 +59,18 @@ public class CandidatePatternDeducer {
 						iterator.remove();
 					}
 				}*/
-				if(!edges.isEmpty())
-					result.add(new CandidatePatternResult(p.getName(), edges));
+				if(!edges.isEmpty()) {
+					if(!patternNameEdgesMap.containsKey(p.getName()))
+						patternNameEdgesMap.put(p.getName(), new ArrayList<Edge>());
+					List<Edge> existing = patternNameEdgesMap.get(p.getName());
+					for(Edge e : edges) 
+						if(!existing.contains(e))
+							existing.add(e);
+				}
 			}
+		}
+		for(String name : patternNameEdgesMap.keySet()) {
+			result.add(new CandidatePatternResult(name, patternNameEdgesMap.get(name)));
 		}
 		return result;
 	}

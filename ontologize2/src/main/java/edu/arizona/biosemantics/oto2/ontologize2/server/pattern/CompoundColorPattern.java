@@ -115,6 +115,6 @@ public class CompoundColorPattern implements CandidatePattern {
 
 	@Override
 	public String getName() {
-		return this.getClass().getSimpleName();
+		return "Compound Pattern";
 	}
 }

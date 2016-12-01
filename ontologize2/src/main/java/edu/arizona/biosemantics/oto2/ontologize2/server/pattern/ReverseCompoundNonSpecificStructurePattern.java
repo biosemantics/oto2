@@ -18,7 +18,8 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge
  * out: non-spec. structure -> {last part} 
  * 
  * e.g. 
- * in: female ventral surface
+ * in: female ventral surface (and exists similarly elsewhere)
+ * in: material anatomical entity: surface 
  * out: non-specific -> surface
  * @author rodenhausen
  */
@@ -37,16 +38,33 @@ public class ReverseCompoundNonSpecificStructurePattern implements CandidatePatt
 		
 		OntologyGraph g = collection.getGraph();
 		if(parts.length > 1) {
-			Edge e = new Edge(new Vertex("non-specific material anatomical entity"), new Vertex(parts[parts.length - 1]), 
-					Type.SUBCLASS_OF, Origin.USER);		
-			edges.add(e);
+			String lastPart = parts[parts.length - 1];
+			if(g.getAllSources(new Vertex(lastPart), Type.SUBCLASS_OF).contains(new Vertex("material anatomical entity"))) {
+				if(existsOtherCandidateWith(lastPart, collection, c)) {
+					Edge e = new Edge(new Vertex("non-specific material anatomical entity"), new Vertex(lastPart), 
+							Type.SUBCLASS_OF, Origin.USER);		
+					edges.add(e);
+				}
+			}			
 		}
 		return edges;
 	}
 
+	private boolean existsOtherCandidateWith(String lastPart, Collection collection, Candidate c) {
+		for(Candidate otherC : collection.getCandidates()) {
+			if(!otherC.equals(c)) {
+				String[] otherParts = otherC.getText().split("[-\\s]");
+				if(otherParts.length > 1 && otherParts[otherParts.length - 1].equals(lastPart)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 	@Override
 	public String getName() {
-		return this.getClass().getSimpleName();
+		return "Candidate Non-specific Structure Pattern";
 	}
 
 

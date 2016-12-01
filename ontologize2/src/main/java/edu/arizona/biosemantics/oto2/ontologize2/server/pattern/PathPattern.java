@@ -70,7 +70,7 @@ public class PathPattern implements CandidatePattern {
 
 	@Override
 	public String getName() {
-		return this.getClass().getSimpleName();
+		return "Ontology Path Pattern";
 	}
 
 }
