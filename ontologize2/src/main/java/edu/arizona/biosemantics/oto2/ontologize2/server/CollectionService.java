@@ -16,6 +16,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.MapType;
@@ -96,6 +97,7 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 							Edge e = new Edge(new Vertex(superclass), new Vertex(subclass.getValue()), 
 									type, Origin.USER);
 							if(!subclass.isRequiresCandidate()) {
+								TimeUnit.MILLISECONDS.sleep(2); //to avoid a random order of the edges, which per default are ordered by insertion time
 								collection.getGraph().addRelation(e);
 							}
 						}
@@ -169,10 +171,12 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	}
 	
 	@Override
-	public synchronized void clear(int collectionId, String secret) throws Exception {
+	public synchronized Collection clear(int collectionId, String secret) throws Exception {
 		Collection collection = this.get(collectionId, secret);
 		collection.getGraph().init();
+		initializeGraph(collection);
 		update(collection);
+		return collection;
 	}
 
 	@Override
@@ -243,7 +247,7 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	}
 
 	@Override
-	public void reduceGraph(int collectionId, String secret) throws Exception {
+	public synchronized void reduceGraph(int collectionId, String secret) throws Exception {
 		Collection collection = this.get(collectionId, secret);
 		OntologyGraphReducer reducer = new OntologyGraphReducer();
 		reducer.reduce(collection.getGraph());
@@ -251,7 +255,7 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	}
 
 	@Override
-	public void compositeModify(int id, String secret, CompositeModifyEvent event) throws Exception {
+	public synchronized void compositeModify(int id, String secret, CompositeModifyEvent event) throws Exception {
 		for(GwtEvent<?> e : event.getEvents()) {
 			if(e instanceof CreateRelationEvent) {
 				for(Edge r : ((CreateRelationEvent)e).getRelations()) {
@@ -274,21 +278,21 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	}
 	
 	@Override
-	public Map<Candidate, List<CandidatePatternResult>> getCandidatePatternResults(int collectionId, String secret) throws Exception {
+	public synchronized Map<Candidate, List<CandidatePatternResult>> getCandidatePatternResults(int collectionId, String secret) throws Exception {
 		Collection collection = this.get(collectionId, secret);
 		CandidatePatternDeducer cpd = new CandidatePatternDeducer(collection);
 		return cpd.deduce(collection);
 	}
 	
 	@Override
-	public List<CandidatePatternResult> getCandidatePatternResults(int collectionId, String secret, Candidate candidate) throws Exception {
+	public synchronized List<CandidatePatternResult> getCandidatePatternResults(int collectionId, String secret, Candidate candidate) throws Exception {
 		Collection collection = this.get(collectionId, secret);
 		CandidatePatternDeducer cpd = new CandidatePatternDeducer(collection);
 		return cpd.deduce(collection, candidate);
 	}
 
 	@Override
-	public boolean add(int collectionId, String secret, Edge[] relations) throws Exception {
+	public synchronized boolean add(int collectionId, String secret, Edge[] relations) throws Exception {
 		boolean result = true;
 		Collection collection = this.get(collectionId, secret);
 		for(Edge r : relations)
@@ -298,7 +302,7 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	}
 
 	@Override
-	public void remove(int collectionId, String secret, Edge[] relations, RemoveMode removeMode) throws Exception {
+	public synchronized void remove(int collectionId, String secret, Edge[] relations, RemoveMode removeMode) throws Exception {
 		Collection collection = this.get(collectionId, secret);
 		for(Edge r : relations)	{
 			collection.getGraph().removeRelation(r, removeMode);

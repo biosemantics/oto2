@@ -117,7 +117,7 @@ public class CreateRelationsFromCandidateDialog extends Dialog {
 			}
 			tree.setAutoExpand(true);
 			vlc = new VerticalLayoutContainer();
-			vlc.add(new Label("Select the relations you want to re-attach from the synonym to the preferred term."), new VerticalLayoutData(1, -1));
+			vlc.add(new Label("Select the relations you want to create."), new VerticalLayoutData(1, -1));
 			vlc.add(tree, new VerticalLayoutData(1, 1));
 			//vlc.getScrollSupport().setScrollMode(ScrollMode.AUTOY);
 		}

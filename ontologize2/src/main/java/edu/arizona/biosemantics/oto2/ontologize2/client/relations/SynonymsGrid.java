@@ -13,6 +13,7 @@ import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
+import com.google.gwt.user.client.Timer;
 import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.core.client.Style.Anchor;
 import com.sencha.gxt.core.client.Style.AnchorAlignment;
@@ -84,12 +85,19 @@ public class SynonymsGrid extends MenuTermsGrid {
 	}
 	
 	@Override
-	protected void onLoad(OntologyGraph g) {
+	protected void onLoad(final OntologyGraph g) {
 		clearGrid();
-		this.reconfigureForAttachedTerms(g.getMaxOutRelations(type, new HashSet<Vertex>(Arrays.asList(g.getRoot(type)))));
-		createEdges(g, g.getRoot(type), new HashSet<String>(), false);
-		allRowStore.applySort(true);
-		loader.load();
+		final int maxOutRelations = g.getMaxOutRelations(type, new HashSet<Vertex>(Arrays.asList(g.getRoot(type))));
+		Timer timer = new Timer() {
+			@Override
+			public void run() {
+				reconfigureForAttachedTerms(maxOutRelations);
+				createEdges(g, g.getRoot(type), new HashSet<String>(), false);
+				allRowStore.applySort(true);
+				loader.load();
+			}
+		};
+		timer.schedule(100);
 	}
 	
 	@Override

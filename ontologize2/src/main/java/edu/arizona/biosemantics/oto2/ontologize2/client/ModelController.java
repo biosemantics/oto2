@@ -146,6 +146,8 @@ public class ModelController {
 			if(e instanceof HasIsRemote) {
 				((HasIsRemote)e).setIsRemote(false);
 				eventBus.fireEvent(e);
+			} else {
+				eventBus.fireEvent(e);
 			}
 		}
 	}
@@ -170,16 +172,18 @@ public class ModelController {
 	protected void clearRelations(final ClearEvent event) {
 		if(!event.isEffectiveInModel()) {
 			final MessageBox box = Alerter.startLoading();
-			collectionService.clear(collection.getId(), collection.getSecret(), new AsyncCallback<Void>() {
+			collectionService.clear(collection.getId(), collection.getSecret(), new AsyncCallback<Collection>() {
 				@Override
 				public void onFailure(Throwable caught) {
 					Alerter.showAlert("Data out of sync", "The data became out of sync with the server. Please reload the window.", caught);
 					Alerter.stopLoading(box);
 				}
 				@Override
-				public void onSuccess(Void result) {
-					collection.getGraph().init();
+				public void onSuccess(Collection result) {
+					collection = result;
 					event.setIsEffectiveInModel(true);
+					LoadCollectionEvent event = new LoadCollectionEvent(collection);
+					event.setEffectiveInModel(true);
 					eventBus.fireEvent(event);
 					Alerter.stopLoading(box);
 				}
@@ -290,6 +294,7 @@ public class ModelController {
 				});
 			} else {
 				replaceRelationLocally(event);
+				Alerter.stopLoading(box);
 			}
 		}
 	}
@@ -323,6 +328,7 @@ public class ModelController {
 				});
 			} else {
 				removeRelationLocally(event);
+				Alerter.stopLoading(box);
 			}
 		}
 	}

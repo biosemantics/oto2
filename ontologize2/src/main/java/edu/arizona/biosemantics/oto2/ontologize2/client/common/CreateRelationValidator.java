@@ -2,9 +2,11 @@ package edu.arizona.biosemantics.oto2.ontologize2.client.common;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.shared.GwtEvent;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.Image;
@@ -26,6 +28,9 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CompositeModifyEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.RemoveMode;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ShowRelationsEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.Images;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.PartsGrid;
@@ -121,7 +126,7 @@ public class CreateRelationValidator {
 		final CompositeModifyEventForSynonymCreator compositeModifyEventForSynonymCreator = new CompositeModifyEventForSynonymCreator();		
 		OntologyGraph g = ModelController.getCollection().getGraph();
 		try {
-			g.isValidSubclass(r);
+			g.isValidSynonym(r, true, false);
 			if(!r.getSrc().equals(g.getRoot(Type.SYNONYM_OF)) && g.isSubclassOrPart(r)) {
 				final Vertex preferred = r.getSrc();
 				final Vertex synonym = r.getDest();
@@ -247,9 +252,9 @@ public class CreateRelationValidator {
 		try {
 			g.isValidPartOf(r);
 			
-			Vertex source = r.getSrc();
-			Vertex dest = r.getDest();
-			List<Edge> existingRelations = g.getInRelations(dest, Type.PART_OF);
+			final Vertex source = r.getSrc();
+			final Vertex dest = r.getDest();
+			final List<Edge> existingRelations = g.getInRelations(dest, Type.PART_OF);
 			if(!existingRelations.isEmpty()) {
 				Vertex existSource = existingRelations.get(0).getSrc();				
 				/*final MessageBox box = Alerter.showConfirm("Create Part", 
@@ -263,7 +268,6 @@ public class CreateRelationValidator {
 				box.setHeadingText("Create Part");
 				box.setPredefinedButtons(PredefinedButton.YES, PredefinedButton.NO);
 				VerticalLayoutContainer vlc = new VerticalLayoutContainer();
-				AccordionLayoutContainer alc = new AccordionLayoutContainer();
 				HorizontalLayoutContainer hlc = new HorizontalLayoutContainer();
 				vlc.add(new HTML(SafeHtmlUtils.fromTrustedString("We cannot add the part <i>" + dest + "</i> as is to <i>" + 
 						source + "</i>. It is already a part of <i>" +  existSource +  "</i>.")), new VerticalLayoutContainer.VerticalLayoutData(-1, -1, new Margins(0, 0, 10, 0)));
@@ -307,7 +311,32 @@ public class CreateRelationValidator {
 				yesButton.addSelectHandler(new SelectHandler() {
 					@Override
 					public void onSelect(SelectEvent event) {
-						eventBus.fireEvent(new CreateRelationEvent(r));
+						List<GwtEvent<?>> result = new LinkedList<GwtEvent<?>>();
+						OntologyGraph g = ModelController.getCollection().getGraph();
+						
+						//parts
+						//leaf -> apex
+						//stem -> apex
+						Edge rootEdge = new Edge(g.getRoot(Type.SUBCLASS_OF), dest, Type.SUBCLASS_OF, Origin.USER);
+						if(!g.existsRelation(rootEdge))
+							result.add(new CreateRelationEvent(new Edge(g.getRoot(Type.SUBCLASS_OF), dest, Type.SUBCLASS_OF, Origin.USER)));
+						for(Edge existing : existingRelations) {
+							Vertex newDest = new Vertex(existing.getSrc().getValue() + " " + existing.getDest().getValue());
+							result.add(new CreateRelationEvent(new Edge(existing.getSrc(), newDest, Type.PART_OF, Origin.USER)));
+							for(Edge out : g.getOutRelations(existing.getDest())) {
+								result.add(new ReplaceRelationEvent(out, newDest));
+							}
+							result.add(new RemoveRelationEvent(RemoveMode.RECURSIVE, existing));
+							result.add(new CreateRelationEvent(
+									new Edge(dest, newDest, Type.SUBCLASS_OF, Origin.USER)));
+						}
+						Vertex newDest = new Vertex(source.getValue() + " " + dest.getValue());
+						result.add(new CreateRelationEvent(
+								new Edge(source, newDest, Type.PART_OF, Origin.USER)));
+						result.add(new CreateRelationEvent(
+								new Edge(dest, newDest, Type.SUBCLASS_OF, Origin.USER)));
+						
+						eventBus.fireEvent(new CompositeModifyEvent(result));
 						box.hide();
 					}
 				});

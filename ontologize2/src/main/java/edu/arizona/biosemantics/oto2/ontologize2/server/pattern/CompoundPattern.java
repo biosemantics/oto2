@@ -3,6 +3,7 @@ package edu.arizona.biosemantics.oto2.ontologize2.server.pattern;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Candidate;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Collection;
@@ -34,7 +35,7 @@ public class CompoundPattern implements CandidatePattern {
 
 	@Override
 	public boolean matches(Collection collection, Candidate candidate) {
-		String[] parts = candidate.getText().split(" ");
+		String[] parts = candidate.getText().split("[-\\s]");
 		return parts.length > 1;
 	}
 	
@@ -43,7 +44,7 @@ public class CompoundPattern implements CandidatePattern {
 		OntologyGraph g = collection.getGraph();
 		
 		List<Edge> result = new LinkedList<Edge>();
-		String[] parts = c.getText().split(" ");
+		String[] parts = c.getText().split("[-\\s]");
 		if(parts.length > 1) {
 			for(int superclassStart = 1; superclassStart < parts.length; superclassStart++) {
 				for(int subclassStart = 0; subclassStart < superclassStart; subclassStart++) {

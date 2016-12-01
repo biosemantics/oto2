@@ -41,7 +41,7 @@ public interface ICollectionServiceAsync {
 
 	public void order(int id, String secret, Vertex src, List<Edge> edges, Type type, AsyncCallback<Void> callback);
 
-	public void clear(int id, String secret, AsyncCallback<Void> callback);
+	public void clear(int id, String secret, AsyncCallback<Collection> callback);
 
 	public void reduceGraph(int id, String secret, AsyncCallback<Void> callback);
 

@@ -1,5 +1,6 @@
 package edu.arizona.biosemantics.oto2.ontologize2.server;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Properties;
@@ -28,6 +29,7 @@ public class Configuration {
 	public static String existingClassesFile;
 	public static String existingPartsFile;
 	public static String existingSynonymsFile;
+	public static String modifierOntology;
 
 	static {
 		try {
@@ -48,6 +50,8 @@ public class Configuration {
 			existingClassesFile = properties.getProperty("existing_classes_file");
 			existingPartsFile = properties.getProperty("existing_parts_file");
 			existingSynonymsFile = properties.getProperty("existing_synonyms_file");
+			
+			modifierOntology = properties.getProperty("modifier_ontology");
 		} catch(Exception e) {
 			logger.error("Couldn't read configuration", e);
 		}

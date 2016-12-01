@@ -1,48 +1,63 @@
 {
   "Synonym-Root" : [ {
-    "value" : "0% frequency modifier",
+    "value" : "less than 25% certain",
     "requiresCandidate" : false
   }, {
-    "value" : "25% frequency modifier",
+    "value" : "around 25% certain",
     "requiresCandidate" : false
   }, {
-    "value" : "50% frequency modifier",
+    "value" : "around 50% certain",
     "requiresCandidate" : false
   }, {
-    "value" : "75% frequency modifier",
+    "value" : "around 75% certain",
     "requiresCandidate" : false
   }, {
-    "value" : "100% frequency modifier",
+    "value" : "greater than 75% certain",
     "requiresCandidate" : false
   }, {
-    "value" : "0% certainty modifier",
+    "value" : "less than 25% coverage",
     "requiresCandidate" : false
   }, {
-    "value" : "25% certainty modifier",
+    "value" : "around 25% coverage",
     "requiresCandidate" : false
   }, {
-    "value" : "50% certainty modifier",
+    "value" : "around 50% coverage",
     "requiresCandidate" : false
   }, {
-    "value" : "75% certainty modifier",
+    "value" : "around 75% coverage",
     "requiresCandidate" : false
   }, {
-    "value" : "100% certainty modifier",
+    "value" : "greater than 75% coverage",
     "requiresCandidate" : false
   }, {
-    "value" : "0% approximation modifier",
+    "value" : "less than 25% degree",
     "requiresCandidate" : false
   }, {
-    "value" : "25% approximation modifier",
+    "value" : "around 25% degree",
     "requiresCandidate" : false
   }, {
-    "value" : "50% approximation modifier",
+    "value" : "around 50% degree",
     "requiresCandidate" : false
   }, {
-    "value" : "75% approximation modifier",
+    "value" : "around 75% degree",
     "requiresCandidate" : false
   }, {
-    "value" : "100% approximation modifier",
+    "value" : "greater than 75% degree",
+    "requiresCandidate" : false
+  }, {
+    "value" : "less than 25% frequency",
+    "requiresCandidate" : false
+  }, {
+    "value" : "around 25% frequency",
+    "requiresCandidate" : false
+  }, {
+    "value" : "around 50% frequency",
+    "requiresCandidate" : false
+  }, {
+    "value" : "around 75% frequency",
+    "requiresCandidate" : false
+  }, {
+    "value" : "greater than 75% frequency",
     "requiresCandidate" : false
   } ]
 }

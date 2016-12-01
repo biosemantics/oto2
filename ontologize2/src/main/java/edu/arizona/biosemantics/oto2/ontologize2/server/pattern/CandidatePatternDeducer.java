@@ -1,13 +1,19 @@
 package edu.arizona.biosemantics.oto2.ontologize2.server.pattern;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Candidate;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.CandidatePatternResult;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Collection;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Type;
 
 public class CandidatePatternDeducer {
 
@@ -37,9 +43,22 @@ public class CandidatePatternDeducer {
 	
 	public List<CandidatePatternResult> deduce(Collection collection, Candidate c) {
 		List<CandidatePatternResult> result = new LinkedList<CandidatePatternResult>();
+		/*Set<Type> types = new HashSet<Type>(Arrays.asList(Type.values()));
+		if(!c.getPath().equals("/Other") || c.getPath().equals("/OTHER") || c.getPath().equals("/other")) {
+			types.remove(Type.SUBCLASS_OF);
+		}*/
+			
 		for(CandidatePattern p : patterns) {
 			if(p.matches(collection, c)) {
-				result.add(new CandidatePatternResult(p.getName(), p.getRelations(collection, c)));
+				List<Edge> edges = p.getRelations(collection, c);
+				/*Iterator<Edge> iterator = edges.iterator();
+				while(iterator.hasNext()) {
+					if(types.contains(iterator.next().getType())) {
+						iterator.remove();
+					}
+				}*/
+				if(!edges.isEmpty())
+					result.add(new CandidatePatternResult(p.getName(), edges));
 			}
 		}
 		return result;

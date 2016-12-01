@@ -131,7 +131,7 @@ public class CandidateView extends SimpleContainer {
 		public void onExecute() {
 			final String newTerms = addTermsField.getValue().trim();
 			if(newTerms.isEmpty()) {
-				Alerter.showAlert("Add Term", "Term field is empty");
+				Alerter.showAlert("Add Terms", "Term field is empty");
 				return;
 			}
 			
@@ -140,7 +140,7 @@ public class CandidateView extends SimpleContainer {
 			for(String newTerm : newTermsArray) {
 				int lastSeparatorIndex = newTerm.lastIndexOf("/");
 				if(newTerm.length() == lastSeparatorIndex + 1) {
-					Alerter.showAlert("Add term", "Malformed input to add term");
+					Alerter.showAlert("Add terms", "Malformed input to add terms");
 					return;
 				}
 				
@@ -380,7 +380,7 @@ public class CandidateView extends SimpleContainer {
 		hlc.add(addTermsField, new HorizontalLayoutData(1, -1));
 		hlc.add(addButton);
 		
-		FieldLabel field = new FieldLabel(hlc, "Add Term");
+		FieldLabel field = new FieldLabel(hlc, "Add Terms");
 		
 		VerticalLayoutContainer vlc = new VerticalLayoutContainer();
 		vlc.add(buttonBar, new VerticalLayoutData(1, -1));
@@ -431,7 +431,8 @@ public class CandidateView extends SimpleContainer {
 					final String text = node.getText();
 					
 					final Candidate c = candidate;
-					if(candidate != null && candidatePatterns != null && candidatePatterns.containsKey(candidate)) {
+					if(candidate != null && candidatePatterns != null && candidatePatterns.containsKey(candidate) && 
+							!candidatePatterns.get(candidate).isEmpty()) {
 						MenuItem showPatterns = new MenuItem("Show patterns");
 						showPatterns.addSelectionHandler(new SelectionHandler<Item>() {
 							@Override
@@ -647,9 +648,6 @@ public class CandidateView extends SimpleContainer {
 	
 	private void updateCandidate(final Candidate candidate) {
 		final MessageBox box = Alerter.startLoading();
-		if(!candidatePatterns.containsKey(candidate)) {
-			candidatePatterns.put(candidate, new LinkedList<CandidatePatternResult>());
-		}
 		collectionService.getCandidatePatternResults(ModelController.getCollection().getId(), 
 				ModelController.getCollection().getSecret(), candidate, new AsyncCallback<List<CandidatePatternResult>>() {
 					@Override
@@ -659,7 +657,7 @@ public class CandidateView extends SimpleContainer {
 					}
 					@Override
 					public void onSuccess(List<CandidatePatternResult> result) {
-						candidatePatterns.get(candidate).addAll(result);
+						candidatePatterns.put(candidate, result);
 						updateNode(candidate);
 						Alerter.stopLoading(box);
 					}
@@ -709,17 +707,18 @@ public class CandidateView extends SimpleContainer {
 				TextTreeNode bucket = treeStore.getParent(candidateNode);
 				treeStore.remove(candidateNode);
 				candidateNodeMap.remove(candidate.getText());
-				if(bucket != null && treeStore.getChildCount(bucket) == 0)
-					remove(bucket);
+				if(bucket != null && treeStore.getChildCount(bucket) == 0 && bucket instanceof BucketTreeNode )
+					remove((BucketTreeNode)bucket);
 			}
 		}
 	}
 
-	private void remove(TextTreeNode bucket) {
+	private void remove(BucketTreeNode bucket) {
 		TextTreeNode parent = treeStore.getParent(bucket);
 		treeStore.remove(bucket);
-		if(parent != null && treeStore.getChildCount(parent) == 0) {
-			this.remove(parent);
+		bucketNodesMap.remove(bucket);
+		if(parent != null && treeStore.getChildCount(parent) == 0 && parent instanceof BucketTreeNode) {
+			this.remove((BucketTreeNode)parent);
 		}
 	}
 

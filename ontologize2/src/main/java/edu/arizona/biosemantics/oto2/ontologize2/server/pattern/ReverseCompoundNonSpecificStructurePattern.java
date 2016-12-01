@@ -2,6 +2,7 @@ package edu.arizona.biosemantics.oto2.ontologize2.server.pattern;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Candidate;
@@ -25,14 +26,14 @@ public class ReverseCompoundNonSpecificStructurePattern implements CandidatePatt
 
 	@Override
 	public boolean matches(Collection collection, Candidate candidate) {
-		String[] parts = candidate.getText().split(" ");
+		String[] parts = candidate.getText().split("[-\\s]");
 		return parts.length > 1;
 	}
 
 	@Override
 	public List<Edge> getRelations(Collection collection, Candidate c) {
 		List<Edge> edges = new LinkedList<Edge>();
-		String[] parts = c.getText().split(" ");
+		String[] parts = c.getText().split("[-\\s]");
 		
 		OntologyGraph g = collection.getGraph();
 		if(parts.length > 1) {

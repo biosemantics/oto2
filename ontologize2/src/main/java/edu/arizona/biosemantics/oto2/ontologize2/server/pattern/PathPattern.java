@@ -3,6 +3,7 @@ package edu.arizona.biosemantics.oto2.ontologize2.server.pattern;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Candidate;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Collection;
@@ -27,13 +28,17 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Vert
 public class PathPattern implements CandidatePattern {
 
 	@Override
-	public boolean matches(Collection collection, Candidate candidate) {
-		return candidate.getPath().split("/").length > 1;
+	public boolean matches(Collection collection, Candidate c) {
+		if(c.getPath().equals("/Other") || c.getPath().equals("/OTHER") || c.getPath().equals("/other"))
+			return false;
+		return c.getPath().split("/").length > 1;
 	}
 
 	@Override
 	public List<Edge> getRelations(Collection collection, Candidate c) {
 		List<Edge> result = new LinkedList<Edge>();
+		if(c.getPath().equals("/Other") || c.getPath().equals("/OTHER") || c.getPath().equals("/other"))
+			return result;
 		OntologyGraph g = collection.getGraph();
 		List<Vertex> superclasses = new LinkedList<Vertex>();
 		Vertex superclass = g.getRoot(Type.SUBCLASS_OF);

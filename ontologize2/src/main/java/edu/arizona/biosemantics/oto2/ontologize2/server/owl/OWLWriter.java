@@ -2,12 +2,14 @@ package edu.arizona.biosemantics.oto2.ontologize2.server.owl;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.io.FileUtils;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.IRI;
@@ -18,6 +20,7 @@ import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.reasoner.ConsoleProgressMonitor;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
@@ -190,7 +193,9 @@ public class OWLWriter {
 		return null;
 	}
 
-	private void addDefaultImportOntologies() {
+	private void addDefaultImportOntologies() throws OWLOntologyCreationException, IOException {
+		addModifierOntology();
+		
 		List<Ontology> relevantOntologies = Ontology.getRelevantOntologies(c.getTaxonGroup());
 		for(Ontology relevantOntology : relevantOntologies) {
 			//only import RO per default at this time
@@ -201,6 +206,16 @@ public class OWLWriter {
 			//	addImportDeclaration(owlOntology, relevantOntology);
 			//}
 		}
+	}
+
+	private void addModifierOntology() throws IOException, OWLOntologyCreationException {		
+		File modifierOntologyFile = new File(outputDirectory, "ModifierOntology.owl");
+		if (modifierOntologyFile.exists())
+			modifierOntologyFile.delete();
+		FileUtils.copyFile(new File(Configuration.modifierOntology), modifierOntologyFile);	
+		OWLImportsDeclaration importDeclaraton = om.getOWLDataFactory().getOWLImportsDeclaration(IRI.create("ModifierOntology.owl"));
+		om.applyChange(new AddImport(o, importDeclaraton));	
+		om.loadOntology(IRI.create(modifierOntologyFile));
 	}
 
 	private void addImportDeclaration(Ontology relevantOntology) {

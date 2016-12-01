@@ -17,6 +17,7 @@ import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
+import com.google.gwt.user.client.Timer;
 import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.core.client.Style.Anchor;
 import com.sencha.gxt.core.client.Style.AnchorAlignment;
@@ -80,19 +81,26 @@ public class SubclassesGrid extends MenuTermsGrid {
 	}
 	
 	@Override
-	protected void onLoad(OntologyGraph g) {
+	protected void onLoad(final OntologyGraph g) {
 		clearGrid();
-		this.reconfigureForAttachedTerms(g.getMaxOutRelations(type, new HashSet<Vertex>(Arrays.asList(g.getRoot(type)))));
-		createEdges(g, g.getRoot(type), new HashSet<String>(), false);
-		allRowStore.applySort(true);
-		loader.load();
-		for(Vertex v : g.getVertices()) {
-			List<Edge> inRelations = g.getInRelations(v, type);
-			if(inRelations.size() > 1) {
-				for(Row row : getRowsWhereIncluded(v)) 
-					updateRow(row);
+		final int maxOutRelations = g.getMaxOutRelations(type, new HashSet<Vertex>(Arrays.asList(g.getRoot(type))));
+		Timer timer = new Timer() {
+			@Override
+			public void run() {
+				reconfigureForAttachedTerms(maxOutRelations);
+				createEdges(g, g.getRoot(type), new HashSet<String>(), false);
+				allRowStore.applySort(true);
+				loader.load();
+				for(Vertex v : g.getVertices()) {
+					List<Edge> inRelations = g.getInRelations(v, type);
+					if(inRelations.size() > 1) {
+						for(Row row : getRowsWhereIncluded(v)) 
+							updateRow(row);
+					}
+				}
 			}
-		}
+		};
+		timer.schedule(100);
 	}
 		
 	@Override
@@ -235,23 +243,27 @@ public class SubclassesGrid extends MenuTermsGrid {
 		final OntologyGraph g = ModelController.getCollection().getGraph();
 		Menu menu = new Menu();
 
-		MenuItem createSubclass = new MenuItem("Create " + type.getTargetLabel());
-		createSubclass.addSelectionHandler(new SelectionHandler<Item>() {
-			@Override
-			public void onSelection(SelectionEvent<Item> event) {
-				fire(new CreateRelationEvent(new Edge(targetVertex, dropEdge.getDest(), Type.SUBCLASS_OF, Origin.USER)));
-			}
-		});
-		menu.add(createSubclass);
-		
-		MenuItem moveSubclass = new MenuItem("Move " + type.getTargetLabel());
-		moveSubclass.addSelectionHandler(new SelectionHandler<Item>() {
-			@Override
-			public void onSelection(SelectionEvent<Item> event) {
-				fire(new ReplaceRelationEvent(dropEdge, targetVertex));
-			}
-		});
-		menu.add(moveSubclass);
+		Edge existingRelation = new Edge(targetVertex, dropEdge.getDest(), type, Origin.USER);
+		Edge reverseExistingRelation = new Edge(dropEdge.getDest(), targetVertex, type, Origin.USER);
+		if(!g.existsRelation(existingRelation) && !g.existsRelation(reverseExistingRelation)) { 
+			MenuItem createSubclass = new MenuItem("Create " + type.getTargetLabel());
+			createSubclass.addSelectionHandler(new SelectionHandler<Item>() {
+				@Override
+				public void onSelection(SelectionEvent<Item> event) {
+					fire(new CreateRelationEvent(new Edge(targetVertex, dropEdge.getDest(), Type.SUBCLASS_OF, Origin.USER)));
+				}
+			});
+			menu.add(createSubclass);
+			
+			MenuItem moveSubclass = new MenuItem("Move " + type.getTargetLabel());
+			moveSubclass.addSelectionHandler(new SelectionHandler<Item>() {
+				@Override
+				public void onSelection(SelectionEvent<Item> event) {
+					fire(new ReplaceRelationEvent(dropEdge, targetVertex));
+				}
+			});
+			menu.add(moveSubclass);
+		}
 		
 		MenuItem createPart = new MenuItem("Create " + Type.PART_OF.getTargetLabel());
 		createPart.addSelectionHandler(new SelectionHandler<Item>() {

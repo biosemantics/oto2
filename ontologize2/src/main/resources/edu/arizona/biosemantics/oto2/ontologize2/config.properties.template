@@ -11,3 +11,5 @@ wordNetSource=
 existing_classes_file=C:/Users/rodenhausen.CATNET/git/oto22/ontologize2/src/main/resources/edu/arizona/biosemantics/oto2/ontologize2/classes.json
 existing_parts_file=C:/Users/rodenhausen.CATNET/git/oto22/ontologize2/src/main/resources/edu/arizona/biosemantics/oto2/ontologize2/parts.json
 existing_synonyms_file=C:/Users/rodenhausen.CATNET/git/oto22/ontologize2/src/main/resources/edu/arizona/biosemantics/oto2/ontologize2/synonyms.json
+
+modifier_ontology=C:/Users/rodenhausen.CATNET/git/oto22/ontologize2/src/main/resources/edu/arizona/biosemantics/oto2/ontologize2/ModifierOntology.owl

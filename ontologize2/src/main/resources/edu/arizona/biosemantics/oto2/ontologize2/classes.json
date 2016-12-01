@@ -21,99 +21,124 @@
     "requiresCandidate" : false
   } ],
   "modifier" : [ {
-    "value" : "frequency modifier",
+    "value" : "certainty_modifiers",
     "requiresCandidate" : false
   }, {
-    "value" : "certainty modifier",
+    "value" : "coverage_modifiers",
     "requiresCandidate" : false
   }, {
-    "value" : "approximation modifier",
+    "value" : "degree_modifiers",
+    "requiresCandidate" : false
+  }, {
+    "value" : "frequency_modifiers",
     "requiresCandidate" : false
   } ],
-  "frequency modifier" : [ {
-    "value" : "0% frequency modifier",
+  "certainty_modifiers" : [ {
+    "value" : "less than 25% certain",
     "requiresCandidate" : false
   }, {
-    "value" : "25% frequency modifier",
+    "value" : "around 25% certain",
     "requiresCandidate" : false
   }, {
-    "value" : "50% frequency modifier",
+    "value" : "around 50% certain",
     "requiresCandidate" : false
   }, {
-    "value" : "75% frequency modifier",
+    "value" : "around 75% certain",
     "requiresCandidate" : false
   }, {
-    "value" : "100% frequency modifier",
+    "value" : "greater than 75% certain",
     "requiresCandidate" : false
   } ],
-  "certainty modifier" : [ {
-    "value" : "0% certainty modifier",
+  "coverage_modifiers" : [ {
+    "value" : "less than 25% coverage",
     "requiresCandidate" : false
   }, {
-    "value" : "25% certainty modifier",
+    "value" : "around 25% coverage",
     "requiresCandidate" : false
   }, {
-    "value" : "50% certainty modifier",
+    "value" : "around 50% coverage",
     "requiresCandidate" : false
   }, {
-    "value" : "75% certainty modifier",
+    "value" : "around 75% coverage",
     "requiresCandidate" : false
   }, {
-    "value" : "100% certainty modifier",
+    "value" : "greater than 75% coverage",
     "requiresCandidate" : false
   } ],
-  "approximation modifier" : [ {
-    "value" : "0% approximation modifier",
+  "degree_modifiers" : [ {
+    "value" : "less than 25% degree",
     "requiresCandidate" : false
   }, {
-    "value" : "25% approximation modifier",
+    "value" : "around 25% degree",
     "requiresCandidate" : false
   }, {
-    "value" : "50% approximation modifier",
+    "value" : "around 50% degree",
     "requiresCandidate" : false
   }, {
-    "value" : "75% approximation modifier",
+    "value" : "around 75% degree",
     "requiresCandidate" : false
   }, {
-    "value" : "100% approximation modifier",
+    "value" : "greater than 75% degree",
+    "requiresCandidate" : false
+  } ],
+  "frequency_modifiers" : [ {
+    "value" : "less than 25% frequency",
+    "requiresCandidate" : false
+  }, {
+    "value" : "around 25% frequency",
+    "requiresCandidate" : false
+  }, {
+    "value" : "around 50% frequency",
+    "requiresCandidate" : false
+  }, {
+    "value" : "around 75% frequency",
+    "requiresCandidate" : false
+  }, {
+    "value" : "greater than 75% frequency",
     "requiresCandidate" : false
   } ],
   "coloration" : [ {
     "value" : "red",
-    "requiresCandidate" : true
+    "requiresCandidate" : false
   }, {
     "value" : "blue",
-    "requiresCandidate" : true
+    "requiresCandidate" : false
   }, {
     "value" : "green",
-    "requiresCandidate" : true
+    "requiresCandidate" : false
   }, {
     "value" : "yellow",
-    "requiresCandidate" : true
+    "requiresCandidate" : false
   }, {
     "value" : "white",
-    "requiresCandidate" : true
+    "requiresCandidate" : false
   }, {
     "value" : "black",
-    "requiresCandidate" : true
+    "requiresCandidate" : false
   }, {
     "value" : "brown",
-    "requiresCandidate" : true
+    "requiresCandidate" : false
   }, {
     "value" : "gray",
-    "requiresCandidate" : true
+    "requiresCandidate" : false
   }, {
     "value" : "pink",
-    "requiresCandidate" : true
+    "requiresCandidate" : false
   }, {
     "value" : "orange",
-    "requiresCandidate" : true
+    "requiresCandidate" : false
   }, {
-    "value" : "purple",
-    "requiresCandidate" : true
+    "value" : "violet",
+    "requiresCandidate" : false
   } ],
   "reflection" : [ {
     "value" : "bright",
-    "requiresCandidate" : true
+    "requiresCandidate" : false
+  }, {
+    "value" : "translucent",
+    "requiresCandidate" : false
+  }, {
+    "value" : "opaque",
+    "requiresCandidate" : false
   } ]
 }

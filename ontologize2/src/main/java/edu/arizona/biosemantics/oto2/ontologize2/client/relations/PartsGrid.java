@@ -15,6 +15,7 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
+import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
@@ -73,12 +74,20 @@ public class PartsGrid extends MenuTermsGrid {
 	}
 	
 	@Override
-	protected void onLoad(OntologyGraph g) {
+	protected void onLoad(final OntologyGraph g) {
 		clearGrid();
-		this.reconfigureForAttachedTerms(g.getMaxOutRelations(type, new HashSet<Vertex>(Arrays.asList(g.getRoot(type)))));
-		createEdges(g, g.getRoot(type), new HashSet<String>(), false);
-		allRowStore.applySort(true);
-		loader.load();
+		final int maxOutRelations = g.getMaxOutRelations(type, new HashSet<Vertex>(Arrays.asList(g.getRoot(type))));
+		Timer timer = new Timer() {
+			@Override
+			public void run() {
+				reconfigureForAttachedTerms(maxOutRelations);
+				createEdges(g, g.getRoot(type), new HashSet<String>(), false);
+				allRowStore.applySort(true);
+				loader.load();
+			}
+		};
+		timer.schedule(100);
+		
 	}
 
 	@Override
@@ -178,23 +187,27 @@ public class PartsGrid extends MenuTermsGrid {
 		});
 		menu.add(category);
 		
-		MenuItem createPart = new MenuItem("Create " + type.getTargetLabel());
-		createPart.addSelectionHandler(new SelectionHandler<Item>() {
-			@Override
-			public void onSelection(SelectionEvent<Item> event) {
-				fire(new CreateRelationEvent(new Edge(targetVertex, dropEdge.getDest(), type, Origin.USER)));
-			}
-		});
-		menu.add(createPart);
-		
-		MenuItem movePart = new MenuItem("Move " + type.getTargetLabel());
-		movePart.addSelectionHandler(new SelectionHandler<Item>() {
-			@Override
-			public void onSelection(SelectionEvent<Item> event) {
-				fire(new ReplaceRelationEvent(dropEdge, targetVertex));
-			}
-		});
-		menu.add(movePart);
+		Edge existingRelation = new Edge(targetVertex, dropEdge.getDest(), type, Origin.USER);
+		Edge reverseExistingRelation = new Edge(dropEdge.getDest(), targetVertex, type, Origin.USER);
+		if(!g.existsRelation(existingRelation) && !g.existsRelation(reverseExistingRelation)) { 
+			MenuItem createPart = new MenuItem("Create " + type.getTargetLabel());
+			createPart.addSelectionHandler(new SelectionHandler<Item>() {
+				@Override
+				public void onSelection(SelectionEvent<Item> event) {
+					fire(new CreateRelationEvent(new Edge(targetVertex, dropEdge.getDest(), type, Origin.USER)));
+				}
+			});
+			menu.add(createPart);
+			
+			MenuItem movePart = new MenuItem("Move " + type.getTargetLabel());
+			movePart.addSelectionHandler(new SelectionHandler<Item>() {
+				@Override
+				public void onSelection(SelectionEvent<Item> event) {
+					fire(new ReplaceRelationEvent(dropEdge, targetVertex));
+				}
+			});
+			menu.add(movePart);
+		}
 		
 		MenuItem synonym = new MenuItem("Create " + Type.SYNONYM_OF.getTargetLabel());
 		synonym.addSelectionHandler(new SelectionHandler<Item>() {

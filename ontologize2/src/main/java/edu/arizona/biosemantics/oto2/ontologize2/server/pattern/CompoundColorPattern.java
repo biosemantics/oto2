@@ -70,7 +70,7 @@ public class CompoundColorPattern implements CandidatePattern {
 		Set<String> colorOrReflections = new HashSet<String>(this.colorOrReflections);
 		updateForCollection(collection, colors, reflections, colorOrReflections);
 		
-		String[] parts = c.getText().split(" ");
+		String[] parts = c.getText().split("[-\\s]");
 		boolean allColorOrReflections = true;
 		for(String p : parts) {
 			if(!colorOrReflections.contains(p)) {
@@ -102,10 +102,12 @@ public class CompoundColorPattern implements CandidatePattern {
 		
 		List<Edge> result = new LinkedList<Edge>();
 		if(matches(collection, c)) {
-			String[] parts = c.getText().split(" ");
-			for(String superclass : parts) {
-				Edge e = new Edge(new Vertex(superclass), new Vertex(c.getText()), Type.SUBCLASS_OF, Origin.USER);
-				result.add(e);
+			String[] parts = c.getText().split("[-\\s]");
+			if(parts.length > 1) {
+				for(String superclass : parts) {
+					Edge e = new Edge(new Vertex(superclass), new Vertex(c.getText()), Type.SUBCLASS_OF, Origin.USER);
+					result.add(e);
+				}
 			}
 		}
 		return result;

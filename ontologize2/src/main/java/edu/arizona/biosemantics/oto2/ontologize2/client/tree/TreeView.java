@@ -114,7 +114,7 @@ public class TreeView implements IsWidget {
 		list.add(valueCol);
 		columnModel = new ColumnModel<VertexTreeNode>(list);
 		treeGrid = new TreeGrid<VertexTreeNode>(subTree.getStore(), columnModel, valueCol);
-		//treeGrid.setIconProvider(new TermTreeNodeIconProvider());
+		treeGrid.setIconProvider(new TermTreeNodeIconProvider());
 		/*tree.setCell(new AbstractCell<PairTermTreeNode>() {
 			@Override
 			public void render(com.google.gwt.cell.client.Cell.Context context,	PairTermTreeNode value, SafeHtmlBuilder sb) {

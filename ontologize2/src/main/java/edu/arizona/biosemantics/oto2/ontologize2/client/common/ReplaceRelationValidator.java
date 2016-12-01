@@ -48,7 +48,7 @@ public class ReplaceRelationValidator {
 		final CompositeModifyEventForSynonymCreator compositeModifyEventForSynonymCreator = new CompositeModifyEventForSynonymCreator();		
 		OntologyGraph g = ModelController.getCollection().getGraph();
 		try {
-			g.isValidSynonym(new Edge(e.getNewSource(), e.getOldRelation().getDest(), Type.PART_OF, Origin.USER));
+			g.isValidSynonym(new Edge(e.getNewSource(), e.getOldRelation().getDest(), Type.PART_OF, Origin.USER), false, true);
 			eventBus.fireEvent(e);
 		} catch(Exception ex) {
 			final MessageBox box = Alerter.showAlert("Create synonym", ex.getMessage());

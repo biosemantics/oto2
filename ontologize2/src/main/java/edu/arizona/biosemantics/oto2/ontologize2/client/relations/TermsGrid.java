@@ -26,8 +26,10 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
+import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Widget;
+import com.ibm.icu.impl.duration.TimeUnit;
 import com.sencha.gxt.core.client.Style.Anchor;
 import com.sencha.gxt.core.client.Style.AnchorAlignment;
 import com.sencha.gxt.core.client.Style.HideMode;
@@ -689,14 +691,21 @@ public class TermsGrid implements IsWidget {
 		loader.load(loader.getLastLoadConfig());
 	}
 	
-	protected void onLoad(OntologyGraph g) {
+	protected void onLoad(final OntologyGraph g) {
 		clearGrid();
-		this.reconfigureForAttachedTerms(g.getMaxOutRelations(type, new HashSet<Vertex>(Arrays.asList(g.getRoot(type)))));
-		Row rootRow = new Row(type, g.getRoot(type));
-		addRow(rootRow, false);
-		createEdges(g, g.getRoot(type), new HashSet<String>(), false);
-		allRowStore.applySort(true);
-		loader.load();
+		final int maxOutRelations = g.getMaxOutRelations(type, new HashSet<Vertex>(Arrays.asList(g.getRoot(type))));
+		Timer timer = new Timer() {
+			@Override
+			public void run() {
+				reconfigureForAttachedTerms(maxOutRelations);
+				Row rootRow = new Row(type, g.getRoot(type));
+				addRow(rootRow, false);
+				createEdges(g, g.getRoot(type), new HashSet<String>(), false);
+				allRowStore.applySort(true);
+				loader.load();
+			}
+		};
+		timer.schedule(100);
 	}
 	
 	protected void createEdges(OntologyGraph g, Vertex source, Set<String> createdRelations, boolean refresh) {

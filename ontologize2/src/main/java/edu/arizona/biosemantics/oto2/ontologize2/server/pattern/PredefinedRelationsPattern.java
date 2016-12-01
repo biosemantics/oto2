@@ -6,6 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.MapType;
@@ -52,7 +53,7 @@ public class PredefinedRelationsPattern implements CandidatePattern {
 	
 	@Override
 	public boolean matches(Collection collection, Candidate c) {
-		for(String p : c.getText().split(" ")) {
+		for(String p : c.getText().split("[-\\s]")) {
 			for(Type type : existingRelations.keySet()) {
 				for(String superclass : existingRelations.get(type).keySet())  {
 					for(PredefinedVertex subclass : existingRelations.get(type).get(superclass)) {
@@ -70,7 +71,7 @@ public class PredefinedRelationsPattern implements CandidatePattern {
 	public List<Edge> getRelations(Collection collection, Candidate c) {
 		OntologyGraph g = collection.getGraph();
 		List<Edge> result = new LinkedList<Edge>();
-		for(String p : c.getText().split(" ")) {
+		for(String p : c.getText().split("[-\\s]")) {
 			for(Type type : existingRelations.keySet()) {
 				for(String superclass : existingRelations.get(type).keySet())  {
 					for(PredefinedVertex subclass : existingRelations.get(type).get(superclass)) {

@@ -43,7 +43,7 @@ public interface ICollectionService extends RemoteService {
 	
 	public void order(int id, String secret, Vertex src, List<Edge> edges, Type type) throws Exception;
 	
-	public void clear(int id, String secret) throws Exception;
+	public Collection clear(int id, String secret) throws Exception;
 	
 	public void reduceGraph(int id, String secret) throws Exception;
 	

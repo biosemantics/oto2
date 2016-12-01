@@ -345,7 +345,7 @@ public class OntologyGraph implements Serializable {
 	 * - indegree == 1 && in = { root } and outdegree >= 0
 	 * - indegree == 1 && in = { != root } and outdegree == 0
 	 */
-	public boolean isValidSynonym(Edge e) throws Exception {
+	public boolean isValidSynonym(Edge e, boolean checkSynonymExistence, boolean checkPreferredTermExistence) throws Exception {
 		if(this.existsRelation(e))
 			throw new Exception("This relation already exists");
 		Vertex src = e.getSrc();
@@ -360,13 +360,13 @@ public class OntologyGraph implements Serializable {
 			throw new Exception("<i>" + root + "</i> can not be used as synonym");
 		if(src.equals(root) && !destIn.isEmpty() && destIn.contains(root))
 			throw new Exception("<i>" + dest + "</i> is already used as preferred term");
-		if(src.equals(root) && !destIn.isEmpty() && !destIn.contains(root))
+		if(src.equals(root) && !destIn.isEmpty() && !destIn.contains(root) && checkSynonymExistence)
 			throw new Exception("<i>" + dest + "</i> is already used as synonym");
-		if(!src.equals(root) && srcIn.isEmpty())
+		if(!src.equals(root) && srcIn.isEmpty() && checkPreferredTermExistence)
 			throw new Exception("<i>" + src + "</i> is not attached to \"" + root + "\"");
 		if(!src.equals(root) && !destIn.isEmpty() && destIn.contains(root))
 			throw new Exception("<i>" + dest + "</i> is already used as preferred term");
-		if(!src.equals(root) && !destIn.isEmpty() && !destIn.contains(root))
+		if(!src.equals(root) && !destIn.isEmpty() && !destIn.contains(root) && checkSynonymExistence)
 			throw new Exception("<i>" + dest + "</i> is already used as synonym");
 		
 		//if(isSubclassOrPart(e))				
@@ -393,7 +393,7 @@ public class OntologyGraph implements Serializable {
 	}
 
 	private boolean addSynonym(Edge e) throws Exception {
-		if(isValidSynonym(e))
+		if(isValidSynonym(e, true, true))
 			return doAddRelation(e);
 		return false;
 	}
