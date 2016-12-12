@@ -32,19 +32,13 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Vert
  * @author rodenhausen
  */
 public class CompoundPattern implements CandidatePattern {
-
-	@Override
-	public boolean matches(Collection collection, Candidate candidate) {
-		String[] parts = candidate.getText().split("[-\\s]");
-		return parts.length > 1;
-	}
 	
 	@Override
 	public List<Edge> getRelations(Collection collection, Candidate c) {
 		OntologyGraph g = collection.getGraph();
 		
 		List<Edge> result = new LinkedList<Edge>();
-		String[] parts = c.getText().split("[-\\s]");
+		String[] parts = c.getText().split("[-_\\s]");
 		if(parts.length > 1) {
 			for(int superclassStart = 1; superclassStart < parts.length; superclassStart++) {
 				for(int subclassStart = 0; subclassStart < superclassStart; subclassStart++) {

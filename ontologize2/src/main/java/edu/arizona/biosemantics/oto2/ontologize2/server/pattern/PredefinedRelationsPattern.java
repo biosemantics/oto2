@@ -50,22 +50,6 @@ public class PredefinedRelationsPattern implements CandidatePattern {
 			log(LogLevel.ERROR, "Could not read json", e);
 		}
 	}
-	
-	@Override
-	public boolean matches(Collection collection, Candidate c) {
-		for(String p : c.getText().split("[-\\s]")) {
-			for(Type type : existingRelations.keySet()) {
-				for(String superclass : existingRelations.get(type).keySet())  {
-					for(PredefinedVertex subclass : existingRelations.get(type).get(superclass)) {
-						if(subclass.isRequiresCandidate() && p.equals(subclass.getValue())) {
-							return true;
-						}
-					}
-				}
-			}
-		}
-		return false;
-	}
 
 	@Override
 	public List<Edge> getRelations(Collection collection, Candidate c) {

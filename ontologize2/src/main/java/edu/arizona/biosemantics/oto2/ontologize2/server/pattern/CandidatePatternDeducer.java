@@ -2,6 +2,8 @@ package edu.arizona.biosemantics.oto2.ontologize2.server.pattern;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -14,7 +16,9 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Candidate;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.CandidatePatternResult;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Origin;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Type;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Vertex;
 
 public class CandidatePatternDeducer {
 
@@ -49,10 +53,10 @@ public class CandidatePatternDeducer {
 			types.remove(Type.SUBCLASS_OF);
 		}*/
 			
-		Map<String, List<Edge>> patternNameEdgesMap = new HashMap<String, List<Edge>>();
+		Map<String, Set<Edge>> patternNameEdgesMap = new HashMap<String, Set<Edge>>();
 		for(CandidatePattern p : patterns) {
-			if(p.matches(collection, c)) {
-				List<Edge> edges = p.getRelations(collection, c);
+			List<Edge> edges = p.getRelations(collection, c);
+			if(!edges.isEmpty()) {
 				/*Iterator<Edge> iterator = edges.iterator();
 				while(iterator.hasNext()) {
 					if(types.contains(iterator.next().getType())) {
@@ -61,16 +65,38 @@ public class CandidatePatternDeducer {
 				}*/
 				if(!edges.isEmpty()) {
 					if(!patternNameEdgesMap.containsKey(p.getName()))
-						patternNameEdgesMap.put(p.getName(), new ArrayList<Edge>());
-					List<Edge> existing = patternNameEdgesMap.get(p.getName());
+						patternNameEdgesMap.put(p.getName(), new HashSet<Edge>());
+					Set<Edge> existing = patternNameEdgesMap.get(p.getName());
 					for(Edge e : edges) 
 						if(!existing.contains(e))
 							existing.add(e);
 				}
 			}
 		}
+		
+		
+		for(String patternName : patternNameEdgesMap.keySet()) {
+			for(Edge e : new ArrayList<Edge>(patternNameEdgesMap.get(patternName))) {
+				for(Vertex v : new Vertex[] {e.getSrc(), e.getDest()}) {
+					String normalized = v.getValue();
+					String synonym = v.getValue().replaceAll("[-_\\s]", "-");
+					if(!normalized.equals(synonym)) {
+						patternNameEdgesMap.get(patternName).add(new Edge(new Vertex(normalized), new Vertex(synonym), Type.SYNONYM_OF, Origin.USER));
+					}
+				}
+			}
+		}
 		for(String name : patternNameEdgesMap.keySet()) {
-			result.add(new CandidatePatternResult(name, patternNameEdgesMap.get(name)));
+			List<Edge> relations = new ArrayList<Edge>(patternNameEdgesMap.get(name));
+			Collections.sort(relations, new Comparator<Edge>() {
+				@Override
+				public int compare(Edge o1, Edge o2) {
+					String string1 = o1.getType().toString() + "#" + o1.getSrc() + "#" + o1.getDest() + "#" + o1.getOrigin().toString();
+					String string2 = o2.getType().toString() + "#" + o2.getSrc() + "#" + o2.getDest() + "#" + o1.getOrigin().toString();
+					return string1.compareTo(string2);
+				}
+			});
+			result.add(new CandidatePatternResult(name, relations));
 		}
 		return result;
 	}

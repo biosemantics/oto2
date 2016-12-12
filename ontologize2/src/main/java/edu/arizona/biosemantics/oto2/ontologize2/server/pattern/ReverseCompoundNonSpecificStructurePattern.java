@@ -26,15 +26,9 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge
 public class ReverseCompoundNonSpecificStructurePattern implements CandidatePattern {
 
 	@Override
-	public boolean matches(Collection collection, Candidate candidate) {
-		String[] parts = candidate.getText().split("[-\\s]");
-		return parts.length > 1;
-	}
-
-	@Override
 	public List<Edge> getRelations(Collection collection, Candidate c) {
 		List<Edge> edges = new LinkedList<Edge>();
-		String[] parts = c.getText().split("[-\\s]");
+		String[] parts = c.getText().split("[-_\\s]");
 		
 		OntologyGraph g = collection.getGraph();
 		if(parts.length > 1) {
@@ -53,7 +47,7 @@ public class ReverseCompoundNonSpecificStructurePattern implements CandidatePatt
 	private boolean existsOtherCandidateWith(String lastPart, Collection collection, Candidate c) {
 		for(Candidate otherC : collection.getCandidates()) {
 			if(!otherC.equals(c)) {
-				String[] otherParts = otherC.getText().split("[-\\s]");
+				String[] otherParts = otherC.getText().split("[-_\\s]");
 				if(otherParts.length > 1 && otherParts[otherParts.length - 1].equals(lastPart)) {
 					return true;
 				}

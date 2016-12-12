@@ -735,7 +735,7 @@ public class OntologyGraph implements Serializable {
 		case RECURSIVE:
 			removeEdge(e);
 			for(Edge outRelation : this.getOutRelations(dest, type)) {
-				if(this.getInRelations(outRelation.getDest()).size() == 1) 
+				if(this.getInRelations(outRelation.getDest(), type).size() == 1) 
 					this.removeRelation(outRelation, removeMode);
 			}
 			if(this.getInRelations(dest).isEmpty()) {

@@ -28,18 +28,13 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Vert
 public class PathPattern implements CandidatePattern {
 
 	@Override
-	public boolean matches(Collection collection, Candidate c) {
-		if(c.getPath().equals("/Other") || c.getPath().equals("/OTHER") || c.getPath().equals("/other"))
-			return false;
-		return c.getPath().split("/").length > 1;
-	}
-
-	@Override
 	public List<Edge> getRelations(Collection collection, Candidate c) {
 		List<Edge> result = new LinkedList<Edge>();
 		if(c.getPath().equals("/Other") || c.getPath().equals("/OTHER") || c.getPath().equals("/other"))
 			return result;
 		OntologyGraph g = collection.getGraph();
+		String normalizedFull = c.getText().replaceAll("[-_\\s]", " ");
+		
 		List<Vertex> superclasses = new LinkedList<Vertex>();
 		Vertex superclass = g.getRoot(Type.SUBCLASS_OF);
 		superclasses.add(superclass);
@@ -48,6 +43,7 @@ public class PathPattern implements CandidatePattern {
 				if(!p.trim().isEmpty()) {
 					List<Vertex> subclasses = new LinkedList<Vertex>();
 					for(String part : p.split("_or_")) {
+						part = part.replaceAll("[-_\\s]", " ");
 						Vertex subclass = new Vertex(part);
 						subclasses.add(subclass);
 						if(!part.trim().isEmpty()) {
@@ -61,7 +57,7 @@ public class PathPattern implements CandidatePattern {
 				}
 			}
 			for(Vertex superclazz : superclasses) {
-				Edge e = new Edge(superclazz, new Vertex(c.getText()), Type.SUBCLASS_OF, Origin.USER);
+				Edge e = new Edge(superclazz, new Vertex(normalizedFull), Type.SUBCLASS_OF, Origin.USER);
 				result.add(e);
 			}
 		}

@@ -11,8 +11,6 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge
 
 public interface CandidatePattern {
 	
-	public boolean matches(Collection collection, Candidate candidate);
-
 	public List<Edge> getRelations(Collection collection, Candidate c);
 
 	public String getName();

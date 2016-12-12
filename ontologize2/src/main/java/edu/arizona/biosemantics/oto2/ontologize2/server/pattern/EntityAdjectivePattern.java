@@ -26,12 +26,6 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge
 public class EntityAdjectivePattern implements CandidatePattern {
 
 	@Override
-	public boolean matches(Collection collection, Candidate candidate) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
 	public List<Edge> getRelations(Collection collection, Candidate c) {
 		// TODO Auto-generated method stub
 		return null;

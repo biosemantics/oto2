@@ -26,31 +26,18 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Vert
 public class CompoundNonSpecificStructurePattern implements CandidatePattern {
 
 	@Override
-	public boolean matches(Collection collection, Candidate candidate) {
-		String[] parts = candidate.getText().split("[-\\s]");
-		
-		OntologyGraph g = collection.getGraph();
-		if(parts.length > 1) {
-			Edge e = new Edge(new Vertex("non-specific material anatomical entity"), new Vertex(parts[parts.length - 1]), 
-					Type.SUBCLASS_OF, Origin.USER);		
-			if(g.existsRelation(e)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	@Override
 	public List<Edge> getRelations(Collection collection, Candidate c) {
 		List<Edge> edges = new LinkedList<Edge>();
-		String[] parts = c.getText().split("[-\\s]");
+		
+		String[] parts = c.getText().split("[-_\\s]");
+		String normalizedFull = c.getText().replaceAll("[-_\\s]", " ");
 		
 		OntologyGraph g = collection.getGraph();
 		if(parts.length > 1) {
 			Edge e = new Edge(new Vertex("non-specific material anatomical entity"), new Vertex(parts[parts.length - 1]), 
 					Type.SUBCLASS_OF, Origin.USER);		
 			if(g.existsRelation(e)) {
-				edges.add(new Edge(new Vertex(parts[parts.length - 1]), new Vertex(c.getText()), Type.SUBCLASS_OF, Origin.USER));
+				edges.add(new Edge(new Vertex(parts[parts.length - 1]), new Vertex(normalizedFull), Type.SUBCLASS_OF, Origin.USER));
 			}
 		}
 		return edges;

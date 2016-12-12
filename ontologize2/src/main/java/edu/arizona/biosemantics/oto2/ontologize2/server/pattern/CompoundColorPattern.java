@@ -63,23 +63,7 @@ public class CompoundColorPattern implements CandidatePattern {
 		}
 	}
 	
-	@Override
-	public boolean matches(Collection collection, Candidate c) {
-		Set<String> colors = new HashSet<String>(this.colors);
-		Set<String> reflections = new HashSet<String>(this.reflections);
-		Set<String> colorOrReflections = new HashSet<String>(this.colorOrReflections);
-		updateForCollection(collection, colors, reflections, colorOrReflections);
-		
-		String[] parts = c.getText().split("[-\\s]");
-		boolean allColorOrReflections = true;
-		for(String p : parts) {
-			if(!colorOrReflections.contains(p)) {
-				allColorOrReflections = false;
-				break;
-			}
-		}
-		return allColorOrReflections;
-	}
+
 
 	private void updateForCollection(Collection collection, Set<String> colors, Set<String> reflections, Set<String> colorOrReflections) {
 		for(Vertex v : collection.getGraph().getDestinations(new Vertex("coloration"), Type.SUBCLASS_OF)) {
@@ -100,12 +84,21 @@ public class CompoundColorPattern implements CandidatePattern {
 		Set<String> colorOrReflections = new HashSet<String>(this.colorOrReflections);
 		this.updateForCollection(collection, colors, reflections, colorOrReflections);
 		
-		List<Edge> result = new LinkedList<Edge>();
-		if(matches(collection, c)) {
-			String[] parts = c.getText().split("[-\\s]");
+		List<Edge> result = new LinkedList<Edge>();		
+		String normalizedFull = c.getText().replaceAll("[-_\\s]", " ");
+		String[] parts = c.getText().split("[-_\\s]");
+		boolean allColorOrReflections = true;
+		for(String p : parts) {
+			if(!colorOrReflections.contains(p)) {
+				allColorOrReflections = false;
+				break;
+			}
+		}
+		
+		if(allColorOrReflections) {
 			if(parts.length > 1) {
 				for(String superclass : parts) {
-					Edge e = new Edge(new Vertex(superclass), new Vertex(c.getText()), Type.SUBCLASS_OF, Origin.USER);
+					Edge e = new Edge(new Vertex(superclass), new Vertex(normalizedFull), Type.SUBCLASS_OF, Origin.USER);
 					result.add(e);
 				}
 			}
