@@ -196,8 +196,8 @@ public class OWLWriter {
 	private void addDefaultImportOntologies() throws OWLOntologyCreationException, IOException {
 		List<Ontology> relevantOntologies = Ontology.getRelevantOntologies(c.getTaxonGroup());
 		for(Ontology relevantOntology : relevantOntologies) {
-			//only import RO per default at this time
-			if(o.equals(Ontology.RO)) {
+			//only import RO and ModifierOntology per default at this time
+			if(o.equals(Ontology.RO) || o.equals(Ontology.ModifierOntology)) {
 				addImportDeclaration(relevantOntology);
 			}
 			//if(!relevantOntology.hasCollectionId()) {
