@@ -197,7 +197,7 @@ public class OWLWriter {
 		List<Ontology> relevantOntologies = Ontology.getRelevantOntologies(c.getTaxonGroup());
 		for(Ontology relevantOntology : relevantOntologies) {
 			//only import RO and ModifierOntology per default at this time
-			if(o.equals(Ontology.RO) || o.equals(Ontology.ModifierOntology)) {
+			if(relevantOntology.equals(Ontology.RO) || relevantOntology.equals(Ontology.ModifierOntology)) {
 				addImportDeclaration(relevantOntology);
 			}
 			//if(!relevantOntology.hasCollectionId()) {
