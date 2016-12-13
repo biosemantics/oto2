@@ -18,7 +18,8 @@ public enum Ontology {
 	ENVO("envo", "http://purl.obolibrary.org/obo/envo.owl"),
 	GO("go", "http://purl.obolibrary.org/obo/go.owl"),
 	UBERON("uberon", "http://purl.obolibrary.org/obo/uberon.owl"),
-	PORO("poro", "http://purl.obolibrary.org/obo/poro.owl");
+	PORO("poro", "http://purl.obolibrary.org/obo/poro.owl"),
+	ModifierOntology("ModifierOntology", "http://biosemantics.arizona.edu/ontologies/ModifierOntology.owl");
 	
 	private String name;
 	private String iri;
@@ -39,6 +40,7 @@ public enum Ontology {
 	public static List<Ontology> getRelevantOntologies(TaxonGroup taxonGroup) {
 		List<Ontology> result = new LinkedList<Ontology>();
 		
+		result.add(Ontology.ModifierOntology);
 		result.add(Ontology.PATO);
 		result.add(Ontology.RO);
 		result.add(Ontology.BSPO);

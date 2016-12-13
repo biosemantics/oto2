@@ -194,8 +194,6 @@ public class OWLWriter {
 	}
 
 	private void addDefaultImportOntologies() throws OWLOntologyCreationException, IOException {
-		addModifierOntology();
-		
 		List<Ontology> relevantOntologies = Ontology.getRelevantOntologies(c.getTaxonGroup());
 		for(Ontology relevantOntology : relevantOntologies) {
 			//only import RO per default at this time
@@ -206,16 +204,6 @@ public class OWLWriter {
 			//	addImportDeclaration(owlOntology, relevantOntology);
 			//}
 		}
-	}
-
-	private void addModifierOntology() throws IOException, OWLOntologyCreationException {		
-		File modifierOntologyFile = new File(outputDirectory, "ModifierOntology.owl");
-		if (modifierOntologyFile.exists())
-			modifierOntologyFile.delete();
-		FileUtils.copyFile(new File(Configuration.modifierOntology), modifierOntologyFile);	
-		OWLImportsDeclaration importDeclaraton = om.getOWLDataFactory().getOWLImportsDeclaration(IRI.create("ModifierOntology.owl"));
-		om.applyChange(new AddImport(o, importDeclaraton));	
-		om.loadOntology(IRI.create(modifierOntologyFile));
 	}
 
 	private void addImportDeclaration(Ontology relevantOntology) {
