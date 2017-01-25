@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS `oto_collection` (
   `name` varchar(200) NOT NULL,
   `type` varchar(100) NOT NULL,
   `secret` varchar(100) NOT NULL,
-  `lastretrieved` TIMESTAMP NOT NULL DEFAULT 0,
+  `lastretrieved` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`)
