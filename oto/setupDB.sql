@@ -80,19 +80,3 @@ CREATE TABLE IF NOT EXISTS `oto_context` (
   UNIQUE KEY `id` (`id`),
   FULLTEXT KEY `text` (`text`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;
-
-
--- Not needed: Info can be extracted from tables above
---CREATE TABLE IF NOT EXISTS `location` (}
-
-
--- Will retrieved directly from ontology; maybe later as a cache
---CREATE TABLE IF NOT EXISTS `ontology` (
---  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
---  `source` varchar(100) NOT NULL,
---  `sentence` varchar(300) NOT NULL,
---  `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
---  PRIMARY KEY (`id`),
---  UNIQUE KEY `id` (`id`)
---) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=0 ;
-
