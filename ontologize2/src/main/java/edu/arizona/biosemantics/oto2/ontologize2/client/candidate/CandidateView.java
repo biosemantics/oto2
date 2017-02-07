@@ -446,11 +446,17 @@ public class CandidateView extends SimpleContainer {
 										OntologyGraph g = ModelController.getCollection().getGraph();
 										Set<Vertex> futureContained = new HashSet<Vertex>();
 										for(Edge e : order(dialog.getSelectedEdges())) {
-											if(!g.containsVertex(e.getSrc()) && !futureContained.contains(e.getSrc()))  {
-												Edge srcEdge = new Edge(g.getRoot(e.getType()), 
-														e.getSrc(), e.getType(), Origin.USER);
-												futureContained.add(e.getSrc());
-												fire(new CreateRelationEvent(srcEdge));
+											if(e.getType().equals(Type.SYNONYM_OF)) {
+												Edge rootEdge = new Edge(g.getRoot(Type.SYNONYM_OF), e.getSrc(), e.getType(), Origin.USER);
+												if(!g.existsRelation(rootEdge)) 
+													fire(new CreateRelationEvent(rootEdge));
+											} else {
+												if(!g.containsVertex(e.getSrc()) && !futureContained.contains(e.getSrc()))  {
+													Edge srcEdge = new Edge(g.getRoot(e.getType()), 
+															e.getSrc(), e.getType(), Origin.USER);
+													futureContained.add(e.getSrc());
+													fire(new CreateRelationEvent(srcEdge));
+												}
 											}
 											
 											Edge rootEdge = new Edge(g.getRoot(e.getType()), e.getDest(), e.getType(), Origin.USER);

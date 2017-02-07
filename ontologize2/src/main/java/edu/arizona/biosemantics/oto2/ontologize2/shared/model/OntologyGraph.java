@@ -375,21 +375,11 @@ public class OntologyGraph implements Serializable {
 		return true;
 	}
 	
-	public boolean isSubclassOrPart(Edge e) {
-		switch(e.getType()) {
-			case SYNONYM_OF:
-				if(!e.getSrc().equals(getRoot(Type.SYNONYM_OF))) {
-					Vertex synonym = e.getDest();
-					List<Edge> subclassPartRelations = new ArrayList<Edge>();
-					subclassPartRelations.addAll(getRelations(synonym, Type.PART_OF));
-					subclassPartRelations.addAll(getRelations(synonym, Type.SUBCLASS_OF));
-					return !subclassPartRelations.isEmpty();
-				}
-				break;
-			default:
-				break;
-		}
-		return true;
+	public boolean isSubclassOrPart(Vertex v) {
+		List<Edge> subclassPartRelations = new ArrayList<Edge>();
+		subclassPartRelations.addAll(getRelations(v, Type.PART_OF));
+		subclassPartRelations.addAll(getRelations(v, Type.SUBCLASS_OF));
+		return !subclassPartRelations.isEmpty();
 	}
 
 	private boolean addSynonym(Edge e) throws Exception {

@@ -127,7 +127,8 @@ public class CreateRelationValidator {
 		OntologyGraph g = ModelController.getCollection().getGraph();
 		try {
 			g.isValidSynonym(r, true, false);
-			if(!r.getSrc().equals(g.getRoot(Type.SYNONYM_OF)) && g.isSubclassOrPart(r)) {
+					
+			if(!r.getSrc().equals(g.getRoot(Type.SYNONYM_OF)) && g.isSubclassOrPart(r.getDest())) {
 				final Vertex preferred = r.getSrc();
 				final Vertex synonym = r.getDest();
 				
