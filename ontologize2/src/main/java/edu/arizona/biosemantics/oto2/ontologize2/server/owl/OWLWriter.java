@@ -138,9 +138,11 @@ public class OWLWriter {
 			}
 			inRs = g.getInRelations(v, Type.SYNONYM_OF);
 			for(Edge r : inRs) {
-				String sourceIri = iriMap.get(r.getSrc());
-				OWLClass prefc = om.getOWLDataFactory().getOWLClass(IRI.create(sourceIri));
-				axm.addSynonym(o, v.getValue(), prefc);
+				if(!r.getSrc().getValue().equals(Type.SYNONYM_OF.getRootLabel())) {
+					String sourceIri = iriMap.get(r.getSrc());
+					OWLClass prefc = om.getOWLDataFactory().getOWLClass(IRI.create(sourceIri));
+					axm.addSynonym(o, v.getValue(), prefc);
+				}
 			}
 		}
 		or.checkConsistency(o);
