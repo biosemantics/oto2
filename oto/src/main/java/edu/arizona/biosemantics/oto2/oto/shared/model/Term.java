@@ -140,6 +140,5 @@ public class Term implements Serializable, Comparable<Term> {
 	@Override
 	public int compareTo(Term o) {
 		return this.getTerm().compareTo(o.getTerm());
-	}
-	
+	}	
 }

@@ -93,8 +93,8 @@ public class CollectionDAO {
 				termsToSend.addAll(bucket.getTerms());
 			for(Label label : labels) {
 				List<Term> oldMainTerms = label.getMainTerms();
-				Map<Term, List<Term>> oldSynonymTermsMap = label.getMainTermSynonymsMap();
-				Map<Term, List<Term>> newSynonymTermsMap = label.getMainTermSynonymsMap();
+				Map<Integer, List<Term>> oldSynonymTermsMap = label.getMainTermSynonymsMap();
+				Map<Integer, List<Term>> newSynonymTermsMap = label.getMainTermSynonymsMap();
 				
 				List<Term> newMainLabelTerms = new LinkedList<Term>();
 				for(Term mainLabelTerm : label.getMainTerms()) {
@@ -113,7 +113,7 @@ public class CollectionDAO {
 						newSynonymTerms.add(synonymTermToSend);
 					}
 					
-					newSynonymTermsMap.put(mainTermToSend, newSynonymTerms);
+					newSynonymTermsMap.put(mainTermToSend.getId(), newSynonymTerms);
 				}
 				label.setMainTerms(newMainLabelTerms);		
 				label.setMainTermSynonymsMap(newSynonymTermsMap);

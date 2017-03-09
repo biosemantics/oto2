@@ -31,20 +31,19 @@ public class SynonymDAO {
 		this.labelingDAO = labelingDAO;
 	}
 
-	public Map<Term, List<Term>> get(Label label)  {
-		Map<Term, List<Term>> synonyms = new HashMap<Term, List<Term>>();
+	public Map<Integer, List<Term>> get(Label label)  {
+		Map<Integer, List<Term>> synonyms = new HashMap<Integer, List<Term>>();
 		try(Query query = new Query("SELECT * FROM oto_synonym WHERE label = ?")) {
 			query.setParameter(1, label.getId());
 			ResultSet result = query.execute();
 			while(result.next()) {
 				int mainTermId = result.getInt(1);
 				int synonymTermId = result.getInt(3);
-				Term mainTerm = termDAO.get(mainTermId);
 				Term synonymTerm = termDAO.get(synonymTermId);
-				if(mainTerm != null && synonymTerm != null) {
-					if(!synonyms.containsKey(mainTerm))
-						synonyms.put(mainTerm, new LinkedList<Term>());
-					synonyms.get(mainTerm).add(synonymTerm);
+				if(synonymTerm != null) {
+					if(!synonyms.containsKey(mainTermId))
+						synonyms.put(mainTermId, new LinkedList<Term>());
+					synonyms.get(mainTermId).add(synonymTerm);
 				}
 			}
 		} catch(Exception e) {

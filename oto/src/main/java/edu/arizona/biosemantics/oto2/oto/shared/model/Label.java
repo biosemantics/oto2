@@ -24,7 +24,7 @@ public class Label implements Serializable, Comparable<Label> {
 	private int collectionId;
 	private String description = "";
 	private List<Term> mainTerms = new LinkedList<Term>();
-	private Map<Term, List<Term>> mainTermSynonymsMap = new HashMap<Term, List<Term>>();
+	private Map<Integer, List<Term>> mainTermSynonymsMap = new HashMap<Integer, List<Term>>();
 	
 	public Label() { }
 	
@@ -74,8 +74,8 @@ public class Label implements Serializable, Comparable<Label> {
 	}
 
 	public void uncategorizeMainTerm(Term term) {
-		if(mainTermSynonymsMap.containsKey(term)) {
-			List<Term> oldSynonyms = mainTermSynonymsMap.remove(term);
+		if(mainTermSynonymsMap.containsKey(term.getId())) {
+			List<Term> oldSynonyms = mainTermSynonymsMap.remove(term.getId());
 			for(Term oldSynonym : oldSynonyms) {
 				this.addMainTerm(oldSynonym);
 			}
@@ -90,14 +90,14 @@ public class Label implements Serializable, Comparable<Label> {
 	 */
 	public AddResult addMainTerm(Term term) {
 		for(Term mainTerm : mainTerms) {
-			if(mainTermSynonymsMap.get(mainTerm) != null && mainTermSynonymsMap.get(mainTerm).contains(term)) {				
+			if(mainTermSynonymsMap.get(mainTerm.getId()) != null && mainTermSynonymsMap.get(mainTerm.getId()).contains(term)) {				
 				return new AddResult(false, mainTerm);
 			}
 		}
 		if(mainTerms.contains(term))
 			return new AddResult(false, null);
 		mainTerms.add(term);
-		mainTermSynonymsMap.put(term, new LinkedList<Term>());
+		mainTermSynonymsMap.put(term.getId(), new LinkedList<Term>());
 		return new AddResult(true, null);
 	}
 	
@@ -156,14 +156,14 @@ public class Label implements Serializable, Comparable<Label> {
 			this.uncategorizeMainTerm(mainTerm);
 	}
 
-	public void setMainTermSynonymsMap(Map<Term, List<Term>> mainTermSynonymsMap) {
+	public void setMainTermSynonymsMap(Map<Integer, List<Term>> mainTermSynonymsMap) {
 		this.mainTermSynonymsMap = mainTermSynonymsMap;
 	}
 	
 	public List<Term> getSynonyms(Term mainTerm) {
-		if(!mainTermSynonymsMap.containsKey(mainTerm))
+		if(!mainTermSynonymsMap.containsKey(mainTerm.getId()))
 			return new LinkedList<Term>();
-		return new ArrayList<Term>(mainTermSynonymsMap.get(mainTerm));
+		return new ArrayList<Term>(mainTermSynonymsMap.get(mainTerm.getId()));
 	}
 
 	public AddResult addSynonym(Term mainTerm, Term synonymTerm, boolean uncategorizeSynonymFirst) {
@@ -171,18 +171,18 @@ public class Label implements Serializable, Comparable<Label> {
 			uncategorizeMainTerm(synonymTerm);
 		
 		for(Term aMainTerm : mainTerms) {
-			if(mainTermSynonymsMap.get(aMainTerm) != null && mainTermSynonymsMap.get(aMainTerm).contains(synonymTerm)) {				
+			if(mainTermSynonymsMap.get(aMainTerm.getId()) != null && mainTermSynonymsMap.get(aMainTerm.getId()).contains(synonymTerm)) {				
 				return new AddResult(false, aMainTerm);
 			}
 		}
-		if(!mainTermSynonymsMap.containsKey(mainTerm))
+		if(!mainTermSynonymsMap.containsKey(mainTerm.getId()))
 			return new AddResult(false, null);
 		if(mainTerms.contains(synonymTerm))
 			return new AddResult(false, null);
 		
-		if(!mainTermSynonymsMap.containsKey(mainTerm)) 
-			mainTermSynonymsMap.put(mainTerm, new LinkedList<Term>());
-		mainTermSynonymsMap.get(mainTerm).add(synonymTerm);
+		if(!mainTermSynonymsMap.containsKey(mainTerm.getId())) 
+			mainTermSynonymsMap.put(mainTerm.getId(), new LinkedList<Term>());
+		mainTermSynonymsMap.get(mainTerm.getId()).add(synonymTerm);
 		return new AddResult(true, null);
 	}
 	
@@ -197,12 +197,12 @@ public class Label implements Serializable, Comparable<Label> {
 	public void setSynonymy(Term mainLabelTerm, List<Term> synonymTerms) {
 		for(Term synonymTerm : synonymTerms)
 			uncategorizeMainTerm(synonymTerm);
-		mainTermSynonymsMap.put(mainLabelTerm, synonymTerms);
+		mainTermSynonymsMap.put(mainLabelTerm.getId(), synonymTerms);
 	}
 
-	public Map<Term, List<Term>> getMainTermSynonymsMap() {
-		Map<Term, List<Term>> copy = new HashMap<Term, List<Term>>();
-		for(Term key : mainTermSynonymsMap.keySet())
+	public Map<Integer, List<Term>> getMainTermSynonymsMap() {
+		Map<Integer, List<Term>> copy = new HashMap<Integer, List<Term>>();
+		for(int key : mainTermSynonymsMap.keySet())
 			copy.put(key, new LinkedList<Term>(mainTermSynonymsMap.get(key)));
 		return copy;
 	}
@@ -226,14 +226,14 @@ public class Label implements Serializable, Comparable<Label> {
 
 	private void uncategorizeSynonymTerm(Term term) {
 		for(Term mainTerm : this.mainTerms)
-			this.mainTermSynonymsMap.get(mainTerm).remove(term);
+			this.mainTermSynonymsMap.get(mainTerm.getId()).remove(term);
 	}
 
 	public boolean containsTerm(Term term) {
 		for(Term mainTerm : mainTerms) {
 			if(mainTerm.equals(term))
 				return true;
-			for(Term synonym : mainTermSynonymsMap.get(mainTerm)) {
+			for(Term synonym : mainTermSynonymsMap.get(mainTerm.getId())) {
 				if(synonym.equals(term))
 					return true;
 			}
@@ -268,7 +268,7 @@ public class Label implements Serializable, Comparable<Label> {
 
 	public boolean isSynonym(Term term) {
 		for(Term mainTerm : this.mainTerms) {
-			List<Term> syns = this.mainTermSynonymsMap.get(mainTerm);
+			List<Term> syns = this.mainTermSynonymsMap.get(mainTerm.getId());
 			if(syns != null && syns.contains(term))
 				return true;
 		}
@@ -277,7 +277,7 @@ public class Label implements Serializable, Comparable<Label> {
 	
 	public Term getMainTermOfSynonym(Term synonym) {
 		for(Term mainTerm : this.mainTerms) {
-			List<Term> syns = this.mainTermSynonymsMap.get(mainTerm);
+			List<Term> syns = this.mainTermSynonymsMap.get(mainTerm.getId());
 			if(syns != null && syns.contains(synonym))
 				return mainTerm;
 		}
