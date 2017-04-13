@@ -40,6 +40,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.SelectTermEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.UserLogEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.Handler;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid.Row;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.VertexTreeNode;
@@ -81,7 +82,7 @@ public class SubclassTreeView extends MenuTreeView {
 	 		VertexTreeNode destinationNode = new VertexTreeNode(r.getDest());
 	 		add(subTree, sourceNode, destinationNode);
 	 		//treeGrid.setExpanded(sourceNode, true);
-			
+	 		
 	 		if(subTree.getVertexNodeMap().get(r.getDest()).size() > 1) {
 				//remove child nodes below already existings
 				for(VertexTreeNode n : subTree.getVertexNodeMap().get(r.getDest())) {

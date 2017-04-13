@@ -29,9 +29,12 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveCandidateEve
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.OrderEdgesEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.UserLogEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.AddCandidateResult;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.ICollectionService;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.ICollectionServiceAsync;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.IUserLogService;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.IUserLogServiceAsync;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Candidate;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph;
@@ -45,11 +48,17 @@ public class ModelController {
 
 	private static Collection collection;
 	private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
+	private IUserLogServiceAsync userLogService = GWT.create(IUserLogService.class);
 	private EventBus eventBus;
-
+	private String user;
+	
 	public ModelController(EventBus eventBus) {
 		this.eventBus = eventBus;
 		bindEvents();
+	}
+	
+	public void setUser(String user){
+		this.user = user;
 	}
 	
 	private void bindEvents() {
@@ -63,6 +72,12 @@ public class ModelController {
 			@Override
 			public void onLoad(LoadCollectionEvent event) {
 				loadCollection(event);
+			}
+		});
+		eventBus.addHandler(UserLogEvent.TYPE, new UserLogEvent.Handler() {
+			@Override
+			public void onLog(UserLogEvent event) {
+				userLog(event);
 			}
 		});
 		eventBus.addHandler(ClearEvent.TYPE, new ClearEvent.Handler() {
@@ -347,8 +362,28 @@ public class ModelController {
 		if(!event.isEffectiveInModel()) {
 			collection = event.getCollection();
 			event.setEffectiveInModel(true);
+			
+			eventBus.fireEvent(new UserLogEvent(user, null, "Enter_OB",null));
 			eventBus.fireEvent(event);
 		}
+	}
+	
+	
+	protected void userLog(UserLogEvent event) {
+		if(event.getUser()==null) event.setUser(user);
+		int collectionId=collection.getId();
+ 		userLogService.insertLog(event.getUser(), event.getSessionId(), collectionId+"", event.getOperation(), event.getContent(), new AsyncCallback() {
+
+			@Override
+			public void onFailure(Throwable caught) {
+			}
+
+			@Override
+			public void onSuccess(Object result) {
+				//Alerter.showAlert("evernt_bus", "log sucess");
+			}
+			
+		});
 	}
 
 	protected void createRelation(final CreateRelationEvent event) {

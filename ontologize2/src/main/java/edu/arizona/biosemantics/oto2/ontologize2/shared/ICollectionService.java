@@ -56,6 +56,6 @@ public interface ICollectionService extends RemoteService {
 	public boolean add(int id, String secret, Edge[] relations) throws Exception;
 
 	public void remove(int id, String secret, Edge[] relations, RemoveMode removeMode) throws Exception;
-
-	
+	/*used for recording user logs*/
+	public void setUser(String user);
 }

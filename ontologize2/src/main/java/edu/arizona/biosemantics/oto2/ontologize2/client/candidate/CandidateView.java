@@ -24,6 +24,7 @@ import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.client.Event;
+import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.web.bindery.event.shared.EventBus;
 import com.sencha.gxt.core.client.IdentityValueProvider;
@@ -75,6 +76,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.event.LoadCollectionEven
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveCandidateEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.SelectTermEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.UserLogEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.BucketTreeNode;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.CandidateTreeNode;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.TextTreeNode;
@@ -172,6 +174,9 @@ public class CandidateView extends SimpleContainer {
 			}
 			addTermsField.setText("");
 			eventBus.fireEvent(new CreateCandidateEvent(candidates));
+			
+			eventBus.fireEvent(new UserLogEvent("add_new_cand_terms",newTerms));
+			
 		}
 	};
 	
@@ -215,7 +220,8 @@ public class CandidateView extends SimpleContainer {
 						List<CandidatePatternResult> patterns = candidatePatterns.get(candidate);
 						if(!patterns.isEmpty()) {
 							patternIcon = "url(" + cellImages.blue().getSafeUri().asString() + ")";
-							numberOfPatterns = "(" + patterns.size() + " Patterns)";
+							//numberOfPatterns = "(" + patterns.size() + " Patterns)";
+							numberOfPatterns = "(recommended relations)";
 						}
 					}
 				}
@@ -249,9 +255,13 @@ public class CandidateView extends SimpleContainer {
 			}
 			protected void addBucketTermsToList(TextTreeNode node, List<Candidate> data) {
 				if(node instanceof BucketTreeNode) {
-					for(TextTreeNode child : tree.getStore().getChildren(node)) {
-						this.addBucketTermsToList(child, data);
-					}
+					//do not add offsprings but only this node
+//					for(TextTreeNode child : tree.getStore().getChildren(node)) {
+//						this.addBucketTermsToList(child, data);
+//					}
+					Candidate candidate = new Candidate();
+					candidate.setText(node.getText());
+					data.add(candidate);
 				} else if(node instanceof CandidateTreeNode) {
 					Candidate candidate = ((CandidateTreeNode)node).getCandidate();
 					data.add(candidate);
@@ -401,6 +411,7 @@ public class CandidateView extends SimpleContainer {
 	}
 	
 	protected void onFilter(final String text) {
+		
 		if(checkFilterItem.isChecked()) {
 			treeStore.removeFilters();
 			treeStore.addFilter(new StoreFilter<TextTreeNode>() {
@@ -410,6 +421,8 @@ public class CandidateView extends SimpleContainer {
 				}
 			});
 			treeStore.setEnableFilters(true);
+			
+			eventBus.fireEvent(new UserLogEvent("cand_filter",text));
 		} else {
 			treeStore.removeFilters();
 			treeStore.setEnableFilters(false);
@@ -433,7 +446,8 @@ public class CandidateView extends SimpleContainer {
 					final Candidate c = candidate;
 					if(candidate != null && candidatePatterns != null && candidatePatterns.containsKey(candidate) && 
 							!candidatePatterns.get(candidate).isEmpty()) {
-						MenuItem showPatterns = new MenuItem("Show patterns");
+						MenuItem showPatterns = new MenuItem("Show recommended relations");
+						//MenuItem showPatterns = new MenuItem("Show patterns");
 						showPatterns.addSelectionHandler(new SelectionHandler<Item>() {
 							@Override
 							public void onSelection(SelectionEvent<Item> event) {
@@ -443,10 +457,33 @@ public class CandidateView extends SimpleContainer {
 								dialog.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
 									@Override
 									public void onSelect(SelectEvent event) {
-										OntologyGraph g = ModelController.getCollection().getGraph();
-										Set<Vertex> futureContained = new HashSet<Vertex>();
+										final OntologyGraph g = ModelController.getCollection().getGraph();
+										final Set<Vertex> futureContained = new HashSet<Vertex>();
+										//put super-subclass relations first
+										/*
+										List categoryList = new ArrayList();
+										List symList = new ArrayList();
+										for(Edge e:dialog.getSelectedEdges()){
+											if(e.getType().equals(Type.SYNONYM_OF)) symList.add(e);
+											else categoryList.add(e);
+										}
+										categoryList = order(categoryList);
+										symList = order(symList);
+										categoryList.addAll(symList);
+										*/
+										StringBuffer sb = new StringBuffer();
+										for(Edge e : dialog.getSelectedEdges()) {
+											sb.append(e.toString()).append("|");
+										}
+										eventBus.fireEvent(new UserLogEvent("add_by_pattern",sb.toString()));
+										// to handle this in a long run, it's better to add a new event
+										Set handled = new HashSet();
 										for(Edge e : order(dialog.getSelectedEdges())) {
-											if(e.getType().equals(Type.SYNONYM_OF)) {
+											if(handled.contains(e)){
+												//Alerter.showAlert("existed", e.toString());
+												continue;
+											}
+											if(e.getType().equals(Type.SYNONYM_OF)) {//there could be some problems due to Javascript sometimes are not executed linearly
 												Edge rootEdge = new Edge(g.getRoot(Type.SYNONYM_OF), e.getSrc(), e.getType(), Origin.USER);
 												if(!g.existsRelation(rootEdge)) 
 													fire(new CreateRelationEvent(rootEdge));
@@ -458,15 +495,33 @@ public class CandidateView extends SimpleContainer {
 													fire(new CreateRelationEvent(srcEdge));
 												}
 											}
-											
-											Edge rootEdge = new Edge(g.getRoot(e.getType()), e.getDest(), e.getType(), Origin.USER);
-											if(g.existsRelation(rootEdge)) {
-												fire(new ReplaceRelationEvent(rootEdge, e.getSrc()));
-											} else {
-												futureContained.add(e.getDest());
-												fire(new CreateRelationEvent(e));
-											}
 										}
+										Timer timer = new Timer()
+								        {
+								            @Override
+								            public void run()
+								            {
+								            	Set handled = new HashSet();
+												for(Edge e : order(dialog.getSelectedEdges())) {
+													//for(Edge e : order(categoryList)) {
+													//if the pattern has been applied, ignore it
+													if(handled.contains(e)){
+														//Alerter.showAlert("existed", e.toString());
+														continue;
+													}
+													handled.add(e);
+													Edge rootEdge = new Edge(g.getRoot(e.getType()), e.getDest(), e.getType(), Origin.USER);
+													if(g.existsRelation(rootEdge)) {
+														fire(new ReplaceRelationEvent(rootEdge, e.getSrc()));
+													} else {
+														futureContained.add(e.getDest());
+														fire(new CreateRelationEvent(e));
+													}
+												}
+								            }
+								        };
+
+								        timer.schedule(500);
 									}
 
 									private List<Edge> order(List<Edge> edges) {
@@ -528,6 +583,8 @@ public class CandidateView extends SimpleContainer {
 						@Override
 						public void onSelection(SelectionEvent<Item> event) {
 							eventBus.fireEvent(new SelectTermEvent(text));
+							
+							eventBus.fireEvent(new UserLogEvent("show_context_cand",text));
 						}
 					});
 					menu.add(filterItem);
@@ -557,16 +614,21 @@ public class CandidateView extends SimpleContainer {
 	
 	protected void removeNodes(List<TextTreeNode> nodes) {
 		final Set<Candidate> remove = new HashSet<Candidate>();
+		StringBuffer delTerms = new StringBuffer();
 		for(TextTreeNode node : nodes) {
 			if(node instanceof BucketTreeNode) {
 				addBucketTermsToRemoveList((BucketTreeNode)node, remove);
+				delTerms.append(node.getText()).append(", ");
 			}
 			if(node instanceof CandidateTreeNode) {
 				CandidateTreeNode candidateTreeNode = (CandidateTreeNode)node;
 				remove.add(candidateTreeNode.getCandidate());
+				delTerms.append(node.getText()).append(", ");
 			}
 		}
+		
 		eventBus.fireEvent(new RemoveCandidateEvent(remove));
+		eventBus.fireEvent(new UserLogEvent("del_cand_terms",delTerms.toString()));
 	}
 
 	private void addBucketTermsToRemoveList(BucketTreeNode node, Set<Candidate> remove) {

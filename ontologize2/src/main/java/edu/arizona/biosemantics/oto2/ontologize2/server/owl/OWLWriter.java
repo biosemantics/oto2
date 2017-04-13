@@ -67,6 +67,7 @@ public class OWLWriter {
 				om.getOWLDataFactory().getOWLAnnotationProperty(OWLRDFVocabulary.RDFS_LABEL.getIRI());
 		
 		List<Ontology> relevantOntologies = Ontology.getRelevantOntologies(c.getTaxonGroup());
+		//read relevant ontologies in the graphs sub-folder
 		for(Ontology ro : relevantOntologies) {
 			om.loadOntologyFromOntologyDocument(new File(Configuration.permanentOntologyDirectory + File.separator + ro.getName() + ".owl"));
 			Reader reader = new Reader(Configuration.ontologyGraphs + File.separator + ro.getName() + ".graph");

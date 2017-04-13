@@ -151,9 +151,12 @@ public class CreateRelationValidator {
 						@Override
 						public void onSelect(SelectEvent event) {
 							List<Edge> reattach = relationSelectionDialog.getSelection();
-							CompositeModifyEvent compositeModifyEvent = 
-									compositeModifyEventForSynonymCreator.create(preferred, synonym, new HashSet<Edge>(reattach));
-							eventBus.fireEvent(compositeModifyEvent);
+							//whether at least one should be added?
+							//if(reattach!=null&&reattach.size()>0){
+								CompositeModifyEvent compositeModifyEvent = 
+										compositeModifyEventForSynonymCreator.create(preferred, synonym, new HashSet<Edge>(reattach));
+								eventBus.fireEvent(compositeModifyEvent);
+							//}
 							eventBus.fireEvent(new ShowRelationsEvent(Type.SYNONYM_OF));
 						}
 					});

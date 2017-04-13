@@ -12,8 +12,8 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph;
 public class SortEvent extends GwtEvent<Handler> {
 
 	public static enum SortTarget {
-		GRID("Grid"), TREE("Tree"), GRID_AND_TREE("Grid + Tree");
-		
+		//GRID("Grid"), TREE("Tree"), GRID_AND_TREE("Grid + Tree");
+		GRID("Table"), TREE("Tree"), GRID_AND_TREE("Table + Tree");
 		private String displayName;
 
 		private SortTarget(String displayName) {

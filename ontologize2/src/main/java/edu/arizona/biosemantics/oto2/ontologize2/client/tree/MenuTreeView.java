@@ -49,6 +49,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.event.OrderEdgesEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.SelectTermEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.SortEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.UserLogEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent.FilterTarget;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.RemoveMode;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.SortEvent.SortField;
@@ -282,7 +283,7 @@ public class MenuTreeView extends TreeView {
 							break;
 					}
 					
-
+					eventBus.fireEvent(new UserLogEvent("tree_filter_"+type.getDisplayLabel(),target.getDisplayName()+":"+filterState.filter));
 					if(activate) {
 						filterCheckBox.setBoxLabel("Filter: " + filterState.filter + " (" + 
 								filterState.target.getDisplayName() + ")");
@@ -402,6 +403,7 @@ public class MenuTreeView extends TreeView {
 						public void onSelection(SelectionEvent<Item> event) {
 							OntologyGraph g = ModelController.getCollection().getGraph();
 							for(final Edge r : g.getOutRelations(target, type)) {
+								
 								if(g.getInRelations(r.getDest(), type).size() <= 1) {
 									if(g.getOutRelations(r.getDest(), type).isEmpty()) {
 										fire(new RemoveRelationEvent(RemoveMode.REATTACH_TO_AVOID_LOSS, r));
@@ -411,6 +413,8 @@ public class MenuTreeView extends TreeView {
 								} else {
 									fire(new RemoveRelationEvent(RemoveMode.REATTACH_TO_AVOID_LOSS, r));
 								}
+								
+								eventBus.fireEvent(new UserLogEvent("tree_brmrel_"+ type.getDisplayLabel(),r.getDest().getValue()));
 							}
 						}
 					});
@@ -438,6 +442,8 @@ public class MenuTreeView extends TreeView {
 								} else {
 									fire(new RemoveRelationEvent(RemoveMode.REATTACH_TO_AVOID_LOSS, r));
 								}
+								
+								eventBus.fireEvent(new UserLogEvent("tree_rmrel_"+ type.getDisplayLabel(),r.getDest().getValue()));
 							}
 						}
 					});
@@ -458,7 +464,7 @@ public class MenuTreeView extends TreeView {
 							treeGrid.getSelectionModel().getSelectedItem().getText());
 					Menu filterMenu = new Menu();
 					filterItem.setSubMenu(filterMenu);
-					MenuItem filterGrid = new MenuItem("Grid");
+					MenuItem filterGrid = new MenuItem("Table");
 					filterGrid.addSelectionHandler(new SelectionHandler<Item>() {
 						@Override
 						public void onSelection(SelectionEvent<Item> event) {
@@ -476,7 +482,7 @@ public class MenuTreeView extends TreeView {
 						}
 					});
 					filterMenu.add(filterTree);
-					MenuItem filterAll = new MenuItem("Grid + Tree");
+					MenuItem filterAll = new MenuItem("Table + Tree");
 					filterAll.addSelectionHandler(new SelectionHandler<Item>() {
 						@Override
 						public void onSelection(SelectionEvent<Item> event) {
@@ -689,12 +695,14 @@ public class MenuTreeView extends TreeView {
 						@Override
 						public void onSelection(SelectionEvent<Item> event) {
 							eventBus.fireEvent(new SortEvent(sortField, SortDir.ASC, sortTarget, type));
+							eventBus.fireEvent(new UserLogEvent("tree_sort_"+ type.getDisplayLabel(),sortTarget.getDisplayName()+ " By " + sortField.getDisplayName()+" Ascending"));
 						}
 					});
 					creationDescButton.addSelectionHandler(new SelectionHandler<Item>() {
 						@Override
 						public void onSelection(SelectionEvent<Item> event) {
 							eventBus.fireEvent(new SortEvent(sortField, SortDir.DESC, sortTarget, type));
+							eventBus.fireEvent(new UserLogEvent("tree_sort_"+ type.getDisplayLabel(),sortTarget.getDisplayName()+ " By " + sortField.getDisplayName()+" Descending"));
 						}
 					});
 				}

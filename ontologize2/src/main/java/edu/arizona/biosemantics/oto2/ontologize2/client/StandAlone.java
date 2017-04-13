@@ -19,6 +19,7 @@ import com.google.gwt.event.shared.EventBus;
 import edu.arizona.biosemantics.common.biology.TaxonGroup;
 import edu.arizona.biosemantics.common.context.shared.Context;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.LoadCollectionEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.UserLogEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.ICollectionService;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.ICollectionServiceAsync;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.IContextService;
@@ -73,7 +74,15 @@ public class StandAlone implements EntryPoint {
 		for(String term : terms) {
 			c.add(new Candidate(term));
 		}
-		
+		Candidate cson = new Candidate("son");
+		cson.setPath("father1");
+		c.add(cson);
+		Candidate cson2 = new Candidate("son");
+		cson2.setPath("father2");
+		c.add(cson2);
+		Candidate cson3 = new Candidate("son");
+		cson3.setPath("father3");
+		c.add(cson3);
 		try {
 			/*c.getGraph().addRelation(new Relation(
 					c.getGraph().getRoot(Type.SUBCLASS_OF), 
@@ -101,7 +110,7 @@ public class StandAlone implements EntryPoint {
 					new Vertex("tip"), 
 					new Edge(Type.PART_OF, Source.IMPORT)));*/
 			
-			
+			/*
 			collectionService.insert(c, new AsyncCallback<Collection>() {
 				@Override
 				public void onFailure(Throwable caught) {
@@ -110,7 +119,7 @@ public class StandAlone implements EntryPoint {
 				@Override
 				public void onSuccess(final Collection c) {
 					System.out.println("success");
-					
+				
 					List<Context> contexts = new LinkedList<Context>();
 					contexts.add(new Context(0, "some source 1", "leaf stems with wide flowers and tips"));
 					contexts.add(new Context(1, "some source 2", "plant anatomical entity are described as either "
@@ -127,7 +136,7 @@ public class StandAlone implements EntryPoint {
 						}
 					});
 					
-					/*collectionService.add(c.getId(), c.getSecret(), new Relation(v2, v1, new Edge(Type.SUBCLASS_OF, Source.USER)), 
+					collectionService.add(c.getId(), c.getSecret(), new Relation(v2, v1, new Edge(Type.SUBCLASS_OF, Source.USER)), 
 							new AsyncCallback<Boolean>() {
 								@Override
 								public void onFailure(Throwable caught) {
@@ -137,14 +146,17 @@ public class StandAlone implements EntryPoint {
 								public void onSuccess(Boolean result) {
 									System.out.println(result);
 								}
-					}); */
+					}); 
 
 				}
-			});
+			});*/
 			
 			
 			
 			Ontologize ontologize = new Ontologize();
+			
+			ontologize.setUser("st_user");
+			
 			Viewport v = new Viewport();
 			v.add(ontologize);
 			RootPanel.get().add(v);
@@ -153,7 +165,7 @@ public class StandAlone implements EntryPoint {
 			Timer timer = new Timer() {
 				@Override
 				public void run() {
-					collectionService.get(0, "", new AsyncCallback<Collection>() {
+					collectionService.get(1, "", new AsyncCallback<Collection>() {
 						@Override
 						public void onFailure(Throwable caught) {
 							caught.printStackTrace();
@@ -163,10 +175,12 @@ public class StandAlone implements EntryPoint {
 							MessageBox box = Alerter.startLoading();
 							eventBus.fireEvent(new LoadCollectionEvent(result));
 							Alerter.stopLoading(box);
+							
 						}
 						
 					});
 				}
+				
 			};
 			timer.schedule(1000);
 

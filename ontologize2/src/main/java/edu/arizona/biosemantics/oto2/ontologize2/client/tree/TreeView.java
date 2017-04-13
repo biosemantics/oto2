@@ -52,6 +52,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEven
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.OrderEdgesEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.UserLogEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.RemoveMode;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.VisualizationConfigurationEvent;
@@ -259,6 +260,7 @@ public class TreeView implements IsWidget {
 				if(!event.isEffectiveInModel())
 					for(Edge r : event.getRelations()) {
 						createRelation(subTree, r);
+						//eventBus.fireEvent(new UserLogEvent("tree_crerel_"+ type.getDisplayLabel(),r.getDest().getValue()));
 					}
 				else
 					for(Edge r : event.getRelations())
@@ -269,8 +271,10 @@ public class TreeView implements IsWidget {
 			@Override
 			public void onRemove(RemoveRelationEvent event) {
 				if(!event.isEffectiveInModel())
-					for(Edge r : event.getRelations())
+					for(Edge r : event.getRelations()){
 						removeRelation(subTree, event, r, event.getRemoveMode());
+						//eventBus.fireEvent(new UserLogEvent("tree_rmrel_"+ type.getDisplayLabel(),r.getDest().getValue()));
+					}
 				else
 					for(Edge r : event.getRelations()) 
 						onRemoveRelationEffectiveInModel(event, r, event.getRemoveMode());
@@ -484,6 +488,9 @@ public class TreeView implements IsWidget {
 			if(subTree.getVertexNodeMap().containsKey(r.getSrc()) && subTree.getVertexNodeMap().containsKey(r.getDest())) {
 				VertexTreeNode sourceNode = subTree.getVertexNodeMap().get(r.getSrc()).iterator().next();
 				VertexTreeNode targetNode = subTree.getVertexNodeMap().get(r.getDest()).iterator().next();
+				
+				eventBus.fireEvent(new UserLogEvent("grid_rmrel_"+ type.getDisplayLabel(),targetNode.getText()));
+				
 				switch(removeMode) {
 				case REATTACH_TO_AVOID_LOSS:
 					List<TreeNode<VertexTreeNode>> targetChildNodes = new LinkedList<TreeNode<VertexTreeNode>>();

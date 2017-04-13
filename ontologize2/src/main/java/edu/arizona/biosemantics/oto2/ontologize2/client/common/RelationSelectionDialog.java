@@ -4,9 +4,11 @@ import java.util.List;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.editor.client.Editor.Path;
+import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
+import com.sencha.gxt.cell.core.client.form.CheckBoxCell;
 import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
 import com.sencha.gxt.data.shared.LabelProvider;
@@ -74,9 +76,11 @@ public class RelationSelectionDialog  extends Dialog {
 					return "string";
 				}
 			});
+			
 			store.addAll(relations);
 			vlc = new VerticalLayoutContainer();
-			vlc.add(new Label("Select the relations you want to re-attach from the synonym to the preferred term."), new VerticalLayoutData(1, -1));
+			vlc.add(new HTML("Select the relations you want to re-attach from the synonym to the preferred term."
+					+ "<br/>Press <I>Ctrl</I>  in your keyboard to select multiple relations."), new VerticalLayoutData(1, -1));
 			vlc.add(listView, new VerticalLayoutData(1, 1));
 			//vlc.getScrollSupport().setScrollMode(ScrollMode.AUTOY);
 		}

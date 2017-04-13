@@ -18,6 +18,7 @@ import com.sencha.gxt.widget.core.client.menu.Item;
 import com.google.gwt.core.shared.GWT;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.Style.BorderStyle;
+import com.google.gwt.dom.client.Style.FontWeight;
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.editor.client.Editor.Path;
 import com.google.gwt.event.logical.shared.SelectionEvent;
@@ -86,6 +87,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.event.OrderEdgesEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveCandidateEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ShowRelationsEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.UserLogEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.RemoveMode;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.VisualizationConfigurationEvent;
@@ -339,6 +341,7 @@ public class TermsGrid implements IsWidget {
 		
 		this.grid = new Grid<Row>(store, createColumnModel(new LinkedList<Row>()));// createColumnModel(1));//createColumnModel(new LinkedList<Row>()));
 		this.grid.setLoader(loader);
+		//this.grid.getElement().getStyle().setFontWeight(FontWeight.NORMAL);
 		
 		createRowContainer = createCreateRowContainer();
 		
@@ -400,8 +403,10 @@ public class TermsGrid implements IsWidget {
 								Edge rootEdge = new Edge(g.getRoot(type), dest, type, Origin.USER);
 								if(g.existsRelation(rootEdge)) {
 									fire(new ReplaceRelationEvent(rootEdge, row.getLead()));
+									eventBus.fireEvent(new UserLogEvent("table_reprel_"+type,dest.getValue()));
 								} else {
 									fire(new CreateRelationEvent(new Edge(row.getLead(), dest, type, Origin.USER)));
+									eventBus.fireEvent(new UserLogEvent("table_crerel_"+type,dest.getValue()));
 								}
 							}
 						}
@@ -464,6 +469,8 @@ public class TermsGrid implements IsWidget {
 							}
 							CreateRelationEvent createRelationEvent = new CreateRelationEvent(relation);
 							fire(createRelationEvent);
+							
+							eventBus.fireEvent(new UserLogEvent("table_crenew_"+type,target.getValue()));
 						} else {
 							if(!TermsGrid.this.leadRowMap.containsKey(target))
 								TermsGrid.this.addRow(new Row(type, target), true);
@@ -916,7 +923,8 @@ public class TermsGrid implements IsWidget {
 			public String getPath() {
 				return "lead";
 			}
-		}, colWidth, SafeHtmlUtils.fromTrustedString("<b>" + type.getSourceLabel() + "</b>"));
+		}, colWidth, SafeHtmlUtils.fromTrustedString(type.getSourceLabel()));
+		//}, colWidth, SafeHtmlUtils.fromTrustedString("<b>" + type.getSourceLabel() + "</b>"));
 		column1.setCellPadding(false);
 		column1.setSortable(true);
 		column1.setHideable(false);
@@ -967,7 +975,8 @@ public class TermsGrid implements IsWidget {
 			public String getPath() {
 				return "attached-" + i;
 			}
-		}, colWidth, SafeHtmlUtils.fromTrustedString("<b>" + type.getTargetLabel() + "-" + i + "</b>"));
+		}, colWidth, SafeHtmlUtils.fromTrustedString("" + type.getTargetLabel() + "-" + i + ""));
+		//}, colWidth, SafeHtmlUtils.fromTrustedString("<b>" + type.getTargetLabel() + "-" + i + "</b>"));
 		config.setCellPadding(false);
 		AttachedCell cell = createAttachedCell(i - 1);
 		config.setCell(cell);

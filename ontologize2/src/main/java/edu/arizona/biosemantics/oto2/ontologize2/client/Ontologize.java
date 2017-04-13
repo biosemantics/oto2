@@ -1,37 +1,22 @@
 package edu.arizona.biosemantics.oto2.ontologize2.client;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.core.client.Scheduler;
-import com.google.gwt.core.client.Scheduler.ScheduledCommand;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.event.shared.SimpleEventBus;
 import com.google.gwt.user.client.rpc.AsyncCallback;
-import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.IsWidget;
-import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TextArea;
-import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.core.client.util.Margins;
 import com.sencha.gxt.widget.core.client.ContentPanel;
-import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
 import com.sencha.gxt.widget.core.client.box.MessageBox;
-import com.sencha.gxt.widget.core.client.box.MultiLinePromptMessageBox;
-import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.BorderLayoutContainer;
+import com.sencha.gxt.widget.core.client.container.BorderLayoutContainer.BorderLayoutData;
 import com.sencha.gxt.widget.core.client.container.SimpleContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
-import com.sencha.gxt.widget.core.client.container.BorderLayoutContainer.BorderLayoutData;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
 import com.sencha.gxt.widget.core.client.event.CheckChangeEvent;
 import com.sencha.gxt.widget.core.client.event.CheckChangeEvent.CheckChangeHandler;
-import com.sencha.gxt.widget.core.client.event.SelectEvent;
-import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.menu.CheckMenuItem;
 import com.sencha.gxt.widget.core.client.menu.Item;
 import com.sencha.gxt.widget.core.client.menu.Menu;
@@ -39,30 +24,31 @@ import com.sencha.gxt.widget.core.client.menu.MenuBar;
 import com.sencha.gxt.widget.core.client.menu.MenuBarItem;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 
-import edu.arizona.biosemantics.oto2.ontologize2.client.relations.RelationsView;
 import edu.arizona.biosemantics.oto2.ontologize2.client.candidate.CandidateView;
 import edu.arizona.biosemantics.oto2.ontologize2.client.common.TabPanelMessageBox;
-import edu.arizona.biosemantics.oto2.ontologize2.client.common.TextAreaMessageBox;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.DownloadEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReduceGraphEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.UserLogEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.VisualizationConfigurationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.VisualizationRefreshEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.info.ContextView;
-import edu.arizona.biosemantics.oto2.ontologize2.client.tree.TreeView;
+import edu.arizona.biosemantics.oto2.ontologize2.client.relations.RelationsView;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.VisualizationView;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.ICollectionService;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.ICollectionServiceAsync;
-import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Collection;
-import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph;
-import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Vertex;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.IUserLogService;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.IUserLogServiceAsync;
 
 public class Ontologize extends SimpleContainer {
-
+	
+	private IUserLogServiceAsync userLogService =  GWT.create(IUserLogService.class);
+	private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
+	
 	public class MenuView extends MenuBar {
 		
-		private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
-
+		
+		
 		public MenuView() {
 			Menu sub = new Menu();
 			MenuBarItem item = new MenuBarItem("File", sub);
@@ -144,6 +130,7 @@ public class Ontologize extends SimpleContainer {
 				public void onSelection(SelectionEvent<Item> event) {
 					eventBus.fireEvent(new ReduceGraphEvent());
 					eventBus.fireEvent(new LoadCollectionEvent(ModelController.getCollection()));
+					eventBus.fireEvent(new UserLogEvent(user, null, "Rm_red_rel",null));
 				}
 			});
 			sub.add(reduceItem);
@@ -151,6 +138,8 @@ public class Ontologize extends SimpleContainer {
 			generateItem.addSelectionHandler(new SelectionHandler<Item>() {
 				@Override
 				public void onSelection(SelectionEvent<Item> event) {
+					
+					eventBus.fireEvent(new UserLogEvent(user, null, "gen_owl",null));
 					final MessageBox box = Alerter.startLoading();
 					collectionService.getOWL(ModelController.getCollection().getId(), 
 							ModelController.getCollection().getSecret(), new AsyncCallback<String[][]>() {
@@ -179,8 +168,11 @@ public class Ontologize extends SimpleContainer {
 			
 			MenuItem downloadItem = new MenuItem("Download Ontology");
 			downloadItem.addSelectionHandler(new SelectionHandler<Item>() {
+				
 				@Override
 				public void onSelection(SelectionEvent<Item> arg0) {
+					
+					eventBus.fireEvent(new UserLogEvent(user, null, "down_onto",null));
 					eventBus.fireEvent(new DownloadEvent(ModelController.getCollection()));
 				}
 			});
@@ -202,7 +194,7 @@ public class Ontologize extends SimpleContainer {
 		}
 	}
 	
-	public static String user;
+	public String user;
 	
 	private EventBus eventBus = new SimpleEventBus();
 	private ModelController modelController;
@@ -260,6 +252,7 @@ public class Ontologize extends SimpleContainer {
 		verticalLayoutContainer.add(menuView, new VerticalLayoutData(1,-1));
 		verticalLayoutContainer.add(blc, new VerticalLayoutData(1,1));
 		this.setWidget(verticalLayoutContainer);
+		
 	}
 
 	public EventBus getEventBus() {
@@ -267,7 +260,22 @@ public class Ontologize extends SimpleContainer {
 	}
 
 	public void setUser(String user) {
-		Ontologize.user = user;
+		this.user = user;
+		modelController.setUser(user);
+		collectionService.setUser(user,  new AsyncCallback() {
+
+			@Override
+			public void onFailure(Throwable caught) {
+			}
+
+			@Override
+			public void onSuccess(Object result) {
+				//Alerter.showAlert("evernt_bus", "set user to collection sucess");
+			}
+			
+		});
+		//first, last name, email added from ETC
+		//Alerter.showAlert("user", "username="+user);
 	}
 
 }

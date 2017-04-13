@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.google.gwt.event.shared.GwtEvent;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
+import com.google.inject.Inject;
 
 import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
@@ -55,7 +56,11 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 
 	private int currentCollectionId = 0;
 	
-	public CollectionService() {
+	private String user;
+	
+	private UserLogService userLogService;
+	@Inject
+	public CollectionService(UserLogService userLogService) {
 		File file = new File(Configuration.collectionsDirectory);
 		if(!file.exists())
 			file.mkdirs();
@@ -69,6 +74,8 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 				e.printStackTrace();
 			}
 		}
+		
+		this.userLogService = userLogService;
 	}
 	
 	@Override
@@ -130,6 +137,7 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	public synchronized Collection get(int collectionId, String secret) throws Exception {
 		try(ObjectInputStream is = new ObjectInputStream(new FileInputStream(
 				Configuration.collectionsDirectory + File.separator + collectionId + File.separator + "collection.ser"))) {
+			//userLogService.insertLog(this.user, "", "get_col", "");
 			Object object = is.readObject();
 			if(object instanceof Collection) {
 				Collection collection = (Collection)object;
@@ -153,6 +161,7 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 		Collection collection = this.get(collectionId, secret);
 		boolean result = collection.getGraph().addRelation(relation);
 		update(collection);
+		userLogService.insertEdgeLog(user, "", collectionId+"", "col_add", relation);
 		return result;
 	}
 	
@@ -161,6 +170,7 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 		Collection collection = this.get(collectionId, secret);
 		collection.getGraph().removeRelation(relation, removeMode);
 		update(collection);
+		userLogService.insertEdgeLog(user, "", collectionId+"", "col_remove", relation);
 	}
 	
 	@Override
@@ -168,6 +178,8 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 		Collection collection = this.get(collectionId, secret);
 		collection.getGraph().replaceRelation(oldRelation, newSource);
 		update(collection);
+		// TODO: replace old and add new
+		userLogService.insertEdgeLog(user, "", collectionId+"", "col_replace", oldRelation);
 	}
 	
 	@Override
@@ -295,8 +307,12 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	public synchronized boolean add(int collectionId, String secret, Edge[] relations) throws Exception {
 		boolean result = true;
 		Collection collection = this.get(collectionId, secret);
-		for(Edge r : relations)
+		for(Edge r : relations){
 			result &= collection.getGraph().addRelation(r);
+			userLogService.insertEdgeLog(user, "", collectionId+"", "col_bat_add", r);
+		}
+			
+			
 		update(collection);
 		return result;
 	}
@@ -306,8 +322,14 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 		Collection collection = this.get(collectionId, secret);
 		for(Edge r : relations)	{
 			collection.getGraph().removeRelation(r, removeMode);
+			userLogService.insertEdgeLog(user, "", collectionId+"", "col_bat_remove", r);
 		}
 		update(collection);
+	}
+
+	@Override
+	public void setUser(String user) {
+		this.user = user;
 	}
 
 }

@@ -32,12 +32,14 @@ public class CompositeModifyEventForSynonymCreator {
 		List<Edge> in = g.getInRelations(preferredTerm, Type.SYNONYM_OF);
 		if(in.isEmpty()) 
 			result.add(new CreateRelationEvent(new Edge(g.getRoot(Type.SYNONYM_OF), preferredTerm, Type.SYNONYM_OF, Origin.USER)));
-					
+		
+		if(reattach!=null&&reattach.size()>0){
 		boolean preferredTermAndSynonymHaveParents = isPreferredTermAndSynonymHaveParents(preferredTerm, synonym);
-		if(!preferredTermAndSynonymHaveParents) {
-			result.addAll(createEventsSynonymReduction(preferredTerm, synonym, reattach));
-		} else {
-			result.addAll(createEventsNonSpecificSynonyms(preferredTerm, synonym, reattach));
+			if(!preferredTermAndSynonymHaveParents) {
+				result.addAll(createEventsSynonymReduction(preferredTerm, synonym, reattach));
+			} else {
+				result.addAll(createEventsNonSpecificSynonyms(preferredTerm, synonym, reattach));
+			}
 		}
 		result.add(new CreateRelationEvent(new Edge(preferredTerm, synonym, Type.SYNONYM_OF, Origin.USER)));		
 		return new CompositeModifyEvent(result);

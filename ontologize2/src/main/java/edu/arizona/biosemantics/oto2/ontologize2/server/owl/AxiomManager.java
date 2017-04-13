@@ -115,11 +115,11 @@ public class AxiomManager  {
 		om.addAxiom(owlOntology, creationDateAxiom);
 	}
 
-	public void addCreatedBy(OWLOntology owlOntology, OWLClass owlClass) {
-		OWLAnnotation createdByAnnotation = om.getOWLDataFactory().getOWLAnnotation(createdByProperty, om.getOWLDataFactory().getOWLLiteral(Ontologize.user));
-		OWLAxiom createdByAxiom = om.getOWLDataFactory().getOWLAnnotationAssertionAxiom(owlClass.getIRI(), createdByAnnotation);		
-		om.addAxiom(owlOntology, createdByAxiom);
-	}
+//	public void addCreatedBy(OWLOntology owlOntology, OWLClass owlClass) {
+//		OWLAnnotation createdByAnnotation = om.getOWLDataFactory().getOWLAnnotation(createdByProperty, om.getOWLDataFactory().getOWLLiteral(Ontologize.user));
+//		OWLAxiom createdByAxiom = om.getOWLDataFactory().getOWLAnnotationAssertionAxiom(owlClass.getIRI(), createdByAnnotation);		
+//		om.addAxiom(owlOntology, createdByAxiom);
+//	}
 	
 //	public void addQualitySubclass(OWLOntology owlOntology, OWLClass owlClass) {
 //		OWLAxiom subclassAxiom = om.getOWLDataFactory().getOWLSubClassOfAxiom(owlClass, qualityClass);

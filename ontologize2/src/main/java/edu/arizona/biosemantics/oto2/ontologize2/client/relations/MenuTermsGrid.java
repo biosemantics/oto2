@@ -60,6 +60,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.event.ClearEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CompositeModifyEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.UserLogEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent.FilterTarget;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.SortEvent;
@@ -138,12 +139,14 @@ public class MenuTermsGrid extends TermsGrid {
 						@Override
 						public void onSelection(SelectionEvent<Item> event) {
 							fire(new SortEvent(sortField, SortDir.ASC, sortTarget, type));
+							eventBus.fireEvent(new UserLogEvent("table_sort_"+ type.getDisplayLabel(),sortTarget.getDisplayName()+ " By " + sortField.getDisplayName()+" Ascending"));
 						}
 					});
 					creationDescButton.addSelectionHandler(new SelectionHandler<Item>() {
 						@Override
 						public void onSelection(SelectionEvent<Item> event) {
 							fire(new SortEvent(sortField, SortDir.DESC, sortTarget, type));
+							eventBus.fireEvent(new UserLogEvent("table_sort_"+ type.getDisplayLabel(),sortTarget.getDisplayName()+ " By " + sortField.getDisplayName()+" Descending"));
 						}
 					});
 				}
@@ -166,6 +169,8 @@ public class MenuTermsGrid extends TermsGrid {
 						try {
 							List<GwtEvent<?>> importEvents = createImportEvents(box.getValue().trim());
 							fire(new CompositeModifyEvent(importEvents));
+							
+							eventBus.fireEvent(new UserLogEvent("import_"+ type.getDisplayLabel(), box.getValue().trim()));
 						} catch(Exception e) {
 							Alerter.showAlert("Import failed", e.getMessage());
 						}
@@ -187,17 +192,20 @@ public class MenuTermsGrid extends TermsGrid {
 				box.setModal(true);
 				String export = createExport();
 				box.getTextArea().setText(export);
+				
 				box.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
 					@Override
 					public void onSelect(SelectEvent event) {
 						box.hide();
+						
+						eventBus.fireEvent(new UserLogEvent("Export_"+ type.getDisplayLabel(), null));
 					}
 				});
 				box.show();
 			}
 		});
 		
-		
+		/*
 		TextButton clearButton = new TextButton("Clear");
 		clearButton.addSelectHandler(new SelectHandler() {
 			@Override
@@ -206,6 +214,7 @@ public class MenuTermsGrid extends TermsGrid {
 				box.getButton(PredefinedButton.YES).addSelectHandler(new SelectHandler() {
 					@Override
 					public void onSelect(SelectEvent event) {
+						eventBus.fireEvent(new UserLogEvent("Clear_"+ type.getDisplayLabel(), null));
 						fire(new ClearEvent());
 						box.hide();
 					}
@@ -218,6 +227,7 @@ public class MenuTermsGrid extends TermsGrid {
 				});
 			}
 		});
+		*/
 		
 		/*
 		TextButton consolidateButton = new TextButton("Consolidate");
@@ -374,7 +384,7 @@ public class MenuTermsGrid extends TermsGrid {
 		buttonBar.add(sortButton);
 		buttonBar.add(importButton);
 		buttonBar.add(exportButton);
-		buttonBar.add(clearButton);
+		//buttonBar.add(clearButton);
 		//buttonBar.add(consolidateButton);
 		//buttonBar.add(removeButton);
 		buttonBar.add(filterButton);
@@ -450,7 +460,7 @@ public class MenuTermsGrid extends TermsGrid {
 							}
 							break;
 					}
-
+					eventBus.fireEvent(new UserLogEvent("table_filter_"+type.getDisplayLabel(),target.getDisplayName()+":"+filterState.filter));
 					if(activate) {
 						filterCheckBox.setBoxLabel("Filter: " + filterState.filter + " (" + 
 								filterState.target.getDisplayName() + ")");

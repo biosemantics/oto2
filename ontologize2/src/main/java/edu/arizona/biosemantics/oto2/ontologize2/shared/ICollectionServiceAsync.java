@@ -54,5 +54,7 @@ public interface ICollectionServiceAsync {
 	public void add(int id, String secret, Edge[] relations, AsyncCallback<Boolean> callback);
 
 	public void remove(int id, String secret, Edge[] relations, RemoveMode removeMode, AsyncCallback<Void> callback);
+	/*used for recording user logs*/
+	public void setUser(String user, AsyncCallback<Void> callback);
 
 }

@@ -6,6 +6,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Scopes;
 
 import edu.arizona.biosemantics.oto2.ontologize2.shared.ICollectionService;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.IUserLogService;
 
 
 public class GuiceModule extends AbstractModule {
@@ -16,6 +17,8 @@ public class GuiceModule extends AbstractModule {
 		bind(CollectionService.class).in(Scopes.SINGLETON);
 		bind(ContextService.class).in(Scopes.SINGLETON);
 		bind(RemoteLoggingServiceImpl.class).in(Scopes.SINGLETON);		
+		bind(IUserLogService.class).to(UserLogService.class).in(Scopes.SINGLETON);
+		bind(UserLogService.class).in(Scopes.SINGLETON);
 	}
 
 }

@@ -77,6 +77,7 @@ public class CreateRelationsFromCandidateDialog extends Dialog {
 						TextTreeNode value, SafeHtmlBuilder sb) {
 					OntologyGraph g = ModelController.getCollection().getGraph();
 					String textColor = "black";
+					/*
 					if(value instanceof EdgeTreeNode) {
 						if(g.existsRelation(((EdgeTreeNode) value).getEdge()))
 							textColor = "green";
@@ -100,7 +101,7 @@ public class CreateRelationsFromCandidateDialog extends Dialog {
 							textColor = "red";
 						if(!allExist && !noneExists)
 							textColor = "blue";
-					}
+					}*/
 					sb.append(cellTemplate.cell(value.getText(), textColor));
 				}
 				
@@ -117,7 +118,7 @@ public class CreateRelationsFromCandidateDialog extends Dialog {
 			}
 			tree.setAutoExpand(true);
 			vlc = new VerticalLayoutContainer();
-			vlc.add(new Label("Select the relations you want to create."), new VerticalLayoutData(1, -1));
+			//vlc.add(new Label("Select the relations you want to create."), new VerticalLayoutData(1, -1));
 			vlc.add(tree, new VerticalLayoutData(1, 1));
 			//vlc.getScrollSupport().setScrollMode(ScrollMode.AUTOY);
 		}
@@ -147,8 +148,10 @@ public class CreateRelationsFromCandidateDialog extends Dialog {
 	public CreateRelationsFromCandidateDialog(Candidate candidate, List<CandidatePatternResult> patterns) {
 		super();
 		view = new CreateRelationsFromCandidateView(candidate, patterns);
-		this.setTitle("Select Relations");
-		this.setHeadingText("Select Relations");
+		//this.setTitle("Select Relations");
+		//this.setHeadingText("Select Relations");
+		this.setTitle("Select the relations you want to create.");
+		this.setHeadingText("Select the relations you want to create.");
 		this.setHeight(600);
 		this.setWidget(view);
 		this.setMaximizable(true);
