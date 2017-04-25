@@ -293,6 +293,8 @@ public class OntologyGraph implements Serializable {
 		return graph.addEdge(edge, edge.getSrc(), edge.getDest(), EdgeType.DIRECTED);
 	}
 	
+	//Jin update 04-20-2017
+	//check circular
 	public boolean isCreatesCircular(Edge potentialRelation) {
 		Vertex search = potentialRelation.getSrc();
 		Vertex source = potentialRelation.getDest();
@@ -300,7 +302,8 @@ public class OntologyGraph implements Serializable {
 			return true;
 		List<Edge> out = getOutRelations(source, potentialRelation.getType());
 		for(Edge e : out) {
-			if(isCreatesCircular(e))
+			//if(isCreatesCircular(e))
+			if(e.getDest().equals(search))
 				return true;
 		}
 		return false;
@@ -396,6 +399,7 @@ public class OntologyGraph implements Serializable {
 			throw new Exception("This relation already exists");
 		if(isCreatesCircular(e))
 			throw new Exception("This relation would create a circular relationship");
+		//TODO: change something
 		this.isPreferredTerms(e);
 		return true;
 	}
@@ -425,6 +429,11 @@ public class OntologyGraph implements Serializable {
 		return true;
 	}
 
+	/**
+	 * check the source, target and type, Origin will not be checked
+	 * @param r
+	 * @return
+	 */
 	public boolean existsRelation(Edge r) {
 		if(graph.containsVertex(r.getSrc()) && graph.containsVertex(r.getDest())) {
 			for(Edge e : graph.getOutEdges(r.getSrc())) {
@@ -913,6 +922,7 @@ public class OntologyGraph implements Serializable {
 		return result;
 	}
 
+	//v is a synonym term of some preferred term
 	public boolean isSynonym(Vertex v) {
 		List<Edge> synIn = this.getInRelations(v, Type.SYNONYM_OF);
 		return !synIn.isEmpty() && !synIn.get(0).getSrc().equals(this.getRoot(Type.SYNONYM_OF));

@@ -5,6 +5,10 @@ import com.google.gwt.event.shared.GwtEvent;
 
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ShowRelationsEvent.Handler;
 
+/**
+ * used to make grid active
+ *
+ */
 public class ShowRelationsEvent extends GwtEvent<Handler> {
 
 	public interface Handler extends EventHandler {

@@ -26,6 +26,7 @@ import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
+import com.google.gwt.safecss.shared.SafeStylesBuilder;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.IsWidget;
@@ -86,7 +87,6 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.event.LoadCollectionEven
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.OrderEdgesEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveCandidateEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
-import edu.arizona.biosemantics.oto2.ontologize2.client.event.ShowRelationsEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.UserLogEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.RemoveMode;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
@@ -923,8 +923,8 @@ public class TermsGrid implements IsWidget {
 			public String getPath() {
 				return "lead";
 			}
-		}, colWidth, SafeHtmlUtils.fromTrustedString(type.getSourceLabel()));
-		//}, colWidth, SafeHtmlUtils.fromTrustedString("<b>" + type.getSourceLabel() + "</b>"));
+			//}, colWidth, SafeHtmlUtils.fromTrustedString(type.getSourceLabel()));
+		}, colWidth, SafeHtmlUtils.fromTrustedString("<div style='padding:3px'><b>" + type.getSourceLabel() + "</b></div>"));
 		column1.setCellPadding(false);
 		column1.setSortable(true);
 		column1.setHideable(false);
@@ -975,8 +975,7 @@ public class TermsGrid implements IsWidget {
 			public String getPath() {
 				return "attached-" + i;
 			}
-		}, colWidth, SafeHtmlUtils.fromTrustedString("" + type.getTargetLabel() + "-" + i + ""));
-		//}, colWidth, SafeHtmlUtils.fromTrustedString("<b>" + type.getTargetLabel() + "-" + i + "</b>"));
+		}, colWidth, SafeHtmlUtils.fromTrustedString("<div style='padding:3px'><b>" + type.getTargetLabel() + "-" + i + "</b></div>"));
 		config.setCellPadding(false);
 		AttachedCell cell = createAttachedCell(i - 1);
 		config.setCell(cell);
@@ -984,6 +983,7 @@ public class TermsGrid implements IsWidget {
 		config.setHideable(false);
 		config.setGroupable(false);
 		config.setMenuDisabled(true);
+		//config.setColumnStyle(SafeStylesBuilder.);
 		return config;
 	}
 	

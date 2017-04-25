@@ -74,6 +74,7 @@ public class CreateRelationValidator {
 		}
 	}
 
+	//whether the term is a synonym
 	private void validateSynonymDest(final Edge r) {
 		OntologyGraph g = ModelController.getCollection().getGraph();
 		if(g.isSynonym(r.getDest())) {
@@ -91,6 +92,7 @@ public class CreateRelationValidator {
 			validateSynonymSrc(r);
 	}
 
+	//whether the source term/superclass or head of the part is a synonym
 	private void validateSynonymSrc(final Edge r) {
 		OntologyGraph g = ModelController.getCollection().getGraph();
 		if(g.isSynonym(r.getSrc())) {
@@ -152,12 +154,12 @@ public class CreateRelationValidator {
 						public void onSelect(SelectEvent event) {
 							List<Edge> reattach = relationSelectionDialog.getSelection();
 							//whether at least one should be added?
-							//if(reattach!=null&&reattach.size()>0){
+							if(reattach!=null&&reattach.size()>0){
 								CompositeModifyEvent compositeModifyEvent = 
 										compositeModifyEventForSynonymCreator.create(preferred, synonym, new HashSet<Edge>(reattach));
 								eventBus.fireEvent(compositeModifyEvent);
-							//}
-							eventBus.fireEvent(new ShowRelationsEvent(Type.SYNONYM_OF));
+								eventBus.fireEvent(new ShowRelationsEvent(Type.SYNONYM_OF));
+							}
 						}
 					});
 				} else {
@@ -276,19 +278,25 @@ public class CreateRelationValidator {
 				vlc.add(new HTML(SafeHtmlUtils.fromTrustedString("We cannot add the part <i>" + dest + "</i> as is to <i>" + 
 						source + "</i>. It is already a part of <i>" +  existSource +  "</i>.")), new VerticalLayoutContainer.VerticalLayoutData(-1, -1, new Margins(0, 0, 10, 0)));
 				
-				String explanation = "If you apply the non-specific structure pattern we will do the following for you: </br>"
-						+ "1) Replace <i>" + dest + "</i> with <i>" + existSource + " " + dest + "</i> as part of <i>" + existSource + "</i></br>" + 
-						"2) Make <i>" + source + " " + dest + "</i> a part of <i>" + source + "</i></br>" + 
-						"3) Make <i>" + existSource + " " + dest + "</i> and <i>" + source + " " + dest + "</i> a subclass of <i>" + dest + "</i>.";
 				hlc.add(new HTML(SafeHtmlUtils.fromTrustedString(
 						"Do you want to apply the <b>non-specific structure pattern</b>?")), new HorizontalLayoutData(-1, -1, new Margins(0, 5, 0, 0)));
+				/*
 				Image image = new Image(images.help());
 				SimpleContainer sc = new SimpleContainer();
 				sc.add(image);
 				image.setSize("20px", "20px");
 				sc.setToolTip((explanation));
 				hlc.add(sc);
+				*/
 				vlc.add(hlc);
+				//<b>Instructions</b>:<br/>
+				String explanation = "If you apply the non-specific structure pattern we will do the following for you: </br>"
+						+ "1) Replace <i>" + dest + "</i> with <i>" + existSource + " " + dest + "</i> as part of <i>" + existSource + "</i></br>" + 
+						"2) Make <i>" + source + " " + dest + "</i> a part of <i>" + source + "</i></br>" + 
+						"3) Make <i>" + existSource + " " + dest + "</i> and <i>" + source + " " + dest + "</i> a subclass of <i>" + dest + "</i>.";
+				
+				vlc.add(new HTML(SafeHtmlUtils.fromTrustedString(explanation)), 
+						new VerticalLayoutContainer.VerticalLayoutData(1, 1, new Margins(20, 0, 10, 0)));
 				/*vlc.add(alc);
 				
 				ContentPanel cp = new ContentPanel(appearance);
@@ -300,9 +308,8 @@ public class CreateRelationValidator {
 			    alc.add(cp);*/
 			    
 				box.setWidth(500);
-				box.setHeight(150);
+				box.setHeight(200);
 				box.setWidget(vlc);
-				
 				
 //						final MessageBox box = Alerter.showConfirm("Create Part", 
 //								"We cannot add the part <i>" + dest + "</i> as is to <i>" + source + "</i>. It is already a part of <i>" + 
@@ -324,21 +331,33 @@ public class CreateRelationValidator {
 						Edge rootEdge = new Edge(g.getRoot(Type.SUBCLASS_OF), dest, Type.SUBCLASS_OF, Origin.USER);
 						if(!g.existsRelation(rootEdge))
 							result.add(new CreateRelationEvent(new Edge(g.getRoot(Type.SUBCLASS_OF), dest, Type.SUBCLASS_OF, Origin.USER)));
+						
+						//hand existing part-of relations
 						for(Edge existing : existingRelations) {
 							Vertex newDest = new Vertex(existing.getSrc().getValue() + " " + existing.getDest().getValue());
-							result.add(new CreateRelationEvent(new Edge(existing.getSrc(), newDest, Type.PART_OF, Origin.USER)));
-							for(Edge out : g.getOutRelations(existing.getDest())) {
+							Edge newDestPartEdge = new Edge(existing.getSrc(), newDest, Type.PART_OF, Origin.USER);
+							if(!(g.existsRelation(newDestPartEdge)||g.isCreatesCircular(newDestPartEdge))) 
+								result.add(new CreateRelationEvent(newDestPartEdge));
+							
+							//TODO: when any subclass-of for the non-specific term exists, errors will occur.
+							for(Edge out : g.getOutRelations(existing.getDest(), Type.PART_OF)) {//replace part-of and subclass_of
 								result.add(new ReplaceRelationEvent(out, newDest));
 							}
 							result.add(new RemoveRelationEvent(RemoveMode.RECURSIVE, existing));
-							result.add(new CreateRelationEvent(
-									new Edge(dest, newDest, Type.SUBCLASS_OF, Origin.USER)));
+							
+							Edge newDestSubclassEdge = new Edge(dest, newDest, Type.SUBCLASS_OF, Origin.USER);
+							if(!(g.existsRelation(newDestSubclassEdge)||g.isCreatesCircular(newDestSubclassEdge))) 
+								result.add(new CreateRelationEvent(newDestSubclassEdge));
 						}
+						
+						//add a new part-of relation
 						Vertex newDest = new Vertex(source.getValue() + " " + dest.getValue());
-						result.add(new CreateRelationEvent(
-								new Edge(source, newDest, Type.PART_OF, Origin.USER)));
-						result.add(new CreateRelationEvent(
-								new Edge(dest, newDest, Type.SUBCLASS_OF, Origin.USER)));
+						Edge newDestPartEdge =new Edge(source, newDest, Type.PART_OF, Origin.USER);
+						if(!(g.existsRelation(newDestPartEdge)||g.isCreatesCircular(newDestPartEdge))) 
+							result.add(new CreateRelationEvent(newDestPartEdge));
+						Edge newDestSubclassEdge =new Edge(dest, newDest, Type.SUBCLASS_OF, Origin.USER);
+						if(!(g.existsRelation(newDestSubclassEdge)||g.isCreatesCircular(newDestSubclassEdge))) 
+							result.add(new CreateRelationEvent(newDestSubclassEdge));
 						
 						eventBus.fireEvent(new CompositeModifyEvent(result));
 						box.hide();

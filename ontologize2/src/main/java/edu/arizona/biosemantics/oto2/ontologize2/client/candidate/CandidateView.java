@@ -67,6 +67,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.common.CreateRelationVal
 import edu.arizona.biosemantics.oto2.ontologize2.client.common.ReplaceRelationValidator;
 import edu.arizona.biosemantics.oto2.ontologize2.client.common.cell.CellImages;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ClearEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.CompositeModifyEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateCandidateEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent;
@@ -460,69 +461,114 @@ public class CandidateView extends SimpleContainer {
 										final OntologyGraph g = ModelController.getCollection().getGraph();
 										final Set<Vertex> futureContained = new HashSet<Vertex>();
 										//put super-subclass relations first
-										/*
-										List categoryList = new ArrayList();
-										List symList = new ArrayList();
-										for(Edge e:dialog.getSelectedEdges()){
-											if(e.getType().equals(Type.SYNONYM_OF)) symList.add(e);
-											else categoryList.add(e);
-										}
-										categoryList = order(categoryList);
-										symList = order(symList);
-										categoryList.addAll(symList);
-										*/
 										StringBuffer sb = new StringBuffer();
 										for(Edge e : dialog.getSelectedEdges()) {
 											sb.append(e.toString()).append("|");
 										}
 										eventBus.fireEvent(new UserLogEvent("add_by_pattern",sb.toString()));
-										// to handle this in a long run, it's better to add a new event
+										
+										List<GwtEvent<?>> result = new LinkedList<GwtEvent<?>>();
+										
+//										StringBuffer sbt = new StringBuffer();
+//										for(Edge e : order(dialog.getSelectedEdges())) {
+//											sbt.append(e.getSrc()).append("-->").append(e.getDest()+"   ;   ");
+//										}
+//										//Alerter.showAlert("orderred", sbt.toString());
+										//check synonym root and superclass root
 										Set handled = new HashSet();
 										for(Edge e : order(dialog.getSelectedEdges())) {
 											if(handled.contains(e)){
-												//Alerter.showAlert("existed", e.toString());
 												continue;
 											}
-											if(e.getType().equals(Type.SYNONYM_OF)) {//there could be some problems due to Javascript sometimes are not executed linearly
-												Edge rootEdge = new Edge(g.getRoot(Type.SYNONYM_OF), e.getSrc(), e.getType(), Origin.USER);
-												if(!g.existsRelation(rootEdge)) 
-													fire(new CreateRelationEvent(rootEdge));
-											} else {
-												if(!g.containsVertex(e.getSrc()) && !futureContained.contains(e.getSrc()))  {
-													Edge srcEdge = new Edge(g.getRoot(e.getType()), 
+											handled.add(e);
+											if(e.getType().equals(Type.SYNONYM_OF)) {//synonym
+												Edge synonymRootEdge = new Edge(g.getRoot(Type.SYNONYM_OF), e.getSrc(), e.getType(), Origin.USER);
+												if(!g.existsRelation(synonymRootEdge)&&!g.isSynonym(e.getSrc())){//if the preferred terms does not existed and is not a synonym
+													result.add(new CreateRelationEvent(synonymRootEdge));
+													result.add(new CreateRelationEvent(e));
+												}else if(g.existsRelation(synonymRootEdge)&&!g.isSynonym(e.getDest())){//if the root is existed and the target is not a synonym
+													result.add(new CreateRelationEvent(e));
+												}else if(!g.existsRelation(synonymRootEdge)&&g.isSynonym(e.getSrc())){//if the preferred terms does not existed but it is a synonym of another term
+													//find the synonym root
+													List<Edge> synIn = g.getInRelations(e.getSrc(), Type.SYNONYM_OF);
+													if(synIn!=null&&synIn.size()>0){
+														Edge preferredEdge = synIn.get(0);
+														Vertex preferterm = preferredEdge.getSrc();
+														Edge replaceEdge = new Edge(preferterm, e.getDest(), Type.SYNONYM_OF, Origin.USER);
+														result.add(new CreateRelationEvent(replaceEdge));
+													}
+												}
+												
+											}else {//class relation
+												//if(!"Thing".equals(e.getSrc())&&!g.containsVertex(e.getSrc()) && !futureContained.contains(e.getSrc())){
+												if("Thing".equals(e.getSrc().toString())){//add to root
+													result.add(new CreateRelationEvent(e));
+												}else if(!"Thing".equals(e.getSrc().toString())&&!futureContained.contains(e.getSrc())&&g.getInRelations(e.getSrc(), Type.SUBCLASS_OF).size()==0){
+													//if the superclass doesnot exist in the tree and in future contained set, add to root
+													Edge superclassRootEdge = new Edge(g.getRoot(e.getType()), 
 															e.getSrc(), e.getType(), Origin.USER);
 													futureContained.add(e.getSrc());
-													fire(new CreateRelationEvent(srcEdge));
+													result.add(new CreateRelationEvent(superclassRootEdge));
+													result.add(new CreateRelationEvent(e));
+												}else if(!"Thing".equals(e.getSrc().toString())&&futureContained.contains(e.getSrc())){
+													//if the superclass doesnot exist in the tree but in future contained set, add to root
+													result.add(new CreateRelationEvent(e));
+												}else if(g.getInRelations(e.getSrc(), Type.SUBCLASS_OF).size()>0){//add to graph
+													result.add(new CreateRelationEvent(e));
 												}
+												futureContained.add(e.getDest());
 											}
 										}
-										Timer timer = new Timer()
-								        {
-								            @Override
-								            public void run()
-								            {
-								            	Set handled = new HashSet();
-												for(Edge e : order(dialog.getSelectedEdges())) {
-													//for(Edge e : order(categoryList)) {
-													//if the pattern has been applied, ignore it
-													if(handled.contains(e)){
-														//Alerter.showAlert("existed", e.toString());
-														continue;
-													}
-													handled.add(e);
-													Edge rootEdge = new Edge(g.getRoot(e.getType()), e.getDest(), e.getType(), Origin.USER);
-													if(g.existsRelation(rootEdge)) {
-														fire(new ReplaceRelationEvent(rootEdge, e.getSrc()));
-													} else {
-														futureContained.add(e.getDest());
-														fire(new CreateRelationEvent(e));
-													}
-												}
-								            }
-								        };
-
-								        timer.schedule(500);
+										eventBus.fireEvent(new CompositeModifyEvent(result));
 									}
+									
+									/*
+									 * private void validateSubclassAndFire(final Edge r) {
+		OntologyGraph g = ModelController.getCollection().getGraph();		
+		try {
+			g.isValidSubclass(r);
+			
+			Vertex source = r.getSrc();
+			Vertex dest = r.getDest();
+			List<Edge> existingRelations = g.getInRelations(dest, Type.SUBCLASS_OF);
+			if(existingRelations.size() == 1 && existingRelations.get(0).getSrc().equals(g.getRoot(Type.SUBCLASS_OF)))
+				eventBus.fireEvent(new CreateRelationEvent(r));
+			else if(!existingRelations.isEmpty()) {
+				List<Vertex> existSources = new ArrayList<Vertex>(existingRelations.size());
+				for(Edge exist : existingRelations) 
+					existSources.add(exist.getSrc());
+				final MessageBox box = Alerter.showConfirm("Create Subclass", 
+						"<i>" + dest + "</i> is already a subclass of " + existingRelations.size() + " superclasses: <i>" +
+								Alerter.collapseTermsAsString(existSources) + "</i>.</br></br></br>" +
+								"Do you still want to make <i>" + dest + "</i> a subclass of <i>" + source + "</i>?</br></br>" +
+								"If NO, please create a new term then make it a subclass of <i>" + source + "</i>.");
+				box.getButton(PredefinedButton.YES).addSelectHandler(new SelectHandler() {
+					@Override
+					public void onSelect(SelectEvent event) {
+						eventBus.fireEvent(new CreateRelationEvent(r));
+						box.hide();
+					}
+				});
+				box.getButton(PredefinedButton.NO).addSelectHandler(new SelectHandler() {
+					@Override
+					public void onSelect(SelectEvent event) {
+						box.hide();
+					}
+				});
+			} else {
+				eventBus.fireEvent(new CreateRelationEvent(r));
+			}
+		} catch(Exception ex) {
+			final MessageBox box = Alerter.showAlert("Create subclass", ex.getMessage());
+			box.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
+				@Override
+				public void onSelect(SelectEvent event) {
+					box.hide();
+				}
+			});
+		}
+	}
+									 */
 
 									private List<Edge> order(List<Edge> edges) {
 										List<Edge> copy = new ArrayList<Edge>(edges);
@@ -558,6 +604,7 @@ public class CandidateView extends SimpleContainer {
 										}
 										return result;
 									}
+									
 								});
 							}
 						});

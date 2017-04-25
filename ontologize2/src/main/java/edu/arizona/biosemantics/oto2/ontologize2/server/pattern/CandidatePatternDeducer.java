@@ -74,7 +74,8 @@ public class CandidatePatternDeducer {
 			}
 		}
 		
-		
+		/**
+		 * do not apply hyphen pattern, it's used for coloration only
 		for(String patternName : patternNameEdgesMap.keySet()) {
 			for(Edge e : new ArrayList<Edge>(patternNameEdgesMap.get(patternName))) {
 				for(Vertex v : new Vertex[] {e.getSrc(), e.getDest()}) {
@@ -86,6 +87,8 @@ public class CandidatePatternDeducer {
 				}
 			}
 		}
+		*/
+		
 		for(String name : patternNameEdgesMap.keySet()) {
 			List<Edge> relations = new ArrayList<Edge>(patternNameEdgesMap.get(name));
 			Collections.sort(relations, new Comparator<Edge>() {

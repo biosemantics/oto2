@@ -14,6 +14,7 @@ import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.event.shared.GwtEvent;
 import com.google.gwt.user.client.Event;
+import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.core.client.IdentityValueProvider;
 import com.sencha.gxt.core.client.Style.HideMode;
@@ -55,6 +56,7 @@ import com.sencha.gxt.data.shared.ModelKeyProvider;
 
 import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
+import edu.arizona.biosemantics.oto2.ontologize2.client.common.BatchCreateRelationValidator;
 import edu.arizona.biosemantics.oto2.ontologize2.client.common.TextAreaMessageBox;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ClearEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CompositeModifyEvent;
@@ -157,7 +159,7 @@ public class MenuTermsGrid extends TermsGrid {
 		importButton.addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {
-				final TextAreaMessageBox box = new TextAreaMessageBox("Import " + type.getDisplayLabel(), "");
+				final TextAreaMessageBox box = new TextAreaMessageBox("Import " + type.getDisplayLabel(), "Input format: "+getDefaultImportText());
 				box.getTextArea().setEmptyText(getDefaultImportText());
 				/*box.setResizable(true);
 				box.setResize(true);
@@ -167,14 +169,17 @@ public class MenuTermsGrid extends TermsGrid {
 					@Override
 					public void onSelect(SelectEvent event) {
 						try {
-							List<GwtEvent<?>> importEvents = createImportEvents(box.getValue().trim());
-							fire(new CompositeModifyEvent(importEvents));
-							
-							eventBus.fireEvent(new UserLogEvent("import_"+ type.getDisplayLabel(), box.getValue().trim()));
+							CompositeModifyEvent importEvent = createImportEvents(box.getValue().trim());
+							//List<GwtEvent<?>> importEvents = createImportEvents(box.getValue().trim());
+							//fire(new CompositeModifyEvent(importEvents));
+							if(importEvent!=null) {
+								fire(importEvent);
+								eventBus.fireEvent(new UserLogEvent("import_"+ type.getDisplayLabel(), box.getValue().trim()));
+								box.hide();
+							}
 						} catch(Exception e) {
 							Alerter.showAlert("Import failed", e.getMessage());
 						}
-						box.hide();
 					}
 				});
 				box.show();
@@ -205,7 +210,7 @@ public class MenuTermsGrid extends TermsGrid {
 			}
 		});
 		
-		/*
+		/**/
 		TextButton clearButton = new TextButton("Clear");
 		clearButton.addSelectHandler(new SelectHandler() {
 			@Override
@@ -227,7 +232,7 @@ public class MenuTermsGrid extends TermsGrid {
 				});
 			}
 		});
-		*/
+		
 		
 		/*
 		TextButton consolidateButton = new TextButton("Consolidate");
@@ -294,7 +299,7 @@ public class MenuTermsGrid extends TermsGrid {
 		
 		TextButton filterButton = new TextButton("Set Filter");		
 		final Menu filterMenu = new Menu();
-		MenuItem filterGridItem = new MenuItem("Grid");
+		MenuItem filterGridItem = new MenuItem("Table");
 		Menu filterGridMenu = new Menu();
 		filterGridItem.setSubMenu(filterGridMenu);		
 		filterStore = new ListStore<String>(new ModelKeyProvider<String>() {
@@ -353,7 +358,7 @@ public class MenuTermsGrid extends TermsGrid {
 		filterTreeMenu.add(filterTreeField);
 		filterMenu.add(filterTreeItem);
 		
-		MenuItem filterGridAndTreeItem = new MenuItem("Grid and Tree");
+		MenuItem filterGridAndTreeItem = new MenuItem("Table and Tree");
 		Menu filterGridAndTreeMenu = new Menu();
 		filterGridAndTreeItem.setSubMenu(filterGridAndTreeMenu);
 		filterGridAndTreeField = new ComboBox<String>(filterStore, new StringLabelProvider<String>()) {
@@ -384,7 +389,7 @@ public class MenuTermsGrid extends TermsGrid {
 		buttonBar.add(sortButton);
 		buttonBar.add(importButton);
 		buttonBar.add(exportButton);
-		//buttonBar.add(clearButton);
+		buttonBar.add(clearButton);
 		//buttonBar.add(consolidateButton);
 		//buttonBar.add(removeButton);
 		buttonBar.add(filterButton);
@@ -542,48 +547,104 @@ public class MenuTermsGrid extends TermsGrid {
 		return simpleContainer;
 	}
 	
-	private List<GwtEvent<?>> createImportEvents(String text) throws Exception {
+	
+	// TO-DO: validate the import text
+	private CompositeModifyEvent createImportEvents(String text) throws Exception {
+	//private List<GwtEvent<?>> createImportEvents(String text) throws Exception {
 		List<GwtEvent<?>> result = new LinkedList<GwtEvent<?>>();
 		
-		OntologyGraph g = ModelController.getCollection().getGraph();
-		Vertex root = new Vertex(type.getRootLabel());
-		String[] lines = text.split("\\n");
-		Set<Vertex> alreadyAttached = new HashSet<Vertex>(g.getVertices());						
-		for(String line : lines) {
-			String[] terms = line.split(",");
-			
-			if(!terms[0].trim().isEmpty()) {
-				Vertex source = new Vertex(terms[0].trim());
-				if(!alreadyAttached.contains(source)) {
-					Edge newEdge = new Edge(root, source, type, Origin.USER);
-					result.add(new CreateRelationEvent(newEdge));
-					alreadyAttached.add(source);
-				}
-				for(int i=1; i<terms.length; i++) {
-					if(terms[i].trim().isEmpty()) 
-						continue;
-					Vertex target = new Vertex(terms[i].trim());
-					
-					if(alreadyAttached.contains(target)) {
-						Edge rootEdge = new Edge(g.getRoot(type), target, type, Origin.USER);
-						if(g.existsRelation(rootEdge)) {
-							result.add(new ReplaceRelationEvent(rootEdge, source));
+		String validateTextResult = validateInpuText(text);
+		if(validateTextResult!=null) 
+			throw new Exception(validateTextResult);
+		/*
+		if( text!=null&&!"".equals(text.trim())){
+			OntologyGraph g = ModelController.getCollection().getGraph();
+			Vertex root = new Vertex(type.getRootLabel());
+			String[] lines = text.split("\\n");
+			Set<Vertex> alreadyAttached = new HashSet<Vertex>(g.getVertices());						
+			for(String line : lines) {
+				String[] terms = line.split(",");
+				
+				if(!terms[0].trim().isEmpty()) {
+					Vertex source = new Vertex(terms[0].trim());
+					if(!alreadyAttached.contains(source)) {//should check by different types
+						Edge newEdge = new Edge(root, source, type, Origin.USER);
+						result.add(new CreateRelationEvent(newEdge));
+						alreadyAttached.add(source);
+					}
+					for(int i=1; i<terms.length; i++) {
+						if(terms[i].trim().isEmpty()) 
+							continue;
+						Vertex target = new Vertex(terms[i].trim());
+						
+						if(alreadyAttached.contains(target)) {
+							Edge rootEdge = new Edge(g.getRoot(type), target, type, Origin.USER);
+							if(g.existsRelation(rootEdge)) {
+								result.add(new ReplaceRelationEvent(rootEdge, source));
+							} else {
+								Edge newEdge = new Edge(source, target, type, Origin.USER);
+								result.add(new CreateRelationEvent(newEdge));
+							}
 						} else {
 							Edge newEdge = new Edge(source, target, type, Origin.USER);
 							result.add(new CreateRelationEvent(newEdge));
+							alreadyAttached.add(target);
 						}
-					} else {
+					}
+				} else {
+					throw new Exception("Malformed input");
+				}
+			}
+		}*/
+		//create edges
+		
+		List<Edge> addedEdges = new ArrayList();
+		if( text!=null&&!"".equals(text.trim())){
+			String[] lines = text.split("\\n");
+			for(String line : lines) {
+				String[] terms = line.split(",");
+				if(!terms[0].trim().isEmpty()) {
+					Vertex source = new Vertex(terms[0].trim());
+					for(int i=1; i<terms.length; i++) {
+						if(terms[i].trim().isEmpty()) 
+							continue;
+						Vertex target = new Vertex(terms[i].trim());
 						Edge newEdge = new Edge(source, target, type, Origin.USER);
-						result.add(new CreateRelationEvent(newEdge));
-						alreadyAttached.add(target);
+						addedEdges.add(newEdge);
 					}
 				}
-			} else {
-				throw new Exception("Malformed input");
 			}
 		}
 		
-		return result;
+		BatchCreateRelationValidator relationsValidator = new BatchCreateRelationValidator();
+		CompositeModifyEvent importEvent = relationsValidator.validate(addedEdges);
+		return importEvent;
 	}
-
+	
+	/**
+	 * check the input text:
+	 * 1, if line is not empty, the first term should not be empty
+	 * @param text
+	 * @return
+	 */
+	public String validateInpuText(String text){
+		Set<String> parentSet = new HashSet();
+		if(text!=null&&!"".equals(text.trim())){
+			String[] lines = text.split("\\n");
+			for(int line=0;line<lines.length;line++){
+				if(!"".equals(lines[line])){//if line is not empty
+					String[] terms = lines[line].trim().split(",");
+					if(terms[0].trim().isEmpty()) {
+						return "line "+(line+1)+" is in wrong format.";
+					}
+					if(parentSet.contains(terms[0].trim())){//the same parent node
+						return "Please put the relations leaded by  '"+terms[0].trim()+"' in the same line";
+					}
+					parentSet.add(terms[0].trim());
+				}
+			}
+		}
+		
+		return null;
+	}
 }

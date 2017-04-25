@@ -1,11 +1,15 @@
 package edu.arizona.biosemantics.oto2.ontologize2.client.candidate;
 
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.logical.shared.SelectionEvent;
+import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.safehtml.client.SafeHtmlTemplates;
 import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
@@ -25,7 +29,10 @@ import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
 import com.sencha.gxt.widget.core.client.tree.Tree;
 import com.sencha.gxt.widget.core.client.tree.Tree.CheckCascade;
+import com.sencha.gxt.widget.core.client.tree.Tree.CheckState;
+import com.sencha.gxt.widget.core.client.tree.TreeSelectionModel;
 
+import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize2.client.candidate.CandidateView.CellTemplate;
 import edu.arizona.biosemantics.oto2.ontologize2.client.common.RelationSelectionDialog.RelationSelectionView;
@@ -39,6 +46,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.model.CandidatePatternRe
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Vertex;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Type;
 
 public class CreateRelationsFromCandidateDialog extends Dialog {
 	
@@ -59,6 +67,7 @@ public class CreateRelationsFromCandidateDialog extends Dialog {
 		private Tree<TextTreeNode, TextTreeNode> tree;
 		private VerticalLayoutContainer vlc;
 		private List<CandidatePatternResult> patterns;
+		private Set<String> existedRelations;
 
 		public CreateRelationsFromCandidateView(Candidate candidate, List<CandidatePatternResult> patterns) {
 			this.patterns = patterns;
@@ -68,6 +77,7 @@ public class CreateRelationsFromCandidateDialog extends Dialog {
 					return item.getId();
 				}
 			});
+			existedRelations = new HashSet();
 			tree = new Tree<TextTreeNode, TextTreeNode>(store, new IdentityValueProvider());
 			tree.setCheckable(true);
 			tree.setCheckStyle(CheckCascade.TRI);
@@ -77,13 +87,8 @@ public class CreateRelationsFromCandidateDialog extends Dialog {
 						TextTreeNode value, SafeHtmlBuilder sb) {
 					OntologyGraph g = ModelController.getCollection().getGraph();
 					String textColor = "black";
-					/*
-					if(value instanceof EdgeTreeNode) {
-						if(g.existsRelation(((EdgeTreeNode) value).getEdge()))
-							textColor = "green";
-						else
-							textColor = "red";
-					} else if(value instanceof PatternTreeNode) {
+					
+					if(value instanceof PatternTreeNode) {//pattern tree node
 						List<TextTreeNode> children = store.getChildren(value);
 						boolean allExist = true;
 						boolean noneExists = true;
@@ -101,7 +106,14 @@ public class CreateRelationsFromCandidateDialog extends Dialog {
 							textColor = "red";
 						if(!allExist && !noneExists)
 							textColor = "blue";
-					}*/
+					}else if(value instanceof EdgeTreeNode) {//leave nodes
+						if(g.existsRelation(((EdgeTreeNode) value).getEdge())){
+							existedRelations.add(value.getId());
+							textColor = "green";
+						}			
+						else
+							textColor = "red";
+					}
 					sb.append(cellTemplate.cell(value.getText(), textColor));
 				}
 				
@@ -113,14 +125,36 @@ public class CreateRelationsFromCandidateDialog extends Dialog {
 				PatternTreeNode pNode = new PatternTreeNode(p);
 				store.add(cNode, pNode);
 				for(Edge e : p.getRelations()) {
-					store.add(pNode, new EdgeTreeNode(e));
+					//do not recommend default relations
+					//https://github.com/biosemantics/etc-site/issues/627
+					if(!(e.getType().equals(Type.SUBCLASS_OF)&&
+							(e.getDest().getValue().equals("material anatomical entity")||
+									e.getDest().getValue().equals("non-specific material anatomical entity")||
+									e.getDest().getValue().equals("quality")
+									)))
+						store.add(pNode, new EdgeTreeNode(e));
 				}
 			}
 			tree.setAutoExpand(true);
+			//tree.getSelectionModel().setLocked(true);
 			vlc = new VerticalLayoutContainer();
-			//vlc.add(new Label("Select the relations you want to create."), new VerticalLayoutData(1, -1));
+			vlc.add(new Label("Green text means the relation is already existed. Red text means the relation is new. "), new VerticalLayoutData(1, -1));
 			vlc.add(tree, new VerticalLayoutData(1, 1));
 			//vlc.getScrollSupport().setScrollMode(ScrollMode.AUTOY);
+			/*
+			final TreeSelectionModel<TextTreeNode> selectionModel = tree.getSelectionModel();
+	        selectionModel.addSelectionHandler(new SelectionHandler<TextTreeNode>() {
+	            @Override
+	            public void onSelection(SelectionEvent<TextTreeNode> event) {
+	            	TextTreeNode treeNode = event.getSelectedItem();
+	                if(existedRelations.contains(treeNode.getId())){
+	                	//Alerter.showAlert("existed", treeNode.getId()+":"+treeNode.getText());
+	                	//tree.setChecked(treeNode, CheckState.UNCHECKED);
+	                	selectionModel.deselect(treeNode);
+	                 }
+	                
+	            }
+	        });*/
 		}
 
 		@Override
@@ -136,7 +170,7 @@ public class CreateRelationsFromCandidateDialog extends Dialog {
 				//} else if(node instanceof EdgeTreeNode) {
 					
 				//}
-				if(node instanceof EdgeTreeNode)
+				if(node instanceof EdgeTreeNode && !existedRelations.contains(node.getId()))
 					result.add((EdgeTreeNode)node);
 			}
 			return result;

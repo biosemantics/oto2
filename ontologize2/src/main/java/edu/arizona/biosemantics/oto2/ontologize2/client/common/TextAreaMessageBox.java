@@ -17,6 +17,7 @@ public class TextAreaMessageBox extends Dialog {
 		messageLabel = new Label(message);
 		textArea = new TextArea();
 		VerticalLayoutContainer vlc = new VerticalLayoutContainer();
+		this.setHeadingText(title);
 		vlc.add(messageLabel, new VerticalLayoutContainer.VerticalLayoutData(1, -1));
 		vlc.add(textArea, new VerticalLayoutContainer.VerticalLayoutData(1, 1));
 		this.setWidget(vlc);

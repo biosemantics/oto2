@@ -166,7 +166,7 @@ public class Ontologize extends SimpleContainer {
 			});
 			sub.add(generateItem);
 			
-			MenuItem downloadItem = new MenuItem("Download Ontology");
+			MenuItem downloadItem = new MenuItem("Download Ontology");//this may call etcsite download
 			downloadItem.addSelectionHandler(new SelectionHandler<Item>() {
 				
 				@Override

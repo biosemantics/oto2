@@ -594,7 +594,7 @@ public class MenuTreeView extends TreeView {
 		TextButton filterButton = new TextButton("Set Filter");		
 		final Menu filterMenu = new Menu();
 		
-		MenuItem filterGridItem = new MenuItem("Grid");
+		MenuItem filterGridItem = new MenuItem("Table");
 		Menu filterGridMenu = new Menu();
 		filterGridItem.setSubMenu(filterGridMenu);
 		filterGridField = new TextField() {
@@ -632,7 +632,7 @@ public class MenuTreeView extends TreeView {
 		filterTreeMenu.add(filterTreeField);
 		filterMenu.add(filterTreeItem);
 		
-		MenuItem filterGridAndTreeItem = new MenuItem("Grid and Tree");
+		MenuItem filterGridAndTreeItem = new MenuItem("Table and Tree");
 		Menu filterGridAndTreeMenu = new Menu();
 		filterGridAndTreeItem.setSubMenu(filterGridAndTreeMenu);
 		filterGridAndTreeField = new TextField() {

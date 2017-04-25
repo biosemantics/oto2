@@ -165,7 +165,7 @@ public class StandAlone implements EntryPoint {
 			Timer timer = new Timer() {
 				@Override
 				public void run() {
-					collectionService.get(1, "", new AsyncCallback<Collection>() {
+					collectionService.get(12, "", new AsyncCallback<Collection>() {
 						@Override
 						public void onFailure(Throwable caught) {
 							caught.printStackTrace();
