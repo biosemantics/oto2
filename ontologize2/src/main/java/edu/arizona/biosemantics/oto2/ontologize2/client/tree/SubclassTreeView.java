@@ -91,6 +91,7 @@ public class SubclassTreeView extends MenuTreeView {
 			}
 		}
 		
+		/*
 		if(r.getType().equals(Type.PART_OF)) {
 			OntologyGraph g = ModelController.getCollection().getGraph();
 			Vertex dest = r.getDest();
@@ -108,10 +109,17 @@ public class SubclassTreeView extends MenuTreeView {
 				}
 				createRelation(subTree, new Edge(dest, new Vertex(newValue), Type.SUBCLASS_OF, Origin.USER));
 			}
-		}
+		}*/
 
 	}
 
+	
+	/**
+	 * if the source of the edge is subclasses of two superclasses, the edge is invisible.
+	 * @param subTree
+	 * @param r
+	 * @return
+	 */
 	private boolean isVisible(SubTree subTree, Edge r) {
 		OntologyGraph g = ModelController.getCollection().getGraph();
 		Vertex currentRoot = getRoot(subTree);
@@ -196,15 +204,31 @@ public class SubclassTreeView extends MenuTreeView {
 					switch(removeMode) {
 					case REATTACH_TO_AVOID_LOSS:
 						List<TreeNode<VertexTreeNode>> targetChildNodes = new LinkedList<TreeNode<VertexTreeNode>>();
-						for(VertexTreeNode targetChild : subTree.getStore().getChildren(targetNode)) {
-							List<Edge> inRelations = g.getInRelations(targetChild.getVertex(), type);
-							if(inRelations.size() <= 1) 
-								targetChildNodes.add(subTree.getStore().getSubTree(targetChild));
-							if(inRelations.size() >= 2) 
-								visibleNodes.add(targetChild);
+						List<VertexTreeNode> children = subTree.getStore().getChildren(targetNode);
+						if(children.size()>0){//existed children
+							for(VertexTreeNode targetChild : subTree.getStore().getChildren(targetNode)) {
+								List<Edge> inRelations = g.getInRelations(targetChild.getVertex(), type);
+								if(inRelations.size() <= 1) 
+									targetChildNodes.add(subTree.getStore().getSubTree(targetChild));
+								if(inRelations.size() >= 2) 
+									visibleNodes.add(targetChild);
+							}
 						}
 						visiblilityCheckNodes.get(event).addAll(visibleNodes);
 						remove(subTree, targetNode, false);
+						if(children.size()==0){//hidden children
+							for(Edge edge : g.getOutRelations(targetNode.getVertex(), type)) {
+								if(subTree.getVertexNodeMap().containsKey(targetNode.getVertex())) {
+									VertexTreeNode newSourceNode = subTree.getVertexNodeMap().get(targetNode.getVertex()).iterator().next();
+									List<Edge> inRelations = g.getInRelations(targetNode.getVertex(), type);
+									if(inRelations.size()<=2){
+										VertexTreeNode destinationNode = new VertexTreeNode(edge.getDest());
+								 		add(subTree, newSourceNode, destinationNode);
+										createFromVertex(subTree, g, edge.getDest());
+									}
+								}
+							}
+						}
 						if(!targetChildNodes.isEmpty())
 							subTree.getStore().addSubTree(sourceNode, subTree.getStore().getChildCount(sourceNode), targetChildNodes);
 						break;

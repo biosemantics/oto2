@@ -115,7 +115,47 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 			log(LogLevel.ERROR, "Could not read json", e);
 		}
 	}
-
+	
+	private void initializeGraphAfterClear(Collection collection) {
+//		HashMap<Type, LinkedHashMap<String, List<PredefinedVertex>>> existingRelations = 
+//				new HashMap<Type, LinkedHashMap<String, List<PredefinedVertex>>>();
+//		ObjectMapper mapper = new ObjectMapper();
+//		TypeFactory typeFactory = mapper.getTypeFactory();
+//		MapType mapType = typeFactory.constructMapType(LinkedHashMap.class, typeFactory.constructType(String.class), 
+//				typeFactory.constructCollectionType(List.class, PredefinedVertex.class));
+		try {
+//			existingRelations.put(Type.PART_OF, (LinkedHashMap<String, List<PredefinedVertex>>)mapper.readValue(new File(Configuration.existingPartsFile), mapType));
+//			existingRelations.put(Type.SYNONYM_OF, (LinkedHashMap<String, List<PredefinedVertex>>)mapper.readValue(new File(Configuration.existingSynonymsFile), mapType));
+//			for(Type type : Type.values()) {
+//				if(existingRelations.containsKey(type)) {
+//					for(String superclass : existingRelations.get(type).keySet())  {
+//						for(PredefinedVertex subclass : existingRelations.get(type).get(superclass)) {
+//							Edge e = new Edge(new Vertex(superclass), new Vertex(subclass.getValue()), 
+//									type, Origin.USER);
+//							if(!subclass.isRequiresCandidate()) {
+//								TimeUnit.MILLISECONDS.sleep(2); //to avoid a random order of the edges, which per default are ordered by insertion time
+//								collection.getGraph().addRelation(e);
+//							}
+//						}
+//					}
+//				}
+//			}
+			
+			Edge c1 = new Edge(new Vertex("Thing"), new Vertex("material anatomical entity"), Type.SUBCLASS_OF, Origin.USER);
+			Edge c2 = new Edge(new Vertex("material anatomical entity"), new Vertex("non-specific material anatomical entity"), Type.SUBCLASS_OF, Origin.USER);
+			TimeUnit.MILLISECONDS.sleep(2);
+			collection.getGraph().addRelation(c1);
+			TimeUnit.MILLISECONDS.sleep(2);
+			collection.getGraph().addRelation(c2);
+			Edge c3 = new Edge(new Vertex("Thing"), new Vertex("quality"), Type.SUBCLASS_OF, Origin.USER);
+			TimeUnit.MILLISECONDS.sleep(2);
+			collection.getGraph().addRelation(c3);
+		} catch(Exception e) {
+			e.printStackTrace();
+			log(LogLevel.ERROR, "Could not read json", e);
+		}
+	}
+	
 	private synchronized void serializeCollection(Collection collection) {
 		File collectionDirectory = new File(Configuration.collectionsDirectory + File.separator + collection.getId());
 		if(!collectionDirectory.exists())
@@ -186,8 +226,10 @@ public class CollectionService extends RemoteServiceServlet implements ICollecti
 	public synchronized Collection clear(int collectionId, String secret) throws Exception {
 		Collection collection = this.get(collectionId, secret);
 		collection.getGraph().init();
-		initializeGraph(collection);
+		//initializeGraph(collection);
+		initializeGraphAfterClear(collection);
 		update(collection);
+		userLogService.insertLog(user, "", collectionId+"", "clear", null);
 		return collection;
 	}
 

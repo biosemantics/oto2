@@ -260,7 +260,7 @@ public class TreeView implements IsWidget {
 				if(!event.isEffectiveInModel())
 					for(Edge r : event.getRelations()) {
 						createRelation(subTree, r);
-						//eventBus.fireEvent(new UserLogEvent("tree_crerel_"+ type.getDisplayLabel(),r.getDest().getValue()));
+						eventBus.fireEvent(new UserLogEvent("tree_crerel_"+ type.getDisplayLabel(),r.getDest().getValue()));
 					}
 				else
 					for(Edge r : event.getRelations())
@@ -273,7 +273,7 @@ public class TreeView implements IsWidget {
 				if(!event.isEffectiveInModel())
 					for(Edge r : event.getRelations()){
 						removeRelation(subTree, event, r, event.getRemoveMode());
-						//eventBus.fireEvent(new UserLogEvent("tree_rmrel_"+ type.getDisplayLabel(),r.getDest().getValue()));
+						eventBus.fireEvent(new UserLogEvent("tree_rmrel_"+ type.getDisplayLabel(),r.getDest().getValue()));
 					}
 				else
 					for(Edge r : event.getRelations()) 

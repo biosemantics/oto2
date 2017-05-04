@@ -33,7 +33,6 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.event.SelectTermEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.VisualizationConfigurationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent.FilterTarget;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.RemoveMode;
-import edu.arizona.biosemantics.oto2.ontologize2.client.relations.CreateSynonymsDialog;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid.Row;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph;

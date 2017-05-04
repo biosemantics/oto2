@@ -94,13 +94,13 @@ public class PartsGrid extends MenuTermsGrid {
 	protected void createRelation(Edge r, boolean refresh) {		
 		if(r.getType().equals(type)) {
 			OntologyGraph g = ModelController.getCollection().getGraph();
-			Vertex dest = r.getDest();
+			/*Vertex dest = r.getDest();
 			Vertex src = r.getSrc();
 			String newValue = src + " " + dest;
-			
 			List<Edge> parentRelations = g.getInRelations(dest, Type.PART_OF);
 			parentRelations.remove(r);
-			if(!parentRelations.isEmpty()) {			
+			
+			if(!parentRelations.isEmpty()) {		
 				for(Edge parentRelation : parentRelations) {
 					Vertex parentSrc = parentRelation.getSrc();
 					Vertex disambiguatedDest = new Vertex(parentSrc + " " + dest);
@@ -115,14 +115,14 @@ public class PartsGrid extends MenuTermsGrid {
 				} else {
 					super.createRelation(r, refresh);
 				}
-			} else {
+			} else {*/
 				if(r.getSrc().equals(g.getRoot(type))) {
 					if(!leadRowMap.containsKey(r.getDest()))
 						this.addRow(new Row(type, r.getDest()), refresh);
 				} else {
 					super.createRelation(r, refresh);
 				}
-			}
+			//}
 		}
 	}
 

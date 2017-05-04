@@ -702,7 +702,7 @@ public class OntologyGraph implements Serializable {
 		Vertex dest = e.getDest();
 		Vertex src = e.getSrc();
 		Type type = e.getType();
-		List<Edge> inRelations = this.getInRelations(dest, type);
+		
 		switch(removeMode) {
 		case NONE:
 			removeEdge(e);
@@ -710,18 +710,18 @@ public class OntologyGraph implements Serializable {
 				this.removeVertex(dest);
 			break;
 		case REATTACH_TO_AVOID_LOSS:
+			List<Edge> inRelations = this.getInRelations(dest, type);//quality-->coloration
 			removeEdge(e);
-			if(inRelations.size() == 0) {	
-				for(Edge outRelation : this.getOutRelations(dest, type)) {
-					List<Edge> in = this.getInRelations(outRelation.getDest(), type);
+			if(inRelations.size() == 1) {//fix this bug
+				for(Edge outRelation : this.getOutRelations(dest, type)) {//coloration-->green,grey
+					List<Edge> in = this.getInRelations(outRelation.getDest(), type);//coloration-->green
 					in.remove(outRelation);
 					if(in.isEmpty()) {
-						try {
+						try {//quality-->green
 							Edge newEdge = new Edge(src, outRelation.getDest(), type, Origin.USER);
 							this.addRelation(newEdge);
 						} catch(Exception ex) {
 							//This should never happen
-							System.out.println("Failed to reattach child nodes");
 							ex.printStackTrace();
 						}
 					}
@@ -772,6 +772,7 @@ public class OntologyGraph implements Serializable {
 		return graph.getVertices();
 	}
 
+	//only replace the source of the relation
 	public void replaceRelation(Edge oldRelation, Vertex newSource) throws Exception {
 		if(this.isClosedRelations(oldRelation.getSrc(), oldRelation.getType()))
 			throw new Exception("There are no outgoing relations allowed to be removed from " + oldRelation.getSrc());

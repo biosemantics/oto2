@@ -60,6 +60,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.common.BatchCreateRelati
 import edu.arizona.biosemantics.oto2.ontologize2.client.common.TextAreaMessageBox;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ClearEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CompositeModifyEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateCandidateEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.UserLogEvent;
@@ -70,6 +71,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.event.SortEvent.SortFiel
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.SortEvent.SortTarget;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.MenuTreeView;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.TreeView;
+import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Candidate;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.Collection;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge.Origin;
@@ -169,13 +171,27 @@ public class MenuTermsGrid extends TermsGrid {
 					@Override
 					public void onSelect(SelectEvent event) {
 						try {
-							CompositeModifyEvent importEvent = createImportEvents(box.getValue().trim());
+							BatchCreateRelationValidator relationsValidator = new BatchCreateRelationValidator();
+							CompositeModifyEvent importEvent = createImportEvents(box.getValue().trim(),relationsValidator);
+							int totalEdgeSize = relationsValidator.getTotalEdges();
+							if(totalEdgeSize==0) return;
+							List<Edge> failedEdges = relationsValidator.getFailedEdge();
 							//List<GwtEvent<?>> importEvents = createImportEvents(box.getValue().trim());
 							//fire(new CompositeModifyEvent(importEvents));
 							if(importEvent!=null) {
 								fire(importEvent);
 								eventBus.fireEvent(new UserLogEvent("import_"+ type.getDisplayLabel(), box.getValue().trim()));
-								box.hide();
+								if(!failedEdges.isEmpty()){
+									Alerter.showInfo("Import result", "Successfully imported <b>"+(totalEdgeSize-failedEdges.size())+"</b> relations. <br/> <b>"+failedEdges.size()+"</b> conflict relations are not imported, but left in the input area.");
+									StringBuffer sb = new StringBuffer();
+									for(Edge e:failedEdges){
+										sb.append(e.getSrc()).append(",").append(e.getDest()).append("\n");
+									}
+									box.getTextArea().setText(sb.toString());
+								}else{
+									box.hide();
+									Alerter.showInfo("Import result", "Successfully imported <b>"+totalEdgeSize+"</b> relations.");
+								}
 							}
 						} catch(Exception e) {
 							Alerter.showAlert("Import failed", e.getMessage());
@@ -549,54 +565,11 @@ public class MenuTermsGrid extends TermsGrid {
 	
 	
 	// TO-DO: validate the import text
-	private CompositeModifyEvent createImportEvents(String text) throws Exception {
-	//private List<GwtEvent<?>> createImportEvents(String text) throws Exception {
-		List<GwtEvent<?>> result = new LinkedList<GwtEvent<?>>();
+	private CompositeModifyEvent createImportEvents(String text,BatchCreateRelationValidator relationsValidator) throws Exception {
 		
 		String validateTextResult = validateInpuText(text);
 		if(validateTextResult!=null) 
 			throw new Exception(validateTextResult);
-		/*
-		if( text!=null&&!"".equals(text.trim())){
-			OntologyGraph g = ModelController.getCollection().getGraph();
-			Vertex root = new Vertex(type.getRootLabel());
-			String[] lines = text.split("\\n");
-			Set<Vertex> alreadyAttached = new HashSet<Vertex>(g.getVertices());						
-			for(String line : lines) {
-				String[] terms = line.split(",");
-				
-				if(!terms[0].trim().isEmpty()) {
-					Vertex source = new Vertex(terms[0].trim());
-					if(!alreadyAttached.contains(source)) {//should check by different types
-						Edge newEdge = new Edge(root, source, type, Origin.USER);
-						result.add(new CreateRelationEvent(newEdge));
-						alreadyAttached.add(source);
-					}
-					for(int i=1; i<terms.length; i++) {
-						if(terms[i].trim().isEmpty()) 
-							continue;
-						Vertex target = new Vertex(terms[i].trim());
-						
-						if(alreadyAttached.contains(target)) {
-							Edge rootEdge = new Edge(g.getRoot(type), target, type, Origin.USER);
-							if(g.existsRelation(rootEdge)) {
-								result.add(new ReplaceRelationEvent(rootEdge, source));
-							} else {
-								Edge newEdge = new Edge(source, target, type, Origin.USER);
-								result.add(new CreateRelationEvent(newEdge));
-							}
-						} else {
-							Edge newEdge = new Edge(source, target, type, Origin.USER);
-							result.add(new CreateRelationEvent(newEdge));
-							alreadyAttached.add(target);
-						}
-					}
-				} else {
-					throw new Exception("Malformed input");
-				}
-			}
-		}*/
-		//create edges
 		
 		List<Edge> addedEdges = new ArrayList();
 		if( text!=null&&!"".equals(text.trim())){
@@ -616,11 +589,44 @@ public class MenuTermsGrid extends TermsGrid {
 			}
 		}
 		
-		BatchCreateRelationValidator relationsValidator = new BatchCreateRelationValidator();
+		if(addedEdges!=null&&addedEdges.size()>0) addCandidateTerms(addedEdges);
+		
 		CompositeModifyEvent importEvent = relationsValidator.validate(addedEdges);
 		return importEvent;
 	}
 	
+	//add those terms that do not exist to the candidate terms view
+	private void addCandidateTerms(List<Edge> addedEdges) {
+		List<Candidate> candidates = new LinkedList<Candidate>();
+		StringBuffer sb = new StringBuffer();
+		Set<String> newly = new HashSet();
+		Set<String> paths = new HashSet();
+		for(Candidate c:ModelController.getCollection().getCandidates()){
+			String path = c.getPath();
+			String[] pathItem = path.split("/");
+			for(String item:pathItem) if(!"".equals(item)) paths.add(item);
+		}
+		for(Edge edge:addedEdges){
+			String sourceTerm = edge.getSrc().getValue();
+			String targetTerm = edge.getDest().getValue();
+			if(!ModelController.getCollection().contains(sourceTerm)&&!newly.contains(sourceTerm)
+					&&!paths.contains(sourceTerm)) {
+				candidates.add(new Candidate(sourceTerm, "/imported"));
+				newly.add(sourceTerm);
+				sb.append(sourceTerm).append(",");
+			}
+			if(!ModelController.getCollection().contains(targetTerm)&&!newly.contains(targetTerm)
+					&&!paths.contains(sourceTerm)) {
+				candidates.add(new Candidate(targetTerm, "/imported"));
+				newly.add(targetTerm);
+				sb.append(targetTerm).append(",");
+			}
+		}
+		
+		eventBus.fireEvent(new CreateCandidateEvent(candidates));
+		eventBus.fireEvent(new UserLogEvent("imported_cand_terms",sb.toString()));
+	}
+
 	/**
 	 * check the input text:
 	 * 1, if line is not empty, the first term should not be empty

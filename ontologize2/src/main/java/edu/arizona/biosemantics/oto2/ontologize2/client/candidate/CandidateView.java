@@ -13,7 +13,14 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.gwt.cell.client.AbstractCell;
+import com.google.gwt.cell.client.ValueUpdater;
+import com.google.gwt.cell.client.Cell.Context;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.BrowserEvents;
+import com.google.gwt.dom.client.Element;
+import com.google.gwt.dom.client.NativeEvent;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.KeyCodes;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
@@ -26,6 +33,7 @@ import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.google.gwt.user.client.ui.Anchor;
 import com.google.web.bindery.event.shared.EventBus;
 import com.sencha.gxt.core.client.IdentityValueProvider;
 import com.sencha.gxt.core.client.Style.SelectionMode;
@@ -63,6 +71,7 @@ import com.sencha.gxt.widget.core.client.tree.Tree;
 
 import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
+import edu.arizona.biosemantics.oto2.ontologize2.client.common.BatchCreateRelationValidator;
 import edu.arizona.biosemantics.oto2.ontologize2.client.common.CreateRelationValidator;
 import edu.arizona.biosemantics.oto2.ontologize2.client.common.ReplaceRelationValidator;
 import edu.arizona.biosemantics.oto2.ontologize2.client.common.cell.CellImages;
@@ -99,7 +108,7 @@ public class CandidateView extends SimpleContainer {
 		@SafeHtmlTemplates.Template(""
 				+ "<div style=\"height: 17px; padding: 2px 2px 0px 2px;\">"
 				+ "<div id=\"wide\" style=\"float: right; width: calc(100% - 10px); color:{1}\">"
-				+ "{0} {3}"
+				+ "{0} <a href='javascript:void(0)'>{3}</a>"
 				+ "</div>"
 				+ "<div id=\"narrow\"  style=\"float: left; width: 10px;\">"
 				+ ""
@@ -209,8 +218,7 @@ public class CandidateView extends SimpleContainer {
 		}, SortDir.ASC));
 		tree = new Tree<TextTreeNode, TextTreeNode>(treeStore, new IdentityValueProvider<TextTreeNode>());
 		tree.setIconProvider(new TermTreeNodeIconProvider());
-		
-		tree.setCell(new AbstractCell<TextTreeNode>() {
+		tree.setCell(new AbstractCell<TextTreeNode>("click") {
 			@Override
 			public void render(com.google.gwt.cell.client.Cell.Context context,	TextTreeNode value, SafeHtmlBuilder sb) {
 				String patternIcon = "";
@@ -231,7 +239,48 @@ public class CandidateView extends SimpleContainer {
 					sb.append(cellTemplate.cell(value.getText(), "gray", patternIcon, numberOfPatterns));
 				else
 					sb.append(cellTemplate.cell(value.getText(), "", patternIcon, numberOfPatterns));	
+				
 			}
+			
+			  public void onBrowserEvent(Context context, Element parent, TextTreeNode value,
+			      NativeEvent event, ValueUpdater<TextTreeNode> valueUpdater) {
+				//super.onBrowserEvent(context, parent, value, event, valueUpdater);
+			    String eventType = event.getType();
+			    //Alerter.showInfo("Target", event.getEventTarget().toString());
+			    if(!event.getEventTarget().toString().trim().equals("<a href=\"javascript:void(0)\">(recommended relations)</a>")&&
+			    		!event.getEventTarget().toString().trim().equals("javascript:void(0)")) return;
+			    Candidate candidate = null;
+				if(value instanceof CandidateTreeNode) 
+					candidate = ((CandidateTreeNode) value).getCandidate();
+				final Candidate c = candidate;
+			    List patterns = candidatePatterns.get(c);
+			    if (BrowserEvents.CLICK.equals(eventType)&&(patterns!=null&&patterns.size()>0)) {
+			    	final CreateRelationsFromCandidateDialog dialog = new CreateRelationsFromCandidateDialog(c, 
+							candidatePatterns.get(c));
+					dialog.show();
+					dialog.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
+						@Override
+						public void onSelect(SelectEvent event) {
+							if(dialog.getSelectedEdges().size()<1) return;
+							StringBuffer sb = new StringBuffer();
+							for(Edge e : dialog.getSelectedEdges()) {
+								sb.append(e.toString()).append("|");
+							}
+							eventBus.fireEvent(new UserLogEvent("add_by_pattern",sb.toString()));
+							
+							try {
+								BatchCreateRelationValidator relationsValidator = new BatchCreateRelationValidator();
+								CompositeModifyEvent patternEdgesEvent = relationsValidator.validate(dialog.getSelectedEdges());
+								eventBus.fireEvent(patternEdgesEvent);
+							} catch(Exception e) {
+								Alerter.showAlert("Import failed", e.getMessage());
+							}
+							
+						}
+					});
+			    }
+			  }
+			
 		});
 		tree.getElement().setAttribute("source", "termsview");
 		tree.getSelectionModel().setSelectionMode(SelectionMode.MULTI);
@@ -459,7 +508,6 @@ public class CandidateView extends SimpleContainer {
 									@Override
 									public void onSelect(SelectEvent event) {
 										final OntologyGraph g = ModelController.getCollection().getGraph();
-										final Set<Vertex> futureContained = new HashSet<Vertex>();
 										//put super-subclass relations first
 										StringBuffer sb = new StringBuffer();
 										for(Edge e : dialog.getSelectedEdges()) {
@@ -467,144 +515,15 @@ public class CandidateView extends SimpleContainer {
 										}
 										eventBus.fireEvent(new UserLogEvent("add_by_pattern",sb.toString()));
 										
-										List<GwtEvent<?>> result = new LinkedList<GwtEvent<?>>();
-										
-//										StringBuffer sbt = new StringBuffer();
-//										for(Edge e : order(dialog.getSelectedEdges())) {
-//											sbt.append(e.getSrc()).append("-->").append(e.getDest()+"   ;   ");
-//										}
-//										//Alerter.showAlert("orderred", sbt.toString());
-										//check synonym root and superclass root
-										Set handled = new HashSet();
-										for(Edge e : order(dialog.getSelectedEdges())) {
-											if(handled.contains(e)){
-												continue;
-											}
-											handled.add(e);
-											if(e.getType().equals(Type.SYNONYM_OF)) {//synonym
-												Edge synonymRootEdge = new Edge(g.getRoot(Type.SYNONYM_OF), e.getSrc(), e.getType(), Origin.USER);
-												if(!g.existsRelation(synonymRootEdge)&&!g.isSynonym(e.getSrc())){//if the preferred terms does not existed and is not a synonym
-													result.add(new CreateRelationEvent(synonymRootEdge));
-													result.add(new CreateRelationEvent(e));
-												}else if(g.existsRelation(synonymRootEdge)&&!g.isSynonym(e.getDest())){//if the root is existed and the target is not a synonym
-													result.add(new CreateRelationEvent(e));
-												}else if(!g.existsRelation(synonymRootEdge)&&g.isSynonym(e.getSrc())){//if the preferred terms does not existed but it is a synonym of another term
-													//find the synonym root
-													List<Edge> synIn = g.getInRelations(e.getSrc(), Type.SYNONYM_OF);
-													if(synIn!=null&&synIn.size()>0){
-														Edge preferredEdge = synIn.get(0);
-														Vertex preferterm = preferredEdge.getSrc();
-														Edge replaceEdge = new Edge(preferterm, e.getDest(), Type.SYNONYM_OF, Origin.USER);
-														result.add(new CreateRelationEvent(replaceEdge));
-													}
-												}
-												
-											}else {//class relation
-												//if(!"Thing".equals(e.getSrc())&&!g.containsVertex(e.getSrc()) && !futureContained.contains(e.getSrc())){
-												if("Thing".equals(e.getSrc().toString())){//add to root
-													result.add(new CreateRelationEvent(e));
-												}else if(!"Thing".equals(e.getSrc().toString())&&!futureContained.contains(e.getSrc())&&g.getInRelations(e.getSrc(), Type.SUBCLASS_OF).size()==0){
-													//if the superclass doesnot exist in the tree and in future contained set, add to root
-													Edge superclassRootEdge = new Edge(g.getRoot(e.getType()), 
-															e.getSrc(), e.getType(), Origin.USER);
-													futureContained.add(e.getSrc());
-													result.add(new CreateRelationEvent(superclassRootEdge));
-													result.add(new CreateRelationEvent(e));
-												}else if(!"Thing".equals(e.getSrc().toString())&&futureContained.contains(e.getSrc())){
-													//if the superclass doesnot exist in the tree but in future contained set, add to root
-													result.add(new CreateRelationEvent(e));
-												}else if(g.getInRelations(e.getSrc(), Type.SUBCLASS_OF).size()>0){//add to graph
-													result.add(new CreateRelationEvent(e));
-												}
-												futureContained.add(e.getDest());
-											}
+										try {
+											BatchCreateRelationValidator relationsValidator = new BatchCreateRelationValidator();
+											CompositeModifyEvent patternEdgesEvent = relationsValidator.validate(dialog.getSelectedEdges());
+											eventBus.fireEvent(patternEdgesEvent);
+										} catch(Exception e) {
+											Alerter.showAlert("Import failed", e.getMessage());
 										}
-										eventBus.fireEvent(new CompositeModifyEvent(result));
-									}
-									
-									/*
-									 * private void validateSubclassAndFire(final Edge r) {
-		OntologyGraph g = ModelController.getCollection().getGraph();		
-		try {
-			g.isValidSubclass(r);
-			
-			Vertex source = r.getSrc();
-			Vertex dest = r.getDest();
-			List<Edge> existingRelations = g.getInRelations(dest, Type.SUBCLASS_OF);
-			if(existingRelations.size() == 1 && existingRelations.get(0).getSrc().equals(g.getRoot(Type.SUBCLASS_OF)))
-				eventBus.fireEvent(new CreateRelationEvent(r));
-			else if(!existingRelations.isEmpty()) {
-				List<Vertex> existSources = new ArrayList<Vertex>(existingRelations.size());
-				for(Edge exist : existingRelations) 
-					existSources.add(exist.getSrc());
-				final MessageBox box = Alerter.showConfirm("Create Subclass", 
-						"<i>" + dest + "</i> is already a subclass of " + existingRelations.size() + " superclasses: <i>" +
-								Alerter.collapseTermsAsString(existSources) + "</i>.</br></br></br>" +
-								"Do you still want to make <i>" + dest + "</i> a subclass of <i>" + source + "</i>?</br></br>" +
-								"If NO, please create a new term then make it a subclass of <i>" + source + "</i>.");
-				box.getButton(PredefinedButton.YES).addSelectHandler(new SelectHandler() {
-					@Override
-					public void onSelect(SelectEvent event) {
-						eventBus.fireEvent(new CreateRelationEvent(r));
-						box.hide();
-					}
-				});
-				box.getButton(PredefinedButton.NO).addSelectHandler(new SelectHandler() {
-					@Override
-					public void onSelect(SelectEvent event) {
-						box.hide();
-					}
-				});
-			} else {
-				eventBus.fireEvent(new CreateRelationEvent(r));
-			}
-		} catch(Exception ex) {
-			final MessageBox box = Alerter.showAlert("Create subclass", ex.getMessage());
-			box.getButton(PredefinedButton.OK).addSelectHandler(new SelectHandler() {
-				@Override
-				public void onSelect(SelectEvent event) {
-					box.hide();
-				}
-			});
-		}
-	}
-									 */
-
-									private List<Edge> order(List<Edge> edges) {
-										List<Edge> copy = new ArrayList<Edge>(edges);
-										List<Edge> result = new LinkedList<Edge>(); 
-										Set<Vertex> contained = new HashSet<Vertex>();
 										
-										boolean first = true;
-										while(!copy.isEmpty()) {
-											Iterator<Edge> it = copy.iterator();
-											while(it.hasNext()) {
-												Edge e = it.next();
-												if(contained.contains(e.getSrc())) {
-													it.remove();
-													result.add(e);
-													contained.add(e.getDest());
-												} else if(first) {
-													boolean incomingEdge = false;
-													for(Edge e2 : copy) {
-														if(!e2.equals(e) && e2.getDest().equals(e.getSrc())) {
-															incomingEdge = true;
-															break;
-														}
-													}
-													if(!incomingEdge) {
-														it.remove();
-														result.add(e);
-														contained.add(e.getSrc());
-														contained.add(e.getDest());
-													}
-												}
-											}
-											first = false;
-										}
-										return result;
 									}
-									
 								});
 							}
 						});
