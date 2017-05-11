@@ -41,6 +41,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEven
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ShowRelationsEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.UserLogEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.RemoveMode;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid.Row;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.cell.DefaultMenuCreator;
@@ -55,7 +56,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge
 
 public class SynonymsGrid extends MenuTermsGrid {
 
-	public SynonymsGrid(EventBus eventBus) {
+	public SynonymsGrid(final EventBus eventBus) {
 		super(eventBus, Type.SYNONYM_OF);
 		
 		TextButton addButton = new TextButton("Add Preferred Term");
@@ -76,6 +77,7 @@ public class SynonymsGrid extends MenuTermsGrid {
 						}
 						CreateRelationEvent createRelationEvent = new CreateRelationEvent(relation);
 						fire(createRelationEvent);
+						eventBus.fireEvent(new UserLogEvent("add_preterm_"+type.getDisplayLabel(),relation.toString()));
 					}
 				});
 			}

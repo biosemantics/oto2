@@ -44,8 +44,12 @@ public class CompoundPattern implements CandidatePattern {
 				for(int subclassStart = 0; subclassStart < superclassStart; subclassStart++) {
 					String superclass = createTerm(parts, superclassStart, parts.length);
 					String subclass = createTerm(parts, subclassStart, parts.length);
-					Edge e = new Edge(new Vertex(superclass), new Vertex(subclass), Type.SUBCLASS_OF, Origin.USER);
-					result.add(e);
+//					System.out.println(superclass+"==>"+isMaterialEntity(superclass, collection));
+//					System.out.println(subclass+"==>"+isMaterialEntity(subclass, collection));
+//					if(isMaterialEntity(superclass, collection)&&isMaterialEntity(subclass, collection)){
+						Edge e = new Edge(new Vertex(superclass), new Vertex(subclass), Type.SUBCLASS_OF, Origin.USER);
+						result.add(e);
+//					}
 				}
 			}
 			
@@ -68,8 +72,8 @@ public class CompoundPattern implements CandidatePattern {
 	private boolean isMaterialEntity(String term, Collection collection) {
 		OntologyGraph g = collection.getGraph();
 		return 
-				collection.getCandidates().getCandidate(term).getPath().contains("/material anatomical entity")
-				||g.getAllSources(new Vertex(term), Type.SUBCLASS_OF).contains(new Vertex("material anatomical entity"));
+				collection.contains(term)&&(collection.getCandidates().getCandidate(term).getPath().contains("/material anatomical entity")
+				||g.getAllSources(new Vertex(term), Type.SUBCLASS_OF).contains(new Vertex("material anatomical entity")));
 	}
 	
 	private String createTerm(String[] parts, int start, int end) {

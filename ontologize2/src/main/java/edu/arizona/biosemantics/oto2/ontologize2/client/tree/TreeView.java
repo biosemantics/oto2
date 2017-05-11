@@ -9,8 +9,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.gwt.cell.client.ValueUpdater;
+import com.google.gwt.cell.client.Cell.Context;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.BrowserEvents;
 import com.google.gwt.dom.client.Element;
+import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.shared.EventBus;
@@ -32,8 +36,11 @@ import com.sencha.gxt.dnd.core.client.GridDragSource;
 import com.sencha.gxt.dnd.core.client.DND.Operation;
 import com.sencha.gxt.dnd.core.client.DndDropEvent.DndDropHandler;
 import com.sencha.gxt.dnd.core.client.TreeGridDragSource;
+import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
 import com.sencha.gxt.widget.core.client.event.CellDoubleClickEvent;
+import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.CellDoubleClickEvent.CellDoubleClickHandler;
+import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.menu.Item;
@@ -44,10 +51,13 @@ import com.sencha.gxt.widget.core.client.treegrid.TreeGrid;
 
 import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
+import edu.arizona.biosemantics.oto2.ontologize2.client.candidate.CreateRelationsFromCandidateDialog;
+import edu.arizona.biosemantics.oto2.ontologize2.client.common.BatchCreateRelationValidator;
 import edu.arizona.biosemantics.oto2.ontologize2.client.common.CreateRelationValidator;
 import edu.arizona.biosemantics.oto2.ontologize2.client.common.ReplaceRelationValidator;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.ClearEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CloseRelationsEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.CompositeModifyEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.LoadCollectionEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.OrderEdgesEvent;
@@ -58,6 +68,8 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEve
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.VisualizationConfigurationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.VisualizationRefreshEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.relations.TermsGrid.Row;
+import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.CandidateTreeNode;
+import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.TextTreeNode;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.VertexCell;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.VertexTreeNode;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.node.VertexTreeNodeProperties;
@@ -475,6 +487,7 @@ public class TreeView implements IsWidget {
 				Alerter.showAlert("Failed to create relation", "Failed to create relation");
 				return;
 			}
+			
 			VertexTreeNode destinationNode = new VertexTreeNode(r.getDest());
 			add(subTree, sourceNode, destinationNode);
 			//if(treeGrid.isRendered())

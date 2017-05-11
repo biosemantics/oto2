@@ -230,7 +230,7 @@ public class CandidateView extends SimpleContainer {
 						if(!patterns.isEmpty()) {
 							patternIcon = "url(" + cellImages.blue().getSafeUri().asString() + ")";
 							//numberOfPatterns = "(" + patterns.size() + " Patterns)";
-							numberOfPatterns = "(recommended relations)";
+							//numberOfPatterns = "(recommended relations)";
 						}
 					}
 				}
@@ -241,7 +241,7 @@ public class CandidateView extends SimpleContainer {
 					sb.append(cellTemplate.cell(value.getText(), "", patternIcon, numberOfPatterns));	
 				
 			}
-			
+			/*
 			  public void onBrowserEvent(Context context, Element parent, TextTreeNode value,
 			      NativeEvent event, ValueUpdater<TextTreeNode> valueUpdater) {
 				//super.onBrowserEvent(context, parent, value, event, valueUpdater);
@@ -280,7 +280,7 @@ public class CandidateView extends SimpleContainer {
 					});
 			    }
 			  }
-			
+			*/
 		});
 		tree.getElement().setAttribute("source", "termsview");
 		tree.getSelectionModel().setSelectionMode(SelectionMode.MULTI);
@@ -409,6 +409,8 @@ public class CandidateView extends SimpleContainer {
 			@Override
 			public void onSelection(SelectionEvent<Item> event) {
 				removeNodes(tree.getStore().getRootItems());
+				
+				eventBus.fireEvent(new UserLogEvent("del_cand_allterms",""));
 			}
 		});
 		removeMenu.add(selectedRemove);
@@ -527,7 +529,7 @@ public class CandidateView extends SimpleContainer {
 								});
 							}
 						});
-						menu.add(showPatterns);
+						//menu.add(showPatterns);
 					}
 					
 					MenuItem filterItem = new MenuItem("Filter: " + text);

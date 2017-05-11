@@ -30,6 +30,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.common.cell.CellImages;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.SelectTermEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.UserLogEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.VisualizationConfigurationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent.FilterTarget;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.RemoveMode;
@@ -140,6 +141,9 @@ public class AttachedCell extends MenuExtendedCell<Row> {
 					return;
 				}
 				
+				eventBus.fireEvent(new UserLogEvent("remove_this_"+termsGrid.getType().getTargetLabel(),
+						r.toString()));
+				
 				if(g.getInRelations(r.getDest(), termsGrid.getType()).size() <= 1) {
 					if(g.getOutRelations(r.getDest(), termsGrid.getType()).isEmpty()) {
 						termsGrid.fire(new RemoveRelationEvent(RemoveMode.REATTACH_TO_AVOID_LOSS, r));
@@ -156,6 +160,7 @@ public class AttachedCell extends MenuExtendedCell<Row> {
 			@Override
 			public void onSelection(SelectionEvent<Item> event) {
 				termsGrid.fire(new SelectTermEvent(r.getDest().getValue()));
+				eventBus.fireEvent(new UserLogEvent("show_context_grid",r.getDest().getValue()));
 			}
 		});
 		

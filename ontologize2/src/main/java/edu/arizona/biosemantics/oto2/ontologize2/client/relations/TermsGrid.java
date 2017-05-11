@@ -403,10 +403,10 @@ public class TermsGrid implements IsWidget {
 								Edge rootEdge = new Edge(g.getRoot(type), dest, type, Origin.USER);
 								if(g.existsRelation(rootEdge)) {
 									fire(new ReplaceRelationEvent(rootEdge, row.getLead()));
-									eventBus.fireEvent(new UserLogEvent("table_reprel_"+type,dest.getValue()));
+									eventBus.fireEvent(new UserLogEvent("table_reprel_"+type.getDisplayLabel(),dest.getValue()));
 								} else {
 									fire(new CreateRelationEvent(new Edge(row.getLead(), dest, type, Origin.USER)));
-									eventBus.fireEvent(new UserLogEvent("table_crerel_"+type,dest.getValue()));
+									eventBus.fireEvent(new UserLogEvent("table_crerel_"+type.getDisplayLabel(),dest.getValue()));
 								}
 							}
 						}
@@ -470,7 +470,7 @@ public class TermsGrid implements IsWidget {
 							CreateRelationEvent createRelationEvent = new CreateRelationEvent(relation);
 							fire(createRelationEvent);
 							
-							eventBus.fireEvent(new UserLogEvent("table_crenew_"+type,target.getValue()));
+							eventBus.fireEvent(new UserLogEvent("table_crenew_"+type.getDisplayLabel(),relation.toString()));
 						} else {
 							if(!TermsGrid.this.leadRowMap.containsKey(target))
 								TermsGrid.this.addRow(new Row(type, target), true);

@@ -3,14 +3,21 @@ package edu.arizona.biosemantics.oto2.ontologize2.client.tree.node;
 import java.util.List;
 
 import com.google.gwt.cell.client.AbstractCell;
+import com.google.gwt.cell.client.ValueUpdater;
+import com.google.gwt.cell.client.Cell.Context;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.BrowserEvents;
+import com.google.gwt.dom.client.Element;
+import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.safehtml.client.SafeHtmlTemplates;
 import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 
+import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize2.client.common.cell.CellImages;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.UserLogEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.VisualizationConfigurationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.tree.TreeView;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph;
@@ -44,10 +51,10 @@ public class VertexCell extends AbstractCell<Vertex> {
 	private boolean highlight = false;
 	
 	public VertexCell(EventBus eventBus, TreeView treeView, Type type) {
+		super("click");
 		this.type = type;
 		this.treeView = treeView;
 		this.eventBus = eventBus;
-		
 		bindEvents();
 	}
 	
@@ -78,5 +85,12 @@ public class VertexCell extends AbstractCell<Vertex> {
 		
 		SafeHtml rendered = templates.cell(value.getValue(), background, "", icon1, icon2, icon3);
 		sb.append(rendered);
+	}
+	
+	public void onBrowserEvent(Context context, Element parent, Vertex value,
+		      NativeEvent event, ValueUpdater<Vertex> valueUpdater) {
+		    if (BrowserEvents.CLICK.equals(event.getType())) {
+		    	eventBus.fireEvent(new UserLogEvent("tree_click_"+type.getDisplayLabel(),value.getValue()));
+		    }
 	}
 }
