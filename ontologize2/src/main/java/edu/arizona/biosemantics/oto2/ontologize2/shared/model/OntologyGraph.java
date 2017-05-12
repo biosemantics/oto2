@@ -716,6 +716,8 @@ public class OntologyGraph implements Serializable {
 				for(Edge outRelation : this.getOutRelations(dest, type)) {//coloration-->green,grey
 					List<Edge> in = this.getInRelations(outRelation.getDest(), type);//coloration-->green
 					in.remove(outRelation);
+					//if(type.equals(Type.PART_OF)) 
+						removeEdge(outRelation);
 					if(in.isEmpty()) {
 						try {//quality-->green
 							Edge newEdge = new Edge(src, outRelation.getDest(), type, Origin.USER);
