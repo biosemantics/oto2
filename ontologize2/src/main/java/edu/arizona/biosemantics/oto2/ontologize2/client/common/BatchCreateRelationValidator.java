@@ -159,7 +159,13 @@ public class BatchCreateRelationValidator {
 						if(g.getInRelations(e.getSrc(), Type.PART_OF).size()==0&&!futureContainedParents.contains(e.getSrc())){
 							result.add(new CreateRelationEvent(new Edge(g.getRoot(Type.PART_OF), e.getSrc(), e.getType(), Origin.USER)));
 						}
-						result.add(new CreateRelationEvent(e));
+						//result.add(new CreateRelationEvent(e));
+						Edge exisEdge = null;
+						if((exisEdge=checkDest(g, e.getDest(), Type.PART_OF))!=null){
+							result.add(new ReplaceRelationEvent(exisEdge, e.getSrc()));
+						}else{
+							result.add(new CreateRelationEvent(e));
+						}
 						futureContainedParents.add(e.getSrc());
 					}else{
 						failedEdge.add(e);
@@ -179,7 +185,7 @@ public class BatchCreateRelationValidator {
 					futureContainedSyns.add(e.getSrc());
 					result.add(new CreateRelationEvent(superclassRootEdge));
 					Edge exisEdge = null;
-					if((exisEdge=checkDest(g, e.getDest()))!=null){//if the dest of the new relation is a dest of a relation to "Thing", create a replace relation instead
+					if((exisEdge=checkDest(g, e.getDest(), Type.SUBCLASS_OF))!=null){//if the dest of the new relation is a dest of a relation to "Thing", create a replace relation instead
 						result.add(new ReplaceRelationEvent(exisEdge, e.getSrc()));
 					}else{
 						result.add(new CreateRelationEvent(e));
@@ -188,7 +194,7 @@ public class BatchCreateRelationValidator {
 						(g.getInRelations(e.getSrc(), Type.SUBCLASS_OF).size()>0||futureContainedSyns.contains(e.getSrc()))){
 					//if the superclass doesnot exist in the tree but in future contained set, add to root
 					Edge exisEdge = null;
-					if((exisEdge=checkDest(g, e.getDest()))!=null){//if the dest of the new relation is a dest of a relation to "Thing", create a replace relation instead
+					if((exisEdge=checkDest(g, e.getDest(), Type.SUBCLASS_OF))!=null){//if the dest of the new relation is a dest of a relation to "Thing", create a replace relation instead
 						result.add(new ReplaceRelationEvent(exisEdge, e.getSrc()));
 					}else{
 						result.add(new CreateRelationEvent(e));
@@ -204,9 +210,9 @@ public class BatchCreateRelationValidator {
 	}
 	
 	
-	private Edge checkDest(OntologyGraph g, Vertex dest) {
-		List<Edge> inedges = g.getInRelations(dest, Type.SUBCLASS_OF);
-		if(inedges.size()==1&&inedges.get(0).getSrc().equals(g.getRoot(Type.SUBCLASS_OF))){
+	private Edge checkDest(OntologyGraph g, Vertex dest, Type type) {
+		List<Edge> inedges = g.getInRelations(dest, type);
+		if(inedges.size()==1&&inedges.get(0).getSrc().equals(g.getRoot(type))){
 			return inedges.get(0);
 		}
 		return null;

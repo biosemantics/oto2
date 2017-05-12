@@ -136,22 +136,22 @@ public class StandAlone implements EntryPoint {
 						}
 					});
 					
-					collectionService.add(c.getId(), c.getSecret(), new Relation(v2, v1, new Edge(Type.SUBCLASS_OF, Source.USER)), 
-							new AsyncCallback<Boolean>() {
-								@Override
-								public void onFailure(Throwable caught) {
-									
-								}
-								@Override
-								public void onSuccess(Boolean result) {
-									System.out.println(result);
-								}
-					}); 
+//					collectionService.add(c.getId(), c.getSecret(), new Relation(v2, v1, new Edge(Type.SUBCLASS_OF, Source.USER)), 
+//							new AsyncCallback<Boolean>() {
+//								@Override
+//								public void onFailure(Throwable caught) {
+//									
+//								}
+//								@Override
+//								public void onSuccess(Boolean result) {
+//									System.out.println(result);
+//								}
+//					}); 
 
 				}
-			});*/
+			});
 			
-			
+			*/
 			
 			Ontologize ontologize = new Ontologize();
 			
@@ -165,7 +165,7 @@ public class StandAlone implements EntryPoint {
 			Timer timer = new Timer() {
 				@Override
 				public void run() {
-					collectionService.get(12, "", new AsyncCallback<Collection>() {
+					collectionService.get(33, "", new AsyncCallback<Collection>() {
 						@Override
 						public void onFailure(Throwable caught) {
 							caught.printStackTrace();
@@ -175,7 +175,6 @@ public class StandAlone implements EntryPoint {
 							MessageBox box = Alerter.startLoading();
 							eventBus.fireEvent(new LoadCollectionEvent(result));
 							Alerter.stopLoading(box);
-							
 						}
 						
 					});
