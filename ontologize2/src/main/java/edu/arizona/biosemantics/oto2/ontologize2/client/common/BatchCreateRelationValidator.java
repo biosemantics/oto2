@@ -116,6 +116,7 @@ public class BatchCreateRelationValidator {
 			fileterNonSpecific(batchEdges);
 		}
 		
+		filterSynonym(batchEdges);
 		
 		Set<Vertex> futureContainedClasses = new HashSet<Vertex>();
 		Set<Vertex> futureContainedSyns = new HashSet<Vertex>();
@@ -161,12 +162,13 @@ public class BatchCreateRelationValidator {
 						}
 						//result.add(new CreateRelationEvent(e));
 						Edge exisEdge = null;
-						if((exisEdge=checkDest(g, e.getDest(), Type.PART_OF))!=null){
+						if((exisEdge=checkDest(g, e.getDest(), Type.PART_OF))!=null&&exisEdge.getSrc().equals(g.getRoot(Type.PART_OF))){//
 							result.add(new ReplaceRelationEvent(exisEdge, e.getSrc()));
 						}else{
 							result.add(new CreateRelationEvent(e));
 						}
 						futureContainedParents.add(e.getSrc());
+						futureContainedParents.add(e.getDest());
 					}else{
 						failedEdge.add(e);
 					}
@@ -206,6 +208,7 @@ public class BatchCreateRelationValidator {
 				futureContainedSyns.add(e.getDest());
 			}
 		}
+		
 		return new CompositeModifyEvent(result);
 	}
 	
@@ -218,6 +221,8 @@ public class BatchCreateRelationValidator {
 		return null;
 	}
 
+	
+	//one node can not be parts of two parents
 	private void fileterNonSpecific(List<Edge> batchEdges) {
 		Set target = new HashSet();
 		OntologyGraph graph = ModelController.getCollection().getGraph();
@@ -251,6 +256,55 @@ public class BatchCreateRelationValidator {
 		}
 	}
 
+	//one node can not be parts of two parents
+	private void filterSynonym(List<Edge> batchEdges) {
+		Set target = new HashSet();
+		OntologyGraph graph = ModelController.getCollection().getGraph();
+		List<Vertex> parents = graph.getAllDestinations(graph.getRoot(Type.SYNONYM_OF), Type.SYNONYM_OF);
+		for(Vertex p:parents){
+			List<Vertex> out = graph.getAllDestinations(p, Type.SYNONYM_OF);
+			for(Vertex o:out) target.add(o.getValue());
+		}
+		Set duplicate = new HashSet();
+		for(int i=0;i<batchEdges.size();i++){
+			Edge e= batchEdges.get(i);
+			if(!e.getType().equals(Type.SYNONYM_OF)) continue;
+			if(target.contains(e.getDest().getValue())){//move out to duplicate target set
+				duplicate.add(e.getDest().getValue());
+			}
+			target.add(e.getDest().getValue());
+		}
+		
+		for(int i=0;i<batchEdges.size();){
+			Edge e= batchEdges.get(i);
+			if(!e.getType().equals(Type.SYNONYM_OF)){
+				i++;
+				continue;
+			}
+			if(duplicate.contains(e.getDest().getValue())){//move out to duplicate target set
+				this.failedEdge.add(e);
+				batchEdges.remove(e);
+			}else{
+				i++;
+			}
+		}
+		
+		for(int i=0;i<batchEdges.size();){
+			Edge e= batchEdges.get(i);
+			if(e.getType().equals(Type.SYNONYM_OF)){
+				i++;
+				continue;
+			}
+			if(graph.isSynonym(e.getSrc())||graph.isSynonym(e.getDest())){//if the edge contains synonym terms, don't add it
+				this.failedEdge.add(e);
+				batchEdges.remove(e);
+			}else{
+				i++;
+			}
+		}
+		
+	}
+	
 	private List<Edge> order(List<Edge> edges) {
 		List<Edge> copy = new ArrayList<Edge>(edges);
 		List<Edge> result = new LinkedList<Edge>(); 
