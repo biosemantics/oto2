@@ -167,6 +167,7 @@ public class BatchCreateRelationValidator {
 						}else{
 							result.add(new CreateRelationEvent(e));
 						}
+						
 						futureContainedParents.add(e.getSrc());
 						futureContainedParents.add(e.getDest());
 					}else{

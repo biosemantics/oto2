@@ -26,8 +26,8 @@
  <inherits name='com.github.gwtd3.D3' />
  <inherits name='edu.uci.ics.jung.graph.JungGraph' />
 
-  <!-- Specify the app entry point class.                     
-  <entry-point class='edu.arizona.biosemantics.oto2.ontologize2.client.StandAlone'/>    -->
+  <!-- Specify the app entry point class.                        -->
+  <entry-point class='edu.arizona.biosemantics.oto2.ontologize2.client.StandAlone'/> 
   
   <!-- Specify the paths for translatable code                    -->
   <source path='client'/>
