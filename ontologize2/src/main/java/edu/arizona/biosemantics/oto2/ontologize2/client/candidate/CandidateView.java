@@ -138,6 +138,8 @@ public class CandidateView extends SimpleContainer {
 	private CheckMenuItem checkFilterItem;
 	private TextField filterField;
 	
+	private String user;
+	
 	private DelayedTask addCandidatesTask = new DelayedTask() {
 		@Override
 		public void onExecute() {
@@ -207,7 +209,8 @@ public class CandidateView extends SimpleContainer {
 	protected Map<Candidate, List<CandidatePatternResult>> candidatePatterns = 
 			new HashMap<Candidate, List<CandidatePatternResult>>();
 	
-	private CandidateView() {
+	private CandidateView(String user) {
+		this.user = user;
 		treeStore = new TreeStore<TextTreeNode>(textTreeNodeProperties.key());
 		treeStore.setAutoCommit(true);
 		treeStore.addSortInfo(new StoreSortInfo<TextTreeNode>(new Comparator<TextTreeNode>() {
@@ -218,6 +221,13 @@ public class CandidateView extends SimpleContainer {
 		}, SortDir.ASC));
 		tree = new Tree<TextTreeNode, TextTreeNode>(treeStore, new IdentityValueProvider<TextTreeNode>());
 		tree.setIconProvider(new TermTreeNodeIconProvider());
+		
+		//only used for controlling recommendation function
+		String[] userFields = null;
+		if(user!=null){
+			userFields = user.split("\\|");
+		}
+		final String userMarker = userFields==null?null:userFields[userFields.length-1];
 		tree.setCell(new AbstractCell<TextTreeNode>("click") {
 			@Override
 			public void render(com.google.gwt.cell.client.Cell.Context context,	TextTreeNode value, SafeHtmlBuilder sb) {
@@ -229,8 +239,10 @@ public class CandidateView extends SimpleContainer {
 						List<CandidatePatternResult> patterns = candidatePatterns.get(candidate);
 						if(!patterns.isEmpty()) {
 							patternIcon = "url(" + cellImages.blue().getSafeUri().asString() + ")";
-							//numberOfPatterns = "(" + patterns.size() + " Patterns)";
-							//numberOfPatterns = "(recommended relations)";
+							if(userMarker!=null&&userMarker.equals("rec")){
+								numberOfPatterns = "(" + patterns.size() + " Patterns)";
+								numberOfPatterns = "(recommended relations)";
+							}
 						}
 					}
 				}
@@ -241,7 +253,7 @@ public class CandidateView extends SimpleContainer {
 					sb.append(cellTemplate.cell(value.getText(), "", patternIcon, numberOfPatterns));	
 				
 			}
-			/*
+			/**/
 			  public void onBrowserEvent(Context context, Element parent, TextTreeNode value,
 			      NativeEvent event, ValueUpdater<TextTreeNode> valueUpdater) {
 				//super.onBrowserEvent(context, parent, value, event, valueUpdater);
@@ -280,7 +292,7 @@ public class CandidateView extends SimpleContainer {
 					});
 			    }
 			  }
-			*/
+			
 		});
 		tree.getElement().setAttribute("source", "termsview");
 		tree.getSelectionModel().setSelectionMode(SelectionMode.MULTI);
@@ -529,7 +541,14 @@ public class CandidateView extends SimpleContainer {
 								});
 							}
 						});
-						//menu.add(showPatterns);
+						//only used for controlling recommendation function
+						String[] userFields = null;
+						if(user!=null){
+							userFields = user.split("\\|");
+						}
+						String userMarker = userFields==null?null:userFields[userFields.length-1];
+						
+						if(userMarker!=null&&"rec".equals(userMarker)) menu.add(showPatterns);
 					}
 					
 					MenuItem filterItem = new MenuItem("Filter: " + text);
@@ -610,9 +629,15 @@ public class CandidateView extends SimpleContainer {
 	}
 
 	public CandidateView(EventBus eventBus) {
-		this();
+		this("");
 		this.eventBus = eventBus;
 		
+		bindEvents();
+	}
+	
+	public CandidateView(EventBus eventBus, String user) {
+		this(user);
+		this.eventBus = eventBus;
 		bindEvents();
 	}
 	

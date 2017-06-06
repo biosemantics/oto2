@@ -7,8 +7,8 @@
 	<groupId>edu.arizona.biosemantics.oto2</groupId>
 	<artifactId>ontologize2</artifactId>
 	<packaging>war</packaging>
-	<version>0.0.64-SNAPSHOT</version>
-	<!--64: rec, 65:w/o rec-->
+	<version>0.0.66-SNAPSHOT</version>
+	<!--64: w/o rec, 65: rec-->
 
 	<properties>
 		<gwtVersion>2.6.1</gwtVersion>

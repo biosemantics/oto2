@@ -153,10 +153,9 @@ public class StandAlone implements EntryPoint {
 			
 			*/
 			
-			Ontologize ontologize = new Ontologize();
+			Ontologize ontologize = new Ontologize("st_user|rec");
 			
-			ontologize.setUser("st_user");
-			
+			//ontologize.setUser("st_user|rec");
 			Viewport v = new Viewport();
 			v.add(ontologize);
 			RootPanel.get().add(v);
