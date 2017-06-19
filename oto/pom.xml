@@ -7,10 +7,10 @@
 	<groupId>edu.arizona.biosemantics.oto2</groupId>
 	<artifactId>oto</artifactId>
 	<packaging>war</packaging>
-	<version>0.0.134-SNAPSHOT</version>
+	<version>0.0.134-SNAPSHOT-debug</version>
 
 	<properties>
-		<gwtVersion>2.6.1</gwtVersion>
+		<gwtVersion>2.7.0</gwtVersion>
 		<!-- GWT needs at least java 1.5 -->
 		<!-- But we need at least java 1.6 -->
 		<java.version>1.8</java.version>
@@ -98,7 +98,7 @@
 		<dependency>
 			<groupId>edu.arizona.biosemantics.common</groupId>
 			<artifactId>biology</artifactId>
-			<version>0.0.7-SNAPSHOT</version>
+			<version>0.0.10-SNAPSHOT-debug</version>
 		</dependency> 
 		<dependency>
 		    <groupId>org.glassfish.jersey.containers</groupId>
@@ -150,7 +150,7 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<version>1.7.7</version>
+			<version>1.7.25</version>
 		</dependency>
 		<dependency>
 			<groupId>log4j</groupId>
@@ -160,12 +160,12 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
-			<version>1.7.7</version>
+			<version>1.7.25</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>jul-to-slf4j</artifactId>
-			<version>1.7.7</version>
+			<version>1.7.25</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.guava</groupId>
@@ -185,7 +185,7 @@
 		<dependency>
 			<groupId>edu.arizona.biosemantics.common</groupId>
 			<artifactId>ling</artifactId>
-			<version>0.0.5-SNAPSHOT</version>
+			<version>0.0.19-SNAPSHOT-debug</version>
 		</dependency> 
 		<dependency>
 			<groupId>net.sf.opencsv</groupId>
@@ -220,12 +220,12 @@
 		<dependency>
 		  <groupId>edu.arizona.biosemantics.common</groupId>
 		  <artifactId>log</artifactId>
-		  <version>0.0.3-SNAPSHOT</version>
+		  <version>0.0.3-SNAPSHOT-debug</version>
 		</dependency> 
 		<dependency>
 		  <groupId>edu.arizona.biosemantics.common</groupId>
 		  <artifactId>log</artifactId>
-		  <version>0.0.3-SNAPSHOT</version>
+		  <version>0.0.3-SNAPSHOT-debug</version>
 		  <classifier>sources</classifier>
 		</dependency>
 		<dependency>
@@ -246,17 +246,17 @@
 		<dependency>
 			<groupId>com.google.inject</groupId>
 			<artifactId>guice</artifactId>
-			<version>4.0-beta</version>
+			<version>4.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.inject.extensions</groupId>
 			<artifactId>guice-assistedinject</artifactId>
-			<version>4.0-beta</version>
+			<version>4.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.inject.extensions</groupId>
 			<artifactId>guice-servlet</artifactId>
-			<version>4.0-beta</version>
+			<version>4.0</version>
 		</dependency>	
 		<dependency>
 			<groupId>edu.arizona.biosemantics.common</groupId>
@@ -332,7 +332,7 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>aspectj-maven-plugin</artifactId>
-				<version>1.9</version>
+				<version>1.10</version>
 				<configuration>
 					<proceedOnError>true</proceedOnError>
 					<showWeaveInfo>true</showWeaveInfo>
