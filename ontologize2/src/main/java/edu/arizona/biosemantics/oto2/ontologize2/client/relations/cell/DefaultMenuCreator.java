@@ -23,6 +23,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.event.CloseRelationsEven
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.UserLogEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.RemoveRelationEvent.RemoveMode;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.SelectTermEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.FilterEvent.FilterTarget;
@@ -77,9 +78,12 @@ public class DefaultMenuCreator implements LeadCell.MenuCreator {
 						String text = box.getTextField().getText().trim();
 						if(text.isEmpty())
 							Alerter.showAlert("Add " + termsGrid.getType().getTargetLabel(), "Cannot create empty " + termsGrid.getType().getTargetLabel());
-						else
+						else{
 							termsGrid.fire(new CreateRelationEvent(
 									new Edge(row.getLead(), new Vertex(box.getTextField().getText()), termsGrid.getType(), Origin.USER)));
+							eventBus.fireEvent(new UserLogEvent("grid_add_"+termsGrid.getType().getTargetLabel(),
+									new Edge(row.getLead(), new Vertex(box.getTextField().getText()), termsGrid.getType(), Origin.USER).toString()));
+						}
 					}
 				});
 			}
@@ -91,6 +95,8 @@ public class DefaultMenuCreator implements LeadCell.MenuCreator {
 			@Override
 			public void onSelection(SelectionEvent<Item> event) {
 				removeAll(row, true);
+				eventBus.fireEvent(new UserLogEvent("remove_row_"+termsGrid.getType().getTargetLabel(),
+						row.getLead().getValue()));
 			}
 		});
 		
@@ -99,6 +105,8 @@ public class DefaultMenuCreator implements LeadCell.MenuCreator {
 			@Override
 			public void onSelection(SelectionEvent<Item> event) {
 				removeAll(row, false);
+				eventBus.fireEvent(new UserLogEvent("remove_all_"+termsGrid.getType().getTargetLabelPlural(),
+						row.getLead().getValue()));
 			}
 		});
 		removeAllItem.setEnabled(!closed);
@@ -154,6 +162,7 @@ public class DefaultMenuCreator implements LeadCell.MenuCreator {
 			@Override
 			public void onSelection(SelectionEvent<Item> event) {
 				termsGrid.fire(new SelectTermEvent(row.getLead().getValue()));
+				eventBus.fireEvent(new UserLogEvent("show_context_grid",row.getLead().getValue()));
 			}
 		});
 		

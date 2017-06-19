@@ -387,9 +387,14 @@ public class MenuTreeView extends TreeView {
 									String text = box.getTextField().getText().trim();
 									if(text.isEmpty())
 										Alerter.showAlert("Add " + type.getTargetLabel(), "Cannot create empty " + type.getTargetLabel());
-									else
+									else{
 										fire(new CreateRelationEvent(
 												new Edge(target, new Vertex(box.getTextField().getText()), type, Origin.USER)));
+										eventBus.fireEvent(new UserLogEvent("tree_add_"+ type.getDisplayLabel(),
+												new Edge(target, new Vertex(box.getTextField().getText()), type, Origin.USER).toString()
+												));
+									}
+										
 								}
 							});
 						}
@@ -443,7 +448,7 @@ public class MenuTreeView extends TreeView {
 									fire(new RemoveRelationEvent(RemoveMode.REATTACH_TO_AVOID_LOSS, r));
 								}
 								
-								eventBus.fireEvent(new UserLogEvent("tree_rmrel_"+ type.getDisplayLabel(),r.getDest().getValue()));
+								eventBus.fireEvent(new UserLogEvent("tree_rmrel_"+ type.getDisplayLabel(),r.toString()));
 							}
 						}
 					});
@@ -498,6 +503,7 @@ public class MenuTreeView extends TreeView {
 						@Override
 						public void onSelection(SelectionEvent<Item> event) {
 							eventBus.fireEvent(new SelectTermEvent(treeGrid.getSelectionModel().getSelectedItem().getText()));
+							eventBus.fireEvent(new UserLogEvent("show_context_tree",treeGrid.getSelectionModel().getSelectedItem().getText()));
 						}
 					});
 					menu.add(context);

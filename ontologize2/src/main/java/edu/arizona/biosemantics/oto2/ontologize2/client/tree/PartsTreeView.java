@@ -32,7 +32,7 @@ public class PartsTreeView extends MenuTreeView {
 	}
 	
 	protected void createRelation(SubTree subTree, Edge r) {		
-		if(r.getType().equals(Type.PART_OF)) {
+		/*if(r.getType().equals(Type.PART_OF)) {
 			OntologyGraph g = ModelController.getCollection().getGraph();
 			Vertex dest = r.getDest();
 			Vertex src = r.getSrc();
@@ -53,7 +53,8 @@ public class PartsTreeView extends MenuTreeView {
 			} else {
 				super.createRelation(subTree, r);
 			}
-		}
+		}*/
+		super.createRelation(subTree, r);
 	}
 
 	private void replace(SubTree subTree, Vertex parent, Vertex vertex, Vertex newVertex) {

@@ -114,7 +114,7 @@ public class SubclassesGrid extends MenuTermsGrid {
 				super.createRelation(r, refresh);
 			}
 		}
-		
+		/*
 		if(r.getType().equals(Type.PART_OF)) {
 			OntologyGraph g = ModelController.getCollection().getGraph();
 			Vertex dest = r.getDest();
@@ -132,7 +132,7 @@ public class SubclassesGrid extends MenuTermsGrid {
 				}
 				super.createRelation(new Edge(dest, new Vertex(newValue), Type.SUBCLASS_OF, Origin.USER), refresh);
 			}
-		}
+		}*/
 	}
 	
 	@Override
@@ -144,13 +144,16 @@ public class SubclassesGrid extends MenuTermsGrid {
 		}
 	}
 	
+	/**
+	 * 1, update the deleted row, r.getDest
+	 * 2, update the attached node
+	 */
 	@Override
 	protected void onRemoveRelationEffectiveInModel(GwtEvent<?> event, Edge r) {
 		if(r.getType().equals(type)) {
 			Vertex dest = r.getDest();
 			for(Row row : getRowsWhereIncluded(dest)) 
 				updateRow(row);
-			OntologyGraph g = ModelController.getCollection().getGraph();
 			if(this.refreshNodes.containsKey(event)) {
 				for(Vertex visibleNode : refreshNodes.get(event)) {
 					this.updateVertex(visibleNode);

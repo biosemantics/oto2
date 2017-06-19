@@ -68,7 +68,7 @@ public class Candidates implements Serializable, Iterable<Candidate> {
 		return "";
 	}
 
-	public Object getCandidate(String term) {
+	public Candidate getCandidate(String term) {
 		return new Candidate(term, termPaths.containsKey(term) ? termPaths.get(term) : "");
 	}
 }

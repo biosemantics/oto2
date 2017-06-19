@@ -159,6 +159,9 @@ public class CreateRelationValidator {
 										compositeModifyEventForSynonymCreator.create(preferred, synonym, new HashSet<Edge>(reattach));
 								eventBus.fireEvent(compositeModifyEvent);
 								eventBus.fireEvent(new ShowRelationsEvent(Type.SYNONYM_OF));
+							}else{
+								relationSelectionDialog.show();
+								Alerter.showAlert("Important", "Choose at least one relation");
 							}
 						}
 					});
@@ -328,9 +331,15 @@ public class CreateRelationValidator {
 						//parts
 						//leaf -> apex
 						//stem -> apex
-						Edge rootEdge = new Edge(g.getRoot(Type.SUBCLASS_OF), dest, Type.SUBCLASS_OF, Origin.USER);
-						if(!g.existsRelation(rootEdge))
-							result.add(new CreateRelationEvent(new Edge(g.getRoot(Type.SUBCLASS_OF), dest, Type.SUBCLASS_OF, Origin.USER)));
+						List<Edge> inRelations = g.getInRelations(dest,Type.SUBCLASS_OF);
+						//Edge rootEdge = new Edge(g.getRoot(Type.SUBCLASS_OF), dest, Type.SUBCLASS_OF, Origin.USER);
+						//if(!g.existsRelation(rootEdge))
+						Edge newNonSpeRelation =new Edge(new Vertex("non-specific material anatomical entity"), dest, Type.SUBCLASS_OF, Origin.USER);
+						if(!(g.existsRelation(newNonSpeRelation)||g.isCreatesCircular(newNonSpeRelation))) 
+							result.add(new CreateRelationEvent(newNonSpeRelation));
+						
+						//if(inRelations.isEmpty())
+						//	result.add(new CreateRelationEvent(new Edge(g.getRoot(Type.SUBCLASS_OF), dest, Type.SUBCLASS_OF, Origin.USER)));
 						
 						//hand existing part-of relations
 						for(Edge existing : existingRelations) {
@@ -358,6 +367,22 @@ public class CreateRelationValidator {
 						Edge newDestSubclassEdge =new Edge(dest, newDest, Type.SUBCLASS_OF, Origin.USER);
 						if(!(g.existsRelation(newDestSubclassEdge)||g.isCreatesCircular(newDestSubclassEdge))) 
 							result.add(new CreateRelationEvent(newDestSubclassEdge));
+						
+						
+//						
+//						StringBuffer sb = new StringBuffer();
+//						for(GwtEvent<?> e : result) {
+//							if(e instanceof CreateRelationEvent) {
+//								for(Edge r : ((CreateRelationEvent)e).getRelations()) {
+//									sb.append(r.toString()+"\n");
+//								}
+//							} else if(e instanceof RemoveRelationEvent) {
+//								for(Edge r : ((RemoveRelationEvent)e).getRelations()) {
+//									sb.append(r.toString()+"\n");
+//								}
+//							}
+//						}
+//						Alerter.showInfo("Info", sb.toString());
 						
 						eventBus.fireEvent(new CompositeModifyEvent(result));
 						box.hide();

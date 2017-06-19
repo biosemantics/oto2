@@ -199,6 +199,78 @@ public class Ontologize extends SimpleContainer {
 	private EventBus eventBus = new SimpleEventBus();
 	private ModelController modelController;
 	
+	
+	public Ontologize(String user) {
+		this.user = user;
+		MenuView menuView = new MenuView();
+		BorderLayoutContainer blc = new BorderLayoutContainer();
+		
+		CandidateView candidateView = new CandidateView(eventBus,user);
+		ContentPanel cp = new ContentPanel();
+		cp.setHeadingText("Candidate Terms");
+		cp.add(candidateView);
+		BorderLayoutData d = new BorderLayoutData(.20);
+		d.setMargins(new Margins(0, 0, 0, 0));
+		d.setCollapsible(true);
+		d.setSplit(true);
+		d.setCollapseMini(true);
+		blc.setWestWidget(cp, d);
+		
+		VisualizationView visualizationView = new VisualizationView(eventBus);
+		cp = new ContentPanel();
+		cp.setHeadingText("Tree Visualizations");
+		cp.add(visualizationView);
+		d = new BorderLayoutData(.20);
+		d.setMargins(new Margins(0, 0, 0, 0));
+		d.setCollapsible(true);
+		d.setSplit(true);
+		d.setCollapseMini(true);
+		blc.setEastWidget(cp, d);
+		
+		ContextView contextView = new ContextView(eventBus);
+		cp = new ContentPanel();
+		cp.setHeadingText("Context");
+		cp.add(contextView);
+		d = new BorderLayoutData(.20);
+		d.setMargins(new Margins(0, 0, 0, 0));
+		d.setCollapsible(true);
+		d.setSplit(true);
+		d.setCollapseMini(true);
+		blc.setSouthWidget(cp, d);
+		
+		RelationsView relationsView = new RelationsView(eventBus);
+		cp = new ContentPanel();
+		cp.setHeadingText("Relations between Terms");
+		cp.add(relationsView);
+		d = new BorderLayoutData();
+		d.setMargins(new Margins(0, 0, 0, 0));
+		blc.setCenterWidget(cp, d);
+		
+		
+		modelController = new ModelController(eventBus);
+		
+
+		VerticalLayoutContainer verticalLayoutContainer = new VerticalLayoutContainer();
+		verticalLayoutContainer.add(menuView, new VerticalLayoutData(1,-1));
+		verticalLayoutContainer.add(blc, new VerticalLayoutData(1,1));
+		this.setWidget(verticalLayoutContainer);
+		
+		modelController.setUser(user);
+		collectionService.setUser(user,  new AsyncCallback() {
+
+			@Override
+			public void onFailure(Throwable caught) {
+			}
+
+			@Override
+			public void onSuccess(Object result) {
+				//Alerter.showAlert("evernt_bus", "set user to collection sucess");
+			}
+			
+		});
+	}
+	
+	
 	public Ontologize() {
 		MenuView menuView = new MenuView();
 		BorderLayoutContainer blc = new BorderLayoutContainer();

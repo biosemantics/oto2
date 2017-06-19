@@ -403,10 +403,10 @@ public class TermsGrid implements IsWidget {
 								Edge rootEdge = new Edge(g.getRoot(type), dest, type, Origin.USER);
 								if(g.existsRelation(rootEdge)) {
 									fire(new ReplaceRelationEvent(rootEdge, row.getLead()));
-									eventBus.fireEvent(new UserLogEvent("table_reprel_"+type,dest.getValue()));
+									eventBus.fireEvent(new UserLogEvent("table_reprel_"+type.getDisplayLabel(),dest.getValue()));
 								} else {
 									fire(new CreateRelationEvent(new Edge(row.getLead(), dest, type, Origin.USER)));
-									eventBus.fireEvent(new UserLogEvent("table_crerel_"+type,dest.getValue()));
+									eventBus.fireEvent(new UserLogEvent("table_crerel_"+type.getDisplayLabel(),dest.getValue()));
 								}
 							}
 						}
@@ -470,7 +470,7 @@ public class TermsGrid implements IsWidget {
 							CreateRelationEvent createRelationEvent = new CreateRelationEvent(relation);
 							fire(createRelationEvent);
 							
-							eventBus.fireEvent(new UserLogEvent("table_crenew_"+type,target.getValue()));
+							eventBus.fireEvent(new UserLogEvent("table_crenew_"+type.getDisplayLabel(),relation.toString()));
 						} else {
 							if(!TermsGrid.this.leadRowMap.containsKey(target))
 								TermsGrid.this.addRow(new Row(type, target), true);
@@ -779,17 +779,22 @@ public class TermsGrid implements IsWidget {
 		case REATTACH_TO_AVOID_LOSS:
 			Vertex lead = row.getLead();
 			List<Edge> inRelations = g.getInRelations(lead, type);
-			if(inRelations.size() == 1 && inRelations.get(0).getSrc().equals(g.getRoot(type))) {
+			if(inRelations.size() == 1 && inRelations.get(0).getSrc().equals(g.getRoot(type))) {//first level
 				for(Edge e : row.getAttached())
 					if(!leadRowMap.containsKey(e.getDest()))
 						this.addRow(new Row(type, e.getDest()), refresh);
 			} else {
-				for(Edge r : g.getInRelations(lead, type)) {
-					if(leadRowMap.containsKey(r.getSrc())) {
+				for(Edge r : g.getInRelations(lead, type)) {//possible multiple level but the first
+					if(leadRowMap.containsKey(r.getSrc())) {//move to target row
 						try {
 							Row targetRow = leadRowMap.get(r.getSrc());
 							if(!row.getAttached().isEmpty()) {
-								targetRow.add(row.getAttached());
+								List<Edge> edges = row.getAttached();
+								List<Edge> newedges = new ArrayList();
+								for(Edge e:edges){//update the source nodes to new row lead
+									newedges.add(new Edge(targetRow.getLead(),e.getDest(),e.getType(),e.getOrigin()));
+								}
+								targetRow.add(newedges);
 								updateRow(targetRow);
 							}
 						} catch (Exception e) {

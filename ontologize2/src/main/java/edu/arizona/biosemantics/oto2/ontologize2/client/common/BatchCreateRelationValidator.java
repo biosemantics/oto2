@@ -13,6 +13,7 @@ import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CompositeModifyEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
+import edu.arizona.biosemantics.oto2.ontologize2.client.event.ReplaceRelationEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge;
 import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Vertex;
@@ -27,6 +28,17 @@ import edu.arizona.biosemantics.oto2.ontologize2.shared.model.OntologyGraph.Edge
  */
 public class BatchCreateRelationValidator {
 	
+	public List<Edge> failedEdge = new ArrayList();
+	public int totalEdges;
+	
+	public int getTotalEdges() {
+		return totalEdges;
+	}
+
+	public void setFailedEdge(List<Edge> failedEdge) {
+		this.failedEdge = failedEdge;
+	}
+
 	/**
 	 * if validate successfullly, create the composite event
 	 * otherwise return null
@@ -35,7 +47,8 @@ public class BatchCreateRelationValidator {
 	 */
 	public CompositeModifyEvent validate(List<Edge> batchEdges) throws Exception{
 		OntologyGraph graph = ModelController.getCollection().getGraph();
-		if(validateClosed(batchEdges,graph)&&validateCircle(batchEdges, graph))
+		this.totalEdges = batchEdges.size();
+		if(batchEdges!=null&&batchEdges.size()>0&&validateClosed(batchEdges,graph)&&validateCircle(batchEdges, graph))
 			return validateAndCreate(batchEdges,graph);
 		else
 			return null;
@@ -94,24 +107,42 @@ public class BatchCreateRelationValidator {
 	 * @return
 	 */
 	public CompositeModifyEvent validateAndCreate(List<Edge> batchEdges, OntologyGraph g){
-		Set<Vertex> futureContained = new HashSet<Vertex>();
+		
 		Set handled = new HashSet();//remove duplicated
 		
 		List<GwtEvent<?>> result = new LinkedList<GwtEvent<?>>();
 		
+		if(batchEdges.get(0).getType().equals(Type.PART_OF)) {//part of 
+			fileterNonSpecific(batchEdges);
+		}
+		
+		filterSynonym(batchEdges);
+		
+		Set<Vertex> futureContainedClasses = new HashSet<Vertex>();
+		Set<Vertex> futureContainedSyns = new HashSet<Vertex>();
+		Set<Vertex> futureContainedParents = new HashSet<Vertex>();
 		for(Edge e : order(batchEdges)) {
-			if(handled.contains(e)){
+			if(handled.contains(e)||g.existsRelation(e)){//filtered existed
 				continue;
 			}
 			handled.add(e);
 			if(e.getType().equals(Type.SYNONYM_OF)) {//synonym
 				Edge synonymRootEdge = new Edge(g.getRoot(Type.SYNONYM_OF), e.getSrc(), e.getType(), Origin.USER);
-				if(!g.existsRelation(synonymRootEdge)&&!g.isSynonym(e.getSrc())){//if the preferred terms does not existed and is not a synonym
+				if(g.isSynonym(e.getSrc())||futureContainedClasses.contains(e.getSrc())){
+					failedEdge.add(e);
+					continue;
+				}
+				//ensure the source attaches to root
+				if(!g.existsRelation(synonymRootEdge)&&!g.isSynonym(e.getSrc())&&!futureContainedClasses.contains(e.getSrc())){//if the preferred terms does not existed and is not a synonym
 					result.add(new CreateRelationEvent(synonymRootEdge));
+					futureContainedClasses.add(e.getSrc());
+				}
+				
+				if(!g.isSynonym(e.getDest())){//if the target is not a synonym
 					result.add(new CreateRelationEvent(e));
-				}else if(g.existsRelation(synonymRootEdge)&&!g.isSynonym(e.getDest())){//if the root is existed and the target is not a synonym
-					result.add(new CreateRelationEvent(e));
-				}else if(!g.existsRelation(synonymRootEdge)&&g.isSynonym(e.getSrc())){//if the preferred terms does not existed but it is a synonym of another term
+					futureContainedClasses.add(e.getDest());
+				}else{/*
+					//if the preferred terms does not existed but it is a synonym of another term
 					//find the synonym root
 					List<Edge> synIn = g.getInRelations(e.getSrc(), Type.SYNONYM_OF);
 					if(synIn!=null&&synIn.size()>0){
@@ -119,38 +150,63 @@ public class BatchCreateRelationValidator {
 						Vertex preferterm = preferredEdge.getSrc();
 						Edge replaceEdge = new Edge(preferterm, e.getDest(), Type.SYNONYM_OF, Origin.USER);
 						result.add(new CreateRelationEvent(replaceEdge));
-					}
+					}*/
+					failedEdge.add(e);
 				}
 				
 			} else	if(e.getType().equals(Type.PART_OF)) {//part of 
 				try {
-					if(g.isValidPartOf(e)) result.add(new CreateRelationEvent(e));
-					Alerter.showAlert("Create Relation", "Is going to create:"+e.getSrc()+"-->"+e.getDest()) ;
+					if(g.isValidPartOf(e)){
+						if(g.getInRelations(e.getSrc(), Type.PART_OF).size()==0&&!futureContainedParents.contains(e.getSrc())){
+							result.add(new CreateRelationEvent(new Edge(g.getRoot(Type.PART_OF), e.getSrc(), e.getType(), Origin.USER)));
+						}
+						//result.add(new CreateRelationEvent(e));
+						Edge exisEdge = null;
+						if((exisEdge=checkDest(g, e.getDest(), Type.PART_OF))!=null&&exisEdge.getSrc().equals(g.getRoot(Type.PART_OF))){//
+							result.add(new ReplaceRelationEvent(exisEdge, e.getSrc()));
+						}else{
+							result.add(new CreateRelationEvent(e));
+						}
+						
+						futureContainedParents.add(e.getSrc());
+						futureContainedParents.add(e.getDest());
+					}else{
+						failedEdge.add(e);
+					}
 				} catch (Exception e1) {
-					Alerter.showAlert("Create Relation", "The part-of relation is already in the system:"+e.getSrc()+"-->"+e.getDest()) ;
-					return null;
+					failedEdge.add(e);
 				}
-				
 			}else {//class relation
 				//if(!"Thing".equals(e.getSrc())&&!g.containsVertex(e.getSrc()) && !futureContained.contains(e.getSrc())){
 				if("Thing".equals(e.getSrc().toString())){//add to root
 					result.add(new CreateRelationEvent(e));
-				}else if(!"Thing".equals(e.getSrc().toString())&&!futureContained.contains(e.getSrc())&&g.getInRelations(e.getSrc(), Type.SUBCLASS_OF).size()==0){//source has not been attached
+					//futureContainedSyns.add(e.getSrc());
+				}else if(!"Thing".equals(e.getSrc().toString())&&!futureContainedSyns.contains(e.getSrc())&&g.getInRelations(e.getSrc(), Type.SUBCLASS_OF).size()==0){//source has not been attached
 					//if the superclass doesnot exist in the tree and in future contained set, add to root
 					Edge superclassRootEdge = new Edge(g.getRoot(e.getType()), 
 							e.getSrc(), e.getType(), Origin.USER);
-					futureContained.add(e.getSrc());
+					futureContainedSyns.add(e.getSrc());
 					result.add(new CreateRelationEvent(superclassRootEdge));
-					result.add(new CreateRelationEvent(e));
+					Edge exisEdge = null;
+					if((exisEdge=checkDest(g, e.getDest(), Type.SUBCLASS_OF))!=null){//if the dest of the new relation is a dest of a relation to "Thing", create a replace relation instead
+						result.add(new ReplaceRelationEvent(exisEdge, e.getSrc()));
+					}else{
+						result.add(new CreateRelationEvent(e));
+					}
 				}else if(!"Thing".equals(e.getSrc().toString())&&
-						(g.getInRelations(e.getSrc(), Type.SUBCLASS_OF).size()>0||futureContained.contains(e.getSrc()))){
+						(g.getInRelations(e.getSrc(), Type.SUBCLASS_OF).size()>0||futureContainedSyns.contains(e.getSrc()))){
 					//if the superclass doesnot exist in the tree but in future contained set, add to root
-					result.add(new CreateRelationEvent(e));
+					Edge exisEdge = null;
+					if((exisEdge=checkDest(g, e.getDest(), Type.SUBCLASS_OF))!=null){//if the dest of the new relation is a dest of a relation to "Thing", create a replace relation instead
+						result.add(new ReplaceRelationEvent(exisEdge, e.getSrc()));
+					}else{
+						result.add(new CreateRelationEvent(e));
+					}
 				}
 				/*else if(g.getInRelations(e.getSrc(), Type.SUBCLASS_OF).size()>0){//add to graph
 					result.add(new CreateRelationEvent(e));
 				}*/
-				futureContained.add(e.getDest());
+				futureContainedSyns.add(e.getDest());
 			}
 		}
 		
@@ -158,11 +214,102 @@ public class BatchCreateRelationValidator {
 	}
 	
 	
+	private Edge checkDest(OntologyGraph g, Vertex dest, Type type) {
+		List<Edge> inedges = g.getInRelations(dest, type);
+		if(inedges.size()==1&&inedges.get(0).getSrc().equals(g.getRoot(type))){
+			return inedges.get(0);
+		}
+		return null;
+	}
+
+	
+	//one node can not be parts of two parents
+	private void fileterNonSpecific(List<Edge> batchEdges) {
+		Set target = new HashSet();
+		OntologyGraph graph = ModelController.getCollection().getGraph();
+		List<Vertex> parents = graph.getAllDestinations(graph.getRoot(Type.PART_OF), Type.PART_OF);
+		for(Vertex p:parents){
+			List<Vertex> out = graph.getAllDestinations(p, Type.PART_OF);
+			for(Vertex o:out) target.add(o.getValue());
+		}
+		Set duplicate = new HashSet();
+		for(int i=0;i<batchEdges.size();i++){
+			Edge e= batchEdges.get(i);
+			if(!e.getType().equals(Type.PART_OF)) continue;
+			if(target.contains(e.getDest().getValue())){//move out to duplicate target set
+				duplicate.add(e.getDest().getValue());
+			}
+			target.add(e.getDest().getValue());
+		}
+		
+		for(int i=0;i<batchEdges.size();){
+			Edge e= batchEdges.get(i);
+			if(!e.getType().equals(Type.PART_OF)){
+				i++;
+				continue;
+			}
+			if(duplicate.contains(e.getDest().getValue())){//move out to duplicate target set
+				this.failedEdge.add(e);
+				batchEdges.remove(e);
+			}else{
+				i++;
+			}
+		}
+	}
+
+	//one node can not be parts of two parents
+	private void filterSynonym(List<Edge> batchEdges) {
+		Set target = new HashSet();
+		OntologyGraph graph = ModelController.getCollection().getGraph();
+		List<Vertex> parents = graph.getAllDestinations(graph.getRoot(Type.SYNONYM_OF), Type.SYNONYM_OF);
+		for(Vertex p:parents){
+			List<Vertex> out = graph.getAllDestinations(p, Type.SYNONYM_OF);
+			for(Vertex o:out) target.add(o.getValue());
+		}
+		Set duplicate = new HashSet();
+		for(int i=0;i<batchEdges.size();i++){
+			Edge e= batchEdges.get(i);
+			if(!e.getType().equals(Type.SYNONYM_OF)) continue;
+			if(target.contains(e.getDest().getValue())){//move out to duplicate target set
+				duplicate.add(e.getDest().getValue());
+			}
+			target.add(e.getDest().getValue());
+		}
+		
+		for(int i=0;i<batchEdges.size();){
+			Edge e= batchEdges.get(i);
+			if(!e.getType().equals(Type.SYNONYM_OF)){
+				i++;
+				continue;
+			}
+			if(duplicate.contains(e.getDest().getValue())){//move out to duplicate target set
+				this.failedEdge.add(e);
+				batchEdges.remove(e);
+			}else{
+				i++;
+			}
+		}
+		
+		for(int i=0;i<batchEdges.size();){
+			Edge e= batchEdges.get(i);
+			if(e.getType().equals(Type.SYNONYM_OF)){
+				i++;
+				continue;
+			}
+			if(graph.isSynonym(e.getSrc())||graph.isSynonym(e.getDest())){//if the edge contains synonym terms, don't add it
+				this.failedEdge.add(e);
+				batchEdges.remove(e);
+			}else{
+				i++;
+			}
+		}
+		
+	}
+	
 	private List<Edge> order(List<Edge> edges) {
 		List<Edge> copy = new ArrayList<Edge>(edges);
 		List<Edge> result = new LinkedList<Edge>(); 
 		Set<Vertex> contained = new HashSet<Vertex>();
-		
 		boolean first = true;
 		while(!copy.isEmpty()) {
 			Iterator<Edge> it = copy.iterator();
@@ -191,6 +338,10 @@ public class BatchCreateRelationValidator {
 			first = false;
 		}
 		return result;
+	}
+
+	public List<Edge> getFailedEdge() {
+		return this.failedEdge;
 	}
 
 }

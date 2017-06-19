@@ -44,23 +44,36 @@ public class CompoundPattern implements CandidatePattern {
 				for(int subclassStart = 0; subclassStart < superclassStart; subclassStart++) {
 					String superclass = createTerm(parts, superclassStart, parts.length);
 					String subclass = createTerm(parts, subclassStart, parts.length);
-					Edge e = new Edge(new Vertex(superclass), new Vertex(subclass), Type.SUBCLASS_OF, Origin.USER);
-					result.add(e);
+//					System.out.println(superclass+"==>"+isMaterialEntity(superclass, collection));
+//					System.out.println(subclass+"==>"+isMaterialEntity(subclass, collection));
+//					if(isMaterialEntity(superclass, collection)&&isMaterialEntity(subclass, collection)){
+						Edge e = new Edge(new Vertex(superclass), new Vertex(subclass), Type.SUBCLASS_OF, Origin.USER);
+						result.add(e);
+//					}
 				}
 			}
 			
-			if(c.getPath().contains("/material anatomical entity/")) {
+			if(isMaterialEntity(c.getText(), collection)) {
 				for(int partStart = 1; partStart < parts.length; partStart++) {
 					for(int parentStart = 0; parentStart < partStart; parentStart++) {
 						String parent = createTerm(parts, parentStart, partStart);
-						String part = createTerm(parts, partStart, parts.length);
-						Edge e = new Edge(new Vertex(parent), new Vertex(part), Type.PART_OF, Origin.USER);
-						result.add(e);
+						String part = createTerm(parts, parentStart, parts.length);
+						if(isMaterialEntity(parent, collection)&&isMaterialEntity(part, collection)){
+							Edge e = new Edge(new Vertex(parent), new Vertex(part), Type.PART_OF, Origin.USER);
+							result.add(e);
+						}
 					}
 				}
 			}
 		}
 		return result;
+	}
+	
+	private boolean isMaterialEntity(String term, Collection collection) {
+		OntologyGraph g = collection.getGraph();
+		return 
+				collection.contains(term)&&(collection.getCandidates().getCandidate(term).getPath().contains("/material anatomical entity")
+				||g.getAllSources(new Vertex(term), Type.SUBCLASS_OF).contains(new Vertex("material anatomical entity")));
 	}
 	
 	private String createTerm(String[] parts, int start, int end) {

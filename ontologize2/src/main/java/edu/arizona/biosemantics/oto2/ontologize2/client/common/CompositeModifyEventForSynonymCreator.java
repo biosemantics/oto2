@@ -8,6 +8,7 @@ import java.util.Set;
 
 import com.google.gwt.event.shared.GwtEvent;
 
+import edu.arizona.biosemantics.oto2.ontologize2.client.Alerter;
 import edu.arizona.biosemantics.oto2.ontologize2.client.ModelController;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CompositeModifyEvent;
 import edu.arizona.biosemantics.oto2.ontologize2.client.event.CreateRelationEvent;
@@ -34,15 +35,27 @@ public class CompositeModifyEventForSynonymCreator {
 			result.add(new CreateRelationEvent(new Edge(g.getRoot(Type.SYNONYM_OF), preferredTerm, Type.SYNONYM_OF, Origin.USER)));
 		
 		if(reattach!=null&&reattach.size()>0){
-		boolean preferredTermAndSynonymHaveParents = isPreferredTermAndSynonymHaveParents(preferredTerm, synonym);
+			//whether they have parents in PART_OF relation
+			boolean preferredTermAndSynonymHaveParents = isPreferredTermAndSynonymHaveParents(preferredTerm, synonym);
 			if(!preferredTermAndSynonymHaveParents) {
 				result.addAll(createEventsSynonymReduction(preferredTerm, synonym, reattach));
 			} else {
 				result.addAll(createEventsNonSpecificSynonyms(preferredTerm, synonym, reattach));
 			}
 		}
-		result.add(new CreateRelationEvent(new Edge(preferredTerm, synonym, Type.SYNONYM_OF, Origin.USER)));		
-		return new CompositeModifyEvent(result);
+		result.add(new CreateRelationEvent(new Edge(preferredTerm, synonym, Type.SYNONYM_OF, Origin.USER)));	
+		List<GwtEvent<?>> newResult = new LinkedList<GwtEvent<?>>();
+		List<GwtEvent<?>> newCreateResult = new LinkedList<GwtEvent<?>>();
+		Set<String> event = new HashSet();
+		for(GwtEvent<?> e : result) {
+			if(!event.contains(e.toString())){
+				if(e instanceof CreateRelationEvent) newCreateResult.add(e);
+				else newResult.add(e);
+				event.add(e.toString());
+			}
+		}
+		newCreateResult.addAll(newResult);//put create events first
+		return new CompositeModifyEvent(newCreateResult);
 	}
 	
 	private Collection<? extends GwtEvent<?>> createEventsNonSpecificSynonyms(Vertex preferredTerm, Vertex synonym, Set<Edge> reattach) {
@@ -110,7 +123,7 @@ public class CompositeModifyEventForSynonymCreator {
 					if(in.size() == 1 && in.get(0).getSrc().equals(g.getRoot(Type.SUBCLASS_OF))) {
 						result.add(new ReplaceRelationEvent(in.get(0), e.getSrc()));
 					} else {
-						result.add(new CreateRelationEvent(new Edge(e.getSrc(), disambiguatedSynonym, Type.SUBCLASS_OF, Origin.USER)));
+						result.add(new CreateRelationEvent(newEdge));
 					}
 				}
 			}
@@ -192,7 +205,7 @@ public class CompositeModifyEventForSynonymCreator {
 		List<GwtEvent<?>> result = new LinkedList<GwtEvent<?>>();
 		OntologyGraph g = ModelController.getCollection().getGraph();
 		for(Type type : new Type[] {Type.SUBCLASS_OF, Type.PART_OF}) {
-			for(Edge e : g.getOutRelations(synonym, type)) {
+			for(Edge e : g.getOutRelations(synonym, type)) {//replace out
 				if(reattach.contains(e)) {
 					Edge newEdge = new Edge(preferredTerm, e.getDest(), type, Origin.USER);
 					if(!g.existsRelation(newEdge) && !e.getDest().equals(preferredTerm))
@@ -201,7 +214,7 @@ public class CompositeModifyEventForSynonymCreator {
 					result.add(new RemoveRelationEvent(RemoveMode.RECURSIVE, e));
 				}
 			}
-			for(Edge e : g.getInRelations(synonym, type)) {
+			for(Edge e : g.getInRelations(synonym, type)) {//replace in
 				if(reattach.contains(e)) {
 					Edge newEdge = new Edge(e.getSrc(), preferredTerm, type, Origin.USER);
 					if(!g.existsRelation(newEdge) && !e.getSrc().equals(preferredTerm)) {
@@ -219,8 +232,8 @@ public class CompositeModifyEventForSynonymCreator {
 		
 		Edge synonymSubclassOfRootEdge = new Edge(g.getRoot(Type.SUBCLASS_OF), synonym, Type.SUBCLASS_OF, Origin.USER);
 		Edge synonymPartOfRootEdge = new Edge(g.getRoot(Type.PART_OF), synonym, Type.PART_OF, Origin.USER);
-		result.add(new RemoveRelationEvent(RemoveMode.RECURSIVE, synonymSubclassOfRootEdge));
-		result.add(new RemoveRelationEvent(RemoveMode.RECURSIVE, synonymPartOfRootEdge));
+		result.add(new RemoveRelationEvent(RemoveMode.RECURSIVE, synonymSubclassOfRootEdge));//remove all synonym subclass
+		result.add(new RemoveRelationEvent(RemoveMode.RECURSIVE, synonymPartOfRootEdge));//remove all synonym partof
 		return result;
 	}
 

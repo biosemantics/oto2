@@ -30,7 +30,7 @@ public class PathPattern implements CandidatePattern {
 	@Override
 	public List<Edge> getRelations(Collection collection, Candidate c) {
 		List<Edge> result = new LinkedList<Edge>();
-		if(c.getPath().equals("/Other") || c.getPath().equals("/OTHER") || c.getPath().equals("/other"))
+		if(c.getPath().equals("/Other") || c.getPath().equals("/OTHER") || c.getPath().equals("/other")|| c.getPath().equals("/imported"))
 			return result;
 		OntologyGraph g = collection.getGraph();
 		String normalizedFull = c.getText().replaceAll("[-_\\s]", " ");

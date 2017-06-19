@@ -39,7 +39,6 @@ public class CandidatePatternDeducer {
 
 	public Map<Candidate, List<CandidatePatternResult>> deduce(Collection collection) {
 		Map<Candidate, List<CandidatePatternResult>> result = new HashMap<Candidate, List<CandidatePatternResult>>();
-		
 		for(Candidate c : collection.getCandidates()) {
 			result.put(c, deduce(collection, c));
 		}
@@ -100,6 +99,7 @@ public class CandidatePatternDeducer {
 				}
 			});
 			result.add(new CandidatePatternResult(name, relations));
+			//for(Edge patternEdge:relations) System.out.println(name+" "+patternEdge.getSrc()+" "+patternEdge.getType()+" "+patternEdge.getDest());
 		}
 		return result;
 	}
@@ -109,8 +109,11 @@ public class CandidatePatternDeducer {
 		//CollectionService cs = new CollectionService();
 		//Collection c = cs.get(0, "");
 		Collection c = new Collection();
-		c.add(new Candidate("stem fruit shell color"));
+		c.add(new Candidate("leaf","/material anatomical entity"));
+		c.add(new Candidate("base","/material anatomical entity"));
+		c.add(new Candidate("leaf base","/material anatomical entity"));
+		c.add(new Candidate("flower base","/material anatomical entity"));
 		CandidatePatternDeducer rd = new CandidatePatternDeducer(c);
-		rd.deduce(null);
+		rd.deduce(c);
 	}
 }

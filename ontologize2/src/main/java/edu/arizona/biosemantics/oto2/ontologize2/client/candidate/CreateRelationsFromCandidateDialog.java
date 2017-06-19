@@ -14,6 +14,7 @@ import com.google.gwt.safehtml.client.SafeHtmlTemplates;
 import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
+import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
@@ -101,18 +102,18 @@ public class CreateRelationsFromCandidateDialog extends Dialog {
 							}
 						}
 						if(allExist)
-							textColor = "green";
+							textColor = "gray";
 						if(noneExists)
-							textColor = "red";
+							textColor = "green";
 						if(!allExist && !noneExists)
 							textColor = "blue";
 					}else if(value instanceof EdgeTreeNode) {//leave nodes
 						if(g.existsRelation(((EdgeTreeNode) value).getEdge())){
 							existedRelations.add(value.getId());
-							textColor = "green";
+							textColor = "gray";
 						}			
 						else
-							textColor = "red";
+							textColor = "green";
 					}
 					sb.append(cellTemplate.cell(value.getText(), textColor));
 				}
@@ -130,7 +131,8 @@ public class CreateRelationsFromCandidateDialog extends Dialog {
 					if(!(e.getType().equals(Type.SUBCLASS_OF)&&
 							(e.getDest().getValue().equals("material anatomical entity")||
 									e.getDest().getValue().equals("non-specific material anatomical entity")||
-									e.getDest().getValue().equals("quality")
+									e.getDest().getValue().equals("quality")||
+									e.getDest().getValue().equals("imported")
 									)))
 						store.add(pNode, new EdgeTreeNode(e));
 				}
@@ -138,7 +140,7 @@ public class CreateRelationsFromCandidateDialog extends Dialog {
 			tree.setAutoExpand(true);
 			//tree.getSelectionModel().setLocked(true);
 			vlc = new VerticalLayoutContainer();
-			vlc.add(new Label("Green text means the relation is already existed. Red text means the relation is new. "), new VerticalLayoutData(1, -1));
+			vlc.add(new HTML("Gray text means the relation has already existed. Green text means the relation is new."), new VerticalLayoutData(1, -1));
 			vlc.add(tree, new VerticalLayoutData(1, 1));
 			//vlc.getScrollSupport().setScrollMode(ScrollMode.AUTOY);
 			/*
