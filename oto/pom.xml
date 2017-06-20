@@ -170,12 +170,12 @@
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>15.0</version>
+			<version>18.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava-gwt</artifactId>
-			<version>15.0</version>
+			<version>18.0</version>
 		</dependency>
 		<dependency>
 			<groupId>edu.arizona.biosemantics</groupId>
@@ -281,7 +281,7 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>gwt-maven-plugin</artifactId>
-				<version>2.6.1</version>
+				<version>2.7.0</version>
 				<executions>
 					<execution>
 						<configuration>
