@@ -23,7 +23,7 @@ public class LabelAddDialog extends Dialog {
 	private ICollectionServiceAsync collectionService = GWT.create(ICollectionService.class);
 	
 	public LabelAddDialog(final EventBus eventBus, final Collection collection) {
-		this.setHeadingText("Add Category");
+		this.setHeading("Add Category");
 		LabelInfoContainer labelInfoContainer = new LabelInfoContainer("", "");
 	    this.add(labelInfoContainer);
 	 

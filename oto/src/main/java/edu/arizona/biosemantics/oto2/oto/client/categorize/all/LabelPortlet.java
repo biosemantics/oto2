@@ -123,7 +123,7 @@ public class LabelPortlet extends Portlet {
 		this.label = label;
 		this.collection = collection; 
 		this.labelPortletsView = labelPortletsView;
-		this.setHeadingText(label.getName());
+		this.setHeading(label.getName());
 		this.setExpanded(false);
 		this.setAnimationDuration(500);
 		this.setCollapsible(true);
@@ -356,7 +356,7 @@ public class LabelPortlet extends Portlet {
 			public void onModify(LabelModifyEvent event) {
 				Label label = event.getLabel();
 				if(label.equals(LabelPortlet.this.label)) {
-					LabelPortlet.this.setHeadingText(label.getName());
+					LabelPortlet.this.setHeading(label.getName());
 					//refreshToolTip();
 				}
 			}
@@ -538,8 +538,8 @@ public class LabelPortlet extends Portlet {
 				else {
 					setStatusText(selection.size() + " term(s) selected");
 					event.getStatusProxy()
-							.update(Format.substitute(getStatusText(),
-									selection.size()));
+							.update(SafeHtmlUtils.fromString(Format.substitute(getStatusText(),
+									selection.size())));
 				}
 							
 				event.setData(mainTermSynonymsLabelDnd);
@@ -619,14 +619,14 @@ public class LabelPortlet extends Portlet {
 	}	
 	
 	@Override
-	public void setHeadingText(String text) {
+	public void setHeading(String text) {
 		if(label instanceof HighlightLabel)
-			setHeadingHtml("<div style='color: black'>" + text + "</div>");
+			setHeading("<div style='color: black'>" + text + "</div>");
 		else if(label instanceof TrashLabel)
-			setHeadingHtml("<div style='color: gray'>" 
+			setHeading("<div style='color: gray'>" 
 					+ text + "</div>");
 		else 
-			setHeadingHtml("<div style='font-weight: normal'>" 
+			setHeading("<div style='font-weight: normal'>" 
 					+ text + "</div>");
 	}
 

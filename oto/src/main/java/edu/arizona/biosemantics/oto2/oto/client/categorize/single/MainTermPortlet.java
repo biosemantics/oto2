@@ -81,10 +81,10 @@ public class MainTermPortlet extends Portlet {
 		this.portalLayoutContainer = portalLayoutContainer;
 		switch(mainTerm.getTermType()) {
 		case KNOWN_IN_GLOSSARY:
-			this.setHeadingHtml("<div style='color:#A0522D'>" + mainTerm.getTerm() + "</div>");
+			this.setHeading("<div style='color:#A0522D'>" + mainTerm.getTerm() + "</div>");
 			break;
 		case UNKNOWN:
-			this.setHeadingHtml("<div>" + mainTerm.getTerm() + "</div>");
+			this.setHeading("<div>" + mainTerm.getTerm() + "</div>");
 		default:
 			break;
 		
@@ -156,8 +156,8 @@ public class MainTermPortlet extends Portlet {
 				else {
 					setStatusText(selection.size() + " term(s) selected");
 					event.getStatusProxy()
-							.update(Format.substitute(getStatusText(),
-									selection.size()));
+							.update(SafeHtmlUtils.fromString(Format.substitute(getStatusText(),
+									selection.size())));
 				}
 				event.setData(new TermLabelDnd(MainTermPortlet.this, selection, label));
 			}
@@ -179,8 +179,8 @@ public class MainTermPortlet extends Portlet {
 					else {
 						setStatusText(selection.size() + " term(s) selected");
 						event.getStatusProxy()
-								.update(Format.substitute(getStatusText(),
-										selection.size()));
+								.update(SafeHtmlUtils.fromString(Format.substitute(getStatusText(),
+										selection.size())));
 					}
 					event.setData(new MainTermSynonymsLabelDnd(MainTermPortlet.this, 
 							new SelectedTerms(new MainTermSynonyms(mainTerm, getSynonymTerms())), label));
@@ -238,7 +238,7 @@ public class MainTermPortlet extends Portlet {
 					portletStore.update(node);
 				}
 				if(event.getTerm().equals(mainTerm))
-					MainTermPortlet.this.setHeadingText(mainTerm.getTerm());
+					MainTermPortlet.this.setHeading(mainTerm.getTerm());
 			}
 		});
 		eventBus.addHandler(TermUncategorizeEvent.TYPE, new TermUncategorizeEvent.TermUncategorizeHandler() {

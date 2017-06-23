@@ -17,7 +17,7 @@ import edu.arizona.biosemantics.oto2.oto.shared.model.Label;
 public class LabelModifyDialog extends Dialog {
 		
 		public LabelModifyDialog(final EventBus eventBus, final Label label) {
-			this.setHeadingText("Modify Category");	
+			this.setHeading("Modify Category");	
 			LabelInfoContainer labelInfoContainer = new LabelInfoContainer(label.getName(), label.getDescription());
 		    this.add(labelInfoContainer);
 		 

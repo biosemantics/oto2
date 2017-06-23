@@ -571,7 +571,7 @@ public class TermsView extends TabPanel {
 					 event.setCancelled(true);
 				 else {
 					 setStatusText(selection.size() + " term(s) selected");
-					 event.getStatusProxy().update(Format.substitute(getStatusText(), selection.size()));
+					 event.getStatusProxy().update(SafeHtmlUtils.fromString(Format.substitute(getStatusText(), selection.size())));
 				 }
 				 event.setData(new TermDnd(TermsView.this, selection));
 			 }
