@@ -2,7 +2,7 @@ package edu.arizona.biosemantics.oto2.ontologize.client.layout;
 
 import java.util.List;
 
-import org.eclipse.jdt.core.dom.ThisExpression;
+//import org.eclipse.jdt.core.dom.ThisExpression;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.logical.shared.SelectionEvent;
