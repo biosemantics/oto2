@@ -23,7 +23,7 @@ public class CreateBioportalSubmissionView implements IsWidget {
 			
 		borderLayoutContainer = new BorderLayoutContainer();
 		ContentPanel cp = new ContentPanel();
-		cp.setHeadingText("Candidate Terms");
+		cp.setHeading("Candidate Terms");
 		cp.add(candidateTermsView);
 		BorderLayoutData d = new BorderLayoutData(0.5);
 		d.setMargins(new Margins(0, 1, 1, 1));

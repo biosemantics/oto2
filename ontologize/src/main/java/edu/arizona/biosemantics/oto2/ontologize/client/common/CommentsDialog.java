@@ -237,7 +237,7 @@ public class CommentsDialog extends CommonDialog {
 		});
 
 		setBodyBorder(false);
-		setHeadingText("Comments");
+		setHeading("Comments");
 		setWidth(800);
 		setHeight(600);
 		setHideOnButtonClick(true);

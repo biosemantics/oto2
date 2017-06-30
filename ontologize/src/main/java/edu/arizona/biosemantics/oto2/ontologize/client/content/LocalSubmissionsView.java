@@ -29,7 +29,7 @@ public class LocalSubmissionsView implements IsWidget {
 			
 		borderLayoutContainer = new BorderLayoutContainer();
 		ContentPanel cp = new ContentPanel();
-		cp.setHeadingText("Ontology Submissions");
+		cp.setHeading("Ontology Submissions");
 		cp.add(submissionsView);
 		BorderLayoutData d = new BorderLayoutData(0.5);
 		d.setMargins(new Margins(0, 1, 1, 1));

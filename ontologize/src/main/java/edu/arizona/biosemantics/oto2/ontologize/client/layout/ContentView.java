@@ -131,14 +131,14 @@ public class ContentView extends BorderLayoutContainer {
 		setWestWidget(cp, d);*/
 
 		ContentPanel cp = new ContentPanel();
-		cp.setHeadingText("Ontologize");
+		cp.setHeading("Ontologize");
 		cp.add(tabPanel);
 		BorderLayoutData d = new BorderLayoutData();
 		d.setMargins(new Margins(0, 0, 0, 0));
 		setCenterWidget(cp, d);
 
 		cp = new ContentPanel();
-		cp.setHeadingText("Term Information");
+		cp.setHeading("Term Information");
 		cp.add(termInfoView);
 		d = new BorderLayoutData(.40);
 		d.setMargins(new Margins(0, 0, 20, 0));

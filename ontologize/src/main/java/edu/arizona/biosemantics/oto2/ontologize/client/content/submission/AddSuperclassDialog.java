@@ -17,7 +17,7 @@ public class AddSuperclassDialog extends Dialog {
 	private SuperclassesView superclassesView;
 
 	public AddSuperclassDialog(EventBus eventBus, OntologyClassSubmission selected, Type type) {
-		this.setHeadingText("Add Superclass");
+		this.setHeading("Add Superclass");
 		this.setHeight(600);
 		this.setWidth(800);
 		this.setClosable(true);

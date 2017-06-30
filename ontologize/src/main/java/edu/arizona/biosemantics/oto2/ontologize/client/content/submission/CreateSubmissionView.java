@@ -104,7 +104,7 @@ public class CreateSubmissionView implements IsWidget {
 		FlowLayoutContainer flowLayout = new FlowLayoutContainer();
 		flowLayout.setScrollMode(ScrollMode.AUTOY);
 		flowLayout.add(cardLayout);
-		container.setHeadingText("Create Submission: ");
+		container.setHeading("Create Submission: ");
 		container.add(flowLayout);
 		//container.addButton(new LabelToolItem("Switch Cards"));
 		container.addButton(termCardButton);
@@ -125,7 +125,7 @@ public class CreateSubmissionView implements IsWidget {
 		eventBus.addHandler(TermSelectEvent.TYPE, new TermSelectEvent.Handler() {
 			@Override
 			public void onSelect(TermSelectEvent event) {
-				container.setHeadingText("Create Submission: " + event.getTerm().getTerm());
+				container.setHeading("Create Submission: " + event.getTerm().getTerm());
 				cardLayout.setActiveWidget(selectTermView);
 			}
 		});

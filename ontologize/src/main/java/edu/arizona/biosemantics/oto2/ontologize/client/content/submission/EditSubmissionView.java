@@ -82,7 +82,7 @@ public class EditSubmissionView implements IsWidget {
 		cardLayout.setActiveWidget(selectTermView);
 
 		container = new FramedPanel();
-		container.setHeadingText("Edit Submission: ");
+		container.setHeading("Edit Submission: ");
 		container.add(cardLayout);
 		// container.addButton(new LabelToolItem("Switch Cards"));
 		container.addButton(termCardButton);
@@ -149,7 +149,7 @@ public class EditSubmissionView implements IsWidget {
 	}
 
 	protected void setOntologySynonymSubmission(OntologySynonymSubmission submission) {
-		container.setHeadingText("Edit Submission: " + submission.getSubmissionTerm());
+		container.setHeading("Edit Submission: " + submission.getSubmissionTerm());
 		selectedSynonymSubmission = submission;
 		selectTermView.setEnabledTermComboBox(false);
 		selectTermView.setEnabledSubmissionTypeField(false);
@@ -159,7 +159,7 @@ public class EditSubmissionView implements IsWidget {
 	}
 
 	protected void setOntologyClassSubmission(OntologyClassSubmission submission) {
-		container.setHeadingText("Edit Submission: " + submission.getSubmissionTerm());
+		container.setHeading("Edit Submission: " + submission.getSubmissionTerm());
 		selectedClassSubmission = submission;
 		selectTermView.setEnabledTermComboBox(false);
 		selectTermView.setEnabledSubmissionTypeField(false);
