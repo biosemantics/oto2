@@ -3,8 +3,6 @@ package edu.arizona.biosemantics.oto2.oto.client;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.event.shared.SimpleEventBus;
 import com.google.web.bindery.event.shared.EventBus;
-import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
-
 import edu.arizona.biosemantics.oto2.oto.client.event.SaveEvent;
 import edu.arizona.biosemantics.oto2.oto.client.event.SaveEvent.SaveHandler;
 import edu.arizona.biosemantics.oto2.oto.client.event.SetUserEvent;

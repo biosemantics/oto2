@@ -198,7 +198,7 @@ public class OtoView extends SimpleLayoutPanel {
 				public void onSelection(SelectionEvent<Item> arg0) {
 					final Dialog dialog = new Dialog();
 					dialog.setBodyBorder(false);
-					dialog.setHeading("Help");
+					dialog.setHeadingText("Help");
 					dialog.setHideOnButtonClick(true);
 					dialog.setWidget(new HelpView());
 					dialog.setWidth(600);
@@ -238,7 +238,7 @@ public class OtoView extends SimpleLayoutPanel {
 			termInfoView = new TermInfoView(eventBus);
 
 			ContentPanel cp = new ContentPanel();
-			cp.setHeading("Terms");
+			cp.setHeadingText("Terms");
 			cp.add(termsView);
 			BorderLayoutData d = new BorderLayoutData(.20);
 			// d.setMargins(new Margins(0, 1, 1, 1));
@@ -248,14 +248,14 @@ public class OtoView extends SimpleLayoutPanel {
 			setWestWidget(cp, d);
 
 			cp = new ContentPanel();
-			cp.setHeading("Categories and Categorization Results");
+			cp.setHeadingText("Categories and Categorization Results");
 			cp.add(labelsView);
 			d = new BorderLayoutData();
 			d.setMargins(new Margins(0, 0, 0, 0));
 			setCenterWidget(cp, d);
 
 			cp = new ContentPanel();
-			cp.setHeading("Term Information");
+			cp.setHeadingText("Term Information");
 			cp.add(termInfoView);
 			d = new BorderLayoutData(.40);
 			d.setMargins(new Margins(0, 0, 20, 0));

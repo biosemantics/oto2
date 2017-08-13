@@ -274,7 +274,7 @@ public class CreateRelationValidator {
 						"3) Create \"" + existSource + " " + dest + "\" and \"" + source + " " + dest + "\" as subclass of \"" + dest + "\".</br></br>" +
 						"If NO, please create a new term to avoid duplication of " + dest + " as a part of \"" + source + "\".");*/
 				final Dialog box = new Dialog();
-				box.setHeading("Create Part");
+				box.setHeadingText("Create Part");
 				box.setPredefinedButtons(PredefinedButton.YES, PredefinedButton.NO);
 				VerticalLayoutContainer vlc = new VerticalLayoutContainer();
 				HorizontalLayoutContainer hlc = new HorizontalLayoutContainer();
@@ -304,7 +304,7 @@ public class CreateRelationValidator {
 				
 				ContentPanel cp = new ContentPanel(appearance);
 			    cp.setAnimCollapse(false);
-			    cp.setHeading("We will do the following for you");
+			    cp.setHeadingText("We will do the following for you");
 			    cp.add(new HTML("1) Replace <i>" + dest + "</i> with <i>" + existSource + " " + dest + "</i> as part of <i>" + existSource + "</i></br>" + 
 						"2) Create <i>" + source + " " + dest + "</i> as part of <i>" + source + "</i></br>" + 
 						"3) Create <i>" + existSource + " " + dest + "</i> and <i>" + source + " " + dest + "</i> as subclass of <i>" + dest + "</i>."));

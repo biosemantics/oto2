@@ -222,7 +222,7 @@ public class CreateSynonymsDialog extends Dialog {
 		super();
 		final CreateSynonymsView createSynonymsView = new CreateSynonymsView(row, preselectedPreferred, type);
 		this.setTitle("Make synonyms");
-		this.setHeading("Make Synonyms");
+		this.setHeadingText("Make Synonyms");
 		this.setWidget(createSynonymsView);
 		this.setSize("600", "400");
 		this.setMaximizable(true);

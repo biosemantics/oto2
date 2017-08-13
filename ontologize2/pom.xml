@@ -7,16 +7,16 @@
 	<groupId>edu.arizona.biosemantics.oto2</groupId>
 	<artifactId>ontologize2</artifactId>
 	<packaging>war</packaging>
-	<version>0.0.66-SNAPSHOT-debug</version>
+	<version>0.0.66-SNAPSHOT</version>
+	<!--64: w/o rec, 65: rec-->
 
 	<properties>
-		<gwtVersion>2.8.0</gwtVersion>
-		<aspectj.version>1.8.10</aspectj.version>
+		<gwtVersion>2.6.1</gwtVersion>
 		<!-- GWT needs at least java 1.5 -->
 		<!-- But we need at least java 1.6 -->
-		<java.version>1.8</java.version>
-		<maven.compiler.source>1.8</maven.compiler.source>
-		<maven.compiler.target>1.8</maven.compiler.target>
+		<java.version>1.7</java.version>
+		<maven.compiler.source>${java.version}</maven.compiler.source>
+		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<webappDirectory>${project.build.directory}/${project.build.finalName}</webappDirectory>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -62,23 +62,23 @@
 		<dependency>
 			<groupId>edu.arizona.biosemantics.common.ontology</groupId>
 		 	<artifactId>graph</artifactId>
-		  	<version>0.0.8-SNAPSHOT-debug</version>
+		  	<version>0.0.8-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>edu.arizona.biosemantics.common.ontology</groupId>
 		 	<artifactId>graph</artifactId>
-		  	<version>0.0.8-SNAPSHOT-debug</version>
+		  	<version>0.0.8-SNAPSHOT</version>
 		  	<classifier>sources</classifier>
 		</dependency>
 		<dependency>
 			<groupId>edu.arizona.biosemantics.common</groupId>
 		 	<artifactId>context</artifactId>
-		  	<version>0.0.4-SNAPSHOT-debug</version>
+		  	<version>0.0.4-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>edu.arizona.biosemantics.common</groupId>
 		 	<artifactId>context</artifactId>
-		  	<version>0.0.4-SNAPSHOT-debug</version>
+		  	<version>0.0.4-SNAPSHOT</version>
 		  	<classifier>sources</classifier>
 		</dependency>
 		
@@ -127,12 +127,7 @@
 			<artifactId>jackson-mapper-asl</artifactId>
 			<version>1.9.13</version>
 		</dependency>
-		<dependency>
-			<groupId>org.codehaus.jackson</groupId>
-			<artifactId>jackson-mapper-asl</artifactId>
-			<version>1.9.13</version>
-			<classifier>sources</classifier>
-		</dependency>
+		
 		<dependency>
 		    <groupId>net.sourceforge.owlapi</groupId>
 		    <artifactId>owlapi-distribution</artifactId>
@@ -141,29 +136,23 @@
 		<dependency>
 		  <groupId>edu.arizona.biosemantics</groupId>
 		  <artifactId>gxt</artifactId>
-		  <version>0.0.11-SNAPSHOT-debug</version>
+		  <version>0.0.11-SNAPSHOT</version>
 		</dependency> 
 		<dependency>
 		  <groupId>edu.arizona.biosemantics</groupId>
 		  <artifactId>gxt</artifactId>
-		  <version>0.0.11-SNAPSHOT-debug</version>
+		  <version>0.0.11-SNAPSHOT</version>
 		  <classifier>sources</classifier>
 		</dependency> 
 		<dependency>
 			<groupId>org.aspectj</groupId>
 			<artifactId>aspectjrt</artifactId>
-			<version>${aspectj.version}</version>
+			<version>1.7.4</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<version>1.7.25</version>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>1.7.25</version>
-			<classifier>sources</classifier>
+			<version>1.7.7</version>
 		</dependency>
 		<dependency>
 			<groupId>log4j</groupId>
@@ -173,49 +162,49 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
-			<version>1.7.25</version>
+			<version>1.7.7</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>jul-to-slf4j</artifactId>
-			<version>1.7.25</version>
+			<version>1.7.7</version>
 		</dependency>
 		<dependency>
 		  <groupId>edu.arizona.biosemantics.common</groupId>
 		  <artifactId>log</artifactId>
-		  <version>0.0.3-SNAPSHOT-debug</version>
+		  <version>0.0.3-SNAPSHOT</version>
 		</dependency> 
 		<dependency>
 		  <groupId>edu.arizona.biosemantics.common</groupId>
 		  <artifactId>log</artifactId>
-		  <version>0.0.3-SNAPSHOT-debug</version>
+		  <version>0.0.3-SNAPSHOT</version>
 		  <classifier>sources</classifier>
 		</dependency>
 		<dependency>
 		  <groupId>edu.arizona.biosemantics.common</groupId>
 		  <artifactId>biology</artifactId>
-		  <version>0.0.10-SNAPSHOT-debug</version>
+		  <version>0.0.7-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 		  <groupId>edu.arizona.biosemantics.common</groupId>
 		  <artifactId>biology</artifactId>
-		  <version>0.0.10-SNAPSHOT-debug</version>
+		  <version>0.0.7-SNAPSHOT</version>
 		  <classifier>sources</classifier>
 		</dependency> 
 		<dependency>
 			<groupId>com.google.inject</groupId>
 			<artifactId>guice</artifactId>
-			<version>4.0</version>
+			<version>4.0-beta</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.inject.extensions</groupId>
 			<artifactId>guice-assistedinject</artifactId>
-			<version>4.0</version>
+			<version>4.0-beta</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.inject.extensions</groupId>
 			<artifactId>guice-servlet</artifactId>
-			<version>4.0</version>
+			<version>4.0-beta</version>
 		</dependency>
 		<dependency>
 			<groupId>com.github.gwtd3</groupId>
@@ -229,12 +218,12 @@
 		<outputDirectory>${webappDirectory}/WEB-INF/classes</outputDirectory>
 
 		<plugins>
+
 			<!-- GWT Maven Plugin -->
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>gwt-maven-plugin</artifactId>
-				<version>${gwtVersion}</version>
-				
+				<version>2.6.1</version>
 				<executions>
 					<execution>
 						<configuration>
@@ -267,7 +256,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-war-plugin</artifactId>
-				<version>3.1.0</version>
+				<version>2.4</version>
 				<executions>
 					<execution>
 						<phase>compile</phase>
@@ -281,56 +270,11 @@
 					<attachClasses>true</attachClasses>
 				</configuration>
 			</plugin>
-			
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.6.1</version>
-				<configuration>
-					<source>${java.version}</source>
-					<target>${java.version}</target>
-					<!-- IMPORTANT -->
-					<useIncrementalCompilation>false</useIncrementalCompilation>
-				</configuration>
-			</plugin>
-			
+
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>aspectj-maven-plugin</artifactId>
-				<version>1.10</version>
-				<configuration>
-					<showWeaveInfo>true</showWeaveInfo>
-					<source>${java.version}</source>
-					<target>${java.version}</target>
-					<Xlint>ignore</Xlint>
-					<complianceLevel>${java.version}</complianceLevel>
-					<encoding>${project.build.sourceEncoding}</encoding>
-					<!--<verbose>true</verbose> -->
-					<!--<warn>constructorName,packageDefaultMethod,deprecation,maskedCatchBlocks,unusedLocals,unusedArguments,unusedImport</warn> -->
-				</configuration>
-				<executions>
-					<execution>
-						<!-- IMPORTANT -->
-						<phase>process-sources</phase>
-						<goals>
-							<goal>compile</goal>
-							<goal>test-compile</goal>
-						</goals>
-					</execution>
-				</executions>
-				<dependencies>
-					<dependency>
-						<groupId>org.aspectj</groupId>
-						<artifactId>aspectjtools</artifactId>
-						<version>${aspectj.version}</version>
-					</dependency>
-				</dependencies>
-			</plugin>
-			<!-- 
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>aspectj-maven-plugin</artifactId>
-				<version>1.10</version>
+				<version>1.7</version>
 				<configuration>
 					<proceedOnError>true</proceedOnError>
 					<complianceLevel>${java.version}</complianceLevel>
@@ -342,20 +286,20 @@
 					<dependency>
 						<groupId>org.aspectj</groupId>
 						<artifactId>aspectjrt</artifactId>
-						<version>${aspectj.version}</version>
+						<version>1.7.4</version>
 					</dependency>
 				</dependencies>
 				<executions>
-					<execution> -->
+					<execution>
 						<!-- Necessary, so aspectj compile is executed before java compile -->
-			 			<!-- <phase>process-sources</phase>
+			 			<phase>process-sources</phase>
 						<goals>
 							<goal>compile</goal>
 							<goal>test-compile</goal>
 						</goals>
 					</execution>
 				</executions>
-			</plugin> -->
+			</plugin>
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

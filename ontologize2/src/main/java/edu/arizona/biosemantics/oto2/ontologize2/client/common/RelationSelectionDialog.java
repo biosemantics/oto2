@@ -101,7 +101,7 @@ public class RelationSelectionDialog  extends Dialog {
 		super();
 		view = new RelationSelectionView(relations, preferred, synonym);
 		this.setTitle("Select Relations");
-		this.setHeading("Select Relations");
+		this.setHeadingText("Select Relations");
 		this.setHeight(200);
 		this.setWidget(view);
 		this.setMaximizable(true);

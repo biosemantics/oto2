@@ -187,7 +187,7 @@ public class CreateRelationsFromCandidateDialog extends Dialog {
 		//this.setTitle("Select Relations");
 		//this.setHeadingText("Select Relations");
 		this.setTitle("Select the relations you want to create.");
-		this.setHeading("Select the relations you want to create.");
+		this.setHeadingText("Select the relations you want to create.");
 		this.setHeight(600);
 		this.setWidget(view);
 		this.setMaximizable(true);

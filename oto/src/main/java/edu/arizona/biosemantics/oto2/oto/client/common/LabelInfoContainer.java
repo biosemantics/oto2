@@ -17,7 +17,7 @@ public class LabelInfoContainer extends SimpleContainer {
 
 		public LabelInfoContainer(String initialName, String initialDescription) {
 			FieldSet fieldSet = new FieldSet();
-		    fieldSet.setHeading("Category Information");
+		    fieldSet.setHeadingText("Category Information");
 		    fieldSet.setCollapsible(false);
 		    this.add(fieldSet, new MarginData(10));
 		 

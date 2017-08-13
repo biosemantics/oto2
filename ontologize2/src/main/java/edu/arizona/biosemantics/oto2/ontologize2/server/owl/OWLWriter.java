@@ -164,7 +164,6 @@ public class OWLWriter {
 		File moduleFile = new File(outputDirectory, 
 				"module." + (label == null ? "" : label + ".") + oc.getIRI().getShortForm() + ".owl");
 		IRI moduleIRI = IRI.create(moduleFile);
-
 		
 		// remove the existing module -- in effect replace the old module with the new one.
 		if (moduleFile.exists())
