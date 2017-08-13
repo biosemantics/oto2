@@ -55,7 +55,7 @@ public class ColorSettingsDialog extends CommonDialog {
 		final LinkedList<Color> colorsCopy = new LinkedList<Color>(collection.getColors());
 
 		this.setBodyBorder(false);
-		this.setHeading("Configure Color Usages");
+		this.setHeadingText("Configure Color Usages");
 		this.setWidth(600);
 		this.setHeight(400);
 		this.setModal(true);
@@ -82,7 +82,7 @@ public class ColorSettingsDialog extends CommonDialog {
 
 		// Layout - west
 		ContentPanel westPanel = new ContentPanel();
-		westPanel.setHeading("Select Color");
+		westPanel.setHeadingText("Select Color");
 		BorderLayoutData data = new BorderLayoutData(302);
 		data.setMargins(new Margins(0, 5, 0, 0));
 		westPanel.setLayoutData(data);
@@ -165,7 +165,7 @@ public class ColorSettingsDialog extends CommonDialog {
 
 		// Layout - center
 		ContentPanel centerPanel = new ContentPanel();
-		centerPanel.setHeading("Available color usages");
+		centerPanel.setHeadingText("Available color usages");
 		layout.setCenterWidget(centerPanel);
 
 		final CheckboxCell checkboxCell = new CheckboxCell();

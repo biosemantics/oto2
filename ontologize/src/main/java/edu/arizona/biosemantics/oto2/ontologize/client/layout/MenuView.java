@@ -108,7 +108,7 @@ public class MenuView extends MenuBar {
 			public void onSelection(SelectionEvent<Item> arg0) {
 				final Dialog dialog = new Dialog();
 				dialog.setBodyBorder(false);
-				dialog.setHeading("Help");
+				dialog.setHeadingText("Help");
 				dialog.setHideOnButtonClick(true);
 				//dialog.setWidget(new HelpView());
 				dialog.setWidth(600);

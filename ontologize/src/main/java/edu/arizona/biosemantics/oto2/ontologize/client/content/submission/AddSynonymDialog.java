@@ -24,7 +24,7 @@ public class AddSynonymDialog extends Dialog {
 	private TextField termField;
 	
 	public AddSynonymDialog() {
-		this.setHeading("Add Synonym");
+		this.setHeadingText("Add Synonym");
 		this.setHeight(400);
 		this.setWidth(400);
 		this.setClosable(true);

@@ -23,7 +23,7 @@ public class CreateOntologyDialog extends Dialog {
 	private ListView<TaxonGroup, String> taxonGroupList;
 	
 	public CreateOntologyDialog() {
-		this.setHeading("Create Ontology");
+		this.setHeadingText("Create Ontology");
 		
 		ListStore<TaxonGroup> taxonGroupsStore = new ListStore<TaxonGroup>(new ModelKeyProvider<TaxonGroup>() {
 			@Override

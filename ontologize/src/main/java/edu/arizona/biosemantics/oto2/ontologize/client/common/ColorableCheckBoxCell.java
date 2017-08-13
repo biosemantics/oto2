@@ -2,9 +2,7 @@ package edu.arizona.biosemantics.oto2.ontologize.client.common;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
-import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
-import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.sencha.gxt.cell.core.client.form.CheckBoxCell;
 import com.sencha.gxt.core.client.GXT;
 import com.sencha.gxt.core.client.dom.XDOM;
@@ -30,8 +28,8 @@ public class ColorableCheckBoxCell extends CheckBoxCell {
 	    private String boxLabel;
 	    private String colorHex;
 	    
-	    public SafeHtml getBoxLabel() {
-	      return SafeHtmlUtils.fromString(boxLabel);
+	    public String getBoxLabel() {
+	      return boxLabel;
 	    }
 
 	    public void setBoxLabel(String boxLabel) {
@@ -95,11 +93,10 @@ public class ColorableCheckBoxCell extends CheckBoxCell {
 		if(color != null) 
 			colorHex = "#" + color.getHex();
 		
-		// radios must have a name for ie6 and ie7, 
-		// hong 618 isIE6, isIE7 not supported anymore
-		/*if (name == null && (GXT.isIE6() || GXT.isIE7())) {
+		// radios must have a name for ie6 and ie7
+		if (name == null && (GXT.isIE6() || GXT.isIE7())) {
 			name = XDOM.getUniqueId();
-		}*/
+		}
 
 		opts.setName(name);
 		opts.setColorHex(colorHex);

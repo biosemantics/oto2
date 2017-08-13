@@ -335,7 +335,7 @@ public class ColorsDialog extends CommonDialog {
 		}, new TextField()); */
 
 		setBodyBorder(false);
-		setHeading("Colorations");
+		setHeadingText("Colorations");
 		setWidth(800);
 		setHeight(600);
 		setHideOnButtonClick(true);

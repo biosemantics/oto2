@@ -23,7 +23,7 @@ public class CreateLocalSubmissionView implements IsWidget {
 			
 		borderLayoutContainer = new BorderLayoutContainer();
 		ContentPanel cp = new ContentPanel();
-		cp.setHeading("Candidate Terms");
+		cp.setHeadingText("Candidate Terms");
 		cp.add(candidateTermsView);
 		BorderLayoutData d = new BorderLayoutData(0.5);
 		d.setMargins(new Margins(0, 1, 1, 1));

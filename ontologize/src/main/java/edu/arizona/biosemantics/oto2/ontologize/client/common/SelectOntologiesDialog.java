@@ -44,7 +44,7 @@
 //	
 //	public SelectOntologiesDialog(final EventBus eventBus) {
 //		this.eventBus = eventBus;
-//		setHeading("Select Ontologies to Search");
+//		setHeadingText("Select Ontologies to Search");
 //		setPredefinedButtons(PredefinedButton.OK);
 //		setBodyStyleName("pad-text");
 //		getBody().addClassName("pad-text");

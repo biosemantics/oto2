@@ -2,7 +2,7 @@ package edu.arizona.biosemantics.oto2.ontologize.client.layout;
 
 import java.util.List;
 
-//import org.eclipse.jdt.core.dom.ThisExpression;
+import org.eclipse.jdt.core.dom.ThisExpression;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.logical.shared.SelectionEvent;
@@ -131,14 +131,14 @@ public class ContentView extends BorderLayoutContainer {
 		setWestWidget(cp, d);*/
 
 		ContentPanel cp = new ContentPanel();
-		cp.setHeading("Ontologize");
+		cp.setHeadingText("Ontologize");
 		cp.add(tabPanel);
 		BorderLayoutData d = new BorderLayoutData();
 		d.setMargins(new Margins(0, 0, 0, 0));
 		setCenterWidget(cp, d);
 
 		cp = new ContentPanel();
-		cp.setHeading("Term Information");
+		cp.setHeadingText("Term Information");
 		cp.add(termInfoView);
 		d = new BorderLayoutData(.40);
 		d.setMargins(new Margins(0, 0, 20, 0));

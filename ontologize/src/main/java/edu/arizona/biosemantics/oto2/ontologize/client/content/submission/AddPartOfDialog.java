@@ -23,7 +23,7 @@ public class AddPartOfDialog extends Dialog {
 	private PartsOfsView partsView;
 
 	public AddPartOfDialog(EventBus eventBus, OntologyClassSubmission selected, Type type) {
-		this.setHeading("Add Part Of");
+		this.setHeadingText("Add Part Of");
 		this.setHeight(600);
 		this.setWidth(800);
 		this.setClosable(true);

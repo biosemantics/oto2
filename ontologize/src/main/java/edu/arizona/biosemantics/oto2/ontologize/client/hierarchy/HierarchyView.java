@@ -20,7 +20,7 @@ public class HierarchyView implements IsWidget {
 			
 		borderLayoutContainer = new BorderLayoutContainer();
 		ContentPanel cp = new ContentPanel();
-		cp.setHeading("Terms");
+		cp.setHeadingText("Terms");
 		cp.add(termsView);
 		BorderLayoutData d = new BorderLayoutData(.20);
 		// d.setMargins(new Margins(0, 1, 1, 1));
@@ -30,7 +30,7 @@ public class HierarchyView implements IsWidget {
 		borderLayoutContainer.setWestWidget(cp, d);
 
 		cp = new ContentPanel();
-		cp.setHeading("Ontologies containing the term");
+		cp.setHeadingText("Ontologies containing the term");
 		cp.add(treeView);
 		d = new BorderLayoutData();
 		d.setMargins(new Margins(0, 0, 0, 0));

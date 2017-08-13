@@ -4,7 +4,6 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.InputElement;
 import com.google.gwt.dom.client.LabelElement;
-import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.sencha.gxt.cell.core.client.form.CheckBoxCell.CheckBoxAppearance;
 import com.sencha.gxt.cell.core.client.form.CheckBoxCell.CheckBoxCellOptions;
@@ -74,26 +73,20 @@ public class ColorableCheckBoxAppearance extends ValueBaseFieldDefaultAppearance
     sb.appendHtmlConstant("<input " + typeParam + nameParam + disabledParam + readOnlyParam + idParam + checkedParam + " />");
     sb.appendHtmlConstant("<label for=" + checkBoxId + " class=" + style.checkBoxLabel() + ">");
     if (options.getBoxLabel() != null) {
-      sb.appendHtmlConstant(options.getBoxLabel().asString());
+      sb.appendHtmlConstant(options.getBoxLabel());
     }
     sb.appendHtmlConstant("</label></div>");
 
   }
 
-  /*@Override
+  @Override
   public void setBoxLabel(String boxLabel, XElement parent) {
     parent.selectNode("." + resources.css().checkBoxLabel()).<LabelElement> cast().setInnerHTML(boxLabel);
-  }*/
+  }
 
   @Override
   public void setReadOnly(Element parent, boolean readOnly) {
     getInputElement(parent).<InputElement> cast().setReadOnly(readOnly);
   }
-
-@Override
-public void setBoxLabel(SafeHtml boxLabel, XElement parent) {
-	 parent.selectNode("." + resources.css().checkBoxLabel()).<LabelElement> cast().setInnerHTML(boxLabel.asString());
-
-}
 
 }
