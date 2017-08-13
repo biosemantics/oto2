@@ -7,7 +7,7 @@
 	<groupId>edu.arizona.biosemantics.oto2</groupId>
 	<artifactId>oto</artifactId>
 	<packaging>war</packaging>
-	<version>0.0.134-SNAPSHOT-debug</version>
+	<version>0.0.135-SNAPSHOT</version>
 
 	<properties>
 		<gwtVersion>2.8.0</gwtVersion>
@@ -123,12 +123,12 @@
 		<dependency>
 		  <groupId>edu.arizona.biosemantics</groupId>
 		  <artifactId>gxt</artifactId>
-		  <version>0.0.11-SNAPSHOT-debug</version>
+		  <version>0.0.11-SNAPSHOT</version>
 		</dependency> 
 		<dependency>
 		  <groupId>edu.arizona.biosemantics</groupId>
 		  <artifactId>gxt</artifactId>
-		  <version>0.0.11-SNAPSHOT-debug</version>
+		  <version>0.0.11-SNAPSHOT</version>
 		  <classifier>sources</classifier>
 		</dependency> 
 		<dependency>
@@ -180,12 +180,12 @@
 		<dependency>
 			<groupId>edu.arizona.biosemantics</groupId>
 			<artifactId>bioportal-client</artifactId>
-			<version>0.0.13-SNAPSHOT-debug</version>
+			<version>0.0.14-SNAPSHOT</version>
 		</dependency>   
 		<dependency>
 			<groupId>edu.arizona.biosemantics.common</groupId>
 			<artifactId>ling</artifactId>
-			<version>0.0.19-SNAPSHOT-debug</version>
+			<version>0.0.20-SNAPSHOT</version>
 		</dependency> 
 		<dependency>
 			<groupId>net.sf.opencsv</groupId>
@@ -205,7 +205,7 @@
 		<dependency>
 		  <groupId>edu.arizona.biosemantics.oto</groupId>
 		  <artifactId>oto-client</artifactId>
-		  <version>0.0.54-SNAPSHOT-debug</version>
+		  <version>0.0.55-SNAPSHOT</version>
 		  <exclusions>
 		  	<exclusion>
 		  		<artifactId>oto</artifactId>
@@ -220,12 +220,12 @@
 		<dependency>
 		  <groupId>edu.arizona.biosemantics.common</groupId>
 		  <artifactId>log</artifactId>
-		  <version>0.0.3-SNAPSHOT-debug</version>
+		  <version>0.0.4-SNAPSHOT</version>
 		</dependency> 
 		<dependency>
 		  <groupId>edu.arizona.biosemantics.common</groupId>
 		  <artifactId>log</artifactId>
-		  <version>0.0.3-SNAPSHOT-debug</version>
+		  <version>0.0.4-SNAPSHOT</version>
 		  <classifier>sources</classifier>
 		</dependency>
 		<dependency>
@@ -261,12 +261,12 @@
 		<dependency>
 			<groupId>edu.arizona.biosemantics.common</groupId>
 			<artifactId>context</artifactId>
-			<version>0.0.4-SNAPSHOT-debug</version>
+			<version>0.0.5-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 		  <groupId>edu.arizona.biosemantics.common</groupId>
 		  <artifactId>context</artifactId>
-		  <version>0.0.4-SNAPSHOT-debug</version>
+		  <version>0.0.5-SNAPSHOT</version>
 		  <classifier>sources</classifier>
 		</dependency>
 	</dependencies>
