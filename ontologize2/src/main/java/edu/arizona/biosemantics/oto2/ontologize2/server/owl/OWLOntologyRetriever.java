@@ -72,6 +72,7 @@ public class OWLOntologyRetriever  {
 			hackyOwlClassIdentifier = hackyOwlClassIdentifier.substring(0, hackyOwlClassIdentifier.indexOf("#"));
 		
 		String ontologyIRI = owlOntology.getOntologyID().getOntologyIRI().get().toString();
+		//String ontologyIRI = owlOntology.getOntologyID().getOntologyIRI().toString();
 		String hackyOntologyIdentifier = ontologyIRI;
 		
 		//caro ontology iri is http://purl.obolibrary.org/obo/caro/src/caro.owl, 

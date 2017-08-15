@@ -207,7 +207,7 @@ public class Ontologize extends SimpleContainer {
 		
 		CandidateView candidateView = new CandidateView(eventBus,user);
 		ContentPanel cp = new ContentPanel();
-		cp.setHeadingText("Candidate Terms");
+		cp.setHeading("Candidate Terms");
 		cp.add(candidateView);
 		BorderLayoutData d = new BorderLayoutData(.20);
 		d.setMargins(new Margins(0, 0, 0, 0));
@@ -218,7 +218,7 @@ public class Ontologize extends SimpleContainer {
 		
 		VisualizationView visualizationView = new VisualizationView(eventBus);
 		cp = new ContentPanel();
-		cp.setHeadingText("Tree Visualizations");
+		cp.setHeading("Tree Visualizations");
 		cp.add(visualizationView);
 		d = new BorderLayoutData(.20);
 		d.setMargins(new Margins(0, 0, 0, 0));
@@ -229,7 +229,7 @@ public class Ontologize extends SimpleContainer {
 		
 		ContextView contextView = new ContextView(eventBus);
 		cp = new ContentPanel();
-		cp.setHeadingText("Context");
+		cp.setHeading("Context");
 		cp.add(contextView);
 		d = new BorderLayoutData(.20);
 		d.setMargins(new Margins(0, 0, 0, 0));
@@ -240,7 +240,7 @@ public class Ontologize extends SimpleContainer {
 		
 		RelationsView relationsView = new RelationsView(eventBus);
 		cp = new ContentPanel();
-		cp.setHeadingText("Relations between Terms");
+		cp.setHeading("Relations between Terms");
 		cp.add(relationsView);
 		d = new BorderLayoutData();
 		d.setMargins(new Margins(0, 0, 0, 0));
@@ -277,7 +277,7 @@ public class Ontologize extends SimpleContainer {
 		
 		CandidateView candidateView = new CandidateView(eventBus);
 		ContentPanel cp = new ContentPanel();
-		cp.setHeadingText("Candidate Terms");
+		cp.setHeading("Candidate Terms");
 		cp.add(candidateView);
 		BorderLayoutData d = new BorderLayoutData(.20);
 		d.setMargins(new Margins(0, 0, 0, 0));
@@ -288,7 +288,7 @@ public class Ontologize extends SimpleContainer {
 		
 		VisualizationView visualizationView = new VisualizationView(eventBus);
 		cp = new ContentPanel();
-		cp.setHeadingText("Tree Visualizations");
+		cp.setHeading("Tree Visualizations");
 		cp.add(visualizationView);
 		d = new BorderLayoutData(.20);
 		d.setMargins(new Margins(0, 0, 0, 0));
@@ -299,7 +299,7 @@ public class Ontologize extends SimpleContainer {
 		
 		ContextView contextView = new ContextView(eventBus);
 		cp = new ContentPanel();
-		cp.setHeadingText("Context");
+		cp.setHeading("Context");
 		cp.add(contextView);
 		d = new BorderLayoutData(.20);
 		d.setMargins(new Margins(0, 0, 0, 0));
@@ -310,7 +310,7 @@ public class Ontologize extends SimpleContainer {
 		
 		RelationsView relationsView = new RelationsView(eventBus);
 		cp = new ContentPanel();
-		cp.setHeadingText("Relations between Terms");
+		cp.setHeading("Relations between Terms");
 		cp.add(relationsView);
 		d = new BorderLayoutData();
 		d.setMargins(new Margins(0, 0, 0, 0));
