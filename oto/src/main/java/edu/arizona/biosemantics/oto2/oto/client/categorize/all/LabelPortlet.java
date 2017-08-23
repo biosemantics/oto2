@@ -618,15 +618,14 @@ public class LabelPortlet extends Portlet {
 		tree.expandAll();
 	}	
 	
-	@Override
 	public void setHeading(String text) {
 		if(label instanceof HighlightLabel)
-			setHeading("<div style='color: black'>" + text + "</div>");
+			setHeadingHtml("<div style='color: black'>" + text + "</div>");
 		else if(label instanceof TrashLabel)
-			setHeading("<div style='color: gray'>" 
+			setHeadingHtml("<div style='color: gray'>" 
 					+ text + "</div>");
 		else 
-			setHeading("<div style='font-weight: normal'>" 
+			setHeadingHtml("<div style='font-weight: normal'>" 
 					+ text + "</div>");
 	}
 

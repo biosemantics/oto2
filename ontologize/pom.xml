@@ -152,6 +152,8 @@
 			<version>1.0.0.GA</version>
 			<classifier>sources</classifier>
 		</dependency>
+
+		<!-- mine -->
 		<dependency>
 			<groupId>net.sourceforge.owlapi</groupId>
 			<artifactId>owlapi-distribution</artifactId>
