@@ -50,8 +50,8 @@ public class StandAlone implements EntryPoint {
 		RootLayoutPanel.get().add(borderLayoutContainer);*/
 		
 		
-		int collectionId = 0;
-		String secret = "secret";//"my secret";
+		int collectionId = 133;
+		String secret = "30";//"my secret";
 		
 		/*Collection collection = new Collection();
 		collection.setId(collectionId);

@@ -9,7 +9,7 @@
 	<groupId>edu.arizona.biosemantics.oto2</groupId>
 	<artifactId>ontologize</artifactId>
 	<packaging>war</packaging>
-	<version>0.1.22-SNAPSHOT-debug</version>
+	<version>0.1.23-SNAPSHOT</version>
 
 	<properties>
 		<gwtVersion>2.8.0</gwtVersion>
@@ -61,12 +61,12 @@
 		<dependency>
 			<groupId>edu.arizona.biosemantics.common</groupId>
 		 	<artifactId>ontology</artifactId>
-		  	<version>0.0.1-SNAPSHOT-debug</version>
+		  	<version>0.0.2-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 		  <groupId>edu.arizona.biosemantics.common.ontology</groupId>
 		  <artifactId>search</artifactId>
-		  <version>0.0.26-SNAPSHOT-debug</version>
+		  <version>0.0.27-SNAPSHOT</version>
 		  <!-- Not used! And it can cause conflicts in other projects because it uses owlapi3 where we use owlapi4 in other projects -->
 			<exclusions>
 				<exclusion>
@@ -184,12 +184,12 @@
 		<dependency>
 		  <groupId>edu.arizona.biosemantics</groupId>
 		  <artifactId>gxt</artifactId>
-		  <version>0.0.11-SNAPSHOT-debug</version>
+		  <version>0.0.12-SNAPSHOT</version>
 		</dependency> 
 		<dependency>
 		  <groupId>edu.arizona.biosemantics</groupId>
 		  <artifactId>gxt</artifactId>
-		  <version>0.0.11-SNAPSHOT-debug</version>
+		  <version>0.0.12-SNAPSHOT</version>
 		  <classifier>sources</classifier>
 		</dependency> 
 		<dependency>
@@ -251,7 +251,7 @@
 		<dependency>
 			<groupId>edu.arizona.biosemantics</groupId>
 			<artifactId>bioportal-client</artifactId>
-			<version>0.0.13-SNAPSHOT-debug</version>
+			<version>0.0.14-SNAPSHOT</version>
 		</dependency>   
 		<dependency>
 			<groupId>net.sf.opencsv</groupId>
@@ -277,29 +277,29 @@
 		<dependency>
 		  <groupId>edu.arizona.biosemantics.common</groupId>
 		  <artifactId>log</artifactId>
-		  <version>0.0.3-SNAPSHOT-debug</version>
+		  <version>0.0.4-SNAPSHOT</version>
 		</dependency> 
 		<dependency>
 		  <groupId>edu.arizona.biosemantics.common</groupId>
 		  <artifactId>log</artifactId>
-		  <version>0.0.3-SNAPSHOT-debug</version>
+		  <version>0.0.4-SNAPSHOT</version>
 		  <classifier>sources</classifier>
 		</dependency>
 		<dependency>
 		  <groupId>edu.arizona.biosemantics.common</groupId>
 		  <artifactId>biology</artifactId>
-		  <version>0.0.10-SNAPSHOT-debug</version>
+		  <version>0.0.11-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 		  <groupId>edu.arizona.biosemantics.common</groupId>
 		  <artifactId>biology</artifactId>
-		  <version>0.0.10-SNAPSHOT-debug</version>
+		  <version>0.0.11-SNAPSHOT</version>
 		  <classifier>sources</classifier>
 		</dependency> 
 		<dependency>
 		  <groupId>edu.arizona.biosemantics.common</groupId>
 		  <artifactId>ling</artifactId>
-		  <version>0.0.19-SNAPSHOT-debug</version>
+		  <version>0.0.20-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.quartz-scheduler</groupId>
