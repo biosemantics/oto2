@@ -152,12 +152,10 @@
 			<version>1.0.0.GA</version>
 			<classifier>sources</classifier>
 		</dependency>
-
-		<!-- mine -->
 		<dependency>
 			<groupId>net.sourceforge.owlapi</groupId>
 			<artifactId>owlapi-distribution</artifactId>
-			<version>4.0.2</version>
+			<version>4.2.8</version>
 		</dependency>
 		
 		<dependency>
@@ -236,12 +234,12 @@
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>22.0</version>
+			<version>18.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava-gwt</artifactId>
-			<version>22.0</version>
+			<version>18.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.gwt</groupId>
@@ -299,7 +297,7 @@
 		<dependency>
 		  <groupId>edu.arizona.biosemantics.common</groupId>
 		  <artifactId>ling</artifactId>
-		  <version>0.0.20-SNAPSHOT</version>
+		  <version>0.0.21-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.quartz-scheduler</groupId>
