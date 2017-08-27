@@ -81,10 +81,10 @@ public class MainTermPortlet extends Portlet {
 		this.portalLayoutContainer = portalLayoutContainer;
 		switch(mainTerm.getTermType()) {
 		case KNOWN_IN_GLOSSARY:
-			this.setHeadingHtml("<div style='color:#A0522D'>" + mainTerm.getTerm() + "</div>");
+			this.setHeading(SafeHtmlUtils.fromTrustedString("<div style='color:#A0522D'>" + mainTerm.getTerm() + "</div>"));
 			break;
 		case UNKNOWN:
-			this.setHeadingHtml("<div>" + mainTerm.getTerm() + "</div>");
+			this.setHeading(SafeHtmlUtils.fromTrustedString("<div>" + mainTerm.getTerm() + "</div>"));
 		default:
 			break;
 		
@@ -238,7 +238,7 @@ public class MainTermPortlet extends Portlet {
 					portletStore.update(node);
 				}
 				if(event.getTerm().equals(mainTerm))
-					MainTermPortlet.this.setHeadingHtml(mainTerm.getTerm());
+					MainTermPortlet.this.setHeading(mainTerm.getTerm());
 			}
 		});
 		eventBus.addHandler(TermUncategorizeEvent.TYPE, new TermUncategorizeEvent.TermUncategorizeHandler() {

@@ -3,7 +3,9 @@ package edu.arizona.biosemantics.oto2.oto.client.common;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.web.bindery.event.shared.EventBus;
+import com.sencha.gxt.core.shared.ExpandedHtmlSanitizer;
 import com.sencha.gxt.widget.core.client.box.MessageBox;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent.SelectHandler;
@@ -47,8 +49,8 @@ public class UncategorizeDialog extends MessageBox {
 		setPredefinedButtons(PredefinedButton.YES,
 				PredefinedButton.NO, PredefinedButton.CANCEL);
 		setIcon(MessageBox.ICONS.question());
-		setMessage("You are uncategorizing a term with multiple categories. Would you like to "
-				+ "remove <b>" + term.getTerm() + "</b> from from all its categories?");
+		setMessage(ExpandedHtmlSanitizer.sanitizeHtml("You are uncategorizing a term with multiple categories. Would you like to "
+				+ "remove <b>" + term.getTerm() + "</b> from from all its categories?"));
 		getButton(PredefinedButton.YES).addSelectHandler(new SelectHandler() {
 			@Override
 			public void onSelect(SelectEvent event) {

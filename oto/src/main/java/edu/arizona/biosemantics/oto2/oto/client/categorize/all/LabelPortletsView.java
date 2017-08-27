@@ -286,7 +286,7 @@ public class LabelPortletsView extends PortalLayoutContainer {
 		//labelPortlet = new LabelPortlet(GWT.<OtoFramedPanelAppearance> create(OtoFramedPanelAppearance.class), 
 		//		eventBus, label, collection);
 		LabelPortlet labelPortlet = new LabelPortlet(eventBus, label, collection, this);
-		labelPortlet.setHeadingText(label.getName());
+		labelPortlet.setHeading(label.getName());
 		return labelPortlet;
 	}
 
