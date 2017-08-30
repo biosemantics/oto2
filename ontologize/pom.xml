@@ -9,7 +9,7 @@
 	<groupId>edu.arizona.biosemantics.oto2</groupId>
 	<artifactId>ontologize</artifactId>
 	<packaging>war</packaging>
-	<version>0.1.23-SNAPSHOT</version>
+	<version>0.1.24-SNAPSHOT</version>
 
 	<properties>
 		<gwtVersion>2.8.0</gwtVersion>

@@ -7,7 +7,7 @@
 	<groupId>edu.arizona.biosemantics.oto2</groupId>
 	<artifactId>oto</artifactId>
 	<packaging>war</packaging>
-	<version>0.0.136-SNAPSHOT</version>
+	<version>0.0.138-SNAPSHOT</version>
 
 	<properties>
 		<gwtVersion>2.8.0</gwtVersion>
@@ -455,7 +455,6 @@
 			</plugins>
 		</pluginManagement>
 	</build>
-
 	<distributionManagement>
 		<snapshotRepository>
 			<id>playground</id>
