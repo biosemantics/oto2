@@ -239,10 +239,10 @@ public class CandidateView extends SimpleContainer {
 						List<CandidatePatternResult> patterns = candidatePatterns.get(candidate);
 						if(!patterns.isEmpty()) {
 							patternIcon = "url(" + cellImages.blue().getSafeUri().asString() + ")";
-							if(userMarker!=null&&userMarker.equals("rec")){
+							//if(userMarker!=null&&userMarker.equals("rec")){
 								numberOfPatterns = "(" + patterns.size() + " Patterns)";
 								numberOfPatterns = "(recommended relations)";
-							}
+							//} Hong commentted out the condition to show patterns for all users
 						}
 					}
 				}
@@ -542,13 +542,16 @@ public class CandidateView extends SimpleContainer {
 							}
 						});
 						//only used for controlling recommendation function
-						String[] userFields = null;
+						//showPatterns based on userMarker
+						/*String[] userFields = null;
 						if(user!=null){
 							userFields = user.split("\\|");
 						}
 						String userMarker = userFields==null?null:userFields[userFields.length-1];
 						
-						if(userMarker!=null&&"rec".equals(userMarker)) menu.add(showPatterns);
+						if(userMarker!=null&&"rec".equals(userMarker)) menu.add(showPatterns);*/
+						//showPatterns by default. Hong 9/26/17
+						 menu.add(showPatterns);
 					}
 					
 					MenuItem filterItem = new MenuItem("Filter: " + text);
