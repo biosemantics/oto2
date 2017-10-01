@@ -3,7 +3,9 @@ package edu.arizona.biosemantics.oto2.oto.client.common;
 import java.util.List;
 import java.util.Map;
 
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.web.bindery.event.shared.EventBus;
+import com.sencha.gxt.core.shared.ExpandedHtmlSanitizer;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.box.AutoProgressMessageBox;
@@ -26,7 +28,7 @@ public class Alerter {
 
 	public static class InfoMessageBox extends MessageBox {
 		public InfoMessageBox(String title, String message) {
-			super(title, message);
+			super(SafeHtmlUtils.fromString(title), ExpandedHtmlSanitizer.sanitizeHtml(message));
 			setIcon(ICONS.info());
 		}
 	}
@@ -38,7 +40,7 @@ public class Alerter {
 	}
 	
 	public static MessageBox showAlert(String title, String message) {
-		AlertMessageBox alert = new AlertMessageBox(title, message);
+		AlertMessageBox alert = new AlertMessageBox(SafeHtmlUtils.fromString(title), ExpandedHtmlSanitizer.sanitizeHtml(message));
 		alert.show();
 		return alert;
 	}
@@ -50,7 +52,7 @@ public class Alerter {
 	}
 	
 	public static MessageBox showConfirm(String title, String message) {
-		 ConfirmMessageBox confirm = new ConfirmMessageBox(title, message);
+		 ConfirmMessageBox confirm = new ConfirmMessageBox(SafeHtmlUtils.fromString(title), ExpandedHtmlSanitizer.sanitizeHtml(message));
 		 confirm.show();
          return confirm;
 	}

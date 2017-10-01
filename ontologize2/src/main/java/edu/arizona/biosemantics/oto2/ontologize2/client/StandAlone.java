@@ -62,7 +62,6 @@ public class StandAlone implements EntryPoint {
 		
 		
 		
-		
 //		
 		final Collection c = new Collection("my collection", TaxonGroup.PLANT, "");
 		
@@ -164,7 +163,7 @@ public class StandAlone implements EntryPoint {
 			Timer timer = new Timer() {
 				@Override
 				public void run() {
-					collectionService.get(33, "", new AsyncCallback<Collection>() {
+					collectionService.get(13, "", new AsyncCallback<Collection>() {
 						@Override
 						public void onFailure(Throwable caught) {
 							caught.printStackTrace();

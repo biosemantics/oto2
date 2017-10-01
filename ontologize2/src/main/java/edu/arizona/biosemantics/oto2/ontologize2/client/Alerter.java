@@ -2,6 +2,8 @@ package edu.arizona.biosemantics.oto2.ontologize2.client;
 
 import java.util.List;
 
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
+import com.sencha.gxt.core.shared.ExpandedHtmlSanitizer;
 import com.sencha.gxt.widget.core.client.Dialog.PredefinedButton;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.box.AutoProgressMessageBox;
@@ -15,7 +17,7 @@ public class Alerter {
 
 	public static class InfoMessageBox extends MessageBox {
 		public InfoMessageBox(String title, String message) {
-			super(title, message);
+			super(SafeHtmlUtils.fromString(title), ExpandedHtmlSanitizer.sanitizeHtml(message));
 			setIcon(ICONS.info());
 		}
 	}
@@ -39,7 +41,7 @@ public class Alerter {
 	}
 	
 	public static MessageBox showAlert(String title, String message) {
-		AlertMessageBox alert = new AlertMessageBox(title, message);
+		AlertMessageBox alert = new AlertMessageBox( SafeHtmlUtils.fromString(title), ExpandedHtmlSanitizer.sanitizeHtml(message));
 		alert.show();
 		return alert;
 	}
@@ -51,13 +53,13 @@ public class Alerter {
 	}
 	
 	public static MessageBox showConfirm(String title, String message) {
-		 ConfirmMessageBox confirm = new ConfirmMessageBox(title, message);
+		 ConfirmMessageBox confirm = new ConfirmMessageBox(SafeHtmlUtils.fromString(title), ExpandedHtmlSanitizer.sanitizeHtml(message));
 		 confirm.show();
          return confirm;
 	}
 
 	public static MessageBox showYesNoCancelConfirm(String title, String message) {
-		MessageBox box = new MessageBox(title, message);
+		MessageBox box = new MessageBox(SafeHtmlUtils.fromString(title), ExpandedHtmlSanitizer.sanitizeHtml(message));
         box.setPredefinedButtons(PredefinedButton.YES, PredefinedButton.NO, PredefinedButton.CANCEL);
         box.setIcon(MessageBox.ICONS.question());
         box.show();
@@ -76,7 +78,7 @@ public class Alerter {
 	}
 
 	public static PromptMessageBox showPromptMessageBox(String title, String message) {
-		PromptMessageBox box = new PromptMessageBox(title, message);
+		PromptMessageBox box = new PromptMessageBox(SafeHtmlUtils.fromString(title), ExpandedHtmlSanitizer.sanitizeHtml(message));
 		box.show();
 		return box;
 	}

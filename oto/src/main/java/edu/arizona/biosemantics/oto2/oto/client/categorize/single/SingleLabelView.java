@@ -54,6 +54,7 @@ import com.sencha.gxt.widget.core.client.menu.MenuItem;
 import com.sencha.gxt.widget.core.client.tips.ToolTip;
 import com.sencha.gxt.widget.core.client.toolbar.ToolBar;
 
+import edu.arizona.biosemantics.oto2.oto.client.common.Alerter;
 import edu.arizona.biosemantics.oto2.oto.client.common.dnd.TermDnd;
 import edu.arizona.biosemantics.oto2.oto.client.common.dnd.TermLabelDnd;
 import edu.arizona.biosemantics.oto2.oto.client.event.CategorizeCopyRemoveTermEvent;
@@ -583,16 +584,28 @@ public class SingleLabelView extends SimpleContainer {
 				}
 			}
 		};
+		//this will cause the exepection of CssFloatContainer problem
+		//at com.sencha.gxt.widget.core.client.container.CssFloatLayoutContainer.appendLine(CssFloatLayoutContainer.java:407)
+		/*
+		 * move to set collection method for lazy setting
+		 * 
 		double portalColumnWidth = 1.0 / portalColumnCount;
 		for(int i=0; i<portalColumnCount; i++) {
 			portalLayoutContainer.setColumnWidth(i, portalColumnWidth);
 		}
+		*/
 		portalLayoutContainer.getElement().getStyle().setBackgroundColor("white");
 		portalLayoutContainer.getContainer().setContextMenu(new TermsMenu());
 		return portalLayoutContainer;
 	}
 
 	private void setCollection(Collection collection) {
+		
+		double portalColumnWidth = 1.0 / portalColumnCount;
+		for(int i=0; i<portalColumnCount; i++) {
+			portalLayoutContainer.setColumnWidth(i, portalColumnWidth);
+		}
+		
 		this.collection = collection;
 		labelStore.clear();
 		
@@ -601,6 +614,14 @@ public class SingleLabelView extends SimpleContainer {
 			labelStore.add(label);
 		}
 		setCurrentLabel(collection.getLabels().get(0));
+		/*
+		Scheduler.get().scheduleDeferred(new ScheduledCommand() {
+			@Override
+			public void execute() {
+				((CssFloatLayoutContainer)portalLayoutContainer.getContainer()).forceLayout();
+			}
+		});
+		*/
 	}
 	
 	protected void collapseAll() {

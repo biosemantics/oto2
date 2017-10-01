@@ -81,10 +81,10 @@ public class MainTermPortlet extends Portlet {
 		this.portalLayoutContainer = portalLayoutContainer;
 		switch(mainTerm.getTermType()) {
 		case KNOWN_IN_GLOSSARY:
-			this.setHeading("<div style='color:#A0522D'>" + mainTerm.getTerm() + "</div>");
+			this.setHeading(SafeHtmlUtils.fromTrustedString("<div style='color:#A0522D'>" + mainTerm.getTerm() + "</div>"));
 			break;
 		case UNKNOWN:
-			this.setHeading("<div>" + mainTerm.getTerm() + "</div>");
+			this.setHeading(SafeHtmlUtils.fromTrustedString("<div>" + mainTerm.getTerm() + "</div>"));
 		default:
 			break;
 		

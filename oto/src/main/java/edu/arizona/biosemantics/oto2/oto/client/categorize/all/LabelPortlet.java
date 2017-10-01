@@ -27,6 +27,7 @@ import com.sencha.gxt.core.client.IdentityValueProvider;
 import com.sencha.gxt.core.client.dom.AutoScrollSupport;
 import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
 import com.sencha.gxt.core.client.util.Format;
+import com.sencha.gxt.core.shared.ExpandedHtmlSanitizer;
 import com.sencha.gxt.data.shared.SortDir;
 import com.sencha.gxt.data.shared.Store.StoreSortInfo;
 import com.sencha.gxt.data.shared.TreeStore;
@@ -443,12 +444,14 @@ public class LabelPortlet extends Portlet {
 			@Override
 			public void onSelect(SelectEvent event) {
 				if(!label.getDescription().trim().isEmpty()) {
-					MessageBox popUpMessageBox = new MessageBox("What is \""+ label.getName() +"\"?", "<textarea readonly style=\"width: 433px; height:100px\">" + label.getDescription() + "</textarea>");
+					MessageBox popUpMessageBox = new MessageBox(SafeHtmlUtils.fromString("What is \""+ label.getName() +"\"?"),
+							ExpandedHtmlSanitizer.sanitizeHtml("<textarea readonly style=\"width: 433px; height:100px\">" + label.getDescription() + "</textarea>"));
 					popUpMessageBox.setWidth("450");
 					popUpMessageBox.show();
 				}
 				else {
-					MessageBox popUpMessageBox = new MessageBox("Please input definition for \""+ label.getName() +"\".", "<textarea readonly style=\"width: 433px; height:100px\"> Please go to \"Setting->Category->Modify\" to input description </textarea>");
+					MessageBox popUpMessageBox = new MessageBox(SafeHtmlUtils.fromString("Please input definition for \""+ label.getName() +"\"."), 
+							ExpandedHtmlSanitizer.sanitizeHtml("<textarea readonly style=\"width: 433px; height:100px\"> Please go to \"Setting->Category->Modify\" to input description </textarea>"));
 					popUpMessageBox.setWidth("450");
 					popUpMessageBox.show();
 				}
@@ -618,16 +621,15 @@ public class LabelPortlet extends Portlet {
 		tree.expandAll();
 	}	
 	
-	@Override
 	public void setHeading(String text) {
 		if(label instanceof HighlightLabel)
-			setHeading("<div style='color: black'>" + text + "</div>");
+			super.setHeading(SafeHtmlUtils.fromTrustedString("<div style='color: black'>" + text + "</div>"));
 		else if(label instanceof TrashLabel)
-			setHeading("<div style='color: gray'>" 
-					+ text + "</div>");
+			super.setHeading(SafeHtmlUtils.fromTrustedString("<div style='color: gray'>" 
+					+ text + "</div>"));
 		else 
-			setHeading("<div style='font-weight: normal'>" 
-					+ text + "</div>");
+			super.setHeading(SafeHtmlUtils.fromTrustedString("<div style='font-weight: normal'>" 
+					+ text + "</div>"));
 	}
 
 }

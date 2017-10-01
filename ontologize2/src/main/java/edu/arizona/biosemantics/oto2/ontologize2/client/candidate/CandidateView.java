@@ -716,7 +716,7 @@ public class CandidateView extends SimpleContainer {
 				ModelController.getCollection().getSecret(), candidate, new AsyncCallback<List<CandidatePatternResult>>() {
 					@Override
 					public void onFailure(Throwable caught) {
-						Alerter.showAlert("Update candidate", "Updating candidate failed.", caught);
+						Alerter.showAlert("Update candidate", "Updating candidate failed."+caught.getMessage(), caught);
 						Alerter.stopLoading(box);
 					}
 					@Override
