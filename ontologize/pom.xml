@@ -9,7 +9,7 @@
 	<groupId>edu.arizona.biosemantics.oto2</groupId>
 	<artifactId>ontologize</artifactId>
 	<packaging>war</packaging>
-	<version>0.1.24-SNAPSHOT</version>
+	<version>0.1.25-SNAPSHOT</version>
 
 	<properties>
 		<gwtVersion>2.8.0</gwtVersion>
@@ -66,7 +66,7 @@
 		<dependency>
 		  <groupId>edu.arizona.biosemantics.common.ontology</groupId>
 		  <artifactId>search</artifactId>
-		  <version>0.0.27-SNAPSHOT</version>
+		  <version>0.0.28-SNAPSHOT</version>
 		  <!-- Not used! And it can cause conflicts in other projects because it uses owlapi3 where we use owlapi4 in other projects -->
 			<exclusions>
 				<exclusion>
@@ -236,12 +236,12 @@
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>18.0</version>
+			<version>22.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava-gwt</artifactId>
-			<version>18.0</version>
+			<version>22.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.gwt</groupId>
