@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.semanticweb.owlapi.apibinding.OWLManager;
@@ -186,7 +187,8 @@ public class OWLWriter {
 	}
 	
 	private String getAnnotation(OWLOntology owlOntology, OWLClass owlClass, OWLAnnotationProperty annotationProperty) throws Exception {
-		for (OWLAnnotation annotation : EntitySearcher.getAnnotations(owlClass, owlOntology, annotationProperty)) {
+		Set<OWLAnnotation> annotations = EntitySearcher.getAnnotations(owlClass, owlOntology, annotationProperty).collect(Collectors.toSet());
+		for (OWLAnnotation annotation : annotations) {
 			if (annotation.getValue() instanceof OWLLiteral) {
 				OWLLiteral val = (OWLLiteral) annotation.getValue();
 				//if (val.hasLang("en")) {

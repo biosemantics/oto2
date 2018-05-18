@@ -7,7 +7,7 @@
 	<groupId>edu.arizona.biosemantics.oto2</groupId>
 	<artifactId>ontologize2</artifactId>
 	<packaging>war</packaging>
-	<version>0.0.71-SNAPSHOT</version>
+	<version>0.0.72-SNAPSHOT</version>
 
 	<properties>
 		<gwtVersion>2.8.0</gwtVersion>
@@ -138,7 +138,7 @@
 		<dependency>
 			<groupId>net.sourceforge.owlapi</groupId>
 			<artifactId>owlapi-distribution</artifactId>
-			<version>4.2.8</version>
+			<version>5.1.2</version>
 		</dependency>
 		<dependency>
 			<groupId>edu.arizona.biosemantics</groupId>

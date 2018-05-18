@@ -2,6 +2,7 @@ package edu.arizona.biosemantics.oto2.ontologize2.server.owl;
 
 import java.util.LinkedList;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -100,7 +101,7 @@ public class OWLOntologyRetriever  {
 
 			// (2) rdfs:isDefinedBy
 			java.util.Collection<OWLAnnotation> annotations = EntitySearcher.getAnnotations(clazz, owlOntology, 
-					om.getOWLDataFactory().getRDFSIsDefinedBy());
+					om.getOWLDataFactory().getRDFSIsDefinedBy()).collect(Collectors.toSet());
 			for(OWLAnnotation annotation : annotations){
 				if(annotation.getValue() instanceof IRI){
 					IRI iri = (IRI)annotation.getValue();
@@ -116,7 +117,7 @@ public class OWLOntologyRetriever  {
 			}
 			
 			// (3) obo:IAO_0000412
-			annotations = EntitySearcher.getAnnotations(clazz, owlOntology);
+			annotations = EntitySearcher.getAnnotations(clazz, owlOntology).collect(Collectors.toSet());
 			for(OWLAnnotation annotation : annotations){
 				if(annotation.getValue() instanceof IRI){
 					if(annotation.getProperty().getIRI().equals(IRI.create("http://purl.obolibrary.org/obo/IAO_0000412"))) {
