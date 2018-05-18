@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.oto2.ontologize.server.persist.file;
+/*package edu.arizona.biosemantics.oto2.ontologize.server.persist.file;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -32,7 +32,7 @@ import edu.arizona.biosemantics.oto2.ontologize.shared.model.toontology.Synonym;
 
 public class OntologyFileDAOTest {
 
-/*	private static Collection collection;
+    private static Collection collection;
 	private static OntologyDAO dbDAO;
 	private static OntologyFileDAO ontologyFileDAO;
 	private static Ontology ontology;
@@ -170,5 +170,5 @@ public class OntologyFileDAOTest {
 		
 		ontologyFileDAO.insertClassSubmission(cs1);
 	}
-*/	
-}
+	
+}*/
