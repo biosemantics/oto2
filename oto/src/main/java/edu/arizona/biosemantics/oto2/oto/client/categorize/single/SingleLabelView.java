@@ -272,6 +272,7 @@ public class SingleLabelView extends SimpleContainer {
 			public void onSort(TermsSortEvent event) {
 				Label label = event.getLabel();
 				label.sortTerms();
+				needsRefresh = true; //Hong 7/8/18
 				refresh();
 			}
 

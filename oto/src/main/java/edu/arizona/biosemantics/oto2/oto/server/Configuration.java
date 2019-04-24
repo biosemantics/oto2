@@ -51,6 +51,7 @@ public class Configuration {
 	public static String otoClientUrl;
 	
 	public static String wordNetSource;
+	public static String glossariesDownloadDirectory;
 	
 	private static Properties properties;
 
@@ -79,6 +80,7 @@ public class Configuration {
 			
 			otoClientUrl = properties.getProperty("otoClientUrl");
 			wordNetSource = properties.getProperty("wordNetSource");
+			glossariesDownloadDirectory = properties.getProperty("glossariesDownloadDirectory");
 		} catch(Exception e) {
 			logger.error("Couldn't read configuration", e);
 		}

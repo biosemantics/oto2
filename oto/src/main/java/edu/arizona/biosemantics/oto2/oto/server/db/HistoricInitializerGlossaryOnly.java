@@ -1,5 +1,8 @@
 package edu.arizona.biosemantics.oto2.oto.server.db;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.ObjectInputStream;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -37,7 +40,7 @@ public class HistoricInitializerGlossaryOnly {
 		List<TermCategory> termCategories = new LinkedList<TermCategory>();
 		List<TermSynonym> termSynonyms = new LinkedList<TermSynonym>();
 		
-		try(OTOClient client = new OTOClient(Configuration.otoClientUrl)) {
+		/*try(OTOClient client = new OTOClient(Configuration.otoClientUrl)) {
 			client.open();
 			Future<GlossaryDownload> futureGlosaryDownload = client.getGlossaryDownload(collection.getType());
 			try {
@@ -47,8 +50,18 @@ public class HistoricInitializerGlossaryOnly {
 			} catch (InterruptedException | ExecutionException e) {
 				log(LogLevel.ERROR, "Couldn't download OTO glossary to initialize collection", e);
 			}
-		}
+		}*/
 		
+		try{
+		ObjectInputStream objectIn = new ObjectInputStream(new FileInputStream(Configuration.glossariesDownloadDirectory + File.separator +
+				"GlossaryDownload." + collection.getType() + ".ser"));
+		GlossaryDownload glossaryDownload = (GlossaryDownload) objectIn.readObject();
+		objectIn.close();
+		termCategories = glossaryDownload.getTermCategories();
+		termSynonyms = glossaryDownload.getTermSynonyms();
+		}catch(Exception e){
+			log(LogLevel.ERROR, "Couldn't download OTO "+collection.getType()+" glossary to initialize collection", e);
+		}
 		initializeLabeling(collection, termCategories);
 		initializeSynonym(collection, termSynonyms);
 	}
